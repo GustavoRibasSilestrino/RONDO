@@ -101,6 +101,19 @@
     if (m) item.insertAdjacentHTML("beforeend", renderMega(m));
   });
 
+  /* o painel começa na borda esquerda do item; se não couber à direita, é empurrado para dentro da tela */
+  const posicionar = (item) => {
+    const mega = item.querySelector(".mega");
+    if (!mega) return;
+    const largura = Math.min(700, innerWidth - 32);
+    const esquerda = item.getBoundingClientRect().left;
+    const ajustada = Math.max(16, Math.min(esquerda, innerWidth - largura - 16));
+    mega.style.setProperty("--mx", `${(ajustada - esquerda).toFixed(1)}px`);
+  };
+  document.querySelectorAll(".nav-item").forEach((item) => {
+    ["pointerenter", "focusin"].forEach((ev) => item.addEventListener(ev, () => posicionar(item)));
+  });
+
   /* clique em um link: vai ao momento certo, fecha o painel */
   const closeMega = () => {
     nav.classList.add("closing");

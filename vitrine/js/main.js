@@ -228,6 +228,35 @@ mic.addEventListener("click", () => {
 $$('input[name="when"]').forEach((r) => r.addEventListener("change", () => { if (!recTimer && secs > 0) stopRec(false); }));
 
 /* ---------- ferramentas ---------- */
+/* campos numéricos: duas setas próprias (segurar repete) no lugar do seletor do navegador */
+$$('.field input[type="number"]').forEach((input) => {
+  const wrap = document.createElement("span");
+  wrap.className = "num";
+  input.replaceWith(wrap);
+  wrap.appendChild(input);
+  const seta = (cls, rotulo, d) =>
+    `<button type="button" class="${cls}" aria-label="${rotulo}" tabindex="-1"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="${d}"/></svg></button>`;
+  wrap.insertAdjacentHTML(
+    "beforeend",
+    `<span class="num-btns">${seta("up", "Aumentar", "M2.5 7.5 6 4l3.5 3.5")}${seta("down", "Diminuir", "M2.5 4.5 6 8l3.5-3.5")}</span>`,
+  );
+  let atraso, repete;
+  const passo = (sobe) => {
+    if (sobe) input.stepUp(); else input.stepDown();
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+  const parar = () => { clearTimeout(atraso); clearInterval(repete); };
+  wrap.querySelectorAll("button").forEach((b) => {
+    b.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      const sobe = b.classList.contains("up");
+      passo(sobe);
+      atraso = setTimeout(() => { repete = setInterval(() => passo(sobe), 70); }, 380);
+    });
+    ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => b.addEventListener(ev, parar));
+  });
+});
+
 const num = (id) => parseFloat($(id).value) || 0;
 function calc1rm() {
   const carga = num("#carga"), reps = Math.max(1, num("#reps"));
