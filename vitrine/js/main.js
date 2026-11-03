@@ -26,24 +26,47 @@ $$(".reveal").forEach((el) => io.observe(el));
 /* ---------- títulos com eco: a cópia fantasma é o próprio texto ---------- */
 $$(".echo").forEach((el) => { el.dataset.echo = el.textContent.replace(/\s+/g, " ").trim(); });
 
-/* ---------- hero: você corre, o seu ontem vem logo atrás ---------- */
-const hero = $("#inicio"), lanesEl = $("#lanes"), laneYou = $("#laneYou"), laneGhost = $("#laneGhost");
-const lane = { target: 0.5, you: 0.12, ghost: 0.1, auto: true, visible: true };
+/* ---------- hero: pista com você e, logo atrás, o seu ontem ---------- */
+const hero = $("#inicio"), trackSvg = $("#track");
+const pathYou = $("#pathYou"), pathGhost = $("#pathGhost");
+const lenYou = pathYou.getTotalLength(), lenGhost = pathGhost.getTotalLength();
+const youDots = $$("#trailYou circle"), ghostDots = $$("#trailGhost circle");
+const SAMPLES = 240, VB_W = 560, VB_H = 330;
+const samples = Array.from({ length: SAMPLES }, (_, i) => pathYou.getPointAtLength((i / SAMPLES) * lenYou));
+const run = { you: 0.18, ghost: 0.06, chase: null, visible: true };   // posições na volta: 0 a 1
+const wrap1 = (v) => ((v % 1) + 1) % 1;
+const shortest = (a, b) => { const d = wrap1(a) - wrap1(b); return d > 0.5 ? d - 1 : d < -0.5 ? d + 1 : d; };   // menor caminho entre duas posições
+
+/* o mouse, perto da pista, chama o corredor para o ponto mais próximo dela */
 hero.addEventListener("pointermove", (e) => {
   if (e.pointerType === "touch") return;
-  const r = lanesEl.getBoundingClientRect();
-  lane.auto = false;
-  lane.target = clamp((e.clientX - r.left) / r.width, 0.02, 0.98);
+  const r = trackSvg.getBoundingClientRect();
+  const near = r.width && e.clientX > r.left - 160 && e.clientX < r.right + 160 && e.clientY > r.top - 160 && e.clientY < r.bottom + 160;
+  if (!near) { run.chase = null; return; }
+  const x = ((e.clientX - r.left) / r.width) * VB_W, y = ((e.clientY - r.top) / r.height) * VB_H;
+  let best = 0, bestD = Infinity;
+  samples.forEach((p, i) => { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bestD) { bestD = d; best = i; } });
+  run.chase = best / SAMPLES;
 });
-hero.addEventListener("pointerleave", () => { lane.auto = true; });
-new IntersectionObserver(([en]) => { lane.visible = en.isIntersecting; }).observe(hero);
-function paintLanes(t) {
-  if (lane.auto) lane.target = 0.5 + 0.4 * Math.sin(t / 2200);
-  lane.you += (lane.target - lane.you) * 0.07;
-  lane.ghost += (lane.you * 0.88 - lane.ghost) * 0.035;   // o ontem fica sempre cerca de 12% atrás
-  setVar(laneYou, "--x", lane.you.toFixed(4));
-  setVar(laneGhost, "--x", lane.ghost.toFixed(4));
+hero.addEventListener("pointerleave", () => { run.chase = null; });
+new IntersectionObserver(([en]) => { run.visible = en.isIntersecting; }).observe(hero);
+
+/* o corredor e o rastro de eco logo atrás dele */
+function place(dots, path, length, t) {
+  dots.forEach((c, k) => {
+    const p = path.getPointAtLength(wrap1(t - k * 0.0065) * length);
+    c.setAttribute("cx", p.x.toFixed(1));
+    c.setAttribute("cy", p.y.toFixed(1));
+  });
 }
+function paintRun(dt) {
+  if (run.chase === null) run.you = wrap1(run.you + 0.00183 * dt);                                   // corre sozinho: cerca de 9 s por volta
+  else run.you = wrap1(run.you + shortest(run.chase, run.you) * (1 - Math.pow(0.91, dt)));           // persegue o mouse pelo menor caminho
+  run.ghost = wrap1(run.ghost + shortest(run.you - 0.12, run.ghost) * (1 - Math.pow(0.96, dt)));    // o ontem fica cerca de 12% da volta atrás
+  place(youDots, pathYou, lenYou, run.you);
+  place(ghostDots, pathGhost, lenGhost, run.ghost);
+}
+paintRun(0);   // posição inicial (vale também para quem prefere menos movimento)
 
 /* ---------- um dia inteiro: a linha do tempo anda na horizontal conforme você rola ---------- */
 const pin = $("#dayPin"), track = $("#dayTrack"), clock = $("#dayClock"), dayBar = $("#dayBar"), barWrap = $("#dayBarWrap");
@@ -107,13 +130,11 @@ function loop(t) {
   setVar(rail, "--y2", railGhost.toFixed(4));
   setVar(root, "--skyo", (1 - 0.6 * p).toFixed(3));
 
-  if (lane.visible) paintLanes(t);
+  if (run.visible) paintRun(dt);
   dayUpdate();
   requestAnimationFrame(loop);
 }
 if (reduceMotion) {
-  setVar(laneYou, "--x", "0.66");
-  setVar(laneGhost, "--x", "0.58");
   dayUpdate();
   addEventListener("scroll", dayUpdate, { passive: true });
 } else {

@@ -1,7 +1,6 @@
 /* ===== Hero: o eco, a corrida e o rastro do logo ===== */
-@property --k { syntax: "<number>"; initial-value: 20; inherits: true; }
 @property --t { syntax: "<number>"; initial-value: 1; inherits: true; }
-@keyframes breathe { from { --k: 10; --t: .5; } to { --k: 40; --t: 2.2; } }
+@keyframes breathe { from { --t: .5; } to { --t: 2.2; } }
 .hero-in { animation: breathe 5.5s ease-in-out infinite alternate; }
 
 /* a palavra "ontem." deixa um rastro para a esquerda, como quem acabou de passar */
@@ -14,28 +13,26 @@
     calc(var(--t) * -.18em) 0 0 rgba(167, 139, 250, .08);
 }
 
-/* o símbolo da marca com o próprio rastro */
-.echo-mark { width: 100%; height: auto; color: #fff; }
-.echo-mark .g { color: var(--accent); transform: translateX(calc(var(--k) * var(--n) * -1px)); }
-.echo-mark .g1 { opacity: .42; } .echo-mark .g2 { opacity: .28; } .echo-mark .g3 { opacity: .17; }
-.echo-mark .g4 { opacity: .1; } .echo-mark .g5 { opacity: .05; }
-
-/* corrida: você na frente, o seu ontem um passo atrás (segue o mouse) */
-.lanes { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1.5rem 2.2rem; }
-.lane-set { display: grid; gap: 34px; padding-top: 14px; }
-.lane { --x: .2; position: relative; height: 1px; background: var(--line-2); }
-.lane::before {
-  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 7px; opacity: .8;
-  background: repeating-linear-gradient(90deg, var(--line-2) 0 1px, transparent 1px calc(100% / 24));
+/* pista de corrida: você nas raias de dentro, o seu ontem logo atrás (segue o mouse) */
+.hero-art { position: relative; }
+.track { width: 100%; height: auto; overflow: visible; }
+.track .ln, .track .start { fill: none; stroke: var(--line-2); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.track .ln.o { stroke: rgba(255, 255, 255, .3); }
+.track .start { stroke: rgba(255, 255, 255, .42); }
+.track .guide { fill: none; stroke: none; }
+.track .you circle { fill: var(--accent-2); opacity: var(--o, 1); }
+.track .you .head { fill: #fff; stroke: rgba(139, 92, 246, .45); stroke-width: 9; paint-order: stroke; }
+.track .ghost circle { fill: none; stroke: rgba(255, 255, 255, .8); stroke-width: 1.2; opacity: var(--o, 1); vector-effect: non-scaling-stroke; }
+.track .ghost .head { fill: var(--bg); }
+.delta {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 2.4rem; display: grid; place-items: center; pointer-events: none;
+  font-family: var(--font-display); font-weight: 200; font-size: clamp(2.8rem, 5.4vw, 4.8rem); letter-spacing: -.04em; line-height: 1; color: var(--accent-2);
 }
-.lane .fill { position: absolute; left: 0; top: 0; height: 1px; width: calc(var(--x) * 100%); background: var(--accent-2); }
-.lane-ghost .fill { background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .55) 0 4px, transparent 4px 8px); }
-.lane .dot { position: absolute; top: 0; left: calc(var(--x) * 100%); width: 13px; height: 13px; translate: -50% -50%; border-radius: 50%; }
-.lane-you .dot { background: #fff; box-shadow: 0 0 0 5px rgba(139, 92, 246, .32); }
-.lane-ghost .dot { background: var(--bg); border: 1px solid rgba(255, 255, 255, .7); }
-.lane .lab { position: absolute; left: 0; top: -22px; font-family: var(--font-mono); font-weight: 400; font-size: .64rem; letter-spacing: .16em; color: var(--ink-3); }
-.lane-you .lab { color: var(--accent-2); }
-.delta { font-family: var(--font-display); font-weight: 200; font-size: clamp(2.2rem, 4.4vw, 3.6rem); letter-spacing: -.04em; line-height: 1; color: var(--accent-2); }
+.key { display: flex; justify-content: flex-end; gap: 1.4rem; margin-top: .9rem; font-family: var(--font-mono); font-size: .64rem; letter-spacing: .16em; color: var(--ink-3); }
+.key span { display: inline-flex; align-items: center; gap: .5rem; }
+.key .k { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.key .k.you { background: #fff; box-shadow: 0 0 0 3px rgba(139, 92, 246, .4); }
+.key .k.ghost { border: 1px solid rgba(255, 255, 255, .8); }
 
 /* trilho na lateral: você e, logo atrás, o seu ontem (acompanham a rolagem) */
 .rail { position: fixed; right: 14px; top: 50%; height: min(44vh, 400px); width: 1px; translate: 0 -50%; z-index: 40; pointer-events: none; background: var(--line-2); }
@@ -107,7 +104,7 @@
 
 /* celular: nenhum texto abaixo de ~11 px (fica aqui no fim para vencer as regras acima na cascata) */
 @media (max-width: 520px) {
-  .lane .lab, .m-cmp, .days { font-size: .7rem; }
+  .m-cmp, .days, .key { font-size: .7rem; }
   .chip, .cmp-hint { font-size: .72rem; }
   .macros { font-size: .76rem; }
   .ring b small, .set .f i { font-size: .7rem; }

@@ -54,15 +54,19 @@
         <span class="ln">você de</span>
         <span class="ln trail">ontem.</span>
       </h1>
-      <div class="hero-art" aria-hidden="true">
-        <svg class="echo-mark" viewBox="-240 0 947 333" focusable="false">
-          <use class="g g5" style="--n:5" width="707" height="333" href="#yy"/>
-          <use class="g g4" style="--n:4" width="707" height="333" href="#yy"/>
-          <use class="g g3" style="--n:3" width="707" height="333" href="#yy"/>
-          <use class="g g2" style="--n:2" width="707" height="333" href="#yy"/>
-          <use class="g g1" style="--n:1" width="707" height="333" href="#yy"/>
-          <use width="707" height="333" href="#yy"/>
+      <div class="hero-art">
+        <svg class="track" id="track" viewBox="0 0 560 330" role="img" aria-label="Pista de corrida: você, na frente, e o seu ontem logo atrás">
+          <path class="ln o" d="M165 1H395A164 164 0 0 1 395 329H165A164 164 0 0 1 165 1Z"/>
+          <path class="ln" d="M165 37H395A128 128 0 0 1 395 293H165A128 128 0 0 1 165 37Z"/>
+          <path class="ln" d="M165 73H395A92 92 0 0 1 395 257H165A92 92 0 0 1 165 73Z"/>
+          <path class="start" d="M165 1V73"/>
+          <path id="pathGhost" class="guide" d="M165 19H395A146 146 0 0 1 395 311H165A146 146 0 0 1 165 19Z"/>
+          <path id="pathYou" class="guide" d="M165 55H395A110 110 0 0 1 395 275H165A110 110 0 0 1 165 55Z"/>
+          <g id="trailGhost" class="ghost"><circle r="7" class="head"/><circle r="6.2" class="t" style="--o:0.5"/><circle r="5.4" class="t" style="--o:0.36"/><circle r="4.6" class="t" style="--o:0.24"/><circle r="3.8" class="t" style="--o:0.15"/><circle r="3.1" class="t" style="--o:0.08"/></g>
+          <g id="trailYou" class="you"><circle r="7" class="head"/><circle r="6.2" class="t" style="--o:0.5"/><circle r="5.4" class="t" style="--o:0.36"/><circle r="4.6" class="t" style="--o:0.24"/><circle r="3.8" class="t" style="--o:0.15"/><circle r="3.1" class="t" style="--o:0.08"/></g>
         </svg>
+        <output class="delta">+12%</output>
+        <p class="key" aria-hidden="true"><span><i class="k you"></i>HOJE</span><span><i class="k ghost"></i>ONTEM</span></p>
       </div>
     </div>
 
@@ -74,13 +78,6 @@
       </div>
     </div>
 
-    <div class="lanes" id="lanes" aria-hidden="true">
-      <div class="lane-set">
-        <div class="lane lane-ghost" id="laneGhost"><i class="fill"></i><i class="dot"></i><b class="lab">ONTEM</b></div>
-        <div class="lane lane-you" id="laneYou"><i class="fill"></i><i class="dot"></i><b class="lab">HOJE</b></div>
-      </div>
-      <output class="delta">+12%</output>
-    </div>
   </div>
 </section>
 

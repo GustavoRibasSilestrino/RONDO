@@ -18,10 +18,10 @@
 
 /* ===== Hero: o seu ontem logo atrás ===== */
 .hero { position: relative; min-height: 100vh; min-height: 100svh; display: flex; padding: calc(var(--nav-h) + clamp(1rem, 4vh, 3rem)) 0 clamp(2rem, 5vh, 3.5rem); }
-.hero-in { width: 100%; display: grid; grid-template-rows: 1fr auto auto; gap: clamp(1.5rem, 4vh, 3rem); }
+.hero-in { width: 100%; display: grid; grid-template-rows: 1fr auto; gap: clamp(1.5rem, 4vh, 3rem); }
 .hero-top { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); align-items: center; gap: 2rem; }
 .hero-title .ln { display: block; }
-.hero-art { justify-self: end; width: min(100%, 520px); }
+.hero-art { justify-self: end; width: min(100%, 560px); }
 .hero-bottom { display: flex; justify-content: space-between; align-items: flex-end; gap: 2rem 3rem; flex-wrap: wrap; }
 .hero-bottom .lead { max-width: 42ch; }
 .hero-cta { display: flex; gap: .8rem; flex-wrap: wrap; }
@@ -69,14 +69,14 @@
     min-height: 100vh; min-height: 100svh;
     padding: calc(env(safe-area-inset-top, 0px) + 78px) 0 calc(env(safe-area-inset-bottom, 0px) + 1.4rem);
   }
-  .hero-in { grid-template-rows: 1fr auto auto; gap: 1.5rem; }
+  .hero-in { grid-template-rows: 1fr auto; gap: 1.5rem; }
   .hero-top { grid-template-columns: minmax(0, 1fr); gap: 1.3rem; align-content: center; }
-  .hero-art { justify-self: start; width: min(90%, 360px); }
+  .hero-art { justify-self: stretch; width: 100%; max-width: 420px; }
+  .delta { font-size: clamp(2.2rem, 11vw, 3.4rem); }
   .hero-bottom { flex-direction: column; align-items: stretch; gap: 1.3rem; }
   .hero-bottom .lead { max-width: none; font-size: .98rem; }
   .hero-cta { flex-direction: column; }
   .hero-cta .btn { width: 100%; padding-block: 1rem; }
-  .lanes { gap: 1rem 1.2rem; }
   .streak-wrap, .tools, .rank-grid, .pro-grid, .plans { grid-template-columns: minmax(0, 1fr); }
   .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .nav-links { display: none; }
