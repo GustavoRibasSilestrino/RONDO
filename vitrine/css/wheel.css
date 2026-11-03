@@ -3,9 +3,11 @@
 
 @media (max-width: 980px) {
   .nav { top: 12px; display: flex; justify-content: center; }
+  .nav::before { display: none; }
   .nav-in {
     width: auto; height: auto; margin: 0; padding: .3rem; gap: 0;
     border: 1px solid var(--line-2); border-radius: 99px;
+    background: rgba(5, 5, 7, .78); backdrop-filter: blur(14px) saturate(1.3);
   }
   .nav-in > .logo, .nav-in > .nav-links, .nav-in > .nav-end { display: none; }
   .nav-single {

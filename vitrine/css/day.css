@@ -1,0 +1,104 @@
+/* ===== Hero: o eco, a corrida e o rastro do logo ===== */
+@property --k { syntax: "<number>"; initial-value: 20; inherits: true; }
+@property --t { syntax: "<number>"; initial-value: 1; inherits: true; }
+@keyframes breathe { from { --k: 10; --t: .5; } to { --k: 40; --t: 2.2; } }
+.hero-in { animation: breathe 5.5s ease-in-out infinite alternate; }
+
+/* a palavra "ontem." deixa um rastro para a esquerda, como quem acabou de passar */
+.trail {
+  color: #a78bfa;
+  text-shadow:
+    calc(var(--t) * -.045em) 0 0 rgba(167, 139, 250, .5),
+    calc(var(--t) * -.09em) 0 0 rgba(167, 139, 250, .32),
+    calc(var(--t) * -.135em) 0 0 rgba(167, 139, 250, .18),
+    calc(var(--t) * -.18em) 0 0 rgba(167, 139, 250, .08);
+}
+
+/* o símbolo da marca com o próprio rastro */
+.echo-mark { width: 100%; height: auto; color: #fff; }
+.echo-mark .g { color: var(--accent); transform: translateX(calc(var(--k) * var(--n) * -1px)); }
+.echo-mark .g1 { opacity: .42; } .echo-mark .g2 { opacity: .28; } .echo-mark .g3 { opacity: .17; }
+.echo-mark .g4 { opacity: .1; } .echo-mark .g5 { opacity: .05; }
+
+/* corrida: você na frente, o seu ontem um passo atrás (segue o mouse) */
+.lanes { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1.5rem 2.2rem; }
+.lane-set { display: grid; gap: 34px; padding-top: 14px; }
+.lane { --x: .2; position: relative; height: 1px; background: var(--line-2); }
+.lane::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 7px; opacity: .8;
+  background: repeating-linear-gradient(90deg, var(--line-2) 0 1px, transparent 1px calc(100% / 24));
+}
+.lane .fill { position: absolute; left: 0; top: 0; height: 1px; width: calc(var(--x) * 100%); background: var(--accent-2); }
+.lane-ghost .fill { background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .55) 0 4px, transparent 4px 8px); }
+.lane .dot { position: absolute; top: 0; left: calc(var(--x) * 100%); width: 13px; height: 13px; translate: -50% -50%; border-radius: 50%; }
+.lane-you .dot { background: #fff; box-shadow: 0 0 0 5px rgba(139, 92, 246, .32); }
+.lane-ghost .dot { background: var(--bg); border: 1px solid rgba(255, 255, 255, .7); }
+.lane .lab { position: absolute; left: 0; top: -22px; font-family: var(--font-mono); font-weight: 400; font-size: .64rem; letter-spacing: .16em; color: var(--ink-3); }
+.lane-you .lab { color: var(--accent-2); }
+.delta { font-family: var(--font-display); font-weight: 200; font-size: clamp(2.2rem, 4.4vw, 3.6rem); letter-spacing: -.04em; line-height: 1; color: var(--accent-2); }
+
+/* trilho na lateral: você e, logo atrás, o seu ontem (acompanham a rolagem) */
+.rail { position: fixed; right: 14px; top: 50%; height: min(44vh, 400px); width: 1px; translate: 0 -50%; z-index: 40; pointer-events: none; background: var(--line-2); }
+.rail i { position: absolute; left: 50%; width: 9px; height: 9px; translate: -50% -50%; border-radius: 50%; }
+.rail-you { top: calc(var(--y1, 0) * 100%); background: var(--accent-2); }
+.rail-ghost { top: calc(var(--y2, 0) * 100%); border: 1px solid rgba(255, 255, 255, .55); background: var(--bg); }
+@media (max-width: 1200px) { .rail { display: none; } }
+
+/* ===== Um dia inteiro: linha do tempo que anda na horizontal enquanto você rola ===== */
+.day { --n: 7; position: relative; border-top: 1px solid var(--line); }
+.day-pin { height: calc(100vh + (var(--n) - 1) * 90vh); }
+.day-sticky {
+  position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: calc(var(--nav-h) + 1.2rem) 0 2rem;
+}
+.day-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; }
+.day-head h2 { max-width: 16ch; }
+.day-clock {
+  font-family: var(--font-display); font-weight: 200; font-size: clamp(3.4rem, 9vw, 8rem);
+  letter-spacing: -.05em; line-height: .86; font-variant-numeric: tabular-nums; color: var(--ink);
+}
+.day-viewport { overflow: hidden; align-self: center; width: 100%; }
+.day-track {
+  display: flex; gap: clamp(2rem, 6vw, 6rem); width: max-content; will-change: transform;
+  padding-left: calc(max(0px, (100vw - (var(--maxw) + var(--gutter) * 2)) / 2) + var(--gutter));
+  padding-right: var(--gutter);
+}
+.moment {
+  flex: none; width: min(86vw, 980px); display: grid; grid-template-columns: minmax(0, 1fr) 300px;
+  gap: clamp(1.5rem, 4vw, 4rem); align-items: center; opacity: .22; transition: opacity .5s var(--ease);
+}
+.moment.on { opacity: 1; }
+.moment h3 { font-family: var(--font-display); font-weight: 200; font-size: clamp(2.6rem, 5.6vw, 5rem); letter-spacing: -.045em; line-height: 1; }
+.m-text p { color: var(--ink-2); margin-top: 1.2rem; max-width: 36ch; }
+
+.m-ui {
+  width: 300px; display: grid; gap: .8rem; padding: 1.1rem; align-content: start;
+  border: 1px solid var(--line-2); border-radius: var(--r-lg); background: rgba(8, 6, 13, .72);
+}
+.m-ui h4 { font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; letter-spacing: -.03em; line-height: 1.15; }
+.m-ui small, .s-sub { color: var(--ink-2); font-size: .74rem; }
+.m-cmp {
+  display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; padding-top: .8rem; margin-top: .1rem;
+  border-top: 1px dashed var(--line-2); font-family: var(--font-mono); font-size: .64rem; letter-spacing: .06em; color: var(--ink-3);
+}
+.m-cmp b { display: block; margin-top: .15rem; font-family: var(--font-display); font-weight: 400; font-size: .98rem; letter-spacing: -.01em; color: var(--ink-2); }
+.m-cmp span + span { color: var(--accent-2); }
+.m-cmp span + span b { color: #fff; }
+
+.day-foot { margin-top: 1.4rem; }
+.day-bar { position: relative; height: 1px; background: var(--line-2); }
+.day-bar .fill { position: absolute; inset: 0; background: var(--accent-2); transform-origin: left; transform: scaleX(0); }
+.day-bar .tick { position: absolute; top: -4px; width: 1px; height: 9px; background: var(--line-2); }
+
+@media (max-width: 980px) {
+  .day-pin { height: auto; }
+  .day-sticky { position: static; height: auto; overflow: visible; display: block; padding-block: clamp(4.5rem, 12vw, 6rem) 0; }
+  .day-head { flex-direction: column; align-items: flex-start; margin-bottom: 2.6rem; }
+  .day-clock, .day-foot { display: none; }
+  .day-viewport { overflow: visible; }
+  .day-track { display: grid; width: auto; gap: 3.6rem; transform: none !important; padding-inline: var(--gutter); }
+  .moment { width: 100%; grid-template-columns: minmax(0, 1fr); gap: 1.6rem; opacity: 1; }
+  .moment::before { content: attr(data-time); font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; color: var(--accent-2); }
+  .m-ui { width: 100%; max-width: 360px; }
+}

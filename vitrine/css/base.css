@@ -2,10 +2,10 @@
 :root {
   --bg: #050507;
   --bg-2: #0b0910;
-  --card: rgba(255, 255, 255, .028);
-  --card-2: rgba(255, 255, 255, .055);
+  --card: rgba(255, 255, 255, .025);
+  --card-2: rgba(255, 255, 255, .05);
   --line: rgba(255, 255, 255, .08);
-  --line-2: rgba(255, 255, 255, .15);
+  --line-2: rgba(255, 255, 255, .16);
   --ink: #f1eefb;
   --ink-2: #a09bb5;
   --ink-3: #6a6485;
@@ -19,29 +19,25 @@
   --font-body: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  --r-sm: 10px;
-  --r-md: 16px;
-  --r-lg: 22px;
+  /* cantos quase retos: uma linguagem de instrumento, não de app "fofo" */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
   --ease: cubic-bezier(.2, .8, .2, 1);
 
-  /* grade da página: uma moldura central, mesma largura e margens em todas as seções */
-  --frame: 1250px;
+  /* grade da página: mesma largura e mesmas margens em todas as seções */
+  --maxw: 1320px;
   --gutter: clamp(1.25rem, 4vw, 3.5rem);
   --nav-h: 68px;
+
+  /* eco: o "ontem" que fica para trás quando você se move (preenchidos por js/main.js) */
+  --ga: 0;
+  --gy: 0;
 }
 
 /* ===== Reset ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html {
-  scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 24px);
-  /* degradê nas bordas da página, fora da moldura central */
-  background:
-    radial-gradient(900px 640px at 100% 0%, rgba(124, 58, 237, .30), transparent 65%),
-    radial-gradient(780px 600px at 0% 34%, rgba(76, 29, 149, .30), transparent 62%),
-    radial-gradient(900px 600px at 100% 88%, rgba(76, 29, 149, .22), transparent 65%),
-    var(--bg);
-  background-attachment: fixed;
-}
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 24px); background: var(--bg); }
 body {
   font-family: var(--font-body); font-weight: 300;
   background: transparent; color: var(--ink);
@@ -53,11 +49,19 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 input, select { font: inherit; color: inherit; }
 ul { list-style: none; }
 img, svg { display: block; max-width: 100%; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+/* horizonte: um degradê fixo no pé da tela que apaga aos poucos, como o dia terminando */
+.sky {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: var(--skyo, 1);
+  background:
+    radial-gradient(120% 55% at 50% 112%, rgba(109, 40, 217, .34), transparent 62%),
+    radial-gradient(55% 38% at 0% 0%, rgba(76, 29, 149, .16), transparent 70%);
+}
 
 /* grão sutil sobre toda a página */
 body::before {
-  content: ""; position: fixed; inset: 0; z-index: 100; pointer-events: none; opacity: .045;
+  content: ""; position: fixed; inset: 0; z-index: 100; pointer-events: none; opacity: .04;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -65,18 +69,27 @@ body::before {
 h1, h2, h3, h4, h5, h6 { font-weight: 400; }
 b, strong { font-weight: 500; }
 .display { font-family: var(--font-display); font-weight: 300; letter-spacing: -.035em; line-height: 1.04; }
-h1.display { font-size: clamp(2.9rem, 6.2vw, 5.4rem); }
-h2.display { font-size: clamp(2rem, 3.8vw, 3.3rem); }
+h1.display { font-size: clamp(3.2rem, 9vw, 8.4rem); font-weight: 200; letter-spacing: -.05em; line-height: .96; }
+h2.display { font-size: clamp(2rem, 4.2vw, 3.7rem); }
 .mono { font-family: var(--font-mono); }
 .lead { color: var(--ink-2); font-size: clamp(1rem, 1.35vw, 1.15rem); font-weight: 300; max-width: 52ch; }
 .accent { color: #a78bfa; }
 .grad { color: #a78bfa; }
 
+/* o eco dos títulos: ao rolar, uma cópia fantasma fica para trás e some quando você para */
+.echo { position: relative; isolation: isolate; }
+.echo::before, .echo::after {
+  content: attr(data-echo); position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  color: var(--accent-2); font: inherit; letter-spacing: inherit; line-height: inherit; text-align: inherit;
+}
+.echo::before { opacity: calc(var(--ga) * .42); translate: 0 calc(var(--gy) * 1px); }
+.echo::after { opacity: calc(var(--ga) * .2); translate: 0 calc(var(--gy) * 2.1px); }
+
 /* ===== Botões ===== */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: .6rem;
-  padding: .9rem 1.6rem; border-radius: 14px;
-  font-weight: 500; font-size: .95rem;
+  padding: .9rem 1.5rem; border-radius: 8px;
+  font-weight: 500; font-size: .92rem; letter-spacing: .005em;
   transition: transform .25s var(--ease), background .25s, box-shadow .25s;
   white-space: nowrap;
 }
@@ -85,17 +98,19 @@ h2.display { font-size: clamp(2rem, 3.8vw, 3.3rem); }
   background: linear-gradient(135deg, #6d28d9, #9d78fb); color: #fff;
   box-shadow: 0 14px 34px -16px rgba(139, 92, 246, .85), inset 0 1px 0 rgba(255, 255, 255, .22);
 }
-.btn-ghost { border: 1px solid var(--line-2); background: rgba(255, 255, 255, .025); }
-.btn-ghost:hover { background: rgba(255, 255, 255, .07); }
-.btn-sm { padding: .6rem 1.1rem; font-size: .85rem; border-radius: 12px; }
+.btn-ghost { border: 1px solid var(--line-2); background: rgba(255, 255, 255, .02); }
+.btn-ghost:hover { background: rgba(255, 255, 255, .06); }
+.btn-sm { padding: .55rem 1rem; font-size: .84rem; border-radius: 6px; }
 .btn svg { width: 16px; height: 16px; }
+.btn .arrow { transition: translate .25s var(--ease); }
+.btn:hover .arrow { translate: 4px 0; }
 
 /* ===== Utilitários ===== */
-.wrap { width: 100%; padding-inline: var(--gutter); }
+.wrap { width: 100%; max-width: calc(var(--maxw) + var(--gutter) * 2); margin-inline: auto; padding-inline: var(--gutter); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .chip {
-  display: inline-block; font-family: var(--font-mono); font-size: .7rem; font-weight: 400;
-  padding: .3rem .65rem; border-radius: 99px;
+  display: inline-block; font-family: var(--font-mono); font-size: .68rem; font-weight: 400;
+  padding: .28rem .6rem; border-radius: 4px;
   background: rgba(139, 92, 246, .12); color: var(--accent-2); letter-spacing: .04em;
 }
 .chip.good { background: rgba(61, 220, 151, .12); color: var(--good); }
