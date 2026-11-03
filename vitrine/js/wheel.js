@@ -1,19 +1,20 @@
 /* Cabeçalho do celular: um único item com o nome da seção atual.
-   Ao tocar, abre uma roda com as outras seções: arraste para girar, toque para ir. */
+   Ao tocar, abre no pé da tela uma roda com as outras seções: deslize para o lado para girar,
+   toque em um ícone para abrir a seção na hora. */
 (() => {
   const S = window.YY_SECTIONS;
   const single = document.getElementById("navSingle");
   const cur = document.getElementById("navCur");
   const overlay = document.getElementById("wheel");
+  const sheet = document.getElementById("wheelSheet");
   const ring = document.getElementById("wheelRing");
   const label = document.getElementById("wheelLabel");
-  const go = document.getElementById("wheelGo");
   const closeBtn = document.getElementById("wheelClose");
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   let current = 0;   // índice da seção que está na tela
   let items = [];    // seções mostradas na roda: todas menos a atual
-  let step = 40;     // graus entre dois itens
+  let step = 36;     // graus entre dois itens
   let rot = 0;       // giro da roda, em graus (contínuo, sem voltar a zero)
   let active = -1;   // item parado no topo
   let drag = null;
@@ -94,57 +95,42 @@
 
   single.addEventListener("click", () => (overlay.hidden ? open() : close()));
   closeBtn.addEventListener("click", () => close());
-  go.addEventListener("click", () => goTo(items[active].s));
   overlay.addEventListener("click", (e) => {
-    if (e.target !== overlay) return;
-    if (moved) { moved = false; return; }
+    if (e.target !== overlay) return;   // só o fundo fecha; a área da roda não
     close();
   });
 
-  /* ---------- arrastar para girar ---------- */
-  const angleOf = (e) => {
-    const r = ring.getBoundingClientRect();
-    return (Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180) / Math.PI;
-  };
-  ring.addEventListener("pointerdown", (e) => {
-    if (e.target.closest(".wheel-go")) return;
-    const a = angleOf(e);
-    drag = { r0: rot, last: a, acc: 0, x: e.clientX, y: e.clientY };
+  /* ---------- deslizar para girar ---------- */
+  sheet.addEventListener("pointerdown", (e) => {
+    const R = ring.offsetWidth / 2;
+    drag = { r0: rot, x: e.clientX, k: 180 / (Math.PI * R) };   // 1 px de deslize = 1 px ao longo do arco
     moved = false;
+    sheet.classList.add("dragging");
     ring.classList.add("dragging");
   });
   addEventListener("pointermove", (e) => {
     if (!drag) return;
-    const a = angleOf(e);
-    let d = a - drag.last;
-    if (d > 180) d -= 360;
-    if (d < -180) d += 360;
-    drag.acc += d;
-    drag.last = a;
-    if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 6) moved = true;
-    if (moved) setRot(drag.r0 + drag.acc);
+    const dx = e.clientX - drag.x;
+    if (Math.abs(dx) > 6) moved = true;
+    if (moved) setRot(drag.r0 + dx * drag.k);
   });
   const end = () => {
     if (!drag) return;
     drag = null;
+    sheet.classList.remove("dragging");
     ring.classList.remove("dragging");
     if (moved) snap();
   };
   addEventListener("pointerup", end);
   addEventListener("pointercancel", end);
 
-  /* ---------- tocar em um item: gira até o topo e vai ---------- */
+  /* ---------- tocar em um ícone: abre direto a seção ---------- */
   ring.addEventListener("click", (e) => {
     const a = e.target.closest(".wheel-item");
     if (!a) return;
     e.preventDefault();
     if (moved) { moved = false; return; }
-    const k = +a.dataset.k;
-    let target = -k * step;
-    while (target - rot > 180) target -= 360;
-    while (target - rot < -180) target += 360;
-    setRot(target);
-    setTimeout(() => goTo(items[k].s), reduce ? 0 : 380);
+    goTo(items[+a.dataset.k].s);   // sem confirmação: tocou, abriu
   });
 
   /* ---------- teclado ---------- */
@@ -153,6 +139,7 @@
     if (e.key === "Escape") close();
     else if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); setRot(rot - step); }
     else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); setRot(rot + step); }
+    else if (e.key === "Enter" && !e.target.closest("a, button")) goTo(items[active].s);
   });
 
   /* ao voltar para a tela larga, a roda não faz sentido */

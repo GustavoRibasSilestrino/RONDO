@@ -182,15 +182,15 @@
 .fine { text-align: center; color: var(--ink-3); font-size: .8rem; margin-top: 1.6rem; }
 
 /* ===== FAQ ===== */
-.faq details { border-bottom: 1px solid var(--line); padding: 1.5rem 0; }
+.faq details { border-bottom: 1px solid var(--line); }
 .faq summary {
-  list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 1rem; align-items: center;
+  list-style: none; cursor: pointer; display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1.45rem 0;
   font-family: var(--font-display); font-size: 1.3rem; letter-spacing: -.025em; font-weight: 400;
 }
 .faq summary::-webkit-details-marker { display: none; }
 .faq summary::after { content: "+"; font-size: 1.8rem; color: var(--accent); transition: rotate .3s var(--ease); line-height: 1; }
 .faq details[open] summary::after { rotate: 45deg; }
-.faq details p { margin-top: .9rem; color: var(--ink-2); max-width: 62ch; }
+.faq details p { margin: -.3rem 0 0; padding-bottom: 1.45rem; color: var(--ink-2); max-width: 62ch; }
 
 /* ===== Formulário final ===== */
 .signup { display: flex; gap: .6rem; max-width: 480px; margin-inline: auto; padding: .4rem; border-radius: 12px; background: rgba(0, 0, 0, .35); border: 1px solid var(--line-2); }
@@ -247,3 +247,29 @@
 .themes { display: flex; flex-wrap: wrap; gap: .4rem; }
 .themes span { font-size: .75rem; padding: .3rem .7rem; border-radius: 4px; border: 1px solid var(--line-2); color: var(--ink-2); }
 @media (max-width: 980px) { .recado-grid { grid-template-columns: 1fr; } }
+
+/* ===== Celular: cartões e alvos de toque proporcionais ===== */
+@media (max-width: 520px) {
+  .tool, .panel, .pro, .plan, .recorder, .mini, .streak-board { padding: 1.35rem; }
+  .step { padding: 1.1rem; }
+  .cta-final { padding: 3rem 1.25rem; }
+  .recorder { gap: 1.4rem; }
+  .rec-q h3 { font-size: 1.6rem; }
+  .tool h3, .panel h3 { font-size: 1.45rem; }
+  .podium { height: 180px; margin-block: 1.4rem 1rem; }
+  .streak-count b { font-size: 3.6rem; }
+  .streak-board .heat { gap: 3px; }
+  .price { font-size: 2.6rem; }
+  .faq summary { font-size: 1.12rem; padding-block: 1.15rem; }
+  .faq details p { padding-bottom: 1.15rem; }
+  .result b { font-size: 2.1rem; }
+  .wave.big { height: 96px; }
+  .mic.lg { width: 72px; height: 72px; }
+}
+@media (pointer: coarse) {
+  .ok { width: 36px; height: 36px; }
+  .set { grid-template-columns: 18px 1fr 1fr 36px; }
+  .when span { padding: .6rem 1rem; }
+  .field input, .field select { padding-block: .9rem; }
+}
+
