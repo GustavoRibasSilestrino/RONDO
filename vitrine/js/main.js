@@ -74,6 +74,7 @@ function buildWave(el, n) {
 }
 buildWave($("#miniWave"), 26);
 buildWave($("#wave"), 54);
+buildWave($("#heroWave"), 22);
 
 /* ---------- gravador de recado (simulação, sem acessar o microfone) ---------- */
 const questions = [

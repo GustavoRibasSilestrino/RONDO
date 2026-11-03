@@ -1,0 +1,89 @@
+/* ===== Cabeçalho do celular: um item só, no meio, e a roda de seções ===== */
+.nav-single { display: none; }
+
+@media (max-width: 980px) {
+  .nav { top: 12px; display: flex; justify-content: center; }
+  .nav-in {
+    width: auto; height: auto; margin: 0; padding: .3rem; gap: 0;
+    border: 1px solid var(--line-2); border-radius: 99px;
+  }
+  .nav-in > .logo, .nav-in > .nav-links, .nav-in > .nav-end { display: none; }
+  .nav-single {
+    display: flex; align-items: center; gap: .75rem; height: 46px; padding: 0 1rem 0 1rem;
+    border-radius: 99px; font-weight: 400; font-size: .92rem; color: var(--ink);
+  }
+}
+.nav-single .mark { display: grid; place-items: center; color: #fff; }
+.nav-single .mark svg { height: 15px; width: auto; }
+.nav-single .cur { min-width: 5.4rem; text-align: left; }
+.nav-single .chev { width: 16px; height: 16px; color: var(--ink-2); transition: rotate .3s var(--ease); }
+.nav-single[aria-expanded="true"] .chev { rotate: 180deg; }
+
+/* ===== A roda ===== */
+.wheel-overlay {
+  position: fixed; inset: 0; z-index: 80; display: grid; place-items: center;
+  background: linear-gradient(180deg, #180c36, #050507 70%);
+  opacity: 0; transition: opacity .3s var(--ease);
+  overscroll-behavior: contain; touch-action: none;
+}
+.wheel-overlay[hidden] { display: none; }
+.wheel-overlay.open { opacity: 1; }
+@media (min-width: 981px) { .wheel-overlay { display: none !important; } }
+
+.wheel {
+  --size: min(88vw, 360px); --r: calc(var(--size) * .39); --rot: 0deg;
+  position: relative; width: var(--size); aspect-ratio: 1; border-radius: 50%;
+  scale: .84; transition: scale .45s var(--ease);
+  cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
+}
+.wheel-overlay.open .wheel { scale: 1; }
+.wheel.dragging { cursor: grabbing; }
+.wheel::before {
+  content: ""; position: absolute; inset: calc(50% - var(--r)); border-radius: 50%; border: 1px solid var(--line-2);
+}
+/* marca do topo: o item que fica ali é o escolhido */
+.wheel::after {
+  content: ""; position: absolute; left: 50%; top: calc(50% - var(--r) - 50px);
+  width: 1px; height: 16px; translate: -50% 0; background: var(--accent-2);
+}
+
+.wheel-item {
+  --a: calc(var(--base) + var(--rot));
+  position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px;
+  display: grid; place-items: center; border-radius: 50%; color: var(--ink-2);
+  background: rgba(14, 10, 26, .92); border: 1px solid var(--line-2);
+  transform: rotate(var(--a)) translateY(calc(var(--r) * -1)) rotate(calc(var(--a) * -1));
+  transition: transform .45s var(--ease), background .25s, color .25s, border-color .25s, scale .25s;
+}
+.wheel.dragging .wheel-item { transition: background .25s, color .25s, border-color .25s, scale .25s; }
+.wheel-item svg { width: 22px; height: 22px; }
+.wheel-item.active {
+  scale: 1.18; color: #fff; border-color: transparent;
+  background: linear-gradient(135deg, #6d28d9, #9d78fb);
+}
+
+.wheel-center {
+  position: absolute; inset: 24%; display: grid; place-content: center; justify-items: center; gap: .5rem; text-align: center;
+}
+.wheel-center small { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .16em; color: var(--ink-3); }
+.wheel-center b {
+  font-family: var(--font-display); font-weight: 300; font-size: 1.55rem; letter-spacing: -.035em; line-height: 1.05;
+}
+.wheel-go {
+  margin-top: .3rem; padding: .45rem 1.1rem; border-radius: 99px; font-size: .8rem; font-weight: 500;
+  border: 1px solid var(--line-2); color: var(--ink); background: rgba(255, 255, 255, .05);
+}
+.wheel-hint {
+  position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 5.4rem);
+  text-align: center; font-size: .78rem; color: var(--ink-3);
+}
+.wheel-close {
+  position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 1.6rem); translate: -50% 0;
+  width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+  border: 1px solid var(--line-2); background: rgba(255, 255, 255, .04);
+}
+.wheel-close svg { width: 20px; height: 20px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel, .wheel-item, .wheel-overlay { transition: none; }
+}
