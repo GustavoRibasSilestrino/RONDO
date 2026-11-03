@@ -71,6 +71,10 @@ b, strong { font-weight: 500; }
 .display { font-family: var(--font-display); font-weight: 300; letter-spacing: -.035em; line-height: 1.04; }
 h1.display { font-size: clamp(3.2rem, 9vw, 8.4rem); font-weight: 200; letter-spacing: -.05em; line-height: .96; }
 h2.display { font-size: clamp(2rem, 4.2vw, 3.7rem); }
+@media (max-width: 520px) {
+  h1.display { font-size: clamp(2.6rem, 13.6vw, 3.8rem); }   /* acompanha a largura do celular */
+  h2.display { font-size: clamp(1.8rem, 8.2vw, 2.3rem); }
+}
 .mono { font-family: var(--font-mono); }
 .lead { color: var(--ink-2); font-size: clamp(1rem, 1.35vw, 1.15rem); font-weight: 300; max-width: 52ch; }
 .accent { color: #a78bfa; }

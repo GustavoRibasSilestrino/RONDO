@@ -89,10 +89,13 @@ window.goMoment = (name) => {
 
 /* ---------- laço de animação: eco da rolagem, trilho lateral, horizonte, corrida e o dia ---------- */
 const rail = $("#rail");
-let lastY = scrollY, vel = 0, railYou = 0, railGhost = 0;
+let lastY = scrollY, lastT = 0, vel = 0, railYou = 0, railGhost = 0;
 function loop(t) {
   const y = scrollY;
-  vel += ((y - lastY) - vel) * 0.18;
+  // velocidade em px por quadro de 60 Hz; o decaimento depende do tempo, não do número de quadros
+  const dt = lastT ? clamp((t - lastT) / 16.667, 0.5, 60) : 1;
+  lastT = t;
+  vel += ((y - lastY) / dt - vel) * (1 - Math.pow(0.82, dt));
   lastY = y;
   setVar(root, "--ga", Math.min(Math.abs(vel) / 26, 1).toFixed(3));
   setVar(root, "--gy", clamp(vel * 1.4, -26, 26).toFixed(1));

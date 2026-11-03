@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Yesteryou · Compita com quem você foi ontem</title>
 <meta name="description" content="Treino, dieta, constância e comunidade em um só app, com profissionais verificados e recados de voz para o seu eu do futuro.">
 <meta name="theme-color" content="#050507">
@@ -479,15 +479,12 @@
 </footer>
 
 <div class="wheel-overlay" id="wheel" role="dialog" aria-modal="true" aria-label="Navegar pelas seções" hidden>
-  <div class="wheel" id="wheelRing">
-    <div class="wheel-center">
-      <small>IR PARA</small>
-      <b id="wheelLabel">Recursos</b>
-      <button class="wheel-go" id="wheelGo" type="button">Abrir</button>
-    </div>
-  </div>
-  <p class="wheel-hint">Arraste para girar</p>
   <button class="wheel-close" id="wheelClose" type="button" aria-label="Fechar menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <div class="wheel-sheet" id="wheelSheet">
+    <div class="wheel-center"><b id="wheelLabel">Recursos</b></div>
+    <div class="wheel" id="wheelRing"></div>
+    <p class="wheel-hint">Deslize para girar · toque para abrir</p>
+  </div>
 </div>
 
 <script src="js/sections.js"></script>

@@ -100,5 +100,17 @@
   .day-track { display: grid; width: auto; gap: 3.6rem; transform: none !important; padding-inline: var(--gutter); }
   .moment { width: 100%; grid-template-columns: minmax(0, 1fr); gap: 1.6rem; opacity: 1; }
   .moment::before { content: attr(data-time); font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; color: var(--accent-2); }
-  .m-ui { width: 100%; max-width: 360px; }
+  .m-ui { width: 100%; max-width: 400px; padding: 1rem; }
+  .moment h3 { font-size: clamp(2.4rem, 12vw, 3.4rem); }
+  .day-track { gap: 3rem; }
+}
+
+/* celular: nenhum texto abaixo de ~11 px (fica aqui no fim para vencer as regras acima na cascata) */
+@media (max-width: 520px) {
+  .lane .lab, .m-cmp, .days { font-size: .7rem; }
+  .chip, .cmp-hint { font-size: .72rem; }
+  .macros { font-size: .76rem; }
+  .ring b small, .set .f i { font-size: .7rem; }
+  .seal { font-size: .76rem; }
+  .set span:first-child { font-size: .74rem; }
 }

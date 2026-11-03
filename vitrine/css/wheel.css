@@ -1,8 +1,8 @@
-/* ===== Cabeçalho do celular: um item só, no meio, e a roda de seções ===== */
+/* ===== Cabeçalho do celular: um item só, no meio ===== */
 .nav-single { display: none; }
 
 @media (max-width: 980px) {
-  .nav { top: 12px; display: flex; justify-content: center; }
+  .nav { top: calc(env(safe-area-inset-top, 0px) + 12px); display: flex; justify-content: center; }
   .nav::before { display: none; }
   .nav-in {
     width: auto; height: auto; margin: 0; padding: .3rem; gap: 0;
@@ -11,7 +11,7 @@
   }
   .nav-in > .logo, .nav-in > .nav-links, .nav-in > .nav-end { display: none; }
   .nav-single {
-    display: flex; align-items: center; gap: .75rem; height: 46px; padding: 0 1rem 0 1rem;
+    display: flex; align-items: center; gap: .75rem; height: 46px; padding: 0 1rem;
     border-radius: 99px; font-weight: 400; font-size: .92rem; color: var(--ink);
   }
 }
@@ -21,10 +21,15 @@
 .nav-single .chev { width: 16px; height: 16px; color: var(--ink-2); transition: rotate .3s var(--ease); }
 .nav-single[aria-expanded="true"] .chev { rotate: 180deg; }
 
-/* ===== A roda ===== */
+/* ===== A roda: um arco no pé da tela, ao alcance do polegar =====
+   A roda é um círculo cujo centro fica perto da borda de baixo; só a metade de cima aparece.
+   Deslize para o lado para girar: o item que passa pelo topo é o escolhido. */
 .wheel-overlay {
-  position: fixed; inset: 0; z-index: 80; display: grid; place-items: center;
-  background: linear-gradient(180deg, #180c36, #050507 70%);
+  --R: clamp(108px, 34vw, 150px);                              /* raio da roda */
+  --lift: calc(env(safe-area-inset-bottom, 0px) + 24px);       /* altura do centro em relação à borda de baixo */
+  position: fixed; inset: 0; z-index: 80;
+  background: linear-gradient(180deg, rgba(5, 5, 7, .42) 0%, rgba(10, 5, 24, .9) 52%, #0a0518 100%);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   opacity: 0; transition: opacity .3s var(--ease);
   overscroll-behavior: contain; touch-action: none;
 }
@@ -32,29 +37,34 @@
 .wheel-overlay.open { opacity: 1; }
 @media (min-width: 981px) { .wheel-overlay { display: none !important; } }
 
-.wheel {
-  --size: min(88vw, 360px); --r: calc(var(--size) * .39); --rot: 0deg;
-  position: relative; width: var(--size); aspect-ratio: 1; border-radius: 50%;
-  scale: .84; transition: scale .45s var(--ease);
+.wheel-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: calc(var(--R) + var(--lift) + 200px);
+  translate: 0 36px; transition: translate .5s var(--ease);
   cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
 }
-.wheel-overlay.open .wheel { scale: 1; }
-.wheel.dragging { cursor: grabbing; }
-.wheel::before {
-  content: ""; position: absolute; inset: calc(50% - var(--r)); border-radius: 50%; border: 1px solid var(--line-2);
+.wheel-overlay.open .wheel-sheet { translate: 0 0; }
+.wheel-sheet.dragging { cursor: grabbing; }
+
+.wheel {
+  --rot: 0deg;
+  position: absolute; left: 50%; bottom: calc(var(--lift) - var(--R)); translate: -50% 0;
+  width: calc(var(--R) * 2); height: calc(var(--R) * 2); border-radius: 50%;
+  background: radial-gradient(circle, rgba(109, 40, 217, .2), transparent 64%);
 }
+.wheel::before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--line-2); }
 /* marca do topo: o item que fica ali é o escolhido */
 .wheel::after {
-  content: ""; position: absolute; left: 50%; top: calc(50% - var(--r) - 50px);
-  width: 1px; height: 16px; translate: -50% 0; background: var(--accent-2);
+  content: ""; position: absolute; left: 50%; top: -50px; width: 1px; height: 16px; translate: -50% 0;
+  background: var(--accent-2);
 }
 
 .wheel-item {
   --a: calc(var(--base) + var(--rot));
   position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px;
   display: grid; place-items: center; border-radius: 50%; color: var(--ink-2);
-  background: rgba(14, 10, 26, .92); border: 1px solid var(--line-2);
-  transform: rotate(var(--a)) translateY(calc(var(--r) * -1)) rotate(calc(var(--a) * -1));
+  background: rgba(14, 10, 26, .94); border: 1px solid var(--line-2);
+  transform: rotate(var(--a)) translateY(calc(var(--R) * -1)) rotate(calc(var(--a) * -1));
   transition: transform .45s var(--ease), background .25s, color .25s, border-color .25s, scale .25s;
 }
 .wheel.dragging .wheel-item { transition: background .25s, color .25s, border-color .25s, scale .25s; }
@@ -64,28 +74,26 @@
   background: linear-gradient(135deg, #6d28d9, #9d78fb);
 }
 
+/* o nome da seção escolhida fica logo acima do arco */
 .wheel-center {
-  position: absolute; inset: 24%; display: grid; place-content: center; justify-items: center; gap: .5rem; text-align: center;
+  position: absolute; left: 50%; translate: -50% 0; width: min(86vw, 320px);
+  bottom: calc(var(--lift) + var(--R) + 62px);
+  display: grid; justify-items: center; text-align: center;
 }
-.wheel-center small { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .16em; color: var(--ink-3); }
 .wheel-center b {
-  font-family: var(--font-display); font-weight: 300; font-size: 1.55rem; letter-spacing: -.035em; line-height: 1.05;
-}
-.wheel-go {
-  margin-top: .3rem; padding: .45rem 1.1rem; border-radius: 99px; font-size: .8rem; font-weight: 500;
-  border: 1px solid var(--line-2); color: var(--ink); background: rgba(255, 255, 255, .05);
+  font-family: var(--font-display); font-weight: 200; font-size: clamp(2rem, 9vw, 2.6rem); letter-spacing: -.04em; line-height: 1;
 }
 .wheel-hint {
-  position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 5.4rem);
-  text-align: center; font-size: .78rem; color: var(--ink-3);
+  position: absolute; left: 0; right: 0; bottom: calc(var(--lift) - 6px); pointer-events: none;
+  text-align: center; font-size: .72rem; color: var(--ink-3);
 }
 .wheel-close {
-  position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 1.6rem); translate: -50% 0;
-  width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
-  border: 1px solid var(--line-2); background: rgba(255, 255, 255, .04);
+  position: absolute; top: calc(env(safe-area-inset-top, 0px) + 14px); right: 14px;
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  border: 1px solid var(--line-2); background: rgba(255, 255, 255, .05);
 }
 .wheel-close svg { width: 20px; height: 20px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .wheel, .wheel-item, .wheel-overlay { transition: none; }
+  .wheel-sheet, .wheel-item, .wheel-overlay { transition: none; }
 }
