@@ -1,6 +1,17 @@
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const root = document.documentElement;
+
+/* escreve uma variável CSS só quando o valor muda (o laço de animação roda a cada quadro) */
+const lastVar = new Map();
+function setVar(el, name, value) {
+  const key = el === root ? name : el.id + name;
+  if (lastVar.get(key) === value) return;
+  lastVar.set(key, value);
+  el.style.setProperty(name, value);
+}
 
 /* ---------- nav ---------- */
 const nav = $("#nav");
@@ -12,55 +23,137 @@ const io = new IntersectionObserver((entries) => {
 }, { threshold: 0.12 });
 $$(".reveal").forEach((el) => io.observe(el));
 
+/* ---------- títulos com eco: a cópia fantasma é o próprio texto ---------- */
+$$(".echo").forEach((el) => { el.dataset.echo = el.textContent.replace(/\s+/g, " ").trim(); });
+
+/* ---------- hero: você corre, o seu ontem vem logo atrás ---------- */
+const hero = $("#inicio"), lanesEl = $("#lanes"), laneYou = $("#laneYou"), laneGhost = $("#laneGhost");
+const lane = { target: 0.5, you: 0.12, ghost: 0.1, auto: true, visible: true };
+hero.addEventListener("pointermove", (e) => {
+  if (e.pointerType === "touch") return;
+  const r = lanesEl.getBoundingClientRect();
+  lane.auto = false;
+  lane.target = clamp((e.clientX - r.left) / r.width, 0.02, 0.98);
+});
+hero.addEventListener("pointerleave", () => { lane.auto = true; });
+new IntersectionObserver(([en]) => { lane.visible = en.isIntersecting; }).observe(hero);
+function paintLanes(t) {
+  if (lane.auto) lane.target = 0.5 + 0.4 * Math.sin(t / 2200);
+  lane.you += (lane.target - lane.you) * 0.07;
+  lane.ghost += (lane.you * 0.88 - lane.ghost) * 0.035;   // o ontem fica sempre cerca de 12% atrás
+  setVar(laneYou, "--x", lane.you.toFixed(4));
+  setVar(laneGhost, "--x", lane.ghost.toFixed(4));
+}
+
+/* ---------- um dia inteiro: a linha do tempo anda na horizontal conforme você rola ---------- */
+const pin = $("#dayPin"), track = $("#dayTrack"), clock = $("#dayClock"), dayBar = $("#dayBar"), barWrap = $("#dayBarWrap");
+const moments = $$(".moment");
+const mins = moments.map((m) => { const [h, mm] = m.dataset.time.split(":").map(Number); return h * 60 + mm; });
+moments.forEach((_, i) => {
+  const tick = document.createElement("i");
+  tick.className = "tick";
+  tick.style.left = `${(i / (moments.length - 1)) * 100}%`;
+  barWrap.appendChild(tick);
+});
+const narrow = matchMedia("(max-width: 980px)");
+let dist = 0, lastClock = "";
+const measure = () => { dist = Math.max(0, track.offsetWidth - track.parentElement.clientWidth); };
+measure();
+addEventListener("resize", measure);
+document.fonts?.ready.then(measure);
+
+function dayUpdate() {
+  if (narrow.matches) { if (track.style.transform) track.style.transform = ""; return; }
+  const r = pin.getBoundingClientRect(), total = pin.offsetHeight - innerHeight;
+  if (r.bottom < -60 || r.top > innerHeight + 60) return;
+  const p = total > 0 ? clamp(-r.top / total, 0, 1) : 0;
+  track.style.transform = `translate3d(${(-p * dist).toFixed(1)}px,0,0)`;
+  dayBar.style.transform = `scaleX(${p.toFixed(4)})`;
+  const f = p * (moments.length - 1), i0 = Math.floor(f), i1 = Math.min(i0 + 1, moments.length - 1);
+  const m = Math.round(mins[i0] + (mins[i1] - mins[i0]) * (f - i0));
+  const text = `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+  if (text !== lastClock) { lastClock = text; clock.textContent = text; clock.dateTime = text; }
+  const act = Math.round(f);
+  moments.forEach((el, i) => el.classList.toggle("on", i === act));
+}
+
+/* vai direto a um momento do dia (usado pelo menu) */
+window.goMoment = (name) => {
+  const i = moments.findIndex((m) => m.dataset.name === name);
+  if (i < 0) return;
+  const behavior = reduceMotion ? "auto" : "smooth";
+  if (narrow.matches) { moments[i].scrollIntoView({ behavior, block: "start" }); return; }
+  const total = pin.offsetHeight - innerHeight, top = pin.getBoundingClientRect().top + scrollY;
+  scrollTo({ top: top + (i / (moments.length - 1)) * total, behavior });
+};
+
+/* ---------- laço de animação: eco da rolagem, trilho lateral, horizonte, corrida e o dia ---------- */
+const rail = $("#rail");
+let lastY = scrollY, vel = 0, railYou = 0, railGhost = 0;
+function loop(t) {
+  const y = scrollY;
+  vel += ((y - lastY) - vel) * 0.18;
+  lastY = y;
+  setVar(root, "--ga", Math.min(Math.abs(vel) / 26, 1).toFixed(3));
+  setVar(root, "--gy", clamp(vel * 1.4, -26, 26).toFixed(1));
+
+  const max = root.scrollHeight - innerHeight, p = max > 0 ? y / max : 0;
+  railYou += (p - railYou) * 0.22;
+  railGhost += (p * 0.88 - railGhost) * 0.05;
+  setVar(rail, "--y1", railYou.toFixed(4));
+  setVar(rail, "--y2", railGhost.toFixed(4));
+  setVar(root, "--skyo", (1 - 0.6 * p).toFixed(3));
+
+  if (lane.visible) paintLanes(t);
+  dayUpdate();
+  requestAnimationFrame(loop);
+}
+if (reduceMotion) {
+  setVar(laneYou, "--x", "0.66");
+  setVar(laneGhost, "--x", "0.58");
+  dayUpdate();
+  addEventListener("scroll", dayUpdate, { passive: true });
+} else {
+  requestAnimationFrame(loop);
+}
+
 /* ---------- comparador ontem x hoje ---------- */
 const cmp = $("#cmp"), cmpRange = $("#cmpRange");
 const setPos = (v) => cmp.style.setProperty("--pos", v + "%");
 cmpRange.addEventListener("input", () => setPos(cmpRange.value));
 if (!reduceMotion) {
-  let t0;
-  const intro = (t) => {
-    t0 ??= t;
-    const k = Math.min((t - t0) / 1400, 1);
-    const v = 92 - 42 * (1 - Math.pow(1 - k, 3));
-    cmpRange.value = v; setPos(v);
-    if (k < 1) requestAnimationFrame(intro);
-  };
-  setTimeout(() => requestAnimationFrame(intro), 500);
+  new IntersectionObserver(([en], ob) => {
+    if (!en.isIntersecting) return;
+    ob.disconnect();
+    let t0;
+    const intro = (t) => {
+      t0 ??= t;
+      const k = Math.min((t - t0) / 1400, 1);
+      const v = 92 - 42 * (1 - Math.pow(1 - k, 3));
+      cmpRange.value = v; setPos(v);
+      if (k < 1) requestAnimationFrame(intro);
+    };
+    requestAnimationFrame(intro);
+  }, { threshold: 0.5 }).observe(cmp);
 }
 
-/* ---------- abas de recursos ---------- */
-const tabs = $$(".tab");
-function openTab(name) {
-  tabs.forEach((t) => t.setAttribute("aria-selected", String(t.dataset.tab === name)));
-  $$(".screen").forEach((s) => s.classList.toggle("on", s.id === "s-" + name));
-}
-tabs.forEach((t, i) => {
-  t.addEventListener("click", () => openTab(t.dataset.tab));
-  t.addEventListener("keydown", (e) => {
-    const j = e.key === "ArrowDown" ? i + 1 : e.key === "ArrowUp" ? i - 1 : null;
-    if (j === null) return;
-    e.preventDefault();
-    const n = tabs[(j + tabs.length) % tabs.length];
-    n.focus(); openTab(n.dataset.tab);
-  });
-});
+/* ---------- momentos do dia ---------- */
+$$("#m-treino .ok").forEach((b) => b.addEventListener("click", () => b.classList.toggle("on")));
 
-/* séries do treino */
-$$("#s-treino .ok").forEach((b) => b.addEventListener("click", () => b.classList.toggle("on")));
-
-/* cronômetro de descanso */
 let rest = 90;
 setInterval(() => {
   rest = rest > 0 ? rest - 1 : 90;
   $("#rest").textContent = `${String(Math.floor(rest / 60)).padStart(2, "0")}:${String(rest % 60).padStart(2, "0")}`;
 }, 1000);
 
-/* copos de água */
 const cups = $$("#cups .cup");
-const paintCups = (n) => { cups.forEach((c, i) => c.classList.toggle("on", i < n)); $("#cupN").textContent = n; };
+const paintCups = (n) => {
+  cups.forEach((c, i) => c.classList.toggle("on", i < n));
+  $("#cupN").textContent = n;
+  $("#cupsNow").textContent = `${n} ${n === 1 ? "copo" : "copos"}`;
+};
 cups.forEach((c, i) => c.addEventListener("click", () => paintCups(c.classList.contains("on") && !cups[i + 1]?.classList.contains("on") ? i : i + 1)));
 
-/* heatmap do celular */
 const mini = $("#miniHeat");
 const miniPattern = [3,3,2,3,0,3,3, 3,2,3,3,3,1,3, 3,3,3,0,3,3,3, 2,3,3,3,3,3,0, 3,3,2,3,3,3,3];
 mini.innerHTML = miniPattern.map((l) => `<i class="${l === 0 ? "rest" : "l" + l}"></i>`).join("");
@@ -72,9 +165,7 @@ function buildWave(el, n) {
     return `<i style="--h:${Math.min(h, 100)}%;--d:${(i % 9) * 0.11}s"></i>`;
   }).join("");
 }
-buildWave($("#miniWave"), 26);
 buildWave($("#wave"), 54);
-buildWave($("#heroWave"), 22);
 
 /* ---------- gravador de recado (simulação, sem acessar o microfone) ---------- */
 const questions = [

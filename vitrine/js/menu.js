@@ -1,30 +1,7 @@
-/* Menu com painéis: monta o conteúdo de cada item e cuida do menu no celular.
-   A abertura ao passar o mouse é feita só com CSS (css/menu.css). */
+/* Menu com painéis: monta o conteúdo de cada item. A abertura ao passar o mouse é só CSS (css/menu.css).
+   Itens com `moment` levam direto ao momento do dia correspondente (linha do tempo de #recursos). */
 (() => {
   const nav = document.getElementById("nav");
-
-  const wave = (n) =>
-    Array.from({ length: n }, (_, i) => {
-      const h = Math.min(18 + Math.abs(Math.sin(i * 1.7) * 52) + ((i * 37) % 22), 100);
-      return `<i style="--h:${h}%"></i>`;
-    }).join("");
-  const dateIn = (days) => new Date(Date.now() + days * 864e5).toLocaleDateString("pt-BR");
-
-  /* mini visuais usados nos cartões da direita de cada painel */
-  const PV = {
-    sets: () => `<div class="r"><span>80 kg × 8</span><u class="on"></u></div><div class="r"><span>82,5 kg × 8</span><u class="on"></u></div><div class="r"><span>82,5 kg × 8</span><u></u></div><span class="tip">PRÓXIMA CARGA: 85 KG</span>`,
-    ring: () => `<div class="ring" style="--p:62"><b>930<small>kcal</small></b></div><div class="macs"><div class="bar"><i style="width:60%"></i></div><div class="bar e"><i style="width:55%"></i></div><div class="bar g"><i style="width:48%"></i></div></div>`,
-    wave: () => `<div class="wave">${wave(30)}</div><span class="tip">0:42 · MÁX. 1:00</span>`,
-    delivery: () => `<div class="big">90<small>dias</small></div><span class="tip">ENTREGA EM ${dateIn(90)}</span>`,
-    rm: () => `<div class="big">101<small>kg · 1RM</small></div><span class="tip">80 KG × 8 REPETIÇÕES</span>`,
-    kcal: () => `<div class="big">2.724<small>kcal por dia</small></div><span class="tip">MIFFLIN-ST JEOR</span>`,
-    podium: () => `<i style="height:62%"></i><i style="height:92%"></i><i style="height:48%"></i>`,
-    club: () => `<div class="row"><span>Hipertrofia iniciantes · 370/500</span><div class="bar e"><i style="width:74%"></i></div></div><div class="row"><span>Corrida de rua · 1.280 km</span><div class="bar"><i style="width:52%"></i></div></div>`,
-    seal: () => `<span class="badge">● Registro conferido · CRN</span><div class="big" style="font-size:1.25rem">Dra. Ana Costa</div><span class="tip">NUTRIÇÃO ESPORTIVA · ONLINE</span>`,
-    pro: () => `<div class="r"><span>Marina</span><em>novo recorde</em></div><div class="r"><span>Lucas</span><em>sem registro há 3 dias</em></div><div class="r"><span>Bia</span><em>estagnou</em></div>`,
-    pricePro: () => `<div class="big">R$ 14,90<small>/mês</small></div><span class="tip">RANKING · CLUBES VIP · RECADOS</span>`,
-    priceProf: () => `<div class="big">R$ 59<small>/mês</small></div><span class="tip">PERFIL VERIFICADO · 25 ALUNOS</span>`,
-  };
 
   /* conteúdo dos painéis, na mesma ordem das seções da página */
   const MENU = {
@@ -32,19 +9,15 @@
       label: "Recursos",
       cols: [
         { t: "Rotina", d: "Treino, dieta e hábitos no mesmo app.", items: [
-          { t: "Treino inteligente", d: "Última carga, séries e próxima carga sugerida.", href: "#recursos", tab: "treino" },
-          { t: "Dieta e macros", d: "Meta calórica, Tabela TACO e lista de compras.", href: "#recursos", tab: "dieta" },
-          { t: "Hidratação e sono", d: "Copos de água e horas dormidas na semana.", href: "#recursos", tab: "agua" },
+          { t: "Treino inteligente", d: "Última carga, séries e próxima carga sugerida.", href: "#recursos", moment: "treino" },
+          { t: "Dieta e macros", d: "Meta calórica, Tabela TACO e lista de compras.", href: "#recursos", moment: "dieta" },
+          { t: "Hidratação e sono", d: "Copos de água e horas dormidas na semana.", href: "#recursos", moment: "agua" },
         ] },
         { t: "Constância", d: "Hábito e comunidade para voltar todo dia.", items: [
-          { t: "Streak com folga", d: "Um dia de folga por semana não zera a sequência.", href: "#recursos", tab: "streak" },
-          { t: "Comunidade", d: "Feed, clubes e desafios coletivos.", href: "#recursos", tab: "social" },
-          { t: "Corrida e caminhada", d: "Ritmo e distância registrados.", href: "#recursos", tab: "corrida" },
+          { t: "Streak com folga", d: "Um dia de folga por semana não zera a sequência.", href: "#recursos", moment: "streak" },
+          { t: "Comunidade", d: "Feed, clubes e desafios coletivos.", href: "#recursos", moment: "social" },
+          { t: "Corrida e caminhada", d: "Ritmo e distância registrados.", href: "#recursos", moment: "corrida" },
         ] },
-      ],
-      previews: [
-        { kind: "sets", t: "Treino inteligente", d: "Registre cada série e veja a próxima carga.", href: "#recursos", tab: "treino" },
-        { kind: "ring", t: "Macros e dieta", d: "Meta e refeições no mesmo painel.", href: "#recursos", tab: "dieta" },
       ],
     },
     recado: {
@@ -59,10 +32,6 @@
           { t: "Privacidade", d: "Criptografado e privado por padrão.", href: "#recado" },
         ] },
       ],
-      previews: [
-        { kind: "wave", t: "Pergunta do dia", d: "Responda falando, em até um minuto.", href: "#recado" },
-        { kind: "delivery", t: "Recado para o futuro", d: "Seu eu do futuro vai te ouvir.", href: "#recado" },
-      ],
     },
     ferramentas: {
       label: "Ferramentas",
@@ -75,10 +44,6 @@
           { t: "Streak interativo", d: "Clique nos dias e veja a sequência reagir.", href: "#constancia" },
           { t: "Pontos do ranking", d: "Treino, refeições, check-in e meta de água.", href: "#constancia" },
         ] },
-      ],
-      previews: [
-        { kind: "rm", t: "Força estimada", d: "Compare cargas diferentes na mesma escala.", href: "#ferramentas" },
-        { kind: "kcal", t: "Meta calórica", d: "Ajustada ao seu objetivo e rotina.", href: "#ferramentas" },
       ],
     },
     clube: {
@@ -93,10 +58,6 @@
           { t: "Antitrapaça", d: "Limites diários, foto obrigatória e denúncia.", href: "#clube" },
         ] },
       ],
-      previews: [
-        { kind: "podium", t: "Ranking da semana", d: "Quem foi mais constante.", href: "#clube" },
-        { kind: "club", t: "Desafio do clube", d: "Metas coletivas com prêmios.", href: "#clube" },
-      ],
     },
     profissionais: {
       label: "Profissionais",
@@ -109,10 +70,6 @@
           { t: "Registro conferido", d: "Selo após consulta pública ao conselho.", href: "#profissionais" },
           { t: "Como funciona", d: "Cadastro, conferência, selo e painel.", href: "#profissionais" },
         ] },
-      ],
-      previews: [
-        { kind: "seal", t: "Selo de verificação", d: "Registro conferido no conselho.", href: "#profissionais" },
-        { kind: "pro", t: "Painel de alunos", d: "Quem está sem registrar e quem bateu recorde.", href: "#profissionais" },
       ],
     },
     planos: {
@@ -127,24 +84,16 @@
           { t: "Profissional+ · R$ 99", d: "Alunos ilimitados e rascunhos por IA.", href: "#planos" },
         ] },
       ],
-      previews: [
-        { kind: "pricePro", t: "Yesteryou PRO", d: "Constância com prêmios.", href: "#planos" },
-        { kind: "priceProf", t: "Plano Profissional", d: "Capte e acompanhe alunos.", href: "#planos" },
-      ],
     },
   };
 
-  const tabAttr = (o) => (o.tab ? ` data-tab-open="${o.tab}"` : "");
+  const momentAttr = (i) => (i.moment ? ` data-moment="${i.moment}"` : "");
   const renderMega = (m) => {
     const cols = m.cols.map((c) => `
       <div class="mega-col"><h5>${c.t}</h5><p>${c.d}</p>
-        ${c.items.map((i) => `<a class="mi" href="${i.href}"${tabAttr(i)}><b>${i.t}</b><span>${i.d}</span></a>`).join("")}
+        ${c.items.map((i) => `<a class="mi" href="${i.href}"${momentAttr(i)}><b>${i.t}</b><span>${i.d}</span></a>`).join("")}
       </div>`).join("");
-    const cards = m.previews.map((p) => `
-      <a class="pv-card" href="${p.href}"${tabAttr(p)}>
-        <div class="pv pv-${p.kind}">${PV[p.kind]()}</div><b>${p.t}</b><p>${p.d}</p>
-      </a>`).join("");
-    return `<div class="mega" role="region" aria-label="${m.label}"><div class="mega-card">${cols}<div class="mega-previews">${cards}</div></div></div>`;
+    return `<div class="mega" role="region" aria-label="${m.label}"><div class="mega-card">${cols}</div></div>`;
   };
 
   document.querySelectorAll(".nav-item").forEach((item) => {
@@ -152,7 +101,7 @@
     if (m) item.insertAdjacentHTML("beforeend", renderMega(m));
   });
 
-  /* clique em qualquer link: abre a aba certa, fecha o painel e o menu do celular */
+  /* clique em um link: vai ao momento certo, fecha o painel */
   const closeMega = () => {
     nav.classList.add("closing");
     setTimeout(() => nav.classList.remove("closing"), 700);
@@ -160,7 +109,10 @@
   nav.addEventListener("click", (e) => {
     const a = e.target.closest("a[href^='#']");
     if (!a) return;
-    if (a.dataset.tabOpen && typeof window.openTab === "function") window.openTab(a.dataset.tabOpen);
+    if (a.dataset.moment && typeof window.goMoment === "function") {
+      e.preventDefault();
+      window.goMoment(a.dataset.moment);
+    }
     if (a.closest(".mega")) closeMega();
   });
 
