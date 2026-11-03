@@ -1,20 +1,20 @@
 /* ===== Menu com painéis (abre ao passar o mouse) ===== */
-.nav-item { display: flex; align-items: center; }
+.nav-item { position: relative; display: flex; align-items: center; }
 .nav-trigger { padding: .5rem .9rem; border-radius: 6px; color: var(--ink); opacity: .82; transition: opacity .2s, background .2s; }
 .nav-item:hover .nav-trigger,
 .nav-item:focus-within .nav-trigger,
 .nav-item.open .nav-trigger { opacity: 1; background: rgba(255, 255, 255, .07); }
 
-/* painel: um cartão compacto, centralizado sob a barra */
+/* painel: um cartão compacto que abre logo abaixo do item (--mx só o empurra para dentro da tela quando faltar espaço) */
 .mega {
-  position: absolute; top: 100%; left: 50%; z-index: 2; width: min(700px, calc(100vw - 2rem)); padding-top: 6px;
-  opacity: 0; visibility: hidden; translate: -50% 8px; pointer-events: none;
+  position: absolute; top: 100%; left: var(--mx, 0px); z-index: 2; width: min(700px, calc(100vw - 2rem)); padding-top: 6px;
+  opacity: 0; visibility: hidden; translate: 0 8px; pointer-events: none;
   transition: opacity .22s var(--ease) .08s, translate .22s var(--ease) .08s, visibility 0s .3s;
 }
 .nav-item:hover .mega,
 .nav-item:focus-within .mega,
 .nav-item.open .mega {
-  opacity: 1; visibility: visible; translate: -50% 0; pointer-events: auto;
+  opacity: 1; visibility: visible; translate: 0 0; pointer-events: auto;
   transition-delay: 0s, 0s, 0s; z-index: 3;
 }
 .nav.closing .mega { opacity: 0; visibility: hidden; pointer-events: none; }
