@@ -1,0 +1,213 @@
+/* Blocos básicos de interface: texto fino, cartão, botão, chip, passo (+/−), anel, barra, segmentos e campo. */
+import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import { Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
+import { cores, PesoFonte, raio } from '../tema';
+import { Icone, NomeIcone } from './Icone';
+
+const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'ui-monospace, Menlo, monospace' });
+
+/* ---------- texto ---------- */
+type TProps = {
+  children?: React.ReactNode;
+  tam?: number;
+  peso?: PesoFonte;
+  cor?: string;
+  mono?: boolean;
+  centro?: boolean;
+  linhas?: number;
+  style?: StyleProp<TextStyle>;
+};
+export function T({ children, tam = 15, peso = '300', cor = cores.texto, mono, centro, linhas, style }: TProps) {
+  return (
+    <Text
+      numberOfLines={linhas}
+      style={[
+        { fontSize: tam, fontWeight: peso, color: cor, letterSpacing: tam >= 28 ? -tam * 0.03 : 0 },
+        mono && { fontFamily: MONO, letterSpacing: 0.4 },
+        centro && { textAlign: 'center' },
+        style,
+      ]}
+    >
+      {children}
+    </Text>
+  );
+}
+
+/* ---------- cartão ---------- */
+export function Cartao({ children, style, destaque }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; destaque?: boolean }) {
+  return <View style={[st.cartao, destaque && st.cartaoDestaque, style]}>{children}</View>;
+}
+
+/* ---------- botão ---------- */
+type BotaoProps = {
+  titulo: string;
+  aoPressionar: () => void;
+  tipo?: 'primario' | 'fantasma' | 'discreto' | 'perigo';
+  desabilitado?: boolean;
+  icone?: NomeIcone;
+  pequeno?: boolean;
+  style?: StyleProp<ViewStyle>;
+};
+export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, icone, pequeno, style }: BotaoProps) {
+  const cor = tipo === 'primario' ? cores.branco : tipo === 'perigo' ? cores.erro : cores.texto;
+  const conteudo = (
+    <View style={[st.botaoMiolo, pequeno && { paddingVertical: 9, paddingHorizontal: 14 }]}>
+      {icone ? <Icone nome={icone} tamanho={pequeno ? 16 : 18} cor={cor} /> : null}
+      <T tam={pequeno ? 13 : 15} peso="500" cor={cor}>{titulo}</T>
+    </View>
+  );
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !!desabilitado }}
+      disabled={desabilitado}
+      onPress={aoPressionar}
+      style={({ pressed }) => [st.botao, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto, { opacity: desabilitado ? 0.45 : pressed ? 0.8 : 1 }, style]}
+    >
+      {tipo === 'primario' ? (
+        <LinearGradient colors={['#6d28d9', '#9d78fb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      ) : null}
+      {conteudo}
+    </Pressable>
+  );
+}
+
+/* ---------- chip ---------- */
+export function Chip({ texto, tom = 'violeta', style }: { texto: string; tom?: 'violeta' | 'bom' | 'alerta' | 'neutro'; style?: StyleProp<ViewStyle> }) {
+  const mapa = {
+    violeta: { fundo: 'rgba(139,92,246,0.14)', texto: cores.destaque2 },
+    bom: { fundo: 'rgba(61,220,151,0.14)', texto: cores.bom },
+    alerta: { fundo: 'rgba(255,154,92,0.14)', texto: cores.alerta },
+    neutro: { fundo: 'rgba(255,255,255,0.07)', texto: cores.texto2 },
+  }[tom];
+  return (
+    <View style={[st.chip, { backgroundColor: mapa.fundo }, style]}>
+      <T tam={11} mono peso="400" cor={mapa.texto}>{texto}</T>
+    </View>
+  );
+}
+
+/* ---------- passo: valor com − e + ---------- */
+type PassoProps = {
+  valor: number;
+  aoMudar: (v: number) => void;
+  passo?: number;
+  min?: number;
+  max?: number;
+  formato?: (v: number) => string;
+  unidade?: string;
+  rotulo: string;
+};
+export function Passo({ valor, aoMudar, passo = 1, min = 0, max = 9999, formato, unidade, rotulo }: PassoProps) {
+  const mudar = (d: number) => {
+    const novo = Math.round((valor + d) * 100) / 100;
+    aoMudar(Math.min(max, Math.max(min, novo)));
+  };
+  return (
+    <View style={st.passo}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Diminuir ${rotulo}`} onPress={() => mudar(-passo)} style={st.passoBtn}>
+        <Icone nome="menos" tamanho={14} cor={cores.texto2} />
+      </Pressable>
+      <View style={st.passoValor}>
+        <T tam={16} peso="400">{formato ? formato(valor) : String(valor)}</T>
+        {unidade ? <T tam={10} mono cor={cores.texto3}>{unidade}</T> : null}
+      </View>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Aumentar ${rotulo}`} onPress={() => mudar(passo)} style={st.passoBtn}>
+        <Icone nome="mais" tamanho={14} cor={cores.texto2} />
+      </Pressable>
+    </View>
+  );
+}
+
+/* ---------- anel de progresso ---------- */
+export function Anel({ progresso, tamanho = 120, espessura = 9, cor = cores.destaque, children }: { progresso: number; tamanho?: number; espessura?: number; cor?: string; children?: React.ReactNode }) {
+  const r = (tamanho - espessura) / 2;
+  const c = tamanho / 2;
+  const volta = 2 * Math.PI * r;
+  const p = Math.min(1, Math.max(0, progresso));
+  return (
+    <View style={{ width: tamanho, height: tamanho, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={tamanho} height={tamanho} style={StyleSheet.absoluteFill}>
+        <Circle cx={c} cy={c} r={r} stroke="rgba(255,255,255,0.09)" strokeWidth={espessura} fill="none" />
+        <Circle
+          cx={c} cy={c} r={r} stroke={cor} strokeWidth={espessura} fill="none" strokeLinecap="round"
+          strokeDasharray={`${volta} ${volta}`} strokeDashoffset={volta * (1 - p)} rotation={-90} origin={`${c}, ${c}`}
+        />
+      </Svg>
+      {children}
+    </View>
+  );
+}
+
+/* ---------- barra de progresso ---------- */
+export function Barra({ valor, max, cor = cores.destaque }: { valor: number; max: number; cor?: string }) {
+  const p = max > 0 ? Math.min(1, valor / max) : 0;
+  return (
+    <View style={st.barra}>
+      <View style={{ width: `${p * 100}%`, height: '100%', backgroundColor: cor, borderRadius: 99 }} />
+    </View>
+  );
+}
+
+/* ---------- segmentos (abas pequenas) ---------- */
+export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar }: { opcoes: { valor: V; nome: string }[]; valor: V; aoMudar: (v: V) => void }) {
+  return (
+    <View style={st.segmentos}>
+      {opcoes.map((o) => {
+        const ativo = o.valor === valor;
+        return (
+          <Pressable key={String(o.valor)} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => aoMudar(o.valor)} style={[st.segmento, ativo && st.segmentoAtivo]}>
+            <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? cores.fundo : cores.texto2}>{o.nome}</T>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/* ---------- campo de texto ---------- */
+type CampoProps = TextInputProps & { rotulo: string; direita?: React.ReactNode };
+export function Campo({ rotulo, direita, style, ...resto }: CampoProps) {
+  return (
+    <View style={{ gap: 6 }}>
+      <T tam={11} mono cor={cores.texto2}>{rotulo.toUpperCase()}</T>
+      <View style={st.campo}>
+        <TextInput placeholderTextColor={cores.texto3} selectionColor={cores.destaque} style={[st.campoTexto, style]} {...resto} />
+        {direita}
+      </View>
+    </View>
+  );
+}
+
+/* ---------- título de seção ---------- */
+export function Titulo({ children, direita }: { children: React.ReactNode; direita?: React.ReactNode }) {
+  return (
+    <View style={st.titulo}>
+      <T tam={20} peso="300" style={{ letterSpacing: -0.4 }}>{children}</T>
+      {direita}
+    </View>
+  );
+}
+
+const st = StyleSheet.create({
+  cartao: { backgroundColor: cores.cartao, borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 16 },
+  cartaoDestaque: { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: 'rgba(109,40,217,0.16)' },
+  botao: { borderRadius: raio.m, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  botaoFantasma: { borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.03)' },
+  botaoPerigo: { borderWidth: 1, borderColor: 'rgba(255,107,129,0.5)', backgroundColor: 'rgba(255,107,129,0.08)' },
+  botaoDiscreto: { backgroundColor: 'rgba(255,255,255,0.06)' },
+  botaoMiolo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 15, paddingHorizontal: 22 },
+  chip: { alignSelf: 'flex-start', paddingVertical: 4, paddingHorizontal: 9, borderRadius: raio.p },
+  passo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderRadius: raio.m, borderWidth: 1, borderColor: cores.linha },
+  passoBtn: { width: 36, height: 40, alignItems: 'center', justifyContent: 'center' },
+  passoValor: { minWidth: 46, alignItems: 'center', justifyContent: 'center' },
+  barra: { height: 6, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 99, overflow: 'hidden' },
+  segmentos: { flexDirection: 'row', backgroundColor: cores.cartao2, borderRadius: raio.m, padding: 3 },
+  segmento: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: raio.m - 2 },
+  segmentoAtivo: { backgroundColor: cores.texto },
+  campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
+  campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontWeight: '300', paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0 },
+  titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },
+});
