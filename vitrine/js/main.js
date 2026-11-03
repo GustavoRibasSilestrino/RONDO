@@ -6,10 +6,6 @@ const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const nav = $("#nav");
 addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 20), { passive: true });
 
-/* ---------- faixa em loop: duplica o conteúdo ---------- */
-const track = $("#marquee");
-track.innerHTML += track.innerHTML;
-
 /* ---------- revelar ao rolar ---------- */
 const io = new IntersectionObserver((entries) => {
   entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
