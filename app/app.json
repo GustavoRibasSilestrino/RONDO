@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "Yesteryou",
+    "slug": "yesteryou",
+    "scheme": "yesteryou",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#050507",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "br.com.yesteryou.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "O Yesteryou usa o microfone para gravar os seus recados de voz."
+      }
+    },
+    "android": {
+      "package": "br.com.yesteryou.app",
+      "permissions": ["RECORD_AUDIO"],
+      "adaptiveIcon": {
+        "backgroundColor": "#050507",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "O Yesteryou usa o microfone para gravar os seus recados de voz."
+        }
+      ]
+    ]
+  }
+}

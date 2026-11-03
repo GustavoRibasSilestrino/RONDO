@@ -1,0 +1,39 @@
+# dependências
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# nativo
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# depuração
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# sistema
+.DS_Store
+*.pem
+
+# variáveis locais
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# pastas nativas geradas
+/ios
+/android
