@@ -19,6 +19,7 @@
   let active = -1;   // item parado no topo
   let drag = null;
   let moved = false;
+  let opened = false;   // estado real da roda (evita corrida entre abrir, fechar e os quadros de animação)
 
   /* ---------- qual seção está na tela ---------- */
   let ticking = false;
@@ -73,17 +74,19 @@
     active = -1;
     const next = items.findIndex((o) => o.i > current);   // a próxima seção da página começa no topo
     setRot(-Math.max(0, next) * step);
+    opened = true;
     overlay.hidden = false;
-    requestAnimationFrame(() => overlay.classList.add("open"));
+    requestAnimationFrame(() => { if (opened) overlay.classList.add("open"); });
     single.setAttribute("aria-expanded", "true");
     document.body.style.overflow = "hidden";
     closeBtn.focus({ preventScroll: true });
   }
   function close(returnFocus = true) {
+    opened = false;
     overlay.classList.remove("open");
     single.setAttribute("aria-expanded", "false");
     document.body.style.overflow = "";
-    setTimeout(() => { if (!overlay.classList.contains("open")) overlay.hidden = true; }, reduce ? 0 : 320);
+    setTimeout(() => { if (!opened) overlay.hidden = true; }, reduce ? 0 : 320);
     if (returnFocus) single.focus({ preventScroll: true });
   }
   function goTo(s) {
@@ -93,7 +96,7 @@
     document.querySelector(s.href)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
   }
 
-  single.addEventListener("click", () => (overlay.hidden ? open() : close()));
+  single.addEventListener("click", () => (opened ? close() : open()));
   closeBtn.addEventListener("click", () => close());
   overlay.addEventListener("click", (e) => {
     if (e.target !== overlay) return;   // só o fundo fecha; a área da roda não
@@ -135,7 +138,7 @@
 
   /* ---------- teclado ---------- */
   document.addEventListener("keydown", (e) => {
-    if (overlay.hidden) return;
+    if (!opened) return;
     if (e.key === "Escape") close();
     else if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); setRot(rot - step); }
     else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); setRot(rot + step); }
@@ -143,5 +146,5 @@
   });
 
   /* ao voltar para a tela larga, a roda não faz sentido */
-  matchMedia("(min-width: 981px)").addEventListener("change", (m) => { if (m.matches && !overlay.hidden) close(false); });
+  matchMedia("(min-width: 981px)").addEventListener("change", (m) => { if (m.matches && opened) close(false); });
 })();
