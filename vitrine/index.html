@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yesteryou · Compita com quem você foi ontem</title>
+<meta name="description" content="Treino, dieta, constância e comunidade em um só app, com profissionais verificados e recados de voz para o seu eu do futuro.">
+<meta name="theme-color" content="#050507">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="nav-in">
+    <a href="#" class="logo" aria-label="Yesteryou">Yester<i>you</i></a>
+    <nav class="nav-links" aria-label="Principal">
+      <a href="#recursos">Recursos</a>
+      <a href="#recado">Recado</a>
+      <a href="#ferramentas">Ferramentas</a>
+      <a href="#clube">Clube PRO</a>
+      <a href="#profissionais">Profissionais</a>
+      <a href="#planos">Planos</a>
+    </nav>
+    <a href="#entrar" class="btn btn-primary btn-sm">Entrar na lista</a>
+  </div>
+</header>
+
+<main>
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">Treino · Dieta · Constância · Voz</span>
+      <h1 class="display">Vença o<br>você de <span class="grad">ontem.</span></h1>
+      <p class="lead">O app que responde uma pergunta todos os dias: estou melhor do que ontem? Treino, refeições, água e comunidade no mesmo lugar, com profissionais verificados e recados de voz para o seu eu do futuro.</p>
+      <div class="hero-cta">
+        <a href="#entrar" class="btn btn-primary">Quero entrar primeiro</a>
+        <a href="#recursos" class="btn btn-ghost">Ver como funciona</a>
+      </div>
+      <div class="hero-meta">
+        <div><b>1 dia</b>de folga por semana no streak</div>
+        <div><b>TACO</b>base de alimentos brasileira</div>
+        <div><b>CRN · CREF</b>registro conferido</div>
+      </div>
+    </div>
+
+    <div class="cmp reveal" id="cmp" aria-label="Comparação entre ontem e hoje">
+      <div class="cmp-layer cmp-ontem" aria-hidden="true">
+        <header><span class="cmp-tag">ONTEM</span><span class="chip">semana passada</span></header>
+        <div class="cmp-rows">
+          <div class="cmp-row"><small>Supino · 1RM estimado</small><b>98<em>kg</em></b></div>
+          <div class="cmp-row"><small>Volume semanal</small><b>11,5<em>t</em></b></div>
+          <div class="cmp-row"><small>Refeições registradas</small><b>18<em>/ 21</em></b></div>
+          <div class="cmp-row"><small>Água por dia</small><b>5,1<em>copos</em></b></div>
+        </div>
+      </div>
+      <div class="cmp-layer cmp-hoje">
+        <header><span class="cmp-tag">HOJE</span><span class="chip good">+12% no geral</span></header>
+        <div class="cmp-rows">
+          <div class="cmp-row"><small>Supino · 1RM estimado</small><b>101<em class="up">+3 kg</em></b></div>
+          <div class="cmp-row"><small>Volume semanal</small><b>12,4<em class="up">+8%</em></b></div>
+          <div class="cmp-row"><small>Refeições registradas</small><b>21<em class="up">/ 21</em></b></div>
+          <div class="cmp-row"><small>Água por dia</small><b>6,4<em class="up">+1,3</em></b></div>
+        </div>
+      </div>
+      <input type="range" class="cmp-range" id="cmpRange" min="0" max="100" value="50" aria-label="Arraste para comparar ontem e hoje">
+      <div class="cmp-handle" aria-hidden="true"></div>
+      <span class="cmp-hint">ARRASTE</span>
+    </div>
+  </div>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track" id="marquee">
+      <span>Treino</span><span>Dieta</span><span>Hidratação</span><span>Comunidade</span><span>Corrida</span><span>Streak</span>
+      <span>Caminhada</span><span>Sono</span><span>Recado de voz</span><span>Evolução</span><span>Clubes</span><span>Profissionais</span><span>Desafios</span><span>Check-ins</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RECURSOS ============ -->
+<section class="section" id="recursos">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Recursos</span>
+      <h2 class="display">Do plano ao progresso, sem perder o histórico.</h2>
+      <p class="lead">Registre o que fez, entenda o que melhorou e saiba qual é o próximo passo. Toque nas abas e interaja com a tela ao lado.</p>
+    </div>
+
+    <div class="features">
+      <div class="tabs" role="tablist" aria-label="Recursos do app">
+        <button class="tab" role="tab" aria-selected="true" data-tab="treino"><span class="n">01</span><h3>Treino</h3><p>Abre com a última carga. Registre cada série e receba a sugestão da próxima, com recordes e alerta de estagnação.</p></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="dieta"><span class="n">02</span><h3>Dieta</h3><p>Meta calórica calculada, macros e refeições com a Tabela TACO. A lista de compras sai do cardápio da semana.</p></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="agua"><span class="n">03</span><h3>Hidratação</h3><p>Meta de água em copos, com lembretes. Um toque por copo.</p></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="streak"><span class="n">04</span><h3>Streak</h3><p>Dias seguidos com registro, com um dia de folga por semana para não desanimar quem falha uma vez.</p></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="recado"><span class="n">05</span><h3>Recado de voz</h3><p>Uma pergunta por dia, respondida em áudio de até um minuto. Sem escrever nada.</p></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="social"><span class="n">06</span><h3>Comunidade</h3><p>Feed, clubes e desafios coletivos. Compartilhe um recorde ou o seu card Você vs. Yesteryou.</p></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="corrida"><span class="n">07</span><h3>Corrida e caminhada</h3><p>Registro de atividades de cardio, com ritmo e distância. GPS chega em versões futuras.</p></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="sono"><span class="n">08</span><h3>Sono</h3><p>Registro manual das horas dormidas e a comparação com a sua semana anterior.</p></button>
+        <button class="tab" role="tab" aria-selected="false" data-tab="pro"><span class="n">09</span><h3>Profissionais</h3><p>Nutricionistas e educadores físicos com registro conferido, dentro da comunidade.</p></button>
+      </div>
+
+      <div class="phone-stage">
+        <div class="phone">
+          <div class="screen-wrap">
+
+            <div class="screen on" id="s-treino">
+              <div><h4>Supino reto</h4><small>Última vez: 80 kg × 8 · 1RM 101 kg</small></div>
+              <div class="s-card">
+                <div class="s-row"><b style="font-size:.85rem">Séries</b><span class="chip good">PR</span></div>
+                <div class="set"><span>1</span><div class="f">80<i>kg</i></div><div class="f">8<i>reps</i></div><button class="ok on" aria-label="série 1">✓</button></div>
+                <div class="set"><span>2</span><div class="f">82,5<i>kg</i></div><div class="f">8<i>reps</i></div><button class="ok on" aria-label="série 2">✓</button></div>
+                <div class="set"><span>3</span><div class="f">82,5<i>kg</i></div><div class="f">8<i>reps</i></div><button class="ok" aria-label="série 3">✓</button></div>
+                <div class="suggest">Topo da faixa batido. Próxima vez: 85 kg</div>
+              </div>
+              <div class="s-card s-row"><span class="s-sub">Descanso</span><b class="mono" id="rest">01:30</b></div>
+              <div class="s-card">
+                <small>Tríceps corda</small>
+                <div class="s-row"><b style="font-size:.85rem">30 kg × 12</b><span class="chip">estagnou há 3 sem.</span></div>
+              </div>
+            </div>
+
+            <div class="screen" id="s-dieta">
+              <h4>Dieta</h4>
+              <div class="ring" style="--p:60"><b>930<small>kcal restantes</small></b></div>
+              <div class="macros">
+                <div><b>96 g</b>Proteína<div class="bar"><i style="width:60%"></i></div></div>
+                <div><b>160 g</b>Carbo<div class="bar e"><i style="width:55%"></i></div></div>
+                <div><b>38 g</b>Gordura<div class="bar g"><i style="width:48%"></i></div></div>
+              </div>
+              <div class="s-card">
+                <div class="meal"><b>Café da manhã</b><span>480</span></div>
+                <div class="meal"><b>Almoço</b><span>650</span></div>
+                <div class="meal"><b>Lanche</b><span>290</span></div>
+              </div>
+            </div>
+
+            <div class="screen" id="s-agua">
+              <h4>Água</h4>
+              <div><div class="big-num"><span id="cupN">5</span><small style="font-size:1rem"> / 8 copos</small></div><small>Toque nos copos</small></div>
+              <div class="cups" id="cups">
+                <button class="cup on" aria-label="copo 1"></button><button class="cup on" aria-label="copo 2"></button>
+                <button class="cup on" aria-label="copo 3"></button><button class="cup on" aria-label="copo 4"></button>
+                <button class="cup on" aria-label="copo 5"></button><button class="cup" aria-label="copo 6"></button>
+                <button class="cup" aria-label="copo 7"></button><button class="cup" aria-label="copo 8"></button>
+              </div>
+            </div>
+
+            <div class="screen" id="s-streak">
+              <h4>Streak</h4>
+              <div class="big-num grad">23 <small style="font-size:1rem;color:var(--ink-2)">dias</small></div>
+              <div class="s-card"><div class="heat" id="miniHeat" style="grid-template-rows:repeat(7,1fr)"></div></div>
+              <small>Tracejado: dia de folga. A sequência continua.</small>
+            </div>
+
+            <div class="screen" id="s-recado">
+              <small class="mono" style="letter-spacing:.1em">PERGUNTA DO DIA</small>
+              <h4 style="font-size:1.15rem;line-height:1.15">Do que você tem orgulho esta semana?</h4>
+              <div class="wave" id="miniWave" aria-hidden="true"></div>
+              <button class="mic" aria-label="Gravar recado"><span></span></button>
+              <div class="s-card s-row"><span class="s-sub">Entregar a você em</span><span class="chip">90 dias</span></div>
+            </div>
+
+            <div class="screen" id="s-social">
+              <h4>Comunidade</h4>
+              <div class="s-card">
+                <div class="s-row" style="justify-content:flex-start;gap:.6rem"><div class="avatar" style="background:var(--violet)">MR</div><div><b style="font-size:.82rem">Marina Rocha</b><br><small>há 12 min · Corrida de rua</small></div></div>
+                <p style="font-size:.8rem;margin:.7rem 0">Primeira vez abaixo de 6'00"/km.</p>
+                <div class="s-card" style="background:var(--bg-2)"><small>Novo recorde pessoal</small><br><b>5,2 km em 31:08</b></div>
+              </div>
+              <div class="s-card"><small>Clube · Hipertrofia iniciantes</small><div class="bar e"><i style="width:74%"></i></div><small>370 / 500 treinos em novembro</small></div>
+            </div>
+
+            <div class="screen" id="s-corrida">
+              <h4>Corrida</h4>
+              <div class="route"><svg viewBox="0 0 260 130" fill="none"><defs><linearGradient id="gr" x1="0" x2="1"><stop stop-color="#6d28d9"/><stop offset="1" stop-color="#c4a8ff"/></linearGradient></defs><path d="M12 108 C50 20 90 130 130 60 S210 10 248 40" stroke="url(#gr)" stroke-width="5" stroke-linecap="round"/><circle cx="248" cy="40" r="6" fill="#fff"/></svg></div>
+              <div class="macros"><div><b>5,2 km</b>Distância</div><div><b>31:08</b>Tempo</div><div><b>5'59"</b>Ritmo</div></div>
+            </div>
+
+            <div class="screen" id="s-sono">
+              <h4>Sono</h4>
+              <div class="big-num">7h20<small style="font-size:1rem;color:var(--ink-2)"> média</small></div>
+              <div class="bars"><i style="height:70%"></i><i style="height:82%"></i><i class="low" style="height:48%"></i><i style="height:76%"></i><i style="height:88%"></i><i style="height:80%"></i><i style="height:74%"></i></div>
+              <div class="days"><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span></div>
+            </div>
+
+            <div class="screen" id="s-pro">
+              <h4>Profissionais</h4>
+              <div class="s-card">
+                <div class="s-row" style="justify-content:flex-start;gap:.6rem"><div class="avatar" style="background:var(--violet-d)">AC</div><div><b style="font-size:.85rem">Dra. Ana Costa</b><br><span class="seal">● Registro conferido · CRN</span></div></div>
+                <div style="margin:.7rem 0;display:flex;gap:.4rem;flex-wrap:wrap"><span class="chip teal">Nutrição esportiva</span><span class="chip teal">Online</span></div>
+                <a class="btn-mini" href="#profissionais">Quero ser acompanhado</a>
+              </div>
+              <small>Cada profissional prescreve só o que a sua profissão permite.</small>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RECADO DE VOZ ============ -->
+<section class="section tint-2" id="recado">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Recado de voz</span>
+      <h2 class="display">Fale com quem você <span class="grad">vai ser.</span></h2>
+      <p class="lead">No primeiro dia, grave um áudio sobre por que você está começando. O Yesteryou guarda e entrega para você daqui a 90 dias. Ouvir a própria voz do passado é o jeito mais honesto de competir com quem você foi.</p>
+    </div>
+
+    <div class="recado-grid">
+      <div class="recorder reveal" id="recorder">
+        <div class="rec-q">
+          <small class="mono">PERGUNTA DO DIA</small>
+          <h3 id="question">Do que você tem orgulho esta semana?</h3>
+          <button class="link" id="nextQ" type="button">Outra pergunta →</button>
+        </div>
+
+        <div class="wave big" id="wave" aria-hidden="true"></div>
+
+        <div class="rec-ctrl">
+          <button class="mic lg" id="micBtn" type="button" aria-pressed="false" aria-label="Gravar recado"><span></span></button>
+          <div class="timer"><b class="mono" id="recTime">0:00</b><small>máx. 1:00</small></div>
+        </div>
+
+        <fieldset class="when">
+          <legend>Entregar a mim em</legend>
+          <label><input type="radio" name="when" value="30" checked><span>30 dias</span></label>
+          <label><input type="radio" name="when" value="90"><span>90 dias</span></label>
+          <label><input type="radio" name="when" value="180"><span>6 meses</span></label>
+          <label><input type="radio" name="when" value="365"><span>1 ano</span></label>
+        </fieldset>
+
+        <div class="rec-result" id="recResult" role="status">Aperte o microfone para simular uma gravação.</div>
+      </div>
+
+      <div class="recado-side">
+        <article class="mini reveal">
+          <span class="chip">Pergunta do dia</span>
+          <h3>Nada de página em branco.</h3>
+          <p>Uma notificação no horário que você escolher traz uma pergunta simples. Você responde falando, como num áudio de WhatsApp, e a transcrição e os temas ficam guardados.</p>
+        </article>
+        <article class="mini reveal">
+          <span class="chip good">Seu ano em áudio</span>
+          <h3>Retrospectiva para compartilhar.</h3>
+          <p>No fim do ano: trechos marcantes, o que mais preocupou, o que mudou e do que você se orgulhou. O card vai para os stories sem expor o conteúdo dos áudios.</p>
+          <div class="themes"><span>treino</span><span>sono</span><span>trabalho</span><span>família</span><span>constância</span></div>
+        </article>
+        <article class="mini priv reveal">
+          <span class="chip teal">Privado</span>
+          <h3>Seu áudio é só seu.</h3>
+          <p>Armazenamento criptografado, nada público por padrão e opção de apagar tudo a qualquer momento. É um diário, não um serviço de terapia.</p>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FERRAMENTAS ============ -->
+<section class="section tint" id="ferramentas">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Ferramentas</span>
+      <h2 class="display">A matemática do app, aberta para você testar.</h2>
+      <p class="lead">Nada de mágica: a avaliação é cálculo sobre o que você registra. Teste as mesmas fórmulas que o app usa.</p>
+    </div>
+
+    <div class="tools">
+      <form class="tool reveal" id="f1rm" onsubmit="return false">
+        <h3>Força estimada (1RM)</h3>
+        <p>Fórmula de Epley: carga × (1 + repetições ÷ 30). Compare 80 kg × 8 com 85 kg × 5 na mesma escala.</p>
+        <div class="fields">
+          <label class="field">CARGA (KG)<input type="number" id="carga" value="80" min="1" step="0.5"></label>
+          <label class="field">REPETIÇÕES<input type="number" id="reps" value="8" min="1" max="30"></label>
+        </div>
+        <div class="result">
+          <div><b id="o1rm">101</b><small>1RM estimado (kg)</small></div>
+          <div><b id="onext">84</b><small>próxima carga (kg)</small></div>
+          <p class="wide">Se você completar todas as séries no topo da faixa, o app sugere subir de 2 a 5%.</p>
+        </div>
+      </form>
+
+      <form class="tool reveal" id="fkcal" onsubmit="return false">
+        <h3>Meta calórica</h3>
+        <p>Mifflin-St Jeor × nível de atividade, ajustado ao objetivo e com piso de segurança.</p>
+        <div class="fields">
+          <label class="field">SEXO<select id="sexo"><option value="m">Masculino</option><option value="f">Feminino</option></select></label>
+          <label class="field">IDADE<input type="number" id="idade" value="28" min="14" max="90"></label>
+          <label class="field">PESO (KG)<input type="number" id="peso" value="78" min="30" max="250" step="0.1"></label>
+          <label class="field">ALTURA (CM)<input type="number" id="altura" value="178" min="120" max="230"></label>
+          <label class="field">ATIVIDADE<select id="ativ"><option value="1.2">Sedentário</option><option value="1.375">Leve</option><option value="1.55" selected>Moderado</option><option value="1.725">Intenso</option></select></label>
+          <label class="field">OBJETIVO<select id="obj"><option value="0.85">Perder</option><option value="1" selected>Manter</option><option value="1.1">Ganhar</option></select></label>
+        </div>
+        <div class="result">
+          <div><b id="okcal">2.730</b><small>kcal por dia</small></div>
+          <div><b id="oprot">156</b><small>g de proteína (2 g/kg)</small></div>
+          <p class="wide">Estimativa para organização, não prescrição. Para um plano individual, procure um nutricionista.</p>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONSTÂNCIA ============ -->
+<section class="section" id="constancia">
+  <div class="wrap streak-wrap">
+    <div class="reveal">
+      <span class="eyebrow">Constância</span>
+      <h2 class="display" style="margin:1.2rem 0">Falhar um dia não zera tudo.</h2>
+      <p class="lead">O streak tem um dia de folga por semana. Clique nos quadrados ao lado e veja a sequência reagir: duas falhas na mesma semana quebram, uma só não.</p>
+      <ul class="points">
+        <li>Treino registrado <b>+30</b></li>
+        <li>Refeições registradas <b>+20</b></li>
+        <li>Check-in com foto <b>+10</b></li>
+        <li>Meta de água <b>+5</b></li>
+      </ul>
+    </div>
+    <div class="streak-board reveal">
+      <div class="streak-count"><b class="grad" id="streakN">0</b><span class="s-sub" style="font-size:.95rem">dias seguidos</span></div>
+      <div class="heat" id="heat" aria-label="Calendário de registros"></div>
+      <div class="legend"><span><i style="background:var(--accent)"></i>registrado</span><span><i style="background:rgba(255,255,255,.08)"></i>sem registro</span><span><i style="border:1px dashed var(--ink-3)"></i>folga que não quebra</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLUBE ============ -->
+<section class="section tint-2" id="clube">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Yesteryou PRO</span>
+      <h2 class="display">Constância vira conquista.</h2>
+      <p class="lead">Cada treino registrado sobe o assinante no ranking semanal e dispara a disputa dos prêmios do mês. O ranking mede constância, nunca peso perdido ou aparência.</p>
+    </div>
+    <div class="rank-grid">
+      <div class="panel reveal">
+        <h3>Ranking da semana</h3>
+        <span class="s-sub">Clube geral · assinantes PRO</span>
+        <div class="podium">
+          <div class="pod p2"><div><div class="avatar" style="background:#4c1d95">TS</div><b>Tiago</b></div><div><span>905</span><div class="pos">2</div></div></div>
+          <div class="pod p1"><div><div class="avatar" style="background:#8b5cf6">BA</div><b>Bia</b></div><div><span>940</span><div class="pos">1</div></div></div>
+          <div class="pod p3"><div><div class="avatar" style="background:#6d28d9">LP</div><b>Lucas</b></div><div><span>870</span><div class="pos">3</div></div></div>
+        </div>
+        <div class="rk"><span class="pos">4</span><span class="nm">Camila Duarte</span><span class="pt">842</span></div>
+        <div class="rk"><span class="pos">5</span><span class="nm">Rafa Lima</span><span class="pt">801</span></div>
+        <div class="rk me"><span class="pos">8</span><span class="nm"><b>Você</b></span><span class="pt">720</span></div>
+      </div>
+
+      <div class="panel reveal">
+        <h3>Clubes e desafios</h3>
+        <span class="s-sub">Metas coletivas com prêmios de marcas parceiras</span>
+        <div style="margin-top:1.6rem;display:grid;gap:1.4rem">
+          <div><div class="s-row"><b>Hipertrofia iniciantes</b><span class="chip">370 / 500</span></div><div class="bar e" style="height:10px"><i style="width:74%"></i></div></div>
+          <div><div class="s-row"><b>Corrida de rua</b><span class="chip">1.280 km</span></div><div class="bar" style="height:10px"><i style="width:52%"></i></div></div>
+          <div><div class="s-row"><b>Academia do bairro</b><span class="chip">318 membros</span></div><div class="bar g" style="height:10px"><i style="width:31%"></i></div></div>
+        </div>
+        <div class="rule"><b>Antitrapaça:</b> limite de pontos por dia, duração mínima de treino, foto obrigatória para pontuar no ranking com prêmio e denúncia pela comunidade.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROFISSIONAIS ============ -->
+<section class="section" id="profissionais">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Profissionais verificados</span>
+      <h2 class="display">Quem acompanha você tem registro conferido.</h2>
+      <p class="lead">Nutricionistas e profissionais de Educação Física entram na mesma rede, com selo depois de conferido o registro no conselho. Sem selo, não aparecem na busca.</p>
+    </div>
+    <div class="pro-grid">
+      <article class="pro reveal">
+        <header><div class="avatar" style="background:var(--violet-d)">N</div><div><h3>Nutricionistas</h3><span class="seal">● Registro CRN conferido</span></div></header>
+        <ul><li>Montam cardápio e metas</li><li>Veem quem está sem registrar</li><li>Rascunhos de ajuste, aprovados por eles</li></ul>
+        <p class="can"><b>Prescreve:</b> dieta. <b>Não prescreve:</b> treino.</p>
+      </article>
+      <article class="pro reveal">
+        <header><div class="avatar" style="background:var(--violet)">E</div><div><h3>Educadores físicos</h3><span class="seal">● Registro CREF conferido</span></div></header>
+        <ul><li>Montam o treino do aluno</li><li>Veem recordes e estagnação</li><li>Chat direto com quem acompanham</li></ul>
+        <p class="can"><b>Prescreve:</b> treino. <b>Não prescreve:</b> dieta.</p>
+      </article>
+    </div>
+    <div class="steps reveal">
+      <div class="step"><b>Cadastro</b><p>Número do CRN ou CREF e foto da cédula.</p></div>
+      <div class="step"><b>Conferência</b><p>Consulta pública do conselho. A foto é apagada depois.</p></div>
+      <div class="step"><b>Selo</b><p>"Registro conferido" e entrada na aba Profissionais.</p></div>
+      <div class="step"><b>Painel</b><p>Alunos, planos e alertas em um só lugar.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PLANOS ============ -->
+<section class="section tint" id="planos">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Planos</span>
+      <h2 class="display">Grátis para começar. PRO para ir além.</h2>
+    </div>
+    <div class="plans">
+      <article class="plan reveal">
+        <span class="chip">Para você</span><h3>Grátis</h3>
+        <div class="price">R$ 0</div>
+        <ul><li>Treino, dieta e água</li><li>Streak e check-ins</li><li>Feed e clubes</li><li>Um recado por dia e um para o futuro por vez</li></ul>
+        <a href="#entrar" class="btn btn-ghost">Começar</a>
+      </article>
+      <article class="plan hot reveal">
+        <span class="chip">Mais escolhido</span><h3>PRO</h3>
+        <div class="price">R$ 14,90<small> /mês</small></div>
+        <ul><li>Ranking com prêmios mensais</li><li>Clubes VIP</li><li>Estatísticas completas</li><li>Recados para o futuro sem limite</li><li>Seu ano em áudio completo</li></ul>
+        <a href="#entrar" class="btn btn-primary">Quero o PRO</a>
+      </article>
+      <article class="plan reveal">
+        <span class="chip teal">Profissionais</span><h3>Profissional</h3>
+        <div class="price">R$ 59<small> /mês</small></div>
+        <ul><li>Perfil verificado na busca</li><li>Até 25 alunos</li><li>Planos, painel e chat</li><li>Profissional+ (R$ 99): ilimitado</li></ul>
+        <a href="#entrar" class="btn btn-ghost">Cadastrar perfil</a>
+      </article>
+    </div>
+    <p class="fine">Valores sugeridos, sujeitos a confirmação antes do lançamento.</p>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="section" id="faq">
+  <div class="wrap faq">
+    <div class="section-head reveal"><span class="eyebrow">Perguntas</span><h2 class="display">O que você precisa saber.</h2></div>
+    <details class="reveal"><summary>O Yesteryou substitui treinador ou nutricionista?</summary><p>Não. O app organiza o plano, facilita os registros e mantém a evolução visível. A avaliação individual continua sendo do profissional.</p></details>
+    <details class="reveal"><summary>Meus dados de saúde ficam públicos?</summary><p>Não. Peso, medidas e fotos corporais são privados por padrão. Você escolhe o que publicar, e o profissional só vê os dados de quem aceitou o acompanhamento.</p></details>
+    <details class="reveal"><summary>Quem escuta os meus recados de voz?</summary><p>Só você. Os áudios ficam em armazenamento criptografado, nada é público por padrão e você pode apagar tudo a qualquer momento. O recado é um diário, não um serviço de terapia.</p></details>
+    <details class="reveal"><summary>E se eu perder um dia de treino?</summary><p>O streak tem um dia de folga por semana. Uma falha não zera sua sequência.</p></details>
+    <details class="reveal"><summary>O ranking premia quem emagrece mais?</summary><p>Nunca. O ranking mede constância: treino registrado, refeições, check-ins e meta de água.</p></details>
+    <details class="reveal"><summary>Nutricionistas podem participar dos prêmios?</summary><p>Não. Seguindo as regras do conselho, nutricionistas não participam de sorteios nem dos prêmios do ranking.</p></details>
+  </div>
+</section>
+
+<!-- ============ CTA FINAL ============ -->
+<section class="wrap" id="entrar">
+  <div class="cta-final reveal">
+    <h2 class="display">Amanhã você vai querer ter começado hoje.</h2>
+    <p class="lead">Entre na lista e seja avisado quando o Yesteryou abrir o beta.</p>
+    <form class="signup" id="signup">
+      <label class="sr-only" for="email">E-mail</label>
+      <input id="email" type="email" required placeholder="seu@email.com">
+      <button class="btn btn-primary" type="submit">Entrar na lista</button>
+    </form>
+    <p class="signup-ok" id="signupOk" role="status"></p>
+  </div>
+</section>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div><a href="#" class="logo">Yester<i>you</i></a><p style="margin-top:.5rem">Compita com quem você foi ontem.</p></div>
+      <nav class="footer-links" aria-label="Rodapé"><a href="#recursos">Recursos</a><a href="#recado">Recado de voz</a><a href="#profissionais">Profissionais</a><a href="#planos">Planos</a></nav>
+      <nav class="footer-links" aria-label="Legal"><a href="#faq">Perguntas</a><a href="#">Termos</a><a href="#">Privacidade</a></nav>
+    </div>
+    <p class="disclaimer">O Yesteryou organiza e acompanha, mas não substitui avaliação profissional. O recado de voz é um diário, não um serviço de terapia. Sugestões geradas por IA são sempre sugestões, nunca prescrição.</p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
