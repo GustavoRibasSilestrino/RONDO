@@ -37,7 +37,6 @@
   clip-path: polygon(22% 0, 100% 0, 100% 100%, 0 100%);
 }
 .hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 3.5rem; align-items: center; }
-.hero-copy .eyebrow { margin-bottom: 1.6rem; }
 .hero-copy .lead { margin: 1.8rem 0 2.2rem; }
 .hero-cta { display: flex; gap: .8rem; flex-wrap: wrap; }
 .hero-meta { display: flex; gap: 2.2rem; margin-top: 3rem; flex-wrap: wrap; }
