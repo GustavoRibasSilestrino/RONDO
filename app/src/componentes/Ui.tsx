@@ -213,7 +213,7 @@ export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar }:
         const ativo = o.valor === valor;
         return (
           <Pressable key={String(o.valor)} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => aoMudar(o.valor)} style={[st.segmento, ativo && st.segmentoAtivo]}>
-            <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? cores.fundo : cores.texto2}>{o.nome}</T>
+            <T tam={12.5} peso={ativo ? '500' : '300'} cor={ativo ? cores.fundo : cores.texto2}>{o.nome}</T>
           </Pressable>
         );
       })}
@@ -270,7 +270,7 @@ const st = StyleSheet.create({
   passoValor: { minWidth: 46, alignItems: 'center', justifyContent: 'center' },
   barra: { height: 6, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 99, overflow: 'hidden' },
   segmentos: { flexDirection: 'row', backgroundColor: cores.cartao2, borderRadius: raio.pilula, padding: 4 },
-  segmento: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: raio.pilula },
+  segmento: { flexGrow: 1, flexBasis: 'auto', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderRadius: raio.pilula },
   segmentoAtivo: { backgroundColor: cores.texto },
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
   campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },

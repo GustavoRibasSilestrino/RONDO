@@ -32,7 +32,7 @@ const INICIO = 'home';
 
 /* da esquerda para a direita: o feed (a casinha), o treino, a comunidade, a dieta e o perfil */
 const TELAS: ItemAba[] = [
-  { id: 'home', rotulo: 'Início', icone: 'hoje' },
+  { id: 'home', rotulo: 'Feed', icone: 'hoje' },
   { id: 'treino', rotulo: 'Treino', icone: 'treino' },
   { id: 'comunidade', rotulo: 'Comunidade', icone: 'social' },
   { id: 'dieta', rotulo: 'Dieta', icone: 'dieta' },

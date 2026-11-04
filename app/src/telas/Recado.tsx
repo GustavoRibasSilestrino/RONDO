@@ -97,8 +97,8 @@ export function Recado() {
 
   return (
     <Tela>
-      <T tam={36} peso="200">Recado de voz</T>
-      <T tam={14} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 21 }}>Fale com quem você vai ser. Grave hoje, ouça no futuro.</T>
+      <T tam={15} peso="400" centro>Recado de voz</T>
+      <T tam={13} centro cor={cores.texto2} style={{ marginTop: 6, lineHeight: 21 }}>Fale com quem você vai ser. Grave hoje, ouça no futuro.</T>
 
       <Cartao destaque style={{ marginTop: 22 }}>
         <T tam={26} peso="200" style={{ lineHeight: 32 }}>{PERGUNTAS[pergunta]}</T>

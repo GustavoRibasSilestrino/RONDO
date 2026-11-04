@@ -49,8 +49,8 @@ function Lista() {
 
   return (
     <Tela>
-      <T tam={36} peso="200">Treino</T>
-      <T tam={14} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 21 }}>
+      <T tam={15} peso="400" centro>Treino</T>
+      <T tam={13} centro cor={cores.texto2} style={{ marginTop: 6, lineHeight: 21 }}>
         Escolha a rotina. O app abre com a sua última carga e sugere a próxima.
       </T>
       <View style={{ gap: 14, marginTop: 24 }}>

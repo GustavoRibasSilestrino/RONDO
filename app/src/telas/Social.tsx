@@ -75,7 +75,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
           <GrupoTela id={grupoAberto} aoVoltar={voltarDoGrupo} aoCompor={abrirCompositor} aoAbrirMidia={abrirMidia} />
         ) : modo === 'home' ? (
           <>
-            <T tam={15} peso="400" centro>Início</T>
+            <T tam={15} peso="400" centro>Feed</T>
             <View style={{ gap: 14, marginTop: 16 }}>
               <View style={st.filtros}>
                 {([['todos', 'Tudo'], ['seguindo', 'Seguindo'], ['meus', 'Clubes'], ['geral', 'Geral']] as [Filtro, string][]).map(([v, nome]) => {
@@ -110,8 +110,8 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
           </>
         ) : (
           <>
-            <T tam={36} peso="200">Comunidade</T>
-            <T tam={14} style={{ marginTop: 6 }}>Clubes e gente que também voltou hoje.</T>
+            <T tam={15} peso="400" centro>Comunidade</T>
+            <T tam={13} centro style={{ marginTop: 6 }}>Clubes e gente que também voltou hoje.</T>
             <Botao icone="mais" titulo="Criar clube" aoPressionar={() => setCriando(true)} style={{ marginTop: 20 }} />
             <View style={{ marginTop: 16 }}>
               <Segmentos<Aba> valor={aba} aoMudar={setAba} opcoes={[{ valor: 'grupos', nome: 'Clubes' }, { valor: 'ranking', nome: 'Ranking' }]} />

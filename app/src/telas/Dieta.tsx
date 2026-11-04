@@ -35,8 +35,8 @@ export function Dieta() {
 
   return (
     <Tela>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <T tam={36} peso="200">Dieta</T>
+      <T tam={15} peso="400" centro>Dieta</T>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: cores.cartao2, borderRadius: 99 }}>
           <Pressable accessibilityRole="button" accessibilityLabel="Dia anterior" onPress={() => mudarDia(-1)} style={{ padding: 10 }}>
             <Icone nome="seta" tamanho={16} cor={cores.texto2} />

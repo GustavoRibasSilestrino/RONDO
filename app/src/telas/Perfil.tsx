@@ -38,6 +38,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const nome = estado.usuario?.nome ?? 'Você';
 
   const [editando, setEditando] = useState(false);
+  const [apagandoConta, setApagandoConta] = useState(false);   // confirmação de apagar a conta
   const [bio, setBio] = useState('');
   const [nomeEd, setNomeEd] = useState('');
   const [arrobaEd, setArrobaEd] = useState('');
@@ -292,14 +293,18 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         <Pressable accessibilityRole="link" onPress={() => Linking.openURL(SITE)} style={{ alignSelf: 'flex-start', paddingVertical: 6 }}>
           <T tam={13} cor={cores.destaque2}>Assinatura, termos e privacidade no site →</T>
         </Pressable>
-        <Botao
-          tipo="perigo"
-          icone="lixo"
-          titulo="Apagar os meus dados deste aparelho"
-          aoPressionar={async () => { await limpar(); avisar('Dados apagados.'); }}
-        />
+        <Botao tipo="perigo" icone="lixo" titulo="Apagar conta" aoPressionar={() => setApagandoConta(true)} />
       </View>
       <T tam={11} cor={cores.texto3} style={{ marginTop: 22 }}>KORA · versão 0.1.0</T>
+
+      {/* apagar a conta: pede confirmação */}
+      <Folha aberta={apagandoConta} aoFechar={() => setApagandoConta(false)} titulo="Apagar conta?">
+        <T tam={14} style={{ lineHeight: 21 }}>Isso apaga a sua conta e todos os seus dados deste aparelho: treinos, dieta, publicações, medalhas e recados. Não dá para desfazer.</T>
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
+          <Botao tipo="discreto" titulo="Cancelar" aoPressionar={() => setApagandoConta(false)} style={{ flex: 1 }} />
+          <Botao tipo="perigo" icone="lixo" titulo="Apagar" aoPressionar={async () => { setApagandoConta(false); await limpar(); avisar('Conta apagada.'); }} style={{ flex: 1 }} />
+        </View>
+      </Folha>
 
       {/* editar o perfil: foto, nome, nome de usuário e descrição */}
       <Folha aberta={editando} aoFechar={fecharEdicao} titulo="Editar perfil">
