@@ -15,6 +15,7 @@ export type Paleta = {
   painel: string;   // fundo das folhas que sobem de baixo
   aviso: string;    // fundo do aviso rápido
   barra: string;    // fundo da barra de abas
+  cabecalho: string; // fundo do cabeçalho de cima
 };
 
 const normal: Paleta = {
@@ -41,6 +42,7 @@ const normal: Paleta = {
   painel: '#0a0a0a',
   aviso: '#161616',
   barra: 'rgba(12,12,12,0.78)',
+  cabecalho: '#000000',
 };
 
 const ultra: Paleta = {
@@ -67,6 +69,7 @@ const ultra: Paleta = {
   painel: '#0a1230',
   aviso: '#13204d',
   barra: 'rgba(8,18,52,0.6)',
+  cabecalho: 'rgba(8,20,60,0.38)',   // vidro: deixa a aurora aparecer
 };
 
 export const PALETAS: Record<TemaId, Paleta> = { normal, ultra };
