@@ -1,6 +1,5 @@
 /* Criar grupo: nome, descrição, categoria, público ou privado, objetivo e cor da capa, com a prévia da capa no topo.
    Quem cria já entra no grupo. Grupo privado ganha um código de convite para compartilhar. */
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { CampoFlutuante } from '../../componentes/CampoFlutuante';
@@ -39,16 +38,16 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
   };
 
   return (
-    <Folha aberta={aberto} aoFechar={aoFechar} titulo="Criar grupo">
+    <Folha aberta={aberto} aoFechar={aoFechar} titulo="Criar clube">
       <Capa cor={cor} cat={cat} altura={112}>
         <View style={st.previa}>
-          <T tam={24} peso="300" cor="#ffffff" linhas={2}>{nomeLimpo || 'Nome do grupo'}</T>
+          <T tam={24} peso="300" cor="#ffffff" linhas={2}>{nomeLimpo || 'Nome do clube'}</T>
           <T tam={12.5} cor="rgba(255,255,255,0.82)">{privado ? 'Privado' : 'Público'} · {categoria(cat).nome}</T>
         </View>
       </Capa>
 
       <View style={{ gap: 14, marginTop: 18 }}>
-        <CampoFlutuante rotulo="Nome do grupo" icone="grupo" value={nome} onChangeText={setNome} maxLength={40} erro={erroNome} returnKeyType="next" />
+        <CampoFlutuante rotulo="Nome do clube" icone="grupo" value={nome} onChangeText={setNome} maxLength={40} erro={erroNome} returnKeyType="next" />
         <CampoFlutuante rotulo="Descrição (opcional)" value={descricao} onChangeText={setDescricao} maxLength={160} multiline />
       </View>
 
@@ -68,7 +67,7 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
       <T tam={13} cor={cores.texto2} style={{ marginTop: 20, marginBottom: 10 }}>Quem pode entrar</T>
       <Segmentos<'publico' | 'privado'> valor={privado ? 'privado' : 'publico'} aoMudar={(v) => setPrivado(v === 'privado')} opcoes={[{ valor: 'publico', nome: 'Público' }, { valor: 'privado', nome: 'Privado' }]} />
       <T tam={12.5} cor={cores.texto3} style={{ marginTop: 8, lineHeight: 18 }}>
-        {privado ? 'Só entra quem tem o código de convite, que aparece na página do grupo.' : 'Qualquer pessoa da comunidade pode entrar.'}
+        {privado ? 'Só entra quem tem o código de convite, que aparece na página do clube.' : 'Qualquer pessoa da comunidade pode entrar.'}
       </T>
 
       <View style={{ marginTop: 18 }}>
@@ -81,14 +80,14 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
           const ativo = i === cor;
           return (
             <Pressable key={i} accessibilityRole="button" accessibilityLabel={`Cor ${i + 1}`} accessibilityState={{ selected: ativo }} onPress={() => setCor(i)} style={[st.amostra, ativo && st.amostraAtiva]}>
-              <LinearGradient colors={[par[0], par[1]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+              <View style={[StyleSheet.absoluteFill, { backgroundColor: par[0] }]} />
               {ativo ? <Icone nome="ok" tamanho={18} cor="#ffffff" /> : null}
             </Pressable>
           );
         })}
       </View>
 
-      <Botao titulo="Criar grupo" icone="mais" aoPressionar={criar} style={{ marginTop: 24 }} />
+      <Botao titulo="Criar clube" icone="mais" aoPressionar={criar} style={{ marginTop: 24 }} />
     </Folha>
   );
 }

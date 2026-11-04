@@ -22,7 +22,7 @@ export function Abertura() {
 
   if (fim) return null;
   return (
-    <Animated.View pointerEvents="auto" style={[StyleSheet.absoluteFill, st.tela, { opacity: tela }]} accessibilityLabel="Yesteryou">
+    <Animated.View pointerEvents="auto" style={[StyleSheet.absoluteFill, st.tela, { opacity: tela }]} accessibilityLabel="KORA">
       <Animated.View
         style={{
           alignItems: 'center', gap: 18, opacity: marca,
@@ -31,7 +31,7 @@ export function Abertura() {
       >
         <Marca altura={44} />
         <View>
-          <T tam={30} peso="200" style={{ letterSpacing: 7 }}>yesteryou</T>
+          <T tam={30} peso="200" style={{ letterSpacing: 10 }}>KORA</T>
         </View>
       </Animated.View>
     </Animated.View>

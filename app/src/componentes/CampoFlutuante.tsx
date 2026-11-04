@@ -63,7 +63,7 @@ export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuant
             value={value}
             accessibilityLabel={rotulo}
             selectionColor={cores.destaque}
-            placeholderTextColor={cores.texto3}
+            placeholderTextColor={cores.placeholder}
             style={[st.entrada, alto && st.entradaAlta, style]}
             onFocus={(e) => { setFoco(true); onFocus?.(e); }}
             onBlur={(e) => { setFoco(false); onBlur?.(e); }}

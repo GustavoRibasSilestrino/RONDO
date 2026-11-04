@@ -27,6 +27,16 @@ export function semearSocial(estado: Estado): void {
   if (estado.semeadoSocial) return;
   estado.seguidores = ['Bia Almeida', 'Tiago Santos', 'Camila Duarte', 'Rafa Lima', 'Marina Rocha'];
   if (!estado.perfilSocial.bio) estado.perfilSocial.bio = 'Competindo todo dia com quem eu fui ontem.';
+  const agora = Date.now();
+  const h = 3600000;
+  if (estado.notificacoes.length === 0) {
+    estado.notificacoes = [
+      { id: 'n-s1', tipo: 'seguidor', texto: 'Marina Rocha começou a seguir você.', quando: agora - 2 * h, lida: false },
+      { id: 'n-c1', tipo: 'cheers', texto: 'Tiago Santos deu cheers na sua publicação.', quando: agora - 9 * h, lida: false },
+      { id: 'n-s2', tipo: 'seguidor', texto: 'Bia Almeida começou a seguir você.', quando: agora - 26 * h, lida: true },
+      { id: 'n-m1', tipo: 'comentario', texto: 'Camila Duarte comentou: “Bora, não para!”', quando: agora - 30 * h, lida: true },
+    ];
+  }
   estado.semeadoSocial = true;
 }
 

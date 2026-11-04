@@ -113,7 +113,7 @@ export const MEDALHAS: Medalha[] = [
   { id: 'p1', colecao: 'comunidade', nome: 'Desafio aceito', desc: 'Publique na comunidade.', img: A('challenge-accepted'), meta: 1, valor: (e) => e.posts.length },
   { id: 'c10', colecao: 'comunidade', nome: 'Torcedor', desc: 'Dê cheers em 10 publicações.', img: A('got-a-pulse'), meta: 10, valor: cheersDados },
   { id: 'f5', colecao: 'comunidade', nome: 'Conectado', desc: 'Siga 5 pessoas.', img: A('social-beast'), meta: 5, valor: seguindoN },
-  { id: 'g1', colecao: 'comunidade', nome: 'Fundador', desc: 'Crie um grupo.', img: A('community'), meta: 1, valor: (e) => e.grupos.length },
+  { id: 'g1', colecao: 'comunidade', nome: 'Fundador', desc: 'Crie um clube.', img: A('community'), meta: 1, valor: (e) => e.grupos.length },
 
   { id: 'l3', colecao: 'niveis', nome: 'Mais alto', desc: 'Chegue ao nível 3.', img: A('higher'), meta: 3, valor: nivel },
   { id: 'l5', colecao: 'niveis', nome: 'Top 10', desc: 'Chegue ao nível 5.', img: A('top-10'), meta: 5, valor: nivel },

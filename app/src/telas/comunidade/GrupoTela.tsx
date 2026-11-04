@@ -40,8 +40,8 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia }: Props) {
 
   const convidar = async () => {
     const mensagem = g.privado && g.codigo
-      ? `Entre no meu grupo "${g.nome}" no Yesteryou. Código de convite: ${g.codigo}`
-      : `Venha para o grupo "${g.nome}" no Yesteryou: ${SITE}`;
+      ? `Entre no meu grupo "${g.nome}" no KORA. Código de convite: ${g.codigo}`
+      : `Venha para o grupo "${g.nome}" no KORA: ${SITE}`;
     try {
       await Share.share({ message: mensagem });
     } catch {
@@ -59,7 +59,7 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia }: Props) {
     });
     removerMidia(midias.map((m) => m.id));
     setApagando(false);
-    avisar('Grupo apagado.');
+    avisar('Clube apagado.');
   };
 
   return (

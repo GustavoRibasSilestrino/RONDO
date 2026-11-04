@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { cores, degradeBotao, PesoFonte, raio } from '../tema';
+import { cores, PesoFonte, raio } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'ui-monospace, Menlo, monospace' });
@@ -40,12 +40,6 @@ export function T({ children, tam = 15, peso = '300', cor = cores.texto, mono, c
 export function Cartao({ children, style, destaque }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; destaque?: boolean }) {
   return (
     <View style={[st.cartao, destaque && st.cartaoDestaque, style]}>
-      <LinearGradient
-        colors={destaque ? ['rgba(139,92,246,0.30)', 'rgba(109,40,217,0.03)'] : ['rgba(255,255,255,0.065)', 'rgba(255,255,255,0.012)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.85, y: 1 }}
-        style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}
-      />
       {children}
     </View>
   );
@@ -98,11 +92,8 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
       onPress={aoPressionar}
       onPressIn={() => mola(0.97)}
       onPressOut={() => mola(1)}
-      style={[st.botao, comOrbita && { borderRadius: raio.m - 1.5 }, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto, { opacity: desabilitado ? 0.45 : 1 }]}
+      style={[st.botao, comOrbita && { borderRadius: raio.m - 1.5 }, tipo === 'primario' && { backgroundColor: cores.destaqueForte }, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto, { opacity: desabilitado ? 0.45 : 1 }]}
     >
-      {tipo === 'primario' ? (
-        <LinearGradient colors={degradeBotao} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      ) : null}
       {conteudo}
     </Pressable>
   );
@@ -241,7 +232,7 @@ export function Campo({ rotulo, direita, style, onFocus, onBlur, ...resto }: Cam
       <T tam={11} mono cor={foco ? cores.destaque2 : cores.texto2}>{rotulo.toUpperCase()}</T>
       <View style={[st.campo, foco && st.campoFoco]}>
         <TextInput
-          placeholderTextColor={cores.texto3}
+          placeholderTextColor={cores.placeholder}
           selectionColor={cores.destaque}
           style={[st.campoTexto, style]}
           onFocus={(e) => { setFoco(true); onFocus?.(e); }}
@@ -265,9 +256,9 @@ export function Titulo({ children, direita }: { children: React.ReactNode; direi
 }
 
 const st = StyleSheet.create({
-  cartao: { backgroundColor: 'rgba(255,255,255,0.015)', borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden', boxShadow: '0 22px 40px -28px rgba(0,0,0,0.9)' },
-  cartaoDestaque: { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: 'rgba(109,40,217,0.1)', boxShadow: '0 26px 50px -30px rgba(109,40,217,0.7)' },
-  brilho: { boxShadow: '0 14px 30px -14px rgba(139,92,246,0.85)' },
+  cartao: { backgroundColor: cores.cartao, borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden', boxShadow: '0 22px 40px -28px rgba(0,0,0,0.9)' },
+  cartaoDestaque: { borderColor: cores.destaqueForte, backgroundColor: cores.cartao },
+  brilho: {},
   orbita: { borderRadius: raio.m, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(196,168,255,0.2)' },
   campoFoco: { borderColor: cores.destaque, backgroundColor: 'rgba(139,92,246,0.06)' },
   botao: { borderRadius: raio.m, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },

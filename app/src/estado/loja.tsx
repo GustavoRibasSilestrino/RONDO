@@ -27,6 +27,8 @@ export const estadoVazio = (): Estado => ({
   grupos: [],
   clubes: {},
   recados: [],
+  notificacoes: [],
+  medalhasAvisadas: null,
   semeado: false,
 });
 

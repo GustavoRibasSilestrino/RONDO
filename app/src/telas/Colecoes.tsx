@@ -12,7 +12,7 @@ import { cores } from '../tema';
 function Selo({ m, tamanho }: { m: MedalhaVista; tamanho: number }) {
   return (
     <View style={{ width: tamanho, height: tamanho * 0.95, alignItems: 'center', justifyContent: 'center' }}>
-      <Image source={m.img} accessibilityIgnoresInvertColors style={{ width: tamanho, height: tamanho * 0.95, opacity: m.aberta ? 1 : 0.42, mixBlendMode: 'screen' }} resizeMode="contain" />
+      <Image source={m.img} accessibilityIgnoresInvertColors style={{ width: tamanho, height: tamanho * 0.95, opacity: m.aberta ? 1 : 0.42 }} resizeMode="contain" />
       {!m.aberta ? (
         <View pointerEvents="none" style={st.cadeado}>
           <Icone nome="cadeado" tamanho={Math.round(tamanho * 0.22)} cor="#ffffff" />

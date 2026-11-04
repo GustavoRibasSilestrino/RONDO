@@ -42,7 +42,7 @@ export type GrupoVista = {
 export function listarGrupos(estado: Estado): GrupoVista[] {
   const demo: GrupoVista[] = CLUBES.map((c) => {
     const meu = !!estado.clubes[c.id];
-    return { id: c.id, nome: c.nome, descricao: c.descricao, categoria: c.categoria, privado: false, cor: c.cor, dono: 'Yesteryou', membros: c.membros + (meu ? 1 : 0), meta: c.meta, progresso: c.progresso, meu, proprio: false };
+    return { id: c.id, nome: c.nome, descricao: c.descricao, categoria: c.categoria, privado: false, cor: c.cor, dono: 'KORA', membros: c.membros + (meu ? 1 : 0), meta: c.meta, progresso: c.progresso, meu, proprio: false };
   });
   const meus: GrupoVista[] = estado.grupos.map((g) => ({
     id: g.id, nome: g.nome, descricao: g.descricao, categoria: g.categoria, privado: g.privado, cor: g.cor, dono: g.dono,

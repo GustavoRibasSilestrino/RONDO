@@ -50,10 +50,10 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
         <T tam={13} cor={cores.texto3} centro style={{ marginTop: 2 }}>{diaExtenso(agora)}</T>
       </View>
 
-      {/* Você vs. Yesteryou */}
+      {/* Você vs. ontem */}
       <Cartao destaque style={{ marginTop: 24 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <T tam={12} mono cor={cores.destaque2}>VOCÊ VS. YESTERYOU</T>
+          <T tam={12} mono cor={cores.destaque2}>VOCÊ VS. ONTEM</T>
           <T tam={11} cor={cores.texto2}>até {nomeDoDia(diaDaComparacao(estado, agora)).split('-')[0]} · vs. semana anterior</T>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10, marginTop: 6 }}>

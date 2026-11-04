@@ -1,27 +1,28 @@
-/* Identidade visual do app: preto e roxo, fontes finas, vidro leve e cantos amplos. */
+/* Identidade visual do app (KORA): preto profundo, texto branco, um único roxo puro, fontes finas. Sem degradês. */
 export const cores = {
-  fundo: '#050507',
-  fundo2: '#0b0910',
-  cartao: 'rgba(255,255,255,0.035)',
-  cartao2: 'rgba(255,255,255,0.07)',
-  linha: 'rgba(255,255,255,0.09)',
-  linha2: 'rgba(255,255,255,0.17)',
-  texto: '#f1eefb',
-  texto2: '#a09bb5',
-  texto3: '#8d84b8',
-  violeta: '#6d28d9',
-  violetaEscuro: '#2e1065',
-  destaque: '#8b5cf6',
-  destaqueForte: '#7c3aed', /* fundo que leva texto branco: 5,7:1 (o destaque dá 4,2:1) */
-  destaque2: '#c4a8ff',
+  fundo: '#000000',
+  fundo2: '#0a0a0a',
+  cartao: '#0a0a0a',
+  cartao2: '#161616',
+  linha: '#1f1f1f',
+  linha2: '#333333',
+  texto: '#ffffff',
+  texto2: '#ffffff',
+  texto3: '#ffffff',
+  violeta: '#6a00d4',
+  violetaEscuro: '#1d0040',
+  destaque: '#8a3dff',
+  destaqueForte: '#6a00d4', /* o roxo puro da marca: leva texto branco (9:1) */
+  destaque2: '#ffffff',
   bom: '#3ddc97',
   alerta: '#ff9a5c',
   erro: '#ff6b81',
   branco: '#ffffff',
+  placeholder: 'rgba(255,255,255,0.45)',
 } as const;
 
-/* degradê dos botões primários e do item escolhido da roda: o fim é escuro o bastante para texto branco (4,7:1) */
-export const degradeBotao = ['#6d28d9', '#8352f0'] as const;
+/* cor dos botões primários e da aba escolhida */
+export const degradeBotao = ['#6a00d4', '#6a00d4'] as const;   // sem degradê: o roxo puro, nos dois pontos
 
 export const raio = { p: 8, m: 14, g: 22, pilula: 999 } as const;
 

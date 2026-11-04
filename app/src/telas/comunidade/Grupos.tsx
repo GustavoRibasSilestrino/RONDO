@@ -30,7 +30,7 @@ export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: string) => void; ao
           value={busca}
           onChangeText={setBusca}
           placeholder="Buscar grupos"
-          placeholderTextColor={cores.texto3}
+          placeholderTextColor={cores.placeholder}
           selectionColor={cores.destaque}
           accessibilityLabel="Buscar grupos"
           autoCapitalize="none"
@@ -44,7 +44,6 @@ export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: string) => void; ao
         ) : null}
       </View>
 
-      <Botao icone="mais" titulo="Criar grupo" aoPressionar={aoCriar} />
 
       {meus.length ? (
         <>
@@ -55,7 +54,7 @@ export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: string) => void; ao
 
       {descobrir.length ? (
         <>
-          <T tam={20} peso="300" style={st.titulo}>{meus.length ? 'Descobrir' : 'Grupos para entrar'}</T>
+          <T tam={20} peso="300" style={st.titulo}>{meus.length ? 'Descobrir' : 'Clubes para entrar'}</T>
           {descobrir.map((g) => <GrupoCartao key={g.id} g={g} aoAbrir={() => aoAbrir(g.id)} aoAlternar={() => alternar(g.id)} />)}
         </>
       ) : null}

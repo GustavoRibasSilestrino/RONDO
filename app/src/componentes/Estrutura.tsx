@@ -1,5 +1,4 @@
 /* Estrutura das telas: coluna rolável (Tela), painel que sobe de baixo (Folha) e aviso rápido (Aviso). */
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,8 +7,9 @@ import { T } from './Ui';
 
 /* ---------- Tela ---------- */
 export function Tela({ children, comDoca = true, animada = true }: { children: React.ReactNode; comDoca?: boolean; animada?: boolean }) {
+  /* com a barra de baixo há o cabeçalho do app no alto (56 px); sem ela (entrar), a coluna começa mais perto do topo */
   const insets = useSafeAreaInsets();
-  /* a tela entra subindo e aparecendo; o brilho roxo no topo dá profundidade ao preto (animada={false}: a tela coreografa a própria entrada) */
+  /* a tela entra subindo e aparecendo (animada={false}: a tela coreografa a própria entrada) */
   const entrada = useRef(new Animated.Value(animada ? 0 : 1)).current;
   useEffect(() => {
     if (!animada) return;
@@ -17,13 +17,9 @@ export function Tela({ children, comDoca = true, animada = true }: { children: R
   }, [entrada, animada]);
   return (
     <View style={{ flex: 1 }}>
-      <LinearGradient
-        colors={['rgba(109,40,217,0.34)', 'rgba(109,40,217,0.08)', 'rgba(5,5,7,0)']}
-        style={[StyleSheet.absoluteFill, { height: 340, pointerEvents: 'none' }]}
-      />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + (comDoca ? 110 : 40), alignItems: 'center' }}
+        contentContainerStyle={{ paddingTop: insets.top + (comDoca ? 56 + 20 : 24), paddingBottom: insets.bottom + (comDoca ? 110 : 40), alignItems: 'center' }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -101,7 +97,7 @@ export function AvisoProvider({ children }: { children: React.ReactNode }) {
 const st = StyleSheet.create({
   fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   espaco: { width: '100%', maxWidth: larguraMax, alignSelf: 'center' },
-  corpo: { backgroundColor: '#0d0a16', borderColor: cores.linha2, borderWidth: 1, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 22, paddingTop: 12 },
+  corpo: { backgroundColor: '#0a0a0a', borderColor: cores.linha2, borderWidth: 1, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 22, paddingTop: 12 },
   alca: { alignSelf: 'center', width: 42, height: 5, borderRadius: 3, backgroundColor: cores.linha2, marginBottom: 16 },
-  aviso: { position: 'absolute', left: 24, right: 24, alignSelf: 'center', maxWidth: 420, backgroundColor: '#17122a', borderColor: cores.linha2, borderWidth: 1, borderRadius: raio.pilula, paddingVertical: 12, paddingHorizontal: 20, boxShadow: '0 16px 34px -14px rgba(0,0,0,0.9)' },
+  aviso: { position: 'absolute', left: 24, right: 24, alignSelf: 'center', maxWidth: 420, backgroundColor: '#161616', borderColor: cores.linha2, borderWidth: 1, borderRadius: raio.pilula, paddingVertical: 12, paddingHorizontal: 20, boxShadow: '0 16px 34px -14px rgba(0,0,0,0.9)' },
 });
