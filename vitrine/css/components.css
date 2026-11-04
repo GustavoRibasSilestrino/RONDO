@@ -204,8 +204,7 @@
   border-radius: var(--r-lg); padding: 2.2rem; display: grid; gap: 1.8rem;
   background: linear-gradient(160deg, #241448 0%, var(--card) 65%); border: 1px solid var(--line-2);
 }
-.rec-q small { color: var(--accent-2); letter-spacing: .14em; font-size: .72rem; }
-.rec-q h3 { font-family: var(--font-display); font-size: clamp(1.7rem, 3.4vw, 2.5rem); letter-spacing: -.045em; line-height: 1.05; margin: .7rem 0; }
+.rec-q h3 { font-family: var(--font-display); font-size: clamp(1.7rem, 3.4vw, 2.5rem); letter-spacing: -.045em; line-height: 1.05; margin: 0 0 .7rem; }
 .link { color: var(--ink-2); font-size: .88rem; border-bottom: 1px solid var(--line-2); padding-bottom: 2px; transition: color .2s, border-color .2s; }
 .link:hover { color: var(--ink); border-color: var(--accent); }
 
