@@ -105,6 +105,20 @@ export async function escolherMidia(origem: 'galeria' | 'camera', limite: number
   return saida;
 }
 
+/* foto de perfil: uma imagem só, recortada em quadrado; devolve a referência guardada, ou null se a pessoa cancelar */
+export async function escolherFoto(origem: 'galeria' | 'camera'): Promise<Midia | null> {
+  let resultado: ImagePicker.ImagePickerResult;
+  if (origem === 'camera') {
+    const permissao = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permissao.granted) throw new Error('Permita o uso da câmera nas configurações do aparelho para tirar a foto.');
+    resultado = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.7 });
+  } else {
+    resultado = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 0.7 });
+  }
+  if (resultado.canceled || !resultado.assets[0]) return null;
+  return guardar(resultado.assets[0]);
+}
+
 /* apaga o arquivo e a referência (ao apagar uma publicação ou descartar um rascunho) */
 export function removerMidia(ids: string[]): void {
   for (const id of ids) {

@@ -10,7 +10,7 @@ const GENTE = ['Marina Rocha', 'Lucas Prado', 'Bia Almeida', 'Tiago Santos', 'Ca
 
 export const naoLidas = (e: Estado): number => e.notificacoes.filter((n) => !n.lida).length;
 
-function adicionar(e: Estado, n: Omit<Estado['notificacoes'][number], 'id' | 'lida' | 'quando'>): void {
+export function adicionar(e: Estado, n: Pick<Estado['notificacoes'][number], 'tipo' | 'texto'> & { ref?: string }): void {
   e.notificacoes.unshift({ ...n, id: `n${Date.now()}${Math.floor(Math.random() * 1000)}`, quando: Date.now(), lida: false });
   e.notificacoes = e.notificacoes.slice(0, 80);
 }

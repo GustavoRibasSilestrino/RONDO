@@ -8,11 +8,13 @@ import { categoria, GrupoVista, listarGrupos } from '../../lib/grupos';
 import { fmt } from '../../lib/datas';
 import { cores, FONTE } from '../../tema';
 import { Capa } from './Capa';
+import { ConfirmarSaida } from './ConfirmarSaida';
 import { normalizar } from './util';
 
 export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: string) => void; aoCriar: () => void }) {
   const { estado, commit } = useLoja();
   const [busca, setBusca] = useState('');
+  const [saindo, setSaindo] = useState<GrupoVista | null>(null);   // o clube de que a pessoa quer sair, esperando a confirmação
 
   const q = normalizar(busca);
   const passa = (g: GrupoVista) => !q || normalizar(`${g.nome} ${g.descricao} ${categoria(g.categoria).nome}`).includes(q);
@@ -20,7 +22,10 @@ export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: string) => void; ao
   const meus = todos.filter((g) => g.meu && passa(g));
   const descobrir = todos.filter((g) => !g.meu && passa(g));
 
-  const alternar = (id: string) => commit((e) => { e.clubes[id] = !e.clubes[id]; });
+  const alternar = (g: GrupoVista) => {
+    if (g.meu) { setSaindo(g); return; }   // sair pede confirmação
+    commit((e) => { e.clubes[g.id] = true; });
+  };
 
   return (
     <View style={{ marginTop: 18, gap: 14 }}>
@@ -29,10 +34,10 @@ export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: string) => void; ao
         <TextInput
           value={busca}
           onChangeText={setBusca}
-          placeholder="Buscar grupos"
+          placeholder="Buscar clubes"
           placeholderTextColor={cores.placeholder}
           selectionColor={cores.destaque}
-          accessibilityLabel="Buscar grupos"
+          accessibilityLabel="Buscar clubes"
           autoCapitalize="none"
           autoCorrect={false}
           style={st.campoBusca}
@@ -47,24 +52,30 @@ export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: string) => void; ao
 
       {meus.length ? (
         <>
-          <T tam={20} peso="300" style={st.titulo}>Seus grupos</T>
-          {meus.map((g) => <GrupoCartao key={g.id} g={g} aoAbrir={() => aoAbrir(g.id)} aoAlternar={() => alternar(g.id)} />)}
+          <T tam={20} peso="300" style={st.titulo}>Seus clubes</T>
+          {meus.map((g) => <GrupoCartao key={g.id} g={g} aoAbrir={() => aoAbrir(g.id)} aoAlternar={() => alternar(g)} />)}
         </>
       ) : null}
 
       {descobrir.length ? (
         <>
           <T tam={20} peso="300" style={st.titulo}>{meus.length ? 'Descobrir' : 'Clubes para entrar'}</T>
-          {descobrir.map((g) => <GrupoCartao key={g.id} g={g} aoAbrir={() => aoAbrir(g.id)} aoAlternar={() => alternar(g.id)} />)}
+          {descobrir.map((g) => <GrupoCartao key={g.id} g={g} aoAbrir={() => aoAbrir(g.id)} aoAlternar={() => alternar(g)} />)}
         </>
       ) : null}
 
       {!meus.length && !descobrir.length ? (
         <Cartao>
-          <T tam={15} peso="300">Nenhum grupo com “{busca.trim()}”.</T>
-          <T tam={13} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 19 }}>Tente outra palavra, ou crie o grupo que está faltando.</T>
+          <T tam={15} peso="300">Nenhum clube com “{busca.trim()}”.</T>
+          <T tam={13} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 19 }}>Tente outra palavra, ou crie o clube que está faltando.</T>
         </Cartao>
       ) : null}
+      <ConfirmarSaida
+        aberto={saindo !== null}
+        nome={saindo?.nome ?? ''}
+        aoFechar={() => setSaindo(null)}
+        aoConfirmar={() => { if (saindo) commit((e) => { e.clubes[saindo.id] = false; }); setSaindo(null); }}
+      />
     </View>
   );
 }
@@ -72,7 +83,7 @@ export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: string) => void; ao
 function GrupoCartao({ g, aoAbrir, aoAlternar }: { g: GrupoVista; aoAbrir: () => void; aoAlternar: () => void }) {
   return (
     <Cartao style={{ padding: 0 }}>
-      <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o grupo ${g.nome}`} onPress={aoAbrir}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o clube ${g.nome}`} onPress={aoAbrir}>
         <View style={{ padding: 8 }}>
           <Capa cor={g.cor} cat={g.categoria} altura={84}>
             {g.privado ? (
@@ -94,7 +105,7 @@ function GrupoCartao({ g, aoAbrir, aoAlternar }: { g: GrupoVista; aoAbrir: () =>
         {g.proprio ? (
           <Botao pequeno tipo="fantasma" titulo="Abrir" aoPressionar={aoAbrir} />
         ) : (
-          <Botao pequeno tipo={g.meu ? 'discreto' : 'fantasma'} titulo={g.meu ? 'Sair do grupo' : 'Entrar no grupo'} aoPressionar={aoAlternar} />
+          <Botao pequeno tipo={g.meu ? 'discreto' : 'fantasma'} titulo={g.meu ? 'Sair do clube' : 'Entrar no clube'} aoPressionar={aoAlternar} />
         )}
       </View>
     </Cartao>
