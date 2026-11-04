@@ -68,13 +68,23 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
     <Tela>
       {/* cabeçalho: avatar com anel de nível, títulos, descrição e contagens */}
       <View style={st.topo}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Editar perfil" onPress={abrirEdicao} style={({ pressed }) => [st.lapis, pressed && { opacity: 0.8 }]}>
+          <Icone nome="lapis" tamanho={19} cor="#ffffff" />
+        </Pressable>
         <Anel progresso={nivel.p} tamanho={104} espessura={5} cor={cores.destaque2}>
           <Avatar nome={nome} voce tamanho={86} />
         </Anel>
         <View style={st.selo}>
           <T tam={12.5} peso="500" cor="#ffffff">Nível {nivel.nivel}</T>
         </View>
-        <T tam={30} peso="200" linhas={1} centro style={{ marginTop: 14 }}>{nome}</T>
+        <View style={st.contagens}>
+          <Contagem n={estado.posts.length} rotulo="Publicações" />
+          <View style={st.fio} />
+          <Contagem n={seguidores.length} rotulo="Seguidores" aoTocar={() => setLista('seguidores')} />
+          <View style={st.fio} />
+          <Contagem n={seguindo.length} rotulo="Seguindo" aoTocar={() => setLista('seguindo')} />
+        </View>
+        <T tam={30} peso="200" linhas={1} centro style={{ marginTop: 10 }}>{nome}</T>
         {exibidos.length ? (
           <View style={st.titulos}>
             {exibidos.map((t) => (
@@ -103,16 +113,6 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
           {proxima ? `Próxima: ${proxima.nome}, no nível ${proxima.nivel}` : 'A patente mais alta da KORA'}
         </T>
       </View>
-
-      <View style={st.contagens}>
-        <Contagem n={estado.posts.length} rotulo="Publicações" />
-        <View style={st.fio} />
-        <Contagem n={seguidores.length} rotulo="Seguidores" aoTocar={() => setLista('seguidores')} />
-        <View style={st.fio} />
-        <Contagem n={seguindo.length} rotulo="Seguindo" aoTocar={() => setLista('seguindo')} />
-      </View>
-
-      <Botao tipo="fantasma" icone="perfil" titulo="Editar perfil" aoPressionar={abrirEdicao} style={{ marginTop: 18 }} />
 
       {/* o que não cabe na barra de baixo mora aqui */}
       <View style={st.atalhos}>
@@ -290,20 +290,21 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 function Contagem({ n, rotulo, aoTocar }: { n: number; rotulo: string; aoTocar?: () => void }) {
   return (
     <Pressable accessibilityRole={aoTocar ? 'button' : 'text'} accessibilityLabel={`${rotulo}: ${n}`} disabled={!aoTocar} onPress={aoTocar} style={st.contagem}>
-      <T tam={24} peso="200">{fmt(n)}</T>
-      <T tam={12.5} cor={cores.texto2}>{rotulo}</T>
+      <T tam={17} peso="400">{fmt(n)}</T>
+      <T tam={11.5}>{rotulo}</T>
     </Pressable>
   );
 }
 
 const st = StyleSheet.create({
   topo: { alignItems: 'center' },
+  lapis: { position: 'absolute', top: -4, right: 0, width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2, zIndex: 2 },
   selo: { marginTop: -12, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.destaqueForte, borderWidth: 2, borderColor: cores.fundo },
   titulos: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 12 },
   titulo: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: 'rgba(139,92,246,0.14)' },
-  contagens: { flexDirection: 'row', alignItems: 'center', marginTop: 22 },
-  contagem: { flex: 1, alignItems: 'center', gap: 2, minHeight: 56, justifyContent: 'center' },
-  fio: { width: 1, height: 32, backgroundColor: cores.linha },
+  contagens: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 4, marginTop: 14 },
+  contagem: { alignItems: 'center', minWidth: 78, paddingHorizontal: 6, minHeight: 44, justifyContent: 'center' },
+  fio: { width: 1, height: 22, backgroundColor: cores.linha },
   colecao: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   patente: { alignItems: 'center', marginTop: 22, paddingVertical: 18, borderRadius: 22, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
   atalhos: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
