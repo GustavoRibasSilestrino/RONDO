@@ -95,7 +95,8 @@ export type Estado = {
   checkins: Record<string, boolean>;
   pesos: { data: string; kg: number }[];
   posts: Post[];
-  curtidas: Record<string, boolean>;
+  curtidas: Record<string, boolean>;           // os cheers dados, por id da publicação
+  seguindo: Record<string, boolean>;           // as conexões: pessoas que a pessoa segue, pelo nome
   comentarios: Record<string, Comentario[]>;   // por id da publicação
   grupos: Grupo[];                             // os que a pessoa criou
   clubes: Record<string, boolean>;             // grupos em que a pessoa está (de demonstração ou criados por ela)

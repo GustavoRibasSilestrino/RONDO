@@ -10,6 +10,7 @@ import { cores } from '../../tema';
 import type { Midia, Post } from '../../tipos';
 import { Avatar } from './Avatar';
 import { MidiaGrade } from './Midia';
+import { BotaoSeguir } from './Seguir';
 import { quando } from './util';
 
 type Props = {
@@ -68,7 +69,9 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Prop
           <Pressable accessibilityRole="button" accessibilityLabel="Mais opções da publicação" onPress={() => setApagando(true)} hitSlop={8} style={st.botaoIcone}>
             <Icone nome="pontos" tamanho={20} cor={cores.texto2} />
           </Pressable>
-        ) : null}
+        ) : (
+          <BotaoSeguir nome={post.autor} />
+        )}
       </View>
 
       {post.texto ? <T tam={15} style={{ marginTop: 12, lineHeight: 22 }}>{post.texto}</T> : null}
@@ -87,12 +90,12 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Prop
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ selected: curtiu }}
-          accessibilityLabel="Curtir"
+          accessibilityLabel={curtiu ? 'Tirar o seu cheers' : 'Dar cheers'}
           onPress={() => commit((e) => { e.curtidas[post.id] = !e.curtidas[post.id]; })}
-          style={st.acao}
+          style={[st.acao, curtiu && st.cheersDado]}
         >
-          <Icone nome="coracao" tamanho={19} cor={curtiu ? cores.erro : cores.texto2} />
-          <T tam={13} cor={curtiu ? cores.erro : cores.texto2}>{base + (curtiu ? 1 : 0)}</T>
+          <Icone nome="cheers" tamanho={20} cor={curtiu ? cores.destaque2 : cores.texto2} />
+          <T tam={13} peso={curtiu ? '500' : '300'} cor={curtiu ? cores.destaque2 : cores.texto2}>Cheers {base + (curtiu ? 1 : 0)}</T>
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={`Comentários: ${nComentarios}`} onPress={() => setComentando(true)} style={st.acao}>
           <Icone nome="comentario" tamanho={19} cor={cores.texto2} />
@@ -182,6 +185,7 @@ const st = StyleSheet.create({
   destaque: { marginTop: 12, backgroundColor: cores.fundo2, borderRadius: 12, padding: 12 },
   acoes: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, marginHorizontal: -6 },
   acao: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 8 },
+  cheersDado: { backgroundColor: 'rgba(139,92,246,0.14)', borderRadius: 22, paddingHorizontal: 14 },
   linhaComentario: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   campoComentario: { flex: 1, height: 46, paddingHorizontal: 16, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', color: cores.texto, fontSize: 15, fontWeight: '300', outlineWidth: 0, outlineColor: 'transparent' },
   enviar: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
