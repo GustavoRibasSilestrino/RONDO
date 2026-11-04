@@ -3,8 +3,9 @@
    O botão + roxo, sobre a barra, cria uma publicação. Tudo guardado no aparelho, como o resto do app em modo demonstração. */
 import React, { useCallback, useEffect, useState } from 'react';
 import { BackHandler, Pressable, Share, StyleSheet, View } from 'react-native';
-import { Tela, useAviso } from '../componentes/Estrutura';
+import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { BotaoMais } from '../componentes/BotaoMais';
+import { Icone } from '../componentes/Icone';
 import { Botao, Cartao, Segmentos, T } from '../componentes/Ui';
 import { useLoja } from '../estado/loja';
 import { comparar, statsSemana } from '../lib/calc';
@@ -33,6 +34,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
   const [grupoAberto, setGrupoAberto] = useState<string | null>(null);
   const [compor, setCompor] = useState<{ aberto: boolean; grupo: string | null }>({ aberto: false, grupo: null });
   const [criando, setCriando] = useState(false);
+  const [menuMais, setMenuMais] = useState(false);   // o menu do botão +
   const [perfilAberto, setPerfilAberto] = useState<string | null>(null);   // o perfil de quem publicou, aberto ao tocar na foto
   const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
 
@@ -93,8 +95,6 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
                 })}
               </View>
 
-              <Botao tipo="fantasma" icone="compartilhar" titulo="Compartilhar meu card" aoPressionar={compartilhar} />
-
               {posts.length ? (
                 posts.map((p) => {
                   const g = p.grupo ? porId.get(p.grupo) : undefined;
@@ -132,7 +132,27 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
       </Tela>
 
       {/* o + roxo, sobre a barra: criar uma publicação (dentro de um clube, o botão do próprio clube publica nele) */}
-      {grupoAberto ? null : <BotaoMais rotulo="Criar publicação" aoPressionar={() => abrirCompositor(null)} />}
+      {grupoAberto ? null : <BotaoMais rotulo="Criar" aoPressionar={() => setMenuMais(true)} />}
+
+      {/* o que o + faz: publicar, ou compartilhar a sua semana */}
+      <Folha aberta={menuMais} aoFechar={() => setMenuMais(false)} titulo="Criar">
+        <View style={{ gap: 10, paddingBottom: 4 }}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Publicar" onPress={() => { setMenuMais(false); abrirCompositor(null); }} style={({ pressed }) => [st.opcao, pressed && { opacity: 0.85 }]}>
+            <View style={st.opcaoIcone}><Icone nome="imagem" tamanho={22} cor="#ffffff" /></View>
+            <View style={{ flex: 1 }}>
+              <T tam={15.5} peso="500">Publicar</T>
+              <T tam={13} style={{ marginTop: 2 }}>Foto, vídeo ou texto no Feed.</T>
+            </View>
+          </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Compartilhar o meu progresso da semana" onPress={() => { setMenuMais(false); compartilhar(); }} style={({ pressed }) => [st.opcao, pressed && { opacity: 0.85 }]}>
+            <View style={st.opcaoIcone}><Icone nome="compartilhar" tamanho={22} cor="#ffffff" /></View>
+            <View style={{ flex: 1 }}>
+              <T tam={15.5} peso="500">Compartilhar minha semana</T>
+              <T tam={13} style={{ marginTop: 2 }}>Envia o seu Você vs. ontem para outros apps.</T>
+            </View>
+          </Pressable>
+        </View>
+      </Folha>
     </>
   );
 }
@@ -140,5 +160,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
 const st = estilos(() => StyleSheet.create({
   filtros: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   filtro: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
+  opcao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
+  opcaoIcone: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   filtroAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
 }));
