@@ -1,0 +1,56 @@
+/* ===== Camada "fit": movimento de treino por cima da identidade atual =====
+   Tudo aqui é opcional: sem JS ou com "reduzir movimento" a página aparece pronta. */
+
+/* ---- hero: cada linha sobe por uma máscara, em sequência ---- */
+@keyframes lineRise {
+  from { clip-path: inset(0 0 100% 0); transform: translateY(.5em); opacity: 0; }
+  to   { clip-path: inset(-30% -10% -30% -10%); transform: none; opacity: 1; }
+}
+.hero-title .ln { animation: lineRise 1.05s var(--ease) backwards; }
+.hero-title .ln:nth-child(2) { animation-delay: .12s; }
+.hero-title .ln:nth-child(3) { animation-delay: .24s; }
+.hero-art { animation: lineRise .9s var(--ease) .3s backwards; }
+.hero-bottom { animation: lineRise .9s var(--ease) .5s backwards; }
+
+/* ---- títulos de seção: palavra por palavra ---- */
+.js-split .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .14em; margin-bottom: -.14em; }
+.js-split .w > span { display: inline-block; transform: translateY(108%); will-change: transform; }
+.js-split.w-in .w > span { transform: none; transition: transform .95s var(--ease) calc(var(--i) * 55ms); }
+
+/* ---- cards: a luz acompanha o cursor, no fundo e na borda ---- */
+.tool, .panel, .pro, .plan, .s-card { position: relative; isolation: isolate; }
+.spot { position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .35s; }
+.spot::before, .spot::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
+.spot::before { background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(139, 92, 246, .16), transparent 62%); }
+.spot::after {
+  padding: 1px;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(196, 168, 255, .75), transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.tool:hover > .spot, .panel:hover > .spot, .pro:hover > .spot, .plan:hover > .spot, .s-card:hover > .spot { opacity: 1; }
+.tool, .pro, .plan { transition: transform .45s var(--ease), border-color .3s; }
+.tool:hover, .pro:hover, .plan:hover { transform: translateY(-4px); }
+
+/* ---- botões primários: seguem o cursor de leve ---- */
+.btn-primary { translate: var(--tx, 0px) var(--ty, 0px); transition: transform .25s var(--ease), background .25s, box-shadow .25s, translate .35s var(--ease); }
+
+/* ---- batimento: uma linha de ECG se desenha no topo de cada seção ---- */
+.ecg { position: absolute; left: 0; top: -13px; width: 100%; height: 26px; pointer-events: none; overflow: visible; }
+.ecg path { fill: none; stroke: rgba(167, 139, 250, .5); stroke-width: 1.2; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.ecg.on path { stroke-dashoffset: 0; transition: stroke-dashoffset 1.9s cubic-bezier(.5, 0, .2, 1); }
+.ecg .beat { stroke: var(--accent-2); stroke-width: 1.6; filter: drop-shadow(0 0 6px rgba(139, 92, 246, .9)); }
+
+/* ---- superfícies do navegador: seleção, rolagem ---- */
+::selection { background: rgba(139, 92, 246, .45); color: #fff; }
+html { scrollbar-color: #3b2a6b var(--bg); scrollbar-width: thin; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-title .ln, .hero-art, .hero-bottom { animation: none; }
+  .ecg path { stroke-dashoffset: 0; transition: none; }
+  .tool:hover, .pro:hover, .plan:hover { transform: none; }
+}
+@media (hover: none) {
+  .spot { display: none; }
+  .tool:hover, .pro:hover, .plan:hover { transform: none; }
+}
