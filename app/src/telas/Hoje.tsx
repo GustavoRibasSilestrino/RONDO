@@ -40,16 +40,14 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
 
   return (
     <Tela>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <View style={{ flex: 1, paddingRight: 12 }}>
-          <T tam={13} cor={cores.texto2}>{saudacao}</T>
-          <T tam={36} peso="200" linhas={1}>{estado.usuario?.nome ?? ''}</T>
-          <T tam={13} cor={cores.texto3} style={{ marginTop: 2 }}>{diaExtenso(agora)}</T>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,154,92,0.12)', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 99 }}>
+      <View style={{ alignItems: 'center', gap: 2 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,154,92,0.12)', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 99, marginBottom: 14 }}>
           <Icone nome="chama" tamanho={16} cor={cores.alerta} />
-          <T tam={15} peso="500" cor={cores.alerta}>{streak}</T>
+          <T tam={15} peso="500" cor={cores.alerta}>{streak} {streak === 1 ? 'dia' : 'dias'}</T>
         </View>
+        <T tam={14} cor={cores.texto2} centro>{saudacao}</T>
+        <T tam={40} peso="200" linhas={1} centro>{estado.usuario?.nome ?? ''}</T>
+        <T tam={13} cor={cores.texto3} centro style={{ marginTop: 2 }}>{diaExtenso(agora)}</T>
       </View>
 
       {/* Você vs. Yesteryou */}

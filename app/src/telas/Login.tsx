@@ -33,12 +33,12 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Tela comDoca={false}>
-        <View style={{ marginTop: 28, marginBottom: 40 }}>
+        <View style={{ marginTop: 28, marginBottom: 40, alignItems: 'center' }}>
           <Marca altura={30} />
         </View>
 
-        <T tam={46} peso="200">Entrar</T>
-        <T tam={15} cor={cores.texto2} style={{ marginTop: 8, marginBottom: 32, lineHeight: 22 }}>
+        <T tam={46} peso="200" centro>Entrar</T>
+        <T tam={15} cor={cores.texto2} centro style={{ marginTop: 8, marginBottom: 32, lineHeight: 22 }}>
           Acesse a sua conta para continuar de onde parou.
         </T>
 
@@ -77,15 +77,15 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
           <Botao titulo={enviando ? 'Entrando...' : 'Entrar'} aoPressionar={enviar} desabilitado={enviando} style={{ marginTop: 4 }} />
         </View>
 
-        <View style={{ marginTop: 36, gap: 10 }}>
-          <T tam={13} cor={cores.texto2} style={{ lineHeight: 20 }}>
+        <View style={{ marginTop: 36, gap: 10, alignItems: 'center' }}>
+          <T tam={13} cor={cores.texto2} centro style={{ lineHeight: 20 }}>
             Ainda não tem conta? A assinatura é feita no{' '}
             <T tam={13} peso="500" cor={cores.destaque2} style={{ textDecorationLine: 'underline' }} >
               site
             </T>
             .
           </T>
-          <Pressable accessibilityRole="link" onPress={() => Linking.openURL(SITE)} style={{ alignSelf: 'flex-start' }}>
+          <Pressable accessibilityRole="link" onPress={() => Linking.openURL(SITE)} style={{ alignSelf: 'center' }}>
             <T tam={13} peso="500" cor={cores.destaque2}>Abrir o site do Yesteryou →</T>
           </Pressable>
           {modoDemonstracao ? <T tam={12} cor={cores.texto3}>Protótipo: nenhum dado sai do seu aparelho.</T> : null}
