@@ -279,38 +279,7 @@ function calcKcal() {
 $$("#fkcal input, #fkcal select").forEach((el) => el.addEventListener("input", calcKcal));
 calcKcal();
 
-/* ---------- streak interativo ---------- */
-const WEEKS = 12, heat = $("#heat");
-const seed = [1,1,1,0,1,1,1, 1,1,0,1,1,1,1, 1,1,1,1,0,1,1, 1,0,1,1,1,1,1, 1,1,1,1,1,0,1, 1,1,1,1,1,1,1, 1,1,0,1,1,1,1, 1,1,1,1,1,1,0, 1,1,1,1,0,0,1, 1,1,1,1,0,1,1, 1,1,1,1,1,1,1, 1,1,1,0,1,1,1];
-const days = Array.from({ length: WEEKS * 7 }, (_, i) => seed[i] ?? 1);
-function computeStreak() {
-  let streak = 0, lastMiss = null;
-  for (let i = days.length - 1; i >= 0; i--) {
-    if (days[i]) { streak++; continue; }
-    if (lastMiss !== null && lastMiss - i < 7) break;
-    lastMiss = i;
-  }
-  return streak;
-}
-// falta isolada (sem outra na mesma janela de 7 dias) é folga e não quebra a sequência
-function missIsRest(i) {
-  const from = Math.max(0, i - 6);
-  return !days.slice(from, i + 7).some((v, k) => !v && from + k !== i);
-}
-function paintHeat() {
-  heat.innerHTML = "";
-  days.forEach((on, i) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.setAttribute("aria-label", `Dia ${i + 1}: ${on ? "registrado" : "sem registro"}`);
-    b.className = on ? "l3" : "";
-    if (!on && missIsRest(i)) b.className = "rest";
-    b.addEventListener("click", () => { days[i] = days[i] ? 0 : 1; paintHeat(); });
-    heat.appendChild(b);
-  });
-  $("#streakN").textContent = computeStreak();
-}
-paintHeat();
+/* ---------- streak interativo: ver js/streak.js ---------- */
 
 /* ---------- lista de espera (ainda sem backend) ---------- */
 $("#signup").addEventListener("submit", (e) => {
