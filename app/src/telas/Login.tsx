@@ -193,6 +193,11 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
                 <T tam={12} cor={cores.texto3}>Protótipo: nenhum dado sai do seu aparelho.</T>
               </View>
             ) : null}
+            {modoDemonstracao ? (
+              <Pressable accessibilityRole="button" accessibilityLabel="Preencher com a conta de teste" onPress={() => { setEmail('teste@kora.app'); setSenha('teste1234'); }} style={{ alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 12, minHeight: 44, justifyContent: 'center' }}>
+                <T tam={13} peso="500" cor={cores.destaque2}>Usar a conta de teste (nível 15, tudo liberado)</T>
+              </Pressable>
+            ) : null}
           </Animated.View>
         </View>
       </Tela>

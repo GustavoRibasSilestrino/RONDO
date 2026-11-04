@@ -8,9 +8,9 @@ import { T } from './Ui';
 
 export const ALTURA_CABECALHO = 56;
 
-type Props = { mostrarNome: boolean; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
+type Props = { mostrarNome: boolean; mostrarTema: boolean; temaBloqueado: boolean; aoTrocarTema: () => void; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
 
-export function CabecalhoApp({ mostrarNome, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
+export function CabecalhoApp({ mostrarNome, mostrarTema, temaBloqueado, aoTrocarTema, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[st.fundo, { paddingTop: insets.top, height: insets.top + ALTURA_CABECALHO }]}>
@@ -35,6 +35,17 @@ export function CabecalhoApp({ mostrarNome, naoLidas, aberto, aoAbrirNotificacoe
             <T tam={19} peso="500" style={{ letterSpacing: 6, marginRight: -6 }}>KORA</T>
           </View>
         ) : null}
+        {mostrarTema ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={temaBloqueado ? 'Trocar o tema, bloqueado até o nível 15' : 'Trocar o tema'}
+            onPress={aoTrocarTema}
+            style={st.tema}
+          >
+            <Icone nome="tema" tamanho={23} cor="#ffffff" />
+            {temaBloqueado ? <View style={st.cadeado}><Icone nome="cadeado" tamanho={10} cor="#ffffff" espessura={2.2} /></View> : null}
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
@@ -43,6 +54,8 @@ export function CabecalhoApp({ mostrarNome, naoLidas, aberto, aoAbrirNotificacoe
 const st = estilos(() => StyleSheet.create({
   fundo: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: cores.fundo, borderBottomWidth: 1, borderBottomColor: cores.linha, alignItems: 'center', zIndex: 20 },
   linha: { width: '100%', maxWidth: larguraMax, height: ALTURA_CABECALHO, justifyContent: 'center', paddingHorizontal: 12 },
+  tema: { position: 'absolute', right: 12, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  cadeado: { position: 'absolute', right: 5, bottom: 7, width: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   sino: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   selo: { position: 'absolute', top: 3, right: 1, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   marca: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },

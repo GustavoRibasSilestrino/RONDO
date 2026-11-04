@@ -1,6 +1,7 @@
 /* Recursos pagos: o selo com a estrela (SeloPro) e o aviso que explica o plano PRO (AvisoPro). A assinatura é feita no site. */
 import React from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
+import { useLoja } from '../estado/loja';
 import { cores, estilos } from '../tema';
 import { Folha } from './Estrutura';
 import { Icone } from './Icone';
@@ -19,6 +20,19 @@ export function SeloPro() {
 type Props = { aberto: boolean; aoFechar: () => void; recurso: string; site: string };
 
 export function AvisoPro({ aberto, aoFechar, recurso, site }: Props) {
+  const { estado } = useLoja();
+  if (estado.pro) {
+    return (
+      <Folha aberta={aberto} aoFechar={aoFechar} titulo="Recurso PRO liberado">
+        <View style={{ alignItems: 'center', gap: 12, paddingBottom: 6 }}>
+          <View style={st.grande}><Icone nome="estrela" tamanho={30} cor="#ffffff" espessura={2} /></View>
+          <T tam={16} peso="500" centro>{recurso}</T>
+          <T tam={14} centro style={{ lineHeight: 21 }}>Liberado na conta de teste. Este recurso ainda não está pronto no app: falta ligar a API da KORA AI.</T>
+          <View style={{ alignSelf: 'stretch', marginTop: 6 }}><Botao tipo="discreto" titulo="Entendi" aoPressionar={aoFechar} /></View>
+        </View>
+      </Folha>
+    );
+  }
   return (
     <Folha aberta={aberto} aoFechar={aoFechar} titulo="Recurso PRO">
       <View style={{ alignItems: 'center', gap: 12, paddingBottom: 6 }}>
