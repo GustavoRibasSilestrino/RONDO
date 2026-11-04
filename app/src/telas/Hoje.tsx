@@ -84,16 +84,15 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
 
       {/* Treino de hoje */}
       <Cartao style={{ marginTop: 14 }}>
-        <T tam={12} mono cor={cores.texto3}>TREINO</T>
         {estado.treinoAtual ? (
           <>
-            <T tam={24} peso="300" style={{ marginTop: 4 }}>Treino em andamento</T>
+            <T tam={24} peso="300">Treino em andamento</T>
             <T tam={13} cor={cores.texto2} style={{ marginTop: 2 }}>{ROTINAS.find((r) => r.id === estado.treinoAtual?.rotina)?.nome}</T>
             <Botao titulo="Continuar treino" icone="treino" aoPressionar={() => ir('treino')} style={{ marginTop: 14 }} />
           </>
         ) : (
           <>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <T tam={24} peso="300" style={{ flex: 1 }}>{sugerida.nome}</T>
               {treinouHoje ? <Chip texto="feito hoje" tom="bom" /> : <Chip texto={`~ ${sugerida.minutos} min`} />}
             </View>
@@ -108,8 +107,7 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
       {/* Calorias */}
       <Pressable onPress={() => ir('dieta')} accessibilityRole="button" accessibilityLabel="Abrir a dieta">
         <Cartao style={{ marginTop: 14 }}>
-          <T tam={12} mono cor={cores.texto3}>DIETA</T>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18 }}>
             <Anel progresso={meta ? tot.kcal / meta : 0} tamanho={112}>
               <T tam={22} peso="300">{fmt(Math.max(0, meta - tot.kcal))}</T>
               <T tam={10} cor={cores.texto2}>kcal restantes</T>
@@ -135,10 +133,7 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
 
       {/* Água */}
       <Cartao style={{ marginTop: 14 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-          <T tam={12} mono cor={cores.texto3}>ÁGUA</T>
-          <T tam={13} cor={cores.texto2}>{agua} de 8 copos</T>
-        </View>
+        <T tam={24} peso="300" style={{ marginBottom: 12 }}>{agua} de 8 copos</T>
         <Copos cheios={agua} aoMudar={(n) => commit((e) => { e.agua[d] = n; })} />
       </Cartao>
 
@@ -146,8 +141,7 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
       <Cartao style={{ marginTop: 14 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <View style={{ flex: 1, paddingRight: 12 }}>
-            <T tam={12} mono cor={cores.texto3}>CHECK-IN</T>
-            <T tam={14} cor={cores.texto2} style={{ marginTop: 4, lineHeight: 20 }}>
+            <T tam={14} cor={cores.texto2} style={{ lineHeight: 20 }}>
               {checkin ? 'Check-in feito hoje. A sua constância agradece.' : 'Marque que você apareceu hoje. Vale pontos no ranking.'}
             </T>
           </View>
