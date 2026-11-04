@@ -63,7 +63,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
 
   const compartilhar = async () => {
     const cmp = comparar(statsSemana(estado, hoje, 0), statsSemana(estado, hoje, 1));
-    const texto = cmp.geral === null ? 'Estou começando a competir com o meu ontem no KORA.' : `Esta semana estou ${cmp.geral >= 0 ? '+' : ''}${cmp.geral}% em relação à semana passada. Compita com quem você foi ontem. KORA.`;
+    const texto = cmp.geral === null ? 'Estou começando a competir com o meu ontem no RONDO.' : `Esta semana estou ${cmp.geral >= 0 ? '+' : ''}${cmp.geral}% em relação à semana passada. Compita com quem você foi ontem. RONDO.`;
     try {
       await Share.share({ message: texto });
     } catch {

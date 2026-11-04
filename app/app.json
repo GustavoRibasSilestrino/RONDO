@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "KORA",
-    "slug": "yesteryou",
-    "scheme": "yesteryou",
+    "name": "RONDO",
+    "slug": "rondo",
+    "scheme": "rondo",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,13 +10,13 @@
     "backgroundColor": "#000000",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "br.com.yesteryou.app",
+      "bundleIdentifier": "br.com.rondo.app",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "O KORA usa o microfone para gravar os seus recados de voz."
+        "NSMicrophoneUsageDescription": "O RONDO usa o microfone para gravar os seus recados de voz."
       }
     },
     "android": {
-      "package": "br.com.yesteryou.app",
+      "package": "br.com.rondo.app",
       "permissions": ["RECORD_AUDIO"],
       "adaptiveIcon": {
         "backgroundColor": "#000000",
@@ -34,15 +34,15 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "O KORA usa o microfone para gravar os seus recados de voz."
+          "microphonePermission": "O RONDO usa o microfone para gravar os seus recados de voz."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "O KORA acessa as suas fotos e vídeos para você publicar na comunidade.",
-          "cameraPermission": "O KORA usa a câmera para você tirar fotos e gravar vídeos para a comunidade.",
-          "microphonePermission": "O KORA usa o microfone para gravar o som dos vídeos que você publica."
+          "photosPermission": "O RONDO acessa as suas fotos e vídeos para você publicar na comunidade.",
+          "cameraPermission": "O RONDO usa a câmera para você tirar fotos e gravar vídeos para a comunidade.",
+          "microphonePermission": "O RONDO usa o microfone para gravar o som dos vídeos que você publica."
         }
       ],
       "expo-video"

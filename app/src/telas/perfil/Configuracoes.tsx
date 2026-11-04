@@ -78,7 +78,7 @@ export function Configuracoes({ aberto, aoFechar, ir }: Props) {
                     <Icone nome="setaDireita" tamanho={18} cor="#ffffff" />
                   </Pressable>
                 ))}
-                <T tam={11.5} style={{ marginTop: 14 }}>KORA · versão 0.1.0</T>
+                <T tam={11.5} style={{ marginTop: 14 }}>RONDO · versão 0.1.0</T>
               </View>
             ) : null}
 

@@ -180,11 +180,11 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
             </T>
             <Pressable
               accessibilityRole="link"
-              accessibilityLabel="Abrir o site do KORA"
+              accessibilityLabel="Abrir o site do RONDO"
               onPress={() => Linking.openURL(SITE)}
               style={({ pressed }) => [st.pilula, { opacity: pressed ? 0.7 : 1 }]}
             >
-              <T tam={13.5} peso="500" cor={cores.destaque2}>Abrir o site do KORA</T>
+              <T tam={13.5} peso="500" cor={cores.destaque2}>Abrir o site do RONDO</T>
               <Icone nome="setaDireita" tamanho={16} cor={cores.destaque2} />
             </Pressable>
             {modoDemonstracao ? (
@@ -194,7 +194,7 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
               </View>
             ) : null}
             {modoDemonstracao ? (
-              <Pressable accessibilityRole="button" accessibilityLabel="Preencher com a conta de teste" onPress={() => { setEmail('teste@kora.app'); setSenha('teste1234'); }} style={{ alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 12, minHeight: 44, justifyContent: 'center' }}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Preencher com a conta de teste" onPress={() => { setEmail('teste@rondo.app'); setSenha('teste1234'); }} style={{ alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 12, minHeight: 44, justifyContent: 'center' }}>
                 <T tam={13} peso="500" cor={cores.destaque2}>Usar a conta de teste (nível 15, tudo liberado)</T>
               </Pressable>
             ) : null}

@@ -1,4 +1,4 @@
-/* Medalha em 3D: arraste para o lado para girar e ver o verso (liso, só com o símbolo da KORA); toque para virar.
+/* Medalha em 3D: arraste para o lado para girar e ver o verso (liso, só com o símbolo da RONDO); toque para virar.
    Ao soltar, ela assenta de frente ou de costas. Arrastar para cima e para baixo inclina um pouco. */
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Image, ImageSourcePropType, PanResponder, Platform, StyleSheet, View } from 'react-native';

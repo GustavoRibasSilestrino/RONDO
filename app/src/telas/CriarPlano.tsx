@@ -1,4 +1,4 @@
-/* O + da Dieta e do Treino: criar um plano com a KORA AI (ainda indisponível, falta ligar a API) ou procurar um profissional
+/* O + da Dieta e do Treino: criar um plano com a RONDO AI (ainda indisponível, falta ligar a API) ou procurar um profissional
    verificado dentro do app (nutricionista para a dieta, profissional de educação física para o treino). */
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -14,8 +14,8 @@ import { BuscaProfissionais } from './BuscaProfissionais';
 type Props = { tipo: 'dieta' | 'treino' };
 
 const TEXTO = {
-  dieta: { titulo: 'Criar dieta', ia: 'Criar com a KORA AI', iaSub: 'Uma dieta montada para o seu objetivo.', extra: 'Ajuste automático de macros', extraSub: 'A IA reajusta a sua dieta conforme a sua evolução.', profissional: 'Procurar nutricionista', profSub: 'Profissionais verificados, com registro no CRN.', quem: 'nutricionista' as const },
-  treino: { titulo: 'Criar treino', ia: 'Criar com a KORA AI', iaSub: 'Um treino montado para o seu objetivo.', extra: 'Treino complexo com IA', extraSub: 'Periodização, deload e cargas ajustadas a cada semana.', profissional: 'Procurar educador físico', profSub: 'Profissionais verificados, com registro no CREF.', quem: 'educador' as const },
+  dieta: { titulo: 'Criar dieta', ia: 'Criar com a RONDO AI', iaSub: 'Uma dieta montada para o seu objetivo.', extra: 'Ajuste automático de macros', extraSub: 'A IA reajusta a sua dieta conforme a sua evolução.', profissional: 'Procurar nutricionista', profSub: 'Profissionais verificados, com registro no CRN.', quem: 'nutricionista' as const },
+  treino: { titulo: 'Criar treino', ia: 'Criar com a RONDO AI', iaSub: 'Um treino montado para o seu objetivo.', extra: 'Treino complexo com IA', extraSub: 'Periodização, deload e cargas ajustadas a cada semana.', profissional: 'Procurar educador físico', profSub: 'Profissionais verificados, com registro no CREF.', quem: 'educador' as const },
 };
 
 type OpcaoProps = { icone: NomeIcone; titulo: string; sub: string; pro?: boolean; indisponivel?: boolean; aoPressionar: () => void };
@@ -56,10 +56,10 @@ export function CriarPlano({ tipo }: Props) {
         </View>
       </Folha>
 
-      <Folha aberta={indisponivel} aoFechar={() => setIndisponivel(false)} titulo="KORA AI indisponível">
+      <Folha aberta={indisponivel} aoFechar={() => setIndisponivel(false)} titulo="RONDO AI indisponível">
         <View style={{ alignItems: 'center', gap: 12, paddingBottom: 6 }}>
           <View style={[st.icone, { width: 64, height: 64, borderRadius: 32 }]}><Icone nome="ia" tamanho={30} cor="#ffffff" /></View>
-          <T tam={15} centro style={{ lineHeight: 22 }}>A KORA AI ainda está indisponível. Ainda não adicionamos a API dela ao app. Quando chegar, ela será um recurso do plano PRO.</T>
+          <T tam={15} centro style={{ lineHeight: 22 }}>A RONDO AI ainda está indisponível. Ainda não adicionamos a API dela ao app. Quando chegar, ela será um recurso do plano PRO.</T>
           <T tam={13} centro style={{ lineHeight: 19 }}>Enquanto isso, você pode procurar um profissional verificado aqui mesmo.</T>
           <Pressable accessibilityRole="button" onPress={() => { setIndisponivel(false); setBusca(true); }} style={st.botaoProf}>
             <T tam={14.5} peso="500">{t.profissional}</T>

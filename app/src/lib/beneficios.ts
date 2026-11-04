@@ -33,7 +33,7 @@ export const BENEFICIOS: Beneficio[] = [
   { nivel: 22, texto: 'Descrição do perfil 20 letras maior', efeito: 'bio' },
   { nivel: 23, texto: 'Mais um título no perfil', efeito: 'titulo' },
   { nivel: 24, texto: 'Descrição do perfil 20 letras maior', efeito: 'bio' },
-  { nivel: 25, texto: 'Patente KORA no perfil', efeito: 'patente' },
+  { nivel: 25, texto: 'Patente RONDO no perfil', efeito: 'patente' },
 ];
 
 export type Limites = { destaques: number; titulos: number; midias: number; bio: number };

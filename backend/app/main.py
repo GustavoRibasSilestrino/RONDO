@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from app.rotas import treinos
 
-app = FastAPI(title="Yesteryou API")
+app = FastAPI(title="Rondo API")
 app.include_router(treinos.router)
 
 

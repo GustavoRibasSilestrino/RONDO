@@ -4,7 +4,7 @@ export default function Termos() {
       <h1 className="h2">Termos e privacidade</h1>
       <p className="nota">Rascunho. Precisa de validação com um advogado antes do lançamento.</p>
 
-      <h3>O que o Yesteryou é</h3>
+      <h3>O que o Rondo é</h3>
       <p>
         Uma ferramenta para organizar e acompanhar treino, dieta e constância. Não substitui avaliação profissional, e
         as sugestões não são prescrições.

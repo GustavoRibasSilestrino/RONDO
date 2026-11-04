@@ -116,7 +116,7 @@ export function Dieta() {
       </Cartao>
 
       <T tam={11} cor={cores.texto3} style={{ marginTop: 18, lineHeight: 17 }}>
-        Valores aproximados, no estilo da Tabela TACO. Meta calculada por Mifflin-St Jeor. O KORA organiza e acompanha, mas não substitui avaliação profissional.
+        Valores aproximados, no estilo da Tabela TACO. Meta calculada por Mifflin-St Jeor. O RONDO organiza e acompanha, mas não substitui avaliação profissional.
       </T>
 
       <AdicionarAlimento
