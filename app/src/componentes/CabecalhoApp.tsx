@@ -1,10 +1,9 @@
-/* Cabeçalho fixo do app: as notificações à esquerda, a marca KORA no meio. Fundo preto sólido, para a tela rolar por baixo. */
+/* Cabeçalho fixo do app: as notificações à esquerda, o nome KORA no meio. Fundo preto sólido, para a tela rolar por baixo. */
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cores, larguraMax } from '../tema';
 import { Icone } from './Icone';
-import { Marca } from './Marca';
 import { T } from './Ui';
 
 export const ALTURA_CABECALHO = 56;
@@ -32,8 +31,7 @@ export function CabecalhoApp({ naoLidas, aberto, aoAbrirNotificacoes }: Props) {
         </Pressable>
 
         <View pointerEvents="none" style={st.marca}>
-          <Marca altura={17} />
-          <T tam={17} peso="500" style={{ letterSpacing: 5 }}>KORA</T>
+          <T tam={19} peso="500" style={{ letterSpacing: 6, marginRight: -6 }}>KORA</T>
         </View>
       </View>
     </View>
