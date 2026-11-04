@@ -15,6 +15,7 @@ import { LojaProvider, useLoja } from './src/estado/loja';
 import { naoLidas, useNotificacoes } from './src/lib/notificacoes';
 import { semear } from './src/semear';
 import { Colecoes } from './src/telas/Colecoes';
+import { CriarPlano } from './src/telas/CriarPlano';
 import { Dieta } from './src/telas/Dieta';
 import { Evolucao } from './src/telas/Evolucao';
 import { Hoje } from './src/telas/Hoje';
@@ -85,8 +86,8 @@ function Raiz() {
     <View style={{ flex: 1 }}>
       {tela === 'home' && <Social modo="home" ir={setTela} />}
       {tela === 'comunidade' && <Social modo="comunidade" ir={setTela} />}
-      {tela === 'treino' && <Treino />}
-      {tela === 'dieta' && <Dieta />}
+      {tela === 'treino' && <><Treino />{estado.treinoAtual ? null : <CriarPlano tipo="treino" />}</>}
+      {tela === 'dieta' && <><Dieta /><CriarPlano tipo="dieta" /></>}
       {tela === 'hoje' && <Hoje ir={setTela} />}
       {tela === 'evolucao' && <Evolucao />}
       {tela === 'recado' && <Recado />}

@@ -1,5 +1,5 @@
-/* Criar grupo: nome, descrição, categoria, público ou privado, objetivo e cor da capa, com a prévia da capa no topo.
-   Quem cria já entra no grupo. Grupo privado ganha um código de convite para compartilhar. */
+/* Criar clube: nome, descrição, categoria, público ou privado, objetivo e cor da capa, com a prévia da capa no topo.
+   Quem cria já entra no clube. Grupo privado ganha um código de convite para compartilhar. */
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { CampoFlutuante } from '../../componentes/CampoFlutuante';

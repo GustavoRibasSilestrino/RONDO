@@ -2,15 +2,14 @@
    A Comunidade tem os clubes (criar, entrar, convidar e publicar dentro) e o ranking semanal de constância.
    O botão + roxo, sobre a barra, cria uma publicação. Tudo guardado no aparelho, como o resto do app em modo demonstração. */
 import React, { useCallback, useEffect, useState } from 'react';
-import { BackHandler, Pressable, Share, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BackHandler, Pressable, Share, StyleSheet, View } from 'react-native';
 import { Tela, useAviso } from '../componentes/Estrutura';
-import { Icone } from '../componentes/Icone';
+import { BotaoMais } from '../componentes/BotaoMais';
 import { Botao, Cartao, Segmentos, T } from '../componentes/Ui';
 import { useLoja } from '../estado/loja';
 import { comparar, statsSemana } from '../lib/calc';
 import { listarGrupos } from '../lib/grupos';
-import { cores, larguraMax } from '../tema';
+import { cores } from '../tema';
 import type { Midia } from '../tipos';
 import { CartaoPost } from './comunidade/CartaoPost';
 import { Compositor } from './comunidade/Compositor';
@@ -27,8 +26,6 @@ type Filtro = 'todos' | 'seguindo' | 'meus' | 'geral';
 export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: string) => void }) {
   const { estado } = useLoja();
   const avisar = useAviso();
-  const insets = useSafeAreaInsets();
-  const { width } = useWindowDimensions();
   const [aba, setAba] = useState<Aba>('grupos');
   const [filtro, setFiltro] = useState<Filtro>('todos');
   const [grupoAberto, setGrupoAberto] = useState<string | null>(null);
@@ -70,7 +67,6 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
   };
 
   const abrirCompositor = (grupo: string | null) => setCompor({ aberto: true, grupo });
-  const larguraColuna = Math.min(width, larguraMax);
 
   return (
     <>
@@ -131,15 +127,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
       </Tela>
 
       {/* o + roxo, sobre a barra: criar uma publicação (dentro de um clube, o botão do próprio clube publica nele) */}
-      {grupoAberto ? null : (
-        <View pointerEvents="box-none" style={[st.faixaMais, { bottom: insets.bottom + 10 + 60 + 14 }]}>
-          <View pointerEvents="box-none" style={{ width: larguraColuna, alignItems: 'flex-end', paddingRight: 20 }}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Criar publicação" onPress={() => abrirCompositor(null)} style={({ pressed }) => [st.mais, pressed && { transform: [{ scale: 0.94 }] }]}>
-              <Icone nome="mais" tamanho={28} cor="#ffffff" espessura={2} />
-            </Pressable>
-          </View>
-        </View>
-      )}
+      {grupoAberto ? null : <BotaoMais rotulo="Criar publicação" aoPressionar={() => abrirCompositor(null)} />}
     </>
   );
 }
@@ -148,6 +136,4 @@ const st = StyleSheet.create({
   filtros: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   filtro: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
   filtroAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
-  faixaMais: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  mais: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', backgroundColor: '#6a00d4', boxShadow: '0 10px 24px -8px rgba(0,0,0,0.9)' },
 });

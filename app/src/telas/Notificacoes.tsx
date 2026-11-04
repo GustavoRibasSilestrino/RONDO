@@ -10,7 +10,7 @@ import { cores } from '../tema';
 import type { Notificacao } from '../tipos';
 import { quando } from './comunidade/util';
 
-const ICONE: Record<Notificacao['tipo'], NomeIcone> = { cheers: 'cheers', comentario: 'comentario', seguidor: 'convidar', medalha: 'medalha' };
+const ICONE: Record<Notificacao['tipo'], NomeIcone> = { cheers: 'cheers', comentario: 'comentario', seguidor: 'convidar', medalha: 'medalha', profissional: 'verificado' };
 
 export function Notificacoes() {
   const { estado, commit } = useLoja();

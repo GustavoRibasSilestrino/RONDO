@@ -12,6 +12,7 @@ import { cores } from '../../tema';
 import type { Midia } from '../../tipos';
 import { SITE } from '../Login';
 import { Avatar } from './Avatar';
+import { ConfirmarSaida } from './ConfirmarSaida';
 import { Capa } from './Capa';
 import { CartaoPost } from './CartaoPost';
 import { todosOsPosts } from './posts';
@@ -27,6 +28,7 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia }: Props) {
   const { estado, commit } = useLoja();
   const avisar = useAviso();
   const [apagando, setApagando] = useState(false);
+  const [saindo, setSaindo] = useState(false);   // confirmação de saída aberta
 
   const g = listarGrupos(estado).find((x) => x.id === id);
   useEffect(() => { if (!g) aoVoltar(); }, [g, aoVoltar]);
@@ -40,8 +42,8 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia }: Props) {
 
   const convidar = async () => {
     const mensagem = g.privado && g.codigo
-      ? `Entre no meu grupo "${g.nome}" no KORA. Código de convite: ${g.codigo}`
-      : `Venha para o grupo "${g.nome}" no KORA: ${SITE}`;
+      ? `Entre no meu clube "${g.nome}" no KORA. Código de convite: ${g.codigo}`
+      : `Venha para o clube "${g.nome}" no KORA: ${SITE}`;
     try {
       await Share.share({ message: mensagem });
     } catch {
@@ -65,10 +67,10 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia }: Props) {
   return (
     <View style={{ marginTop: 4 }}>
       <View style={st.barra}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Voltar para os grupos" onPress={aoVoltar} style={st.circulo}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Voltar para os clubes" onPress={aoVoltar} style={st.circulo}>
           <Icone nome="voltar" tamanho={21} cor={cores.texto} />
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Convidar para o grupo" onPress={convidar} style={st.circulo}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Convidar para o clube" onPress={convidar} style={st.circulo}>
           <Icone nome="convidar" tamanho={20} cor={cores.texto} />
         </Pressable>
       </View>
@@ -98,7 +100,7 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia }: Props) {
 
       {g.meta ? (
         <Cartao style={{ marginTop: 16 }}>
-          <T tam={13} cor={cores.texto2}>Objetivo do grupo</T>
+          <T tam={13} cor={cores.texto2}>Objetivo do clube</T>
           <T tam={18} peso="300" style={{ marginTop: 4, lineHeight: 24 }}>{g.meta}</T>
           {g.progresso !== undefined ? (
             <View style={{ marginTop: 12 }}>
@@ -113,23 +115,23 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia }: Props) {
         <Cartao style={{ marginTop: 14 }}>
           <T tam={13} cor={cores.texto2}>Código de convite</T>
           <T tam={28} peso="200" mono style={{ marginTop: 4, letterSpacing: 4 }}>{g.codigo}</T>
-          <T tam={12.5} cor={cores.texto3} style={{ marginTop: 6, lineHeight: 18 }}>Compartilhe com quem você quer neste grupo.</T>
+          <T tam={12.5} cor={cores.texto3} style={{ marginTop: 6, lineHeight: 18 }}>Compartilhe com quem você quer neste clube.</T>
         </Cartao>
       ) : null}
 
       <View style={{ gap: 10, marginTop: 18 }}>
         {g.meu ? (
-          <Botao icone="imagem" titulo="Publicar no grupo" aoPressionar={() => aoCompor(id)} />
+          <Botao icone="imagem" titulo="Publicar no clube" aoPressionar={() => aoCompor(id)} />
         ) : (
-          <Botao icone="mais" titulo="Entrar no grupo" aoPressionar={entrar} />
+          <Botao icone="mais" titulo="Entrar no clube" aoPressionar={entrar} />
         )}
         {g.meu ? (
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <Botao pequeno tipo="fantasma" icone="convidar" titulo="Convidar" aoPressionar={convidar} style={{ flex: 1 }} />
             {g.proprio ? (
-              <Botao pequeno tipo="perigo" icone="lixo" titulo="Apagar grupo" aoPressionar={() => setApagando(true)} style={{ flex: 1 }} />
+              <Botao pequeno tipo="perigo" icone="lixo" titulo="Apagar clube" aoPressionar={() => setApagando(true)} style={{ flex: 1 }} />
             ) : (
-              <Botao pequeno tipo="discreto" titulo="Sair do grupo" aoPressionar={sair} style={{ flex: 1 }} />
+              <Botao pequeno tipo="discreto" titulo="Sair do clube" aoPressionar={() => setSaindo(true)} style={{ flex: 1 }} />
             )}
           </View>
         ) : null}
@@ -144,13 +146,14 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia }: Props) {
         <Cartao>
           <T tam={15} peso="300">Ainda sem publicações.</T>
           <T tam={13} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 19 }}>
-            {g.meu ? 'Seja a primeira pessoa a compartilhar um treino, uma refeição ou uma foto.' : 'Entre no grupo para começar a publicar.'}
+            {g.meu ? 'Seja a primeira pessoa a compartilhar um treino, uma refeição ou uma foto.' : 'Entre no clube para começar a publicar.'}
           </T>
         </Cartao>
       )}
 
-      <Folha aberta={apagando} aoFechar={() => setApagando(false)} titulo="Apagar grupo?">
-        <T tam={14} cor={cores.texto2} style={{ lineHeight: 21 }}>O grupo e as publicações dele somem do aparelho, com as fotos e vídeos. Isso não dá para desfazer.</T>
+      <ConfirmarSaida aberto={saindo} nome={g.nome} aoFechar={() => setSaindo(false)} aoConfirmar={() => { setSaindo(false); sair(); }} />
+      <Folha aberta={apagando} aoFechar={() => setApagando(false)} titulo="Apagar clube?">
+        <T tam={14} cor={cores.texto2} style={{ lineHeight: 21 }}>O clube e as publicações dele somem do aparelho, com as fotos e vídeos. Isso não dá para desfazer.</T>
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
           <Botao tipo="discreto" titulo="Cancelar" aoPressionar={() => setApagando(false)} style={{ flex: 1 }} />
           <Botao tipo="perigo" icone="lixo" titulo="Apagar" aoPressionar={apagar} style={{ flex: 1 }} />

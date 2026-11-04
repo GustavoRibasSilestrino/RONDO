@@ -28,6 +28,7 @@ export const estadoVazio = (): Estado => ({
   clubes: {},
   recados: [],
   notificacoes: [],
+  profissionais: {},
   medalhasAvisadas: null,
   semeado: false,
 });

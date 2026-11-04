@@ -1,7 +1,8 @@
 /* Tipos do que o app guarda no aparelho. Datas são "AAAA-MM-DD"; momentos são milissegundos (Date.now()). */
 export type Sexo = 'm' | 'f';
 
-export type Usuario = { email: string; nome: string };
+/* `arroba` é o nome de usuário (sem o @) e `foto` é o id da foto de perfil (guardada em lib/midia.ts); sem eles, vale o nome e a inicial. */
+export type Usuario = { email: string; nome: string; arroba?: string; foto?: string };
 
 export type Perfil = {
   sexo: Sexo;
@@ -88,7 +89,7 @@ export type Recado = {
 export type PerfilSocial = { bio: string; titulos: string[]; destaques: string[] };
 
 /* Tudo o que chega para o perfil: cheers, comentários, novos seguidores e medalhas. `ref` é o id da medalha, quando for uma. */
-export type Notificacao = { id: string; tipo: 'cheers' | 'comentario' | 'seguidor' | 'medalha'; texto: string; quando: number; lida: boolean; ref?: string };
+export type Notificacao = { id: string; tipo: 'cheers' | 'comentario' | 'seguidor' | 'medalha' | 'profissional'; texto: string; quando: number; lida: boolean; ref?: string };
 
 export type Estado = {
   v: 1;
@@ -111,6 +112,7 @@ export type Estado = {
   clubes: Record<string, boolean>;             // grupos em que a pessoa está (de demonstração ou criados por ela)
   recados: Recado[];
   notificacoes: Notificacao[];
+  profissionais: Record<string, boolean>;      // profissionais para quem a pessoa enviou um pedido de contato, por id
   medalhasAvisadas: string[] | null;           // medalhas que já viraram notificação; null até a primeira leitura (as que já estavam abertas não avisam)
   semeado: boolean;
 };

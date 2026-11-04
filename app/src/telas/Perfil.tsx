@@ -1,7 +1,7 @@
 /* Perfil: quem você é na comunidade (descrição, títulos, nível, destaques, seguidores e seguindo, suas publicações)
    e, mais abaixo, os dados que calculam a sua meta e a conta. */
 import React, { useEffect, useState } from 'react';
-import { Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { CampoFlutuante } from '../componentes/CampoFlutuante';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
@@ -11,6 +11,7 @@ import { NIVEIS_ATIVIDADE, OBJETIVOS } from '../dados';
 import { useLoja } from '../estado/loja';
 import { macrosMeta, metaKcal } from '../lib/calc';
 import { fmt } from '../lib/datas';
+import { escolherFoto, removerMidia } from '../lib/midia';
 import { medalhasDe } from '../lib/medalhas';
 import { patenteDe } from '../lib/patentes';
 import { Medalha3D } from '../componentes/Medalha3D';
@@ -25,6 +26,9 @@ import { BotaoSeguir } from './comunidade/Seguir';
 import { quando } from './comunidade/util';
 import { SITE } from './Login';
 
+/* nome de usuário de partida: o nome sem acentos, em minúsculas */
+export const arrobaPadrao = (nome: string): string => (nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^.+|.+$/g, '').slice(0, 20) || 'kora');
+
 export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const { estado, commit, limpar } = useLoja();
   const avisar = useAviso();
@@ -35,6 +39,11 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
   const [editando, setEditando] = useState(false);
   const [bio, setBio] = useState('');
+  const [nomeEd, setNomeEd] = useState('');
+  const [arrobaEd, setArrobaEd] = useState('');
+  const [fotoEd, setFotoEd] = useState<string | null>(null);   // id da foto escolhida (ainda não salva); null = sem foto
+  const [fotoNova, setFotoNova] = useState<string | null>(null);   // foto guardada nesta edição, para apagar se a pessoa desistir
+  const [erroEd, setErroEd] = useState<{ nome?: string; arroba?: string }>({});
   const [lista, setLista] = useState<'seguidores' | 'seguindo' | null>(null);
   const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
 
@@ -51,8 +60,43 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
   const mudar = (campo: 'idade' | 'peso' | 'altura', v: number) => commit((e) => { e.perfil[campo] = v; });
 
-  const abrirEdicao = () => { setBio(estado.perfilSocial.bio); setEditando(true); };
-  const salvar = () => { commit((e) => { e.perfilSocial.bio = bio.trim(); }); setEditando(false); avisar('Perfil atualizado.'); };
+  const arrobaAtual = estado.usuario?.arroba ?? arrobaPadrao(nome);
+  const abrirEdicao = () => {
+    setBio(estado.perfilSocial.bio); setNomeEd(nome); setArrobaEd(arrobaAtual); setFotoEd(estado.usuario?.foto ?? null); setFotoNova(null); setErroEd({});
+    setEditando(true);
+  };
+  const fecharEdicao = () => {
+    if (fotoNova) removerMidia([fotoNova]);   // desistiu: a foto escolhida nesta edição não fica no aparelho
+    setEditando(false);
+  };
+  const escolherFotoPerfil = async (origem: 'galeria' | 'camera') => {
+    try {
+      const m = await escolherFoto(origem);
+      if (!m) return;
+      if (fotoNova) removerMidia([fotoNova]);
+      setFotoNova(m.id); setFotoEd(m.id);
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'Não foi possível abrir as fotos.');
+    }
+  };
+  const salvar = () => {
+    const n = nomeEd.trim();
+    const a = arrobaEd.trim().replace(/^@/, '').toLowerCase();
+    const erros: { nome?: string; arroba?: string } = {};
+    if (n.length < 2) erros.nome = 'Escreva o seu nome (pelo menos 2 letras).';
+    if (!/^[a-z0-9._]{3,20}$/.test(a)) erros.arroba = 'Use de 3 a 20 letras minúsculas, números, ponto ou _.';
+    setErroEd(erros);
+    if (erros.nome || erros.arroba) return;
+    const antiga = estado.usuario?.foto;
+    commit((e) => {
+      e.perfilSocial.bio = bio.trim();
+      if (e.usuario) { e.usuario.nome = n; e.usuario.arroba = a; e.usuario.foto = fotoEd ?? undefined; }
+    });
+    if (antiga && antiga !== fotoEd) removerMidia([antiga]);
+    setFotoNova(null);
+    setEditando(false);
+    avisar('Perfil atualizado.');
+  };
 
   const alternarTitulo = (id: string, liberado: boolean) => {
     if (!liberado) return;
@@ -85,6 +129,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
           <Contagem n={seguindo.length} rotulo="Seguindo" aoTocar={() => setLista('seguindo')} />
         </View>
         <T tam={30} peso="200" linhas={1} centro style={{ marginTop: 10 }}>{nome}</T>
+        <T tam={13.5} linhas={1} centro style={{ marginTop: 2 }}>@{arrobaAtual}</T>
         {exibidos.length ? (
           <View style={st.titulos}>
             {exibidos.map((t) => (
@@ -256,10 +301,23 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       </View>
       <T tam={11} cor={cores.texto3} style={{ marginTop: 22 }}>KORA · versão 0.1.0</T>
 
-      {/* editar a descrição */}
-      <Folha aberta={editando} aoFechar={() => setEditando(false)} titulo="Editar perfil">
+      {/* editar o perfil: foto, nome, nome de usuário e descrição */}
+      <Folha aberta={editando} aoFechar={fecharEdicao} titulo="Editar perfil">
+        <View style={{ alignItems: 'center', marginBottom: 16 }}>
+          <Avatar nome={nomeEd || nome} voce foto={fotoEd ?? undefined} tamanho={96} semFoto={fotoEd === null} />
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Botao pequeno tipo="fantasma" icone="imagem" titulo="Galeria" aoPressionar={() => escolherFotoPerfil('galeria')} />
+            {Platform.OS !== 'web' ? <Botao pequeno tipo="fantasma" icone="camera" titulo="Câmera" aoPressionar={() => escolherFotoPerfil('camera')} /> : null}
+            {fotoEd ? <Botao pequeno tipo="discreto" icone="lixo" titulo="Remover" aoPressionar={() => setFotoEd(null)} /> : null}
+          </View>
+        </View>
+        <CampoFlutuante rotulo="Nome" icone="perfil" value={nomeEd} onChangeText={setNomeEd} maxLength={40} erro={erroEd.nome} autoCapitalize="words" returnKeyType="next" />
+        <View style={{ height: 12 }} />
+        <CampoFlutuante rotulo="Nome de usuário" value={arrobaEd} onChangeText={(v) => setArrobaEd(v.replace(/^@/, '').toLowerCase())} maxLength={20} erro={erroEd.arroba} autoCapitalize="none" autoCorrect={false} returnKeyType="next" />
+        <View style={{ height: 12 }} />
         <CampoFlutuante rotulo="Descrição" value={bio} onChangeText={setBio} maxLength={160} multiline />
-        <T tam={12} mono cor={cores.texto3} style={{ alignSelf: 'flex-end', marginTop: 6 }}>{bio.length}/160</T>
+        <T tam={12} mono style={{ alignSelf: 'flex-end', marginTop: 6 }}>{bio.length}/160</T>
+        <T tam={12.5} style={{ marginTop: 8, lineHeight: 18 }}>Idade, peso, altura e objetivo ficam em Seus dados, mais abaixo no perfil.</T>
         <Botao titulo="Salvar" aoPressionar={salvar} style={{ marginTop: 14 }} />
       </Folha>
 
