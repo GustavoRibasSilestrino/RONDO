@@ -54,6 +54,7 @@ function Raiz() {
   const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
   const pronto = dadosProntos && fontes;   // espera a fonte, para o texto não aparecer trocado
   const [tela, setTela] = useState(INICIO);
+  const [antes, setAntes] = useState(INICIO);   // a aba em que a pessoa estava ao abrir as notificações: o sino volta para ela
   useNotificacoes();
   const trocarTema = useTrocaTema();
   const avisar = useAviso();
@@ -64,12 +65,13 @@ function Raiz() {
   /* botão voltar do Android: de qualquer tela volta para o início; no início, sai do app */
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (tela === 'notificacoes') { setTela(antes); return true; }
       if (tela === INICIO) return false;
       setTela(DO_PERFIL.includes(tela) ? 'perfil' : INICIO);
       return true;
     });
     return () => sub.remove();
-  }, [tela]);
+  }, [tela, antes]);
 
   if (!pronto) {
     return (
@@ -109,7 +111,7 @@ function Raiz() {
       {tela === 'colecoes' && <Colecoes />}
       {tela === 'notificacoes' && <Notificacoes />}
       {tela === 'perfil' && <Perfil ir={setTela} />}
-      <CabecalhoApp mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={nivelDe(xpTotal(estado)) < NIVEL_ULTRA} aoTrocarTema={() => { if (nivelDe(xpTotal(estado)) < NIVEL_ULTRA) avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); else trocarTema(tema === 'ultra' ? 'normal' : 'ultra'); }} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={() => setTela(tela === 'notificacoes' ? INICIO : 'notificacoes')} />
+      <CabecalhoApp mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={nivelDe(xpTotal(estado)) < NIVEL_ULTRA} aoTrocarTema={() => { if (nivelDe(xpTotal(estado)) < NIVEL_ULTRA) avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); else trocarTema(tema === 'ultra' ? 'normal' : 'ultra'); }} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={() => { if (tela === 'notificacoes') { setTela(antes); } else { setAntes(tela); setTela('notificacoes'); } }} />
       <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />
       <AvisoNivel />
     </View>

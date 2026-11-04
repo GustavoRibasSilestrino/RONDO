@@ -1,48 +1,47 @@
-/* Perfil: quem você é na comunidade (descrição, títulos, nível, destaques, seguidores e seguindo, suas publicações)
-   e, mais abaixo, os dados que calculam a sua meta e a conta. */
+/* Perfil, no estilo do Instagram: nome de usuário e ações no alto, foto com anel de story e as contagens ao lado, descrição,
+   e abaixo duas abas: Publicações (em grade) e Conquistas (patente, nível e medalhas). O resto fica em Configurações (o ícone ☰). */
 import React, { useEffect, useState } from 'react';
-import { Image, Linking, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { CampoFlutuante } from '../componentes/CampoFlutuante';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
-import { Anel, Barra, Botao, Cartao, Passo, Segmentos, T, Titulo } from '../componentes/Ui';
-import { modoDemonstracao } from '../api/conta';
-import { NIVEIS_ATIVIDADE, OBJETIVOS } from '../dados';
-import { useLoja } from '../estado/loja';
-import { macrosMeta, metaKcal } from '../lib/calc';
-import { fmt } from '../lib/datas';
-import { escolherFoto, removerMidia } from '../lib/midia';
-import { medalhasDe } from '../lib/medalhas';
-import { patenteDe } from '../lib/patentes';
 import { Medalha3D } from '../componentes/Medalha3D';
+import { AnelStory } from '../componentes/stories/AnelStory';
+import { CriarStory } from '../componentes/stories/CriarStory';
+import { VisorStory } from '../componentes/stories/VisorStory';
+import { Barra, Botao, T } from '../componentes/Ui';
+import { modoDemonstracao } from '../api/conta';
+import { useLoja } from '../estado/loja';
+import { limitesDe } from '../lib/beneficios';
+import { fmt } from '../lib/datas';
+import { medalhasDe } from '../lib/medalhas';
+import { escolherFoto, removerMidia } from '../lib/midia';
 import { progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
-import { BENEFICIOS, limitesDe, NIVEL_ULTRA } from '../lib/beneficios';
-import { useTrocaTema } from '../componentes/TrocaTema';
+import { patenteDe } from '../lib/patentes';
+import { meusStories } from '../lib/stories';
 import { semearSocial } from '../semear';
 import { cores, estilos } from '../tema';
-import type { Midia, Post, Sexo } from '../tipos';
+import type { Midia, Post } from '../tipos';
 import { Avatar } from './comunidade/Avatar';
 import { CartaoPost } from './comunidade/CartaoPost';
 import { Miniatura, VisorMidia } from './comunidade/Midia';
 import { BotaoSeguir } from './comunidade/Seguir';
-import { quando } from './comunidade/util';
-import { SITE } from './Login';
+import { Configuracoes } from './perfil/Configuracoes';
 
 /* nome de usuário de partida: o nome sem acentos, em minúsculas */
-export const arrobaPadrao = (nome: string): string => (nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^.+|.+$/g, '').slice(0, 20) || 'kora');
+export const arrobaPadrao = (nome: string): string => (nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '').slice(0, 20) || 'kora');
 
 export function Perfil({ ir }: { ir: (tela: string) => void }) {
-  const { estado, commit, limpar } = useLoja();
+  const { estado, commit } = useLoja();
   const avisar = useAviso();
-  const p = estado.perfil;
-  const meta = metaKcal(p);
-  const m = macrosMeta(p, meta);
   const nome = estado.usuario?.nome ?? 'Você';
 
+  const [aba, setAba] = useState<'posts' | 'conquistas'>('posts');
   const [editando, setEditando] = useState(false);
-  const [apagandoConta, setApagandoConta] = useState(false);   // confirmação de apagar a conta
-  const [beneficios, setBeneficios] = useState(false);          // lista de benefícios por nível
-  const trocarTema = useTrocaTema();
+  const [config, setConfig] = useState(false);
+  const [criandoStory, setCriandoStory] = useState(false);
+  const [verStory, setVerStory] = useState(false);
+  const [postAberto, setPostAberto] = useState<Post | null>(null);
   const [bio, setBio] = useState('');
   const [nomeEd, setNomeEd] = useState('');
   const [arrobaEd, setArrobaEd] = useState('');
@@ -58,16 +57,18 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const xp = xpTotal(estado);
   const nivel = progressoNivel(xp);
   const limites = limitesDe(nivel.nivel);
-  const temaEfetivo = nivel.nivel >= NIVEL_ULTRA ? estado.tema : 'normal';
   const seguindo = Object.keys(estado.seguindo).filter((k) => estado.seguindo[k]);
   const seguidores = estado.seguidores;
-  const destacadas = estado.perfilSocial.destaques.map((id) => estado.posts.find((x) => x.id === id)).filter((x): x is Post => !!x);
   const { atual: patente, proxima } = patenteDe(nivel.nivel);
   const exibidos = TITULOS.filter((t) => estado.perfilSocial.titulos.includes(t.id) && t.nivel <= nivel.nivel);
-
-  const mudar = (campo: 'idade' | 'peso' | 'altura', v: number) => commit((e) => { e.perfil[campo] = v; });
-
   const arrobaAtual = estado.usuario?.arroba ?? arrobaPadrao(nome);
+  const stories = meusStories(estado);
+
+  /* publicações em grade: as fixadas (destacadas) primeiro */
+  const fixadas = new Set(estado.perfilSocial.destaques);
+  const grade = [...estado.posts].sort((a, b) => Number(fixadas.has(b.id)) - Number(fixadas.has(a.id)) || b.quando - a.quando);
+  const medalhasGanhas = medalhasDe(estado, new Date()).filter((m) => m.aberta);
+
   const abrirEdicao = () => {
     setBio(estado.perfilSocial.bio); setNomeEd(nome); setArrobaEd(arrobaAtual); setFotoEd(estado.usuario?.foto ?? null); setFotoNova(null); setErroEd({});
     setEditando(true);
@@ -105,260 +106,118 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
     avisar('Perfil atualizado.');
   };
 
-  const alternarTitulo = (id: string, liberado: boolean) => {
-    if (!liberado) return;
-    commit((e) => {
-      const l = e.perfilSocial.titulos;
-      const i = l.indexOf(id);
-      if (i >= 0) l.splice(i, 1);
-      else if (l.length < limites.titulos) l.push(id);
-    });
+  const excluirStory = (id: string) => {
+    const original = estado.stories.find((x) => x.id === id);
+    commit((e) => { e.stories = e.stories.filter((x) => x.id !== id); });
+    if (original?.midia) removerMidia([original.midia.id]);
+    avisar('Story excluído.');
+    if (stories.length <= 1) setVerStory(false);
   };
 
   return (
     <Tela>
-      {/* cabeçalho: avatar com anel de nível, títulos, descrição e contagens */}
-      <View style={st.topo}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Editar perfil" onPress={abrirEdicao} style={({ pressed }) => [st.lapis, pressed && { opacity: 0.8 }]}>
+      {/* topo: @usuário e as ações */}
+      <View style={st.barra}>
+        <T tam={17} peso="500" linhas={1} style={{ flex: 1 }}>@{arrobaAtual}</T>
+        <Pressable accessibilityRole="button" accessibilityLabel="Editar perfil" onPress={abrirEdicao} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
           <Icone nome="lapis" tamanho={19} cor="#ffffff" />
         </Pressable>
-        <Anel progresso={nivel.p} tamanho={104} espessura={5} cor={cores.destaque2}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Configurações" onPress={() => setConfig(true)} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
+          <Icone nome="menu" tamanho={19} cor="#ffffff" />
+        </Pressable>
+      </View>
+
+      {/* foto com o anel de story e as contagens */}
+      <View style={st.cabeca}>
+        <AnelStory
+          tamanho={86}
+          estado={stories.length ? 'novo' : 'nenhum'}
+          mais
+          aoMais={() => setCriandoStory(true)}
+          aoPressionar={() => (stories.length ? setVerStory(true) : setCriandoStory(true))}
+          rotulo={stories.length ? 'Ver o seu story' : 'Criar um story'}
+        >
           <Avatar nome={nome} voce tamanho={86} />
-        </Anel>
-        <View style={st.selo}>
-          <T tam={12.5} peso="500" cor="#ffffff">Nível {nivel.nivel}</T>
-        </View>
+        </AnelStory>
         <View style={st.contagens}>
           <Contagem n={estado.posts.length} rotulo="Publicações" />
-          <View style={st.fio} />
           <Contagem n={seguidores.length} rotulo="Seguidores" aoTocar={() => setLista('seguidores')} />
-          <View style={st.fio} />
           <Contagem n={seguindo.length} rotulo="Seguindo" aoTocar={() => setLista('seguindo')} />
         </View>
-        <T tam={30} peso="200" linhas={1} centro style={{ marginTop: 10 }}>{nome}</T>
-        <T tam={13.5} linhas={1} centro style={{ marginTop: 2 }}>@{arrobaAtual}</T>
-        {exibidos.length ? (
-          <View style={st.titulos}>
-            {exibidos.map((t) => (
-              <View key={t.id} style={st.titulo}>
-                <T tam={12.5} peso="500" cor={cores.destaque2}>{t.nome}</T>
-              </View>
+      </View>
+
+      <T tam={17} peso="500" linhas={1} style={{ marginTop: 12 }}>{nome}</T>
+      <T tam={13} style={{ marginTop: 2 }}>Nível {nivel.nivel}{patente ? ` · ${patente.nome}` : ''}</T>
+      {exibidos.length ? (
+        <View style={st.titulos}>
+          {exibidos.map((t) => <View key={t.id} style={st.titulo}><T tam={12} peso="500">{t.nome}</T></View>)}
+        </View>
+      ) : null}
+      <T tam={14} style={{ marginTop: 10, lineHeight: 20, opacity: estado.perfilSocial.bio ? 1 : 0.6 }}>{estado.perfilSocial.bio || 'Conte em uma frase quem você é.'}</T>
+
+      {/* abas */}
+      <View style={st.abas}>
+        {([['posts', 'grade', 'Publicações'], ['conquistas', 'medalha', 'Conquistas']] as const).map(([id, icone, rotulo]) => {
+          const ativa = aba === id;
+          return (
+            <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: ativa }} accessibilityLabel={rotulo} onPress={() => setAba(id)} style={[st.aba, ativa && st.abaAtiva]}>
+              <Icone nome={icone} tamanho={22} cor="#ffffff" />
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {aba === 'posts' ? (
+        grade.length ? (
+          <View style={st.grade}>
+            {grade.map((x) => (
+              <Pressable key={x.id} accessibilityRole="button" accessibilityLabel="Abrir publicação" onPress={() => setPostAberto(x)} style={st.tile}>
+                {x.midia?.length ? (
+                  <Miniatura m={x.midia[0]} style={StyleSheet.absoluteFill} />
+                ) : (
+                  <View style={st.tileTexto}><T tam={12} linhas={5} centro style={{ lineHeight: 16 }}>{x.texto}</T></View>
+                )}
+                {fixadas.has(x.id) ? <View style={st.fixada}><Icone nome="estrela" tamanho={12} cor="#ffffff" espessura={2.2} /></View> : null}
+              </Pressable>
             ))}
           </View>
-        ) : null}
-        {estado.perfilSocial.bio ? (
-          <T tam={14.5} cor={cores.texto2} centro style={{ marginTop: 12, lineHeight: 21, maxWidth: 340 }}>{estado.perfilSocial.bio}</T>
         ) : (
-          <T tam={14} cor={cores.texto3} centro style={{ marginTop: 12 }}>Conte em uma frase quem você é.</T>
-        )}
-      </View>
-
-      {/* a patente da conta, em destaque */}
-      <View style={st.patente} accessibilityLabel={patente ? `Patente ${patente.nome}` : 'Ainda sem patente'}>
-        {patente ? (
-          <Medalha3D frente={patente.img} verso={patente.verso} tamanho={200} />
-        ) : (
-          <Image source={proxima!.img} style={{ width: 120, height: 114, opacity: 0.25 }} resizeMode="contain" accessibilityIgnoresInvertColors />
-        )}
-        <T tam={22} peso="300" style={{ marginTop: 6 }}>{patente ? `Patente ${patente.nome}` : 'Ainda sem patente'}</T>
-        <T tam={13} style={{ marginTop: 4 }}>
-          {proxima ? `Próxima: ${proxima.nome}, no nível ${proxima.nivel}` : 'A patente mais alta da KORA'}
-        </T>
-      </View>
-
-      {/* o que não cabe na barra de baixo mora aqui */}
-      <View style={st.atalhos}>
-        {([
-          { id: 'hoje', rotulo: 'Hoje', sub: 'Resumo do dia', icone: 'relogio' },
-          { id: 'evolucao', rotulo: 'Evolução', sub: 'Peso e gráficos', icone: 'evolucao' },
-          { id: 'colecoes', rotulo: 'Coleções', sub: `${medalhasDe(estado, new Date()).filter((x) => x.aberta).length} medalhas`, icone: 'medalha' },
-          { id: 'recado', rotulo: 'Recados', sub: 'Voz do futuro', icone: 'recado' },
-        ] as const).map((a) => (
-          <Pressable key={a.id} accessibilityRole="button" accessibilityLabel={`${a.rotulo}: ${a.sub}`} onPress={() => ir(a.id)} style={({ pressed }) => [st.atalho, pressed && { opacity: 0.8 }]}>
-            <View style={st.atalhoIcone}><Icone nome={a.icone} tamanho={20} cor={cores.destaque2} /></View>
-            <T tam={14} peso="500" style={{ marginTop: 10 }}>{a.rotulo}</T>
-            <T tam={12} cor={cores.texto3} linhas={1} style={{ marginTop: 2 }}>{a.sub}</T>
-          </Pressable>
-        ))}
-      </View>
-
-      {/* nível e títulos */}
-      <Cartao destaque style={{ marginTop: 22 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
-          <T tam={34} peso="200">Nível {nivel.nivel}</T>
-          <T tam={13} cor={cores.texto2}>{fmt(xp)} XP</T>
-        </View>
-        <View style={{ marginTop: 12 }}>
-          <Barra valor={nivel.noNivel} max={nivel.tamanho} cor={cores.destaque2} />
-        </View>
-        <T tam={13} cor={cores.texto2} style={{ marginTop: 8 }}>Faltam {fmt(nivel.faltam)} XP para o nível {nivel.nivel + 1}.</T>
-        <T tam={12.5} cor={cores.texto3} style={{ marginTop: 10, lineHeight: 18 }}>
-          Você ganha XP registrando treinos, refeições, check-ins e água, publicando e comentando. Cada nível libera novos títulos.
-        </T>
-        <Botao pequeno tipo="fantasma" icone="medalha" titulo="Ver benefícios por nível" aoPressionar={() => setBeneficios(true)} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
-      </Cartao>
-
-      {/* aparência: o tema Normal e o Ultra (liberado no nível 15) */}
-      <Titulo>Aparência</Titulo>
-      <View style={st.temas}>
-        {(['normal', 'ultra'] as const).map((id) => {
-          const ativo = temaEfetivo === id;
-          const bloqueado = id === 'ultra' && nivel.nivel < NIVEL_ULTRA;
-          return (
-            <Pressable
-              key={id}
-              accessibilityRole="button"
-              accessibilityState={{ selected: ativo, disabled: bloqueado }}
-              accessibilityLabel={`Tema ${id === 'ultra' ? 'Ultra' : 'Normal'}${bloqueado ? ', bloqueado até o nível 15' : ativo ? ', ativo' : ''}`}
-              onPress={() => {
-                if (bloqueado) { avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); return; }
-                if (!ativo) trocarTema(id);
-              }}
-              style={[st.tema, ativo && { borderColor: cores.destaque }]}
-            >
-              <View style={[st.previa, id === 'ultra' ? st.previaUltra : st.previaNormal]}>
-                {id === 'ultra' ? <><View style={[st.mancha, { backgroundColor: '#2f6bff', left: -10, top: -10 }]} /><View style={[st.mancha, { backgroundColor: '#00d4ff', right: -14, bottom: -14 }]} /></> : <View style={[st.mancha, { backgroundColor: '#6a00d4', width: 26, height: 26, left: 12, bottom: 10 }]} />}
-                {bloqueado ? <View style={st.cadeado}><Icone nome="cadeado" tamanho={20} cor="#ffffff" /></View> : null}
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 }}>
-                <T tam={14} peso="500">{id === 'ultra' ? 'Ultra' : 'Normal'}</T>
-                {ativo ? <Icone nome="ok" tamanho={16} cor={cores.bom} /> : null}
-              </View>
-              <T tam={12} style={{ marginTop: 2 }}>{bloqueado ? 'Libera no nível 15' : id === 'ultra' ? 'Vidro, aurora e ondas' : 'Preto profundo'}</T>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <Titulo>Títulos</Titulo>
-      <T tam={13} cor={cores.texto2} style={{ marginTop: -4, marginBottom: 12, lineHeight: 19 }}>Escolha até {limites.titulos} para mostrar no seu perfil.</T>
-      <View style={st.colecao}>
-        {TITULOS.map((t) => {
-          const liberado = t.nivel <= nivel.nivel;
-          const ativo = estado.perfilSocial.titulos.includes(t.id) && liberado;
-          return (
-            <Pressable
-              key={t.id}
-              disabled={!liberado}
-              accessibilityRole="button"
-              accessibilityState={{ selected: ativo, disabled: !liberado }}
-              accessibilityLabel={liberado ? `${t.nome}${ativo ? ', exibido' : ''}` : `${t.nome}, bloqueado: nível ${t.nivel}`}
-              onPress={() => alternarTitulo(t.id, liberado)}
-              style={[st.chipTitulo, ativo && st.chipTituloAtivo, !liberado && { opacity: 0.55 }]}
-            >
-              {!liberado ? <Icone nome="cadeado" tamanho={13} cor={cores.texto3} /> : ativo ? <Icone nome="ok" tamanho={14} cor="#ffffff" /> : null}
-              <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#ffffff' : liberado ? cores.texto : cores.texto3}>{t.nome}</T>
-              {!liberado ? <T tam={11.5} cor={cores.texto3}>nível {t.nivel}</T> : null}
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {/* destaques */}
-      <Titulo>Destaques</Titulo>
-      {destacadas.length ? (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }} style={{ marginHorizontal: -20 }}>
-          <View style={{ width: 8 }} />
-          {destacadas.map((x) => (
-            <Cartao key={x.id} style={st.destaque}>
-              {x.midia?.length ? <Miniatura m={x.midia[0]} aoAbrir={() => setVisor({ itens: x.midia ?? [], indice: 0 })} style={{ width: '100%', height: 120, borderRadius: 12, marginBottom: 10 }} /> : null}
-              {x.destaque ? <T tam={20} peso="300" cor={cores.destaque2}>{x.destaque}</T> : null}
-              <T tam={13.5} linhas={x.midia?.length ? 2 : 4} style={{ lineHeight: 19, marginTop: x.destaque ? 4 : 0 }}>{x.texto}</T>
-              <T tam={11.5} cor={cores.texto3} style={{ marginTop: 8 }}>{quando(x.quando)}</T>
-            </Cartao>
-          ))}
-          <View style={{ width: 8 }} />
-        </ScrollView>
-      ) : (
-        <Cartao>
-          <T tam={14} cor={cores.texto2} style={{ lineHeight: 20 }}>Destaque até 3 publicações suas. Toque nos três pontos de uma publicação e escolha “Destacar no perfil”.</T>
-        </Cartao>
-      )}
-
-      {/* publicações */}
-      <Titulo>Publicações</Titulo>
-      {estado.posts.length ? (
-        <View style={{ gap: 14 }}>
-          {estado.posts.map((x) => <CartaoPost key={x.id} post={x} aoAbrirMidia={(itens, indice) => setVisor({ itens, indice })} />)}
-        </View>
-      ) : (
-        <Cartao>
-          <T tam={14} cor={cores.texto2} style={{ lineHeight: 20 }}>Você ainda não publicou. Compartilhe um treino na Comunidade e ele aparece aqui.</T>
-        </Cartao>
-      )}
-
-      {/* meta e dados */}
-      <Cartao destaque style={{ marginTop: 28 }}>
-        <T tam={11} mono cor={cores.destaque2}>SUA META DIÁRIA</T>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-          <T tam={44} peso="200">{fmt(meta)}</T>
-          <T tam={14} cor={cores.texto2}>kcal por dia</T>
-        </View>
-        <T tam={13} cor={cores.texto2} style={{ marginTop: 4 }}>Proteína {m.p} g · Carboidrato {m.c} g · Gordura {m.g} g</T>
-      </Cartao>
-
-      <Titulo>Seus dados</Titulo>
-      <Cartao style={{ gap: 18 }}>
-        <View style={{ gap: 8 }}>
-          <T tam={11} mono cor={cores.texto3}>SEXO</T>
-          <Segmentos<Sexo> valor={p.sexo} aoMudar={(v) => commit((e) => { e.perfil.sexo = v; })} opcoes={[{ valor: 'm', nome: 'Masculino' }, { valor: 'f', nome: 'Feminino' }]} />
-        </View>
-        {[
-          { campo: 'idade' as const, nome: 'IDADE', valor: p.idade, passo: 1, min: 14, max: 90, unidade: 'anos' },
-          { campo: 'peso' as const, nome: 'PESO', valor: p.peso, passo: 0.5, min: 30, max: 250, unidade: 'kg' },
-          { campo: 'altura' as const, nome: 'ALTURA', valor: p.altura, passo: 1, min: 120, max: 230, unidade: 'cm' },
-        ].map((c) => (
-          <View key={c.campo} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <T tam={11} mono cor={cores.texto3}>{c.nome}</T>
-            <Passo rotulo={c.nome.toLowerCase()} valor={c.valor} passo={c.passo} min={c.min} max={c.max} formato={(v) => fmt(v, c.campo === 'peso' ? 1 : 0)} unidade={c.unidade} aoMudar={(v) => mudar(c.campo, v)} />
+          <View style={st.vazio}>
+            <Icone nome="camera" tamanho={30} cor="#ffffff" />
+            <T tam={15} peso="500" style={{ marginTop: 10 }}>Nenhuma publicação ainda</T>
+            <T tam={13} centro style={{ marginTop: 4, lineHeight: 19 }}>Toque no + do Feed para compartilhar um treino, uma refeição ou uma conquista.</T>
           </View>
-        ))}
-        <View style={{ gap: 8 }}>
-          <T tam={11} mono cor={cores.texto3}>ATIVIDADE</T>
-          <Segmentos<number> valor={p.atividade} aoMudar={(v) => commit((e) => { e.perfil.atividade = v; })} opcoes={NIVEIS_ATIVIDADE.map((n) => ({ valor: n.valor, nome: n.nome }))} />
+        )
+      ) : (
+        <View style={{ alignItems: 'center', marginTop: 20, gap: 16 }}>
+          <View accessibilityLabel={patente ? `Patente ${patente.nome}` : 'Ainda sem patente'} style={{ alignItems: 'center' }}>
+            {patente ? <Medalha3D frente={patente.img} verso={patente.verso} tamanho={190} /> : <Image source={proxima!.img} style={{ width: 120, height: 114, opacity: 0.25 }} resizeMode="contain" accessibilityIgnoresInvertColors />}
+            <T tam={18} peso="500" style={{ marginTop: 6 }}>{patente ? `Patente ${patente.nome}` : 'Ainda sem patente'}</T>
+            <T tam={12.5} style={{ marginTop: 2 }}>{proxima ? `Próxima: ${proxima.nome}, no nível ${proxima.nivel}` : 'A patente mais alta da KORA'}</T>
+          </View>
+          <View style={st.nivel}>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
+              <T tam={22} peso="500">Nível {nivel.nivel}</T>
+              <T tam={13}>{fmt(xp)} XP</T>
+            </View>
+            <View style={{ marginTop: 10 }}><Barra valor={nivel.noNivel} max={nivel.tamanho} cor={cores.destaque2} /></View>
+            <T tam={12.5} style={{ marginTop: 8 }}>Faltam {fmt(nivel.faltam)} XP para o nível {nivel.nivel + 1}.</T>
+          </View>
+          {medalhasGanhas.length ? (
+            <View style={{ alignSelf: 'stretch' }}>
+              <T tam={13} peso="500" style={{ marginBottom: 10 }}>Medalhas ({medalhasGanhas.length})</T>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+                {medalhasGanhas.map((m) => <Image key={m.id} source={m.img} style={{ width: 64, height: 61 }} resizeMode="contain" accessibilityLabel={m.nome} />)}
+              </ScrollView>
+            </View>
+          ) : null}
+          <Botao tipo="fantasma" icone="medalha" titulo="Ver todas as coleções" aoPressionar={() => ir('colecoes')} style={{ alignSelf: 'stretch' }} />
         </View>
-        <View style={{ gap: 8 }}>
-          <T tam={11} mono cor={cores.texto3}>OBJETIVO</T>
-          <Segmentos<number> valor={p.objetivo} aoMudar={(v) => commit((e) => { e.perfil.objetivo = v; })} opcoes={OBJETIVOS.map((o) => ({ valor: o.valor, nome: o.nome }))} />
-        </View>
-      </Cartao>
-      <T tam={11} cor={cores.texto3} style={{ marginTop: 10, lineHeight: 17 }}>
-        Meta pelo cálculo de Mifflin-St Jeor, com piso de segurança. É uma estimativa para organização, não uma prescrição.
-      </T>
+      )}
 
-      <Titulo>Conta</Titulo>
-      <View style={{ gap: 12 }}>
-        <Botao tipo="fantasma" icone="sair" titulo="Sair da conta" aoPressionar={() => commit((e) => { e.usuario = null; })} />
-        <Pressable accessibilityRole="link" onPress={() => Linking.openURL(SITE)} style={{ alignSelf: 'flex-start', paddingVertical: 6 }}>
-          <T tam={13} cor={cores.destaque2}>Assinatura, termos e privacidade no site →</T>
-        </Pressable>
-        <Botao tipo="perigo" icone="lixo" titulo="Apagar conta" aoPressionar={() => setApagandoConta(true)} />
-      </View>
-      <T tam={11} cor={cores.texto3} style={{ marginTop: 22 }}>KORA · versão 0.1.0</T>
-
-      {/* benefícios de cada nível */}
-      <Folha aberta={beneficios} aoFechar={() => setBeneficios(false)} titulo="Benefícios por nível">
-        <View style={{ gap: 8, paddingBottom: 4 }}>
-          {BENEFICIOS.map((b) => {
-            const aberto = nivel.nivel >= b.nivel;
-            return (
-              <View key={b.nivel} style={[st.linhaBeneficio, aberto && { borderColor: cores.linha2 }]}>
-                <View style={[st.nivelBeneficio, aberto && { backgroundColor: cores.destaqueForte }]}><T tam={13} peso="500">{b.nivel}</T></View>
-                <T tam={14} style={{ flex: 1, lineHeight: 19, opacity: aberto ? 1 : 0.6 }}>{b.texto}</T>
-                {aberto ? <Icone nome="ok" tamanho={18} cor={cores.bom} /> : <Icone nome="cadeado" tamanho={16} cor="#ffffff" />}
-              </View>
-            );
-          })}
-        </View>
-      </Folha>
-
-      {/* apagar a conta: pede confirmação */}
-      <Folha aberta={apagandoConta} aoFechar={() => setApagandoConta(false)} titulo="Apagar conta?">
-        <T tam={14} style={{ lineHeight: 21 }}>Isso apaga a sua conta e todos os seus dados deste aparelho: treinos, dieta, publicações, medalhas e recados. Não dá para desfazer.</T>
-        <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
-          <Botao tipo="discreto" titulo="Cancelar" aoPressionar={() => setApagandoConta(false)} style={{ flex: 1 }} />
-          <Botao tipo="perigo" icone="lixo" titulo="Apagar" aoPressionar={async () => { setApagandoConta(false); await limpar(); avisar('Conta apagada.'); }} style={{ flex: 1 }} />
-        </View>
+      {/* a publicação aberta, com cheers e comentários */}
+      <Folha aberta={postAberto !== null} aoFechar={() => setPostAberto(null)}>
+        {postAberto ? <CartaoPost post={postAberto} aoAbrirMidia={(itens, indice) => { setPostAberto(null); setVisor({ itens, indice }); }} /> : null}
       </Folha>
 
       {/* editar o perfil: foto, nome, nome de usuário e descrição */}
@@ -377,7 +236,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         <View style={{ height: 12 }} />
         <CampoFlutuante rotulo="Descrição" value={bio} onChangeText={setBio} maxLength={limites.bio} multiline />
         <T tam={12} mono style={{ alignSelf: 'flex-end', marginTop: 6 }}>{bio.length}/{limites.bio}</T>
-        <T tam={12.5} style={{ marginTop: 8, lineHeight: 18 }}>Idade, peso, altura e objetivo ficam em Seus dados, mais abaixo no perfil.</T>
+        <T tam={12.5} style={{ marginTop: 8, lineHeight: 18 }}>Idade, peso, altura e objetivo ficam em Configurações, Seus dados.</T>
         <Botao titulo="Salvar" aoPressionar={salvar} style={{ marginTop: 14 }} />
       </Folha>
 
@@ -394,12 +253,15 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
             ))}
           </View>
         ) : (
-          <T tam={14} cor={cores.texto2} style={{ lineHeight: 20 }}>
+          <T tam={14} style={{ lineHeight: 20 }}>
             {lista === 'seguidores' ? 'Ninguém segue você ainda.' : 'Você ainda não segue ninguém. Toque em Seguir nas publicações e no ranking da Comunidade.'}
           </T>
         )}
       </Folha>
 
+      <Configuracoes aberto={config} aoFechar={() => setConfig(false)} ir={ir} />
+      <CriarStory aberto={criandoStory} aoFechar={() => setCriandoStory(false)} />
+      <VisorStory aberto={verStory} listas={[{ autor: 'Você', itens: stories }]} aoFechar={() => setVerStory(false)} aoExcluir={(s) => excluirStory(s.id)} />
       <VisorMidia itens={visor?.itens ?? []} inicio={visor ? visor.indice : null} aoFechar={() => setVisor(null)} />
     </Tela>
   );
@@ -408,36 +270,27 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 function Contagem({ n, rotulo, aoTocar }: { n: number; rotulo: string; aoTocar?: () => void }) {
   return (
     <Pressable accessibilityRole={aoTocar ? 'button' : 'text'} accessibilityLabel={`${rotulo}: ${n}`} disabled={!aoTocar} onPress={aoTocar} style={st.contagem}>
-      <T tam={17} peso="400">{fmt(n)}</T>
-      <T tam={11.5}>{rotulo}</T>
+      <T tam={18} peso="500">{fmt(n)}</T>
+      <T tam={12}>{rotulo}</T>
     </Pressable>
   );
 }
 
 const st = estilos(() => StyleSheet.create({
-  topo: { alignItems: 'center' },
-  lapis: { position: 'absolute', top: -4, right: 0, width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2, zIndex: 2 },
-  selo: { marginTop: -12, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.destaqueForte, borderWidth: 2, borderColor: cores.fundo },
-  titulos: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 12 },
-  titulo: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: `rgba(${cores.tom},0.14)` },
-  contagens: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 4, marginTop: 14 },
-  contagem: { alignItems: 'center', minWidth: 78, paddingHorizontal: 6, minHeight: 44, justifyContent: 'center' },
-  fio: { width: 1, height: 22, backgroundColor: cores.linha },
-  colecao: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  patente: { alignItems: 'center', marginTop: 22, paddingVertical: 18, borderRadius: 22, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
-  temas: { flexDirection: 'row', gap: 10 },
-  tema: { flex: 1, padding: 12, borderRadius: 18, borderWidth: 1.5, borderColor: cores.linha2, backgroundColor: cores.cartao },
-  previa: { height: 74, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  previaNormal: { backgroundColor: '#000000', borderWidth: 1, borderColor: '#333333' },
-  previaUltra: { backgroundColor: '#040817' },
-  mancha: { position: 'absolute', width: 70, height: 70, borderRadius: 35, opacity: 0.7 },
-  cadeado: { position: 'absolute', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)' },
-  linhaBeneficio: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, borderWidth: 1, borderColor: cores.linha },
-  nivelBeneficio: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
-  atalhos: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
-  atalho: { width: '48%', flexGrow: 1, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', minHeight: 44 },
-  atalhoIcone: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(${cores.tom},0.16)` },
-  chipTitulo: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
-  chipTituloAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
-  destaque: { width: 240 },
+  barra: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
+  redondo: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
+  cabeca: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  contagens: { flex: 1, flexDirection: 'row', justifyContent: 'space-around' },
+  contagem: { alignItems: 'center', minWidth: 64, minHeight: 44, justifyContent: 'center' },
+  titulos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  titulo: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: `rgba(${cores.tom},0.16)` },
+  abas: { flexDirection: 'row', marginTop: 20, borderTopWidth: 1, borderTopColor: cores.linha },
+  aba: { flex: 1, height: 48, alignItems: 'center', justifyContent: 'center', borderTopWidth: 2, borderTopColor: 'transparent', marginTop: -1, opacity: 0.55 },
+  abaAtiva: { borderTopColor: '#ffffff', opacity: 1 },
+  grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 3, marginTop: 3 },
+  tile: { width: '32.7%', aspectRatio: 1, backgroundColor: cores.cartao, overflow: 'hidden' },
+  tileTexto: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 8, backgroundColor: cores.cartao2 },
+  fixada: { position: 'absolute', right: 6, top: 6, width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  vazio: { alignItems: 'center', paddingVertical: 48, paddingHorizontal: 24 },
+  nivel: { alignSelf: 'stretch', padding: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
 }));

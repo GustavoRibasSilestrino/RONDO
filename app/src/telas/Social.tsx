@@ -11,7 +11,9 @@ import { comparar, statsSemana } from '../lib/calc';
 import { listarGrupos } from '../lib/grupos';
 import { cores, estilos } from '../tema';
 import type { Midia } from '../tipos';
+import { BarraStories } from '../componentes/stories/BarraStories';
 import { CartaoPost } from './comunidade/CartaoPost';
+import { PerfilPessoa } from './comunidade/PerfilPessoa';
 import { Compositor } from './comunidade/Compositor';
 import { CriarGrupo } from './comunidade/CriarGrupo';
 import { GrupoTela } from './comunidade/GrupoTela';
@@ -31,6 +33,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
   const [grupoAberto, setGrupoAberto] = useState<string | null>(null);
   const [compor, setCompor] = useState<{ aberto: boolean; grupo: string | null }>({ aberto: false, grupo: null });
   const [criando, setCriando] = useState(false);
+  const [perfilAberto, setPerfilAberto] = useState<string | null>(null);   // o perfil de quem publicou, aberto ao tocar na foto
   const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
 
   const voltarDoGrupo = useCallback(() => setGrupoAberto(null), []);
@@ -67,6 +70,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
   };
 
   const abrirCompositor = (grupo: string | null) => setCompor({ aberto: true, grupo });
+  const abrirPerfil = (autor: string) => { if (autor === 'Você') ir('perfil'); else setPerfilAberto(autor); };
 
   return (
     <>
@@ -76,6 +80,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
         ) : modo === 'home' ? (
           <>
             <T tam={15} peso="400" centro>Feed</T>
+            <View style={{ marginTop: 14 }}><BarraStories /></View>
             <View style={{ gap: 14, marginTop: 16 }}>
               <View style={st.filtros}>
                 {([['todos', 'Tudo'], ['seguindo', 'Seguindo'], ['meus', 'Clubes'], ['geral', 'Geral']] as [Filtro, string][]).map(([v, nome]) => {
@@ -94,7 +99,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
                 posts.map((p) => {
                   const g = p.grupo ? porId.get(p.grupo) : undefined;
                   return (
-                    <CartaoPost key={p.id} post={p} nomeGrupo={g?.nome} aoAbrirGrupo={g ? () => setGrupoAberto(g.id) : undefined} aoAbrirMidia={abrirMidia} />
+                    <CartaoPost key={p.id} post={p} nomeGrupo={g?.nome} aoAbrirGrupo={g ? () => setGrupoAberto(g.id) : undefined} aoAbrirMidia={abrirMidia} aoAbrirPerfil={abrirPerfil} />
                   );
                 })
               ) : (
@@ -122,6 +127,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
 
         <Compositor aberto={compor.aberto} aoFechar={() => setCompor((c) => ({ ...c, aberto: false }))} grupoInicial={compor.grupo} />
         <CriarGrupo aberto={criando} aoFechar={() => setCriando(false)} aoCriar={(id) => { setCriando(false); setAba('grupos'); setGrupoAberto(id); }} />
+        <PerfilPessoa nome={perfilAberto} aoFechar={() => setPerfilAberto(null)} aoAbrirMidia={abrirMidia} />
         <VisorMidia itens={visor?.itens ?? []} inicio={visor ? visor.indice : null} aoFechar={() => setVisor(null)} />
       </Tela>
 

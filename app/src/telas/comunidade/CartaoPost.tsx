@@ -20,6 +20,7 @@ type Props = {
   nomeGrupo?: string;
   aoAbrirGrupo?: () => void;
   aoAbrirMidia: (itens: Midia[], indice: number) => void;
+  aoAbrirPerfil?: (autor: string) => void;   // tocar na foto ou no nome de quem publicou abre o perfil dessa pessoa
 };
 
 /* a palavra Cheers, discreta: sobe um pouco, com um único quique leve, e some */
@@ -58,7 +59,7 @@ function PuloCheers({ disparo }: { disparo: number }) {
   );
 }
 
-export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Props) {
+export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil }: Props) {
   const { estado, commit } = useLoja();
   const { limites } = useConta();
   const avisar = useAviso();
@@ -94,9 +95,13 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Prop
   return (
     <Cartao>
       <View style={st.cabeca}>
-        <Avatar nome={post.autor} voce={meu} />
+        <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)} hitSlop={6}>
+          <Avatar nome={post.autor} voce={meu} />
+        </Pressable>
         <View style={{ flex: 1 }}>
-          <T tam={14} peso="500">{post.autor}</T>
+          <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)} style={{ alignSelf: 'flex-start' }}>
+            <T tam={14} peso="500">{post.autor}</T>
+          </Pressable>
           <View style={st.meta}>
             <T tam={12} cor={cores.texto3}>{quando(post.quando)}</T>
             {nomeGrupo ? (
