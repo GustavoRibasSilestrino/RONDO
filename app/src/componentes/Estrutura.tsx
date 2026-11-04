@@ -23,7 +23,7 @@ export function Tela({ children, comDoca = true, animada = true }: { children: R
       />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + (comDoca ? 140 : 40), alignItems: 'center' }}
+        contentContainerStyle={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + (comDoca ? 110 : 40), alignItems: 'center' }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
