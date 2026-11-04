@@ -19,6 +19,7 @@ export const estadoVazio = (): Estado => ({
   pesos: [],
   posts: [],
   curtidas: {},
+  seguindo: {},
   comentarios: {},
   grupos: [],
   clubes: {},

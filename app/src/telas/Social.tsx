@@ -21,7 +21,7 @@ import { todosOsPosts } from './comunidade/posts';
 import { Ranking } from './comunidade/Ranking';
 
 type Aba = 'feed' | 'grupos' | 'ranking';
-type Filtro = 'todos' | 'meus' | 'geral';
+type Filtro = 'todos' | 'seguindo' | 'meus' | 'geral';
 
 export function Social() {
   const { estado } = useLoja();
@@ -50,6 +50,7 @@ export function Social() {
   /* o feed mostra o geral e as publicações dos grupos públicos e dos seus; um grupo privado só aparece para quem está nele */
   const posts = todosOsPosts(estado).filter((p) => {
     const g = p.grupo ? porId.get(p.grupo) : undefined;
+    if (filtro === 'seguindo') return !!estado.seguindo[p.autor];
     if (filtro === 'geral') return !p.grupo;
     if (filtro === 'meus') return !!g && g.meu;
     return !p.grupo || (!!g && (!g.privado || g.meu));
@@ -90,7 +91,7 @@ export function Social() {
               </Pressable>
 
               <View style={st.filtros}>
-                {([['todos', 'Tudo'], ['meus', 'Meus grupos'], ['geral', 'Geral']] as [Filtro, string][]).map(([v, nome]) => {
+                {([['todos', 'Tudo'], ['seguindo', 'Seguindo'], ['meus', 'Meus grupos'], ['geral', 'Geral']] as [Filtro, string][]).map(([v, nome]) => {
                   const ativo = v === filtro;
                   return (
                     <Pressable key={v} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setFiltro(v)} style={[st.filtro, ativo && st.filtroAtivo]}>
@@ -117,11 +118,11 @@ export function Social() {
                 })
               ) : (
                 <Cartao>
-                  <T tam={16} peso="300">{filtro === 'meus' ? 'Nada dos seus grupos ainda.' : 'Nada por aqui ainda.'}</T>
+                  <T tam={16} peso="300">{filtro === 'seguindo' ? 'Você ainda não segue ninguém.' : filtro === 'meus' ? 'Nada dos seus grupos ainda.' : 'Nada por aqui ainda.'}</T>
                   <T tam={13.5} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 20 }}>
-                    {filtro === 'meus' ? 'Entre em um grupo, ou crie o seu, para ver as publicações dele aqui.' : 'Seja a primeira pessoa a compartilhar algo hoje.'}
+                    {filtro === 'seguindo' ? 'Toque em Seguir nas publicações, ou no ranking, para criar as suas conexões. Os cheers e as publicações delas aparecem aqui.' : filtro === 'meus' ? 'Entre em um grupo, ou crie o seu, para ver as publicações dele aqui.' : 'Seja a primeira pessoa a compartilhar algo hoje.'}
                   </T>
-                  <Botao pequeno tipo="fantasma" titulo={filtro === 'meus' ? 'Ver grupos' : 'Criar publicação'} aoPressionar={() => (filtro === 'meus' ? setAba('grupos') : abrirCompositor(null))} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
+                  <Botao pequeno tipo="fantasma" titulo={filtro === 'seguindo' ? 'Ver o ranking' : filtro === 'meus' ? 'Ver grupos' : 'Criar publicação'} aoPressionar={() => (filtro === 'seguindo' ? setAba('ranking') : filtro === 'meus' ? setAba('grupos') : abrirCompositor(null))} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
                 </Cartao>
               )}
             </View>
