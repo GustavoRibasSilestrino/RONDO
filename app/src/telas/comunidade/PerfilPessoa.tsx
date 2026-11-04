@@ -92,7 +92,7 @@ export function PerfilPessoa({ nome, aoFechar, aoAbrirMidia }: Props) {
             <View style={st.divisor}><Icone nome="grade" tamanho={20} cor="#ffffff" /><T tam={13} peso="500">Publicações</T></View>
             {posts.length ? (
               <View style={{ gap: 14 }}>
-                {posts.map((p) => <CartaoPost key={p.id} post={p} aoAbrirMidia={aoAbrirMidia} />)}
+                {posts.map((p) => <CartaoPost key={p.id} post={p} timeline aoAbrirMidia={aoAbrirMidia} />)}
               </View>
             ) : (
               <Cartao><T tam={14} style={{ lineHeight: 20 }}>{nome} ainda não publicou nada.</T></Cartao>

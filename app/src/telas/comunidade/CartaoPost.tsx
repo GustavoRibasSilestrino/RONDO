@@ -13,14 +13,15 @@ import type { Midia, Post } from '../../tipos';
 import { Avatar } from './Avatar';
 import { MidiaGrade } from './Midia';
 import { BotaoSeguir } from './Seguir';
-import { quando } from './util';
+import { arrobaDe, quando } from './util';
 
 type Props = {
   post: Post;
   nomeGrupo?: string;
   aoAbrirGrupo?: () => void;
   aoAbrirMidia: (itens: Midia[], indice: number) => void;
-  aoAbrirPerfil?: (autor: string) => void;   // tocar na foto ou no nome de quem publicou abre o perfil dessa pessoa
+  aoAbrirPerfil?: (autor: string) => void;
+  timeline?: boolean;                        // estilo X (Twitter): sem cartão, com avatar à esquerda e linha entre as publicações   // tocar na foto ou no nome de quem publicou abre o perfil dessa pessoa
 };
 
 /* a palavra Cheers, discreta: sobe um pouco, com um único quique leve, e some */
@@ -59,7 +60,7 @@ function PuloCheers({ disparo }: { disparo: number }) {
   );
 }
 
-export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil }: Props) {
+export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, timeline }: Props) {
   const { estado, commit } = useLoja();
   const { limites } = useConta();
   const avisar = useAviso();
@@ -91,6 +92,100 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
     setApagando(false);
     avisar('Publicação apagada.');
   };
+
+  const acoes = (
+    <View style={st.acoes}>
+      <View style={{ zIndex: 2 }}>
+        <PuloCheers disparo={disparo} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected: curtiu }}
+          accessibilityLabel={curtiu ? 'Tirar o seu cheers' : 'Dar cheers'}
+          onPress={() => {
+            if (!curtiu) {
+              setDisparo((d) => d + 1);
+              pop.setValue(0.88);
+              Animated.spring(pop, { toValue: 1, friction: 5, tension: 220, useNativeDriver: Platform.OS !== 'web' }).start();
+            }
+            commit((e) => { e.curtidas[post.id] = !e.curtidas[post.id]; });
+          }}
+          style={[st.acao, curtiu && st.cheersDado]}
+        >
+          <Animated.View style={{ transform: [{ scale: pop }] }}>
+            <Icone nome="cheers" tamanho={22} cor={curtiu ? cores.destaque : cores.texto} />
+          </Animated.View>
+          <T tam={13} peso={curtiu ? '500' : '300'} cor={curtiu ? cores.destaque : cores.texto}>Cheers {base + (curtiu ? 1 : 0)}</T>
+        </Pressable>
+      </View>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Comentários: ${nComentarios}`} onPress={() => setComentando(true)} style={st.acao}>
+        <Icone nome="comentario" tamanho={19} cor={cores.texto2} />
+        <T tam={13} cor={cores.texto2}>{nComentarios}</T>
+      </Pressable>
+      <View style={{ flex: 1 }} />
+      <Pressable accessibilityRole="button" accessibilityLabel="Compartilhar" onPress={compartilhar} style={st.acao}>
+        <Icone nome="compartilhar" tamanho={19} cor={cores.texto2} />
+      </Pressable>
+    </View>
+  );
+  const folhas = (
+    <>
+        <Comentarios aberto={comentando} aoFechar={() => setComentando(false)} postId={post.id} />
+
+        <Folha aberta={apagando} aoFechar={() => setApagando(false)} titulo="Sua publicação">
+          <Botao
+            tipo="fantasma"
+            icone="ok"
+            titulo={estado.perfilSocial.destaques.includes(post.id) ? 'Tirar dos destaques do perfil' : 'Destacar no perfil'}
+            aoPressionar={() => {
+              const ja = estado.perfilSocial.destaques.includes(post.id);
+              if (!ja && estado.perfilSocial.destaques.length >= limites.destaques) { setApagando(false); avisar(`Você já tem ${limites.destaques} destaques. Tire um antes ou suba de nível para ganhar mais.`); return; }
+              commit((e) => { const d = e.perfilSocial.destaques; const i = d.indexOf(post.id); if (i >= 0) d.splice(i, 1); else d.push(post.id); });
+              setApagando(false);
+              avisar(ja ? 'Removida dos destaques.' : 'Destacada no seu perfil.');
+            }}
+            style={{ marginBottom: 16 }}
+          />
+          <T tam={14} cor={cores.texto2} style={{ lineHeight: 21 }}>Apagar remove a publicação do feed e as fotos e vídeos do aparelho. Isso não dá para desfazer.</T>
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
+            <Botao tipo="discreto" titulo="Cancelar" aoPressionar={() => setApagando(false)} style={{ flex: 1 }} />
+            <Botao tipo="perigo" icone="lixo" titulo="Apagar" aoPressionar={apagar} style={{ flex: 1 }} />
+          </View>
+        </Folha>
+    </>
+  );
+
+  /* no estilo do X (Twitter): sem cartão, foto à esquerda e o conteúdo à direita, com uma linha separando cada publicação */
+  if (timeline) {
+    const nomeMostrado = meu ? estado.usuario?.nome ?? 'Você' : post.autor;
+    return (
+      <View style={st.tweet}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)}>
+          <Avatar nome={post.autor} voce={meu} tamanho={42} />
+        </Pressable>
+        <View style={{ flex: 1 }}>
+          <View style={st.linhaTweet}>
+            <T tam={14.5} peso="500" linhas={1} style={{ flexShrink: 1 }}>{nomeMostrado}</T>
+            <T tam={13} linhas={1} style={{ flexShrink: 2, opacity: 0.7 }}>@{meu ? estado.usuario?.arroba ?? arrobaDe(nomeMostrado) : arrobaDe(post.autor)}</T>
+            <T tam={13} style={{ opacity: 0.7 }}>· {quando(post.quando)}</T>
+            {meu ? (
+              <Pressable accessibilityRole="button" accessibilityLabel="Mais opções da publicação" onPress={() => setApagando(true)} hitSlop={8} style={{ marginLeft: 'auto' }}>
+                <Icone nome="pontos" tamanho={18} cor={cores.texto2} />
+              </Pressable>
+            ) : null}
+          </View>
+          {post.texto ? <T tam={15} style={{ marginTop: 3, lineHeight: 21 }}>{post.texto}</T> : null}
+          {post.destaque ? <T tam={17} peso="400" style={{ marginTop: 6 }}>{post.destaque}</T> : null}
+          {post.midia?.length ? (
+            <View style={{ marginTop: 10 }}>
+              <MidiaGrade itens={post.midia} aoAbrir={(i) => aoAbrirMidia(post.midia ?? [], i)} />
+            </View>
+          ) : null}
+          {acoes}
+          {folhas}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <Cartao>
@@ -132,38 +227,7 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
         </View>
       ) : null}
 
-      <View style={st.acoes}>
-        <View style={{ zIndex: 2 }}>
-          <PuloCheers disparo={disparo} />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected: curtiu }}
-            accessibilityLabel={curtiu ? 'Tirar o seu cheers' : 'Dar cheers'}
-            onPress={() => {
-              if (!curtiu) {
-                setDisparo((d) => d + 1);
-                pop.setValue(0.88);
-                Animated.spring(pop, { toValue: 1, friction: 5, tension: 220, useNativeDriver: Platform.OS !== 'web' }).start();
-              }
-              commit((e) => { e.curtidas[post.id] = !e.curtidas[post.id]; });
-            }}
-            style={[st.acao, curtiu && st.cheersDado]}
-          >
-            <Animated.View style={{ transform: [{ scale: pop }] }}>
-              <Icone nome="cheers" tamanho={22} cor={curtiu ? cores.destaque : cores.texto} />
-            </Animated.View>
-            <T tam={13} peso={curtiu ? '500' : '300'} cor={curtiu ? cores.destaque : cores.texto}>Cheers {base + (curtiu ? 1 : 0)}</T>
-          </Pressable>
-        </View>
-        <Pressable accessibilityRole="button" accessibilityLabel={`Comentários: ${nComentarios}`} onPress={() => setComentando(true)} style={st.acao}>
-          <Icone nome="comentario" tamanho={19} cor={cores.texto2} />
-          <T tam={13} cor={cores.texto2}>{nComentarios}</T>
-        </Pressable>
-        <View style={{ flex: 1 }} />
-        <Pressable accessibilityRole="button" accessibilityLabel="Compartilhar" onPress={compartilhar} style={st.acao}>
-          <Icone nome="compartilhar" tamanho={19} cor={cores.texto2} />
-        </Pressable>
-      </View>
+      {acoes}
 
       <Comentarios aberto={comentando} aoFechar={() => setComentando(false)} postId={post.id} />
 
@@ -257,6 +321,8 @@ const st = estilos(() => StyleSheet.create({
   acoes: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, marginHorizontal: -6 },
   acao: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 8 },
   pulo: { position: 'absolute', left: 8, bottom: 34, paddingVertical: 3, paddingHorizontal: 10, borderRadius: 999, backgroundColor: cores.destaqueForte },
+  tweet: { flexDirection: 'row', gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: cores.linha },
+  linhaTweet: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   cheersDado: { backgroundColor: `rgba(${cores.tom},0.14)`, borderRadius: 22, paddingHorizontal: 14 },
   linhaComentario: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   campoComentario: { flex: 1, height: 46, paddingHorizontal: 16, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
