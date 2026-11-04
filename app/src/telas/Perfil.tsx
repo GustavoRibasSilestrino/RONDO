@@ -11,6 +11,7 @@ import { NIVEIS_ATIVIDADE, OBJETIVOS } from '../dados';
 import { useLoja } from '../estado/loja';
 import { macrosMeta, metaKcal } from '../lib/calc';
 import { fmt } from '../lib/datas';
+import { medalhasDe } from '../lib/medalhas';
 import { MAX_TITULOS, progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
 import { semearSocial } from '../semear';
 import { cores } from '../tema';
@@ -22,7 +23,7 @@ import { BotaoSeguir } from './comunidade/Seguir';
 import { quando } from './comunidade/util';
 import { SITE } from './Login';
 
-export function Perfil() {
+export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const { estado, commit, limpar } = useLoja();
   const avisar = useAviso();
   const p = estado.perfil;
@@ -96,6 +97,21 @@ export function Perfil() {
       </View>
 
       <Botao tipo="fantasma" icone="perfil" titulo="Editar perfil" aoPressionar={abrirEdicao} style={{ marginTop: 18 }} />
+
+      {/* o que não cabe na barra de baixo mora aqui */}
+      <View style={st.atalhos}>
+        {([
+          { id: 'evolucao', rotulo: 'Evolução', sub: 'Peso e gráficos', icone: 'evolucao' },
+          { id: 'colecoes', rotulo: 'Coleções', sub: `${medalhasDe(estado, new Date()).filter((x) => x.aberta).length} medalhas`, icone: 'medalha' },
+          { id: 'recado', rotulo: 'Recados', sub: 'Voz do futuro', icone: 'recado' },
+        ] as const).map((a) => (
+          <Pressable key={a.id} accessibilityRole="button" accessibilityLabel={`${a.rotulo}: ${a.sub}`} onPress={() => ir(a.id)} style={({ pressed }) => [st.atalho, pressed && { opacity: 0.8 }]}>
+            <View style={st.atalhoIcone}><Icone nome={a.icone} tamanho={20} cor={cores.destaque2} /></View>
+            <T tam={14} peso="500" style={{ marginTop: 10 }}>{a.rotulo}</T>
+            <T tam={12} cor={cores.texto3} linhas={1} style={{ marginTop: 2 }}>{a.sub}</T>
+          </Pressable>
+        ))}
+      </View>
 
       {/* nível e títulos */}
       <Cartao destaque style={{ marginTop: 22 }}>
@@ -272,6 +288,9 @@ const st = StyleSheet.create({
   contagem: { flex: 1, alignItems: 'center', gap: 2, minHeight: 56, justifyContent: 'center' },
   fio: { width: 1, height: 32, backgroundColor: cores.linha },
   colecao: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  atalhos: { flexDirection: 'row', gap: 10, marginTop: 14 },
+  atalho: { flex: 1, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', minHeight: 44 },
+  atalhoIcone: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(139,92,246,0.16)' },
   chipTitulo: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
   chipTituloAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
   destaque: { width: 240 },

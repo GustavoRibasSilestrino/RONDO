@@ -213,7 +213,7 @@ const st = StyleSheet.create({
   destinos: { gap: 8, paddingVertical: 16 },
   destino: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
   destinoAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
-  texto: { minHeight: 150, color: cores.texto, fontSize: 21, fontWeight: '200', lineHeight: 30, textAlignVertical: 'top', paddingVertical: 4, outlineWidth: 0, outlineColor: 'transparent' },
+  texto: { minHeight: 150, color: cores.texto, fontSize: 21, fontWeight: '200', lineHeight: 30, textAlignVertical: 'top', paddingVertical: 4, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   miniaturas: { gap: 10, paddingTop: 16, paddingBottom: 8 },
   tile: { width: 132, height: 132 },
   x: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#17122a', borderWidth: 1, borderColor: cores.linha2 },
