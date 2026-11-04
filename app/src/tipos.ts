@@ -91,6 +91,9 @@ export type PerfilSocial = { bio: string; titulos: string[]; destaques: string[]
 /* Tudo o que chega para o perfil: cheers, comentários, novos seguidores e medalhas. `ref` é o id da medalha, quando for uma. */
 export type Notificacao = { id: string; tipo: 'cheers' | 'comentario' | 'seguidor' | 'medalha' | 'profissional'; texto: string; quando: number; lida: boolean; ref?: string };
 
+/* Story: uma foto (midia) ou um texto sobre fundo colorido (texto + fundo), com legenda. Vale 24 horas no ar. */
+export type Story = { id: string; criado: number; midia?: Midia; texto?: string; fundo?: number; legenda?: string };
+
 export type Estado = {
   v: 1;
   usuario: Usuario | null;
@@ -112,6 +115,8 @@ export type Estado = {
   clubes: Record<string, boolean>;             // grupos em que a pessoa está (de demonstração ou criados por ela)
   recados: Recado[];
   notificacoes: Notificacao[];
+  stories: Story[];                            // todos os seus stories (os de mais de 24 h só aparecem no arquivo)
+  storiesVistos: Record<string, boolean>;      // stories de outras pessoas que você já viu, por id
   xpExtra: number;                             // XP somado ao da atividade; só a conta de teste usa
   pro: boolean;                                // plano PRO liberado; só a conta de teste usa
   tema: 'normal' | 'ultra';                      // a aparência escolhida; o Ultra só vale a partir do nível 15
