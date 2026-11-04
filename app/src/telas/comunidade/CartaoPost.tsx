@@ -21,36 +21,38 @@ type Props = {
   aoAbrirMidia: (itens: Midia[], indice: number) => void;
 };
 
-/* a palavra CHEERS que pula na tela a cada cheers dado: sobe quicando, e some */
+/* a palavra Cheers, discreta: sobe um pouco, com um único quique leve, e some */
 function PuloCheers({ disparo }: { disparo: number }) {
   const reduzido = useMovimentoReduzido();
   const y = useRef(new Animated.Value(0)).current;
   const escala = useRef(new Animated.Value(0)).current;
   const opacidade = useRef(new Animated.Value(0)).current;
-  const giro = useRef(new Animated.Value(0)).current;
   const nativo = Platform.OS !== 'web';
 
   useEffect(() => {
     if (disparo === 0) return undefined;
-    y.setValue(0); escala.setValue(0.3); opacidade.setValue(1); giro.setValue(0);
-    const quica = (para: number, ms: number, saindo: boolean) => Animated.timing(y, { toValue: para, duration: ms, easing: saindo ? Easing.out(Easing.quad) : Easing.in(Easing.quad), useNativeDriver: nativo });
+    y.setValue(0); escala.setValue(0.85); opacidade.setValue(0);
     const anim = Animated.parallel([
-      Animated.sequence([quica(-52, 190, true), quica(-22, 150, false), quica(-70, 190, true), quica(-40, 160, false), quica(-82, 200, true)]),
-      Animated.spring(escala, { toValue: 1, friction: 4, tension: 160, useNativeDriver: nativo }),
-      Animated.sequence([Animated.timing(giro, { toValue: 1, duration: 300, useNativeDriver: nativo }), Animated.timing(giro, { toValue: -1, duration: 420, useNativeDriver: nativo }), Animated.timing(giro, { toValue: 0, duration: 300, useNativeDriver: nativo })]),
-      Animated.sequence([Animated.delay(760), Animated.timing(opacidade, { toValue: 0, duration: 340, useNativeDriver: nativo })]),
+      Animated.sequence([
+        Animated.timing(y, { toValue: -30, duration: 200, easing: Easing.out(Easing.cubic), useNativeDriver: nativo }),
+        Animated.timing(y, { toValue: -22, duration: 120, easing: Easing.in(Easing.quad), useNativeDriver: nativo }),
+        Animated.timing(y, { toValue: -34, duration: 140, easing: Easing.out(Easing.quad), useNativeDriver: nativo }),
+      ]),
+      Animated.spring(escala, { toValue: 1, friction: 6, tension: 180, useNativeDriver: nativo }),
+      Animated.sequence([
+        Animated.timing(opacidade, { toValue: 1, duration: 120, useNativeDriver: nativo }),
+        Animated.delay(380),
+        Animated.timing(opacidade, { toValue: 0, duration: 260, useNativeDriver: nativo }),
+      ]),
     ]);
     anim.start();
     return () => anim.stop();
-  }, [disparo, y, escala, opacidade, giro, nativo]);
+  }, [disparo, y, escala, opacidade, nativo]);
 
   if (disparo === 0 || reduzido) return null;
   return (
-    <Animated.View
-      pointerEvents="none"
-      style={[st.pulo, { opacity: opacidade, transform: [{ translateY: y }, { scale: escala }, { rotate: giro.interpolate({ inputRange: [-1, 1], outputRange: ['-9deg', '9deg'] }) }] }]}
-    >
-      <T tam={17} peso="500" style={{ letterSpacing: 2 }}>CHEERS!</T>
+    <Animated.View pointerEvents="none" style={[st.pulo, { opacity: opacidade, transform: [{ translateY: y }, { scale: escala }] }]}>
+      <T tam={11.5} peso="500" style={{ letterSpacing: 0.6 }}>Cheers</T>
     </Animated.View>
   );
 }
@@ -133,8 +135,8 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Prop
             onPress={() => {
               if (!curtiu) {
                 setDisparo((d) => d + 1);
-                pop.setValue(0.7);
-                Animated.spring(pop, { toValue: 1, friction: 3, tension: 200, useNativeDriver: Platform.OS !== 'web' }).start();
+                pop.setValue(0.88);
+                Animated.spring(pop, { toValue: 1, friction: 5, tension: 220, useNativeDriver: Platform.OS !== 'web' }).start();
               }
               commit((e) => { e.curtidas[post.id] = !e.curtidas[post.id]; });
             }}
@@ -247,7 +249,7 @@ const st = StyleSheet.create({
   destaque: { marginTop: 12, backgroundColor: cores.fundo2, borderRadius: 12, padding: 12 },
   acoes: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, marginHorizontal: -6 },
   acao: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 8 },
-  pulo: { position: 'absolute', left: 4, bottom: 38, paddingVertical: 7, paddingHorizontal: 14, borderRadius: 999, backgroundColor: '#6a00d4' },
+  pulo: { position: 'absolute', left: 8, bottom: 34, paddingVertical: 3, paddingHorizontal: 10, borderRadius: 999, backgroundColor: '#6a00d4' },
   cheersDado: { backgroundColor: 'rgba(139,92,246,0.14)', borderRadius: 22, paddingHorizontal: 14 },
   linhaComentario: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   campoComentario: { flex: 1, height: 46, paddingHorizontal: 16, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
