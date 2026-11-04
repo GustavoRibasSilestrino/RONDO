@@ -1,0 +1,121 @@
+/* ===== Responsivo para todas as telas =====
+   Carregado por último: refina os pontos de quebra de cada arquivo.
+   Faixas: telas muito grandes (>=1700) · notebook (<=1280) · tablet (<=980) · celular (<=520) · celular pequeno (<=360).
+   A altura também conta: o dia fixo precisa de altura; em telas baixas ele vira lista (ver day.css e STACK_QUERY). */
+
+/* nada pode empurrar a página para o lado */
+html, body { max-width: 100%; }
+img, svg, video, canvas { max-width: 100%; }
+
+/* ---------- telas grandes: tudo cresce junto, sem ficar perdido no meio ---------- */
+@media (min-width: 1700px) {
+  html { font-size: 112.5%; }
+  :root { --maxw: 1480px; --nav-h: 76px; }
+  .m-ui { width: 330px; }
+  .moment { grid-template-columns: minmax(0, 1fr) 330px; }
+}
+@media (min-width: 2200px) {
+  html { font-size: 125%; }
+  :root { --maxw: 1760px; --nav-h: 84px; }
+  .m-ui { width: 370px; }
+  .moment { grid-template-columns: minmax(0, 1fr) 370px; }
+}
+
+/* ---------- notebook: o menu e o hero dividem menos espaço ---------- */
+@media (max-width: 1280px) {
+  .nav-in { gap: 1.2rem; }
+  .nav-trigger { padding: .5rem .65rem; }
+  .logo-nome { font-size: 1rem; letter-spacing: .26em; }
+  .cmp-row b { font-size: clamp(1.8rem, 4vw, 3.2rem); }
+}
+
+@media (min-width: 981px) and (max-width: 1280px) {
+  .hero-top { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 1.5rem; }
+}
+
+/* ---------- dia fixo em telas baixas: o cartão encolhe antes de virar lista ---------- */
+@media (min-width: 981px) and (max-height: 940px) { .m-ui { zoom: .92; } .day-clock { font-size: clamp(3rem, min(9vw, 15vh), 8rem); } }
+@media (min-width: 981px) and (max-height: 860px) { .m-ui { zoom: .85; } }
+@media (min-width: 981px) and (max-height: 790px) { .m-ui { zoom: .77; } .day-sticky { padding-bottom: 1.2rem; } }
+@media (min-width: 981px) and (max-height: 720px) { .m-ui { zoom: .69; } .moment h3 { font-size: clamp(2.2rem, 5vw, 4rem); } }
+
+/* dia em lista, mas com largura de sobra (notebook baixo, celular deitado): texto e cartão lado a lado */
+@media (min-width: 700px) and (max-height: 620px), (min-width: 700px) and (max-width: 980px) {
+  .moment { grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); align-items: center; }
+  .moment::before { grid-column: 1 / -1; }
+  .m-ui { max-width: none; justify-self: end; }
+  .m-text { text-align: left; }
+}
+@media (min-width: 981px) and (max-height: 620px) {
+  .day-sticky { padding-top: 5rem; }
+  .day-head { flex-direction: row; align-items: flex-end; }
+  .day-track { padding-left: var(--gutter); }
+  .m-text { text-align: left; }
+  .moment::before { content: attr(data-time); font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; color: var(--accent-2); }
+}
+
+/* ---------- tablet (até 980): grades de duas colunas em vez de uma só ---------- */
+@media (min-width: 641px) and (max-width: 980px) {
+  .tools, .rank-grid, .pro-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plans { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .plans .plan.hot { order: -1; grid-column: 1 / -1; }
+  .steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; }
+  .step { padding: 1rem; }
+  .hero-art { max-width: 520px; }
+  .recado-grid { grid-template-columns: minmax(0, 1fr); }
+  .recado-side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .recado-side .mini:last-child { grid-column: 1 / -1; }
+  .streak-wrap { grid-template-columns: minmax(0, 1fr); }
+  .footer-grid { flex-direction: row; justify-content: space-between; text-align: left; align-items: flex-start; }
+  .footer-links { justify-items: start; }
+  .hero-cta { flex-direction: row; max-width: none; }
+  .hero-cta .btn { width: auto; flex: 1 1 14rem; }
+  .signup { flex-direction: row; }
+}
+
+/* a roda aparece com o dedo, mas em telas largas e baixas (celular deitado) ela precisa caber */
+@media (max-width: 980px) and (max-height: 520px) {
+  .wheel-overlay { --R: clamp(96px, 32vh, 130px); }
+  .wheel-center b { font-size: clamp(1.6rem, 7vh, 2.2rem); }
+  .hero { min-height: 0; padding-block: calc(env(safe-area-inset-top, 0px) + 28px) 96px; }
+}
+
+/* ---------- celular (até 520) ---------- */
+@media (max-width: 520px) {
+  .cmp { min-height: 520px; }
+  .cmp-row b { font-size: 2.2rem; }
+  .podium { gap: .4rem; }
+  .plan .price { font-size: 2.2rem; }
+  .hero-cta .btn { white-space: normal; text-align: center; }
+  .day-head h2 { max-width: none; }
+}
+
+/* ---------- celular pequeno (até 360) ---------- */
+@media (max-width: 360px) {
+  :root { --gutter: 1rem; }
+  h1.display { font-size: clamp(2.3rem, 13vw, 2.8rem); }
+  h2.display { font-size: 1.65rem; }
+  .btn { padding-inline: 1rem; white-space: normal; text-align: center; }
+  .nav-single { padding-inline: .8rem; gap: .55rem; }
+  .nav-single .cur { min-width: 4.4rem; }
+  .tool, .panel, .pro, .plan, .cmp, .streak-board { padding-inline: 1rem; }
+  .m-ui { padding: .85rem; }
+  .cups { grid-template-columns: repeat(4, 1fr); gap: .35rem; }
+  .streak-board .heat { gap: 3px; }
+  .legend { gap: .5rem .9rem; }
+  .podium { height: 160px; }
+}
+
+/* ---------- celular muito largo e dobráveis: nada de cartão esticado ---------- */
+@media (min-width: 521px) and (max-width: 700px) {
+  .m-ui { max-width: 440px; }
+  .moment { justify-items: center; }
+}
+
+/* ---------- impressão: sem movimento, sem camadas fixas ---------- */
+@media print {
+  .sky, .rail, .nav, .wheel-overlay { display: none !important; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+  .day-pin { height: auto; }
+  .day-sticky { position: static; height: auto; }
+}
