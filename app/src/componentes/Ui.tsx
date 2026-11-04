@@ -1,7 +1,7 @@
 /* Blocos básicos de interface: texto fino, cartão, botão, chip, passo (+/−), anel, barra, segmentos e campo. */
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
-import { Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Animated, Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { cores, PesoFonte, raio } from '../tema';
 import { Icone, NomeIcone } from './Icone';
@@ -37,7 +37,17 @@ export function T({ children, tam = 15, peso = '300', cor = cores.texto, mono, c
 
 /* ---------- cartão ---------- */
 export function Cartao({ children, style, destaque }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; destaque?: boolean }) {
-  return <View style={[st.cartao, destaque && st.cartaoDestaque, style]}>{children}</View>;
+  return (
+    <View style={[st.cartao, destaque && st.cartaoDestaque, style]}>
+      <LinearGradient
+        colors={destaque ? ['rgba(139,92,246,0.30)', 'rgba(109,40,217,0.03)'] : ['rgba(255,255,255,0.065)', 'rgba(255,255,255,0.012)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.85, y: 1 }}
+        style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}
+      />
+      {children}
+    </View>
+  );
 }
 
 /* ---------- botão ---------- */
@@ -53,24 +63,32 @@ type BotaoProps = {
 export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, icone, pequeno, style }: BotaoProps) {
   const cor = tipo === 'primario' ? cores.branco : tipo === 'perigo' ? cores.erro : cores.texto;
   const conteudo = (
-    <View style={[st.botaoMiolo, pequeno && { paddingVertical: 9, paddingHorizontal: 14 }]}>
+    <View style={[st.botaoMiolo, pequeno && { paddingVertical: 10, paddingHorizontal: 16 }]}>
       {icone ? <Icone nome={icone} tamanho={pequeno ? 16 : 18} cor={cor} /> : null}
       <T tam={pequeno ? 13 : 15} peso="500" cor={cor}>{titulo}</T>
     </View>
   );
+  /* ao tocar, o botão afunda um pouco e volta com mola */
+  const escala = useRef(new Animated.Value(1)).current;
+  const nativo = Platform.OS !== 'web';
+  const mola = (para: number) => Animated.spring(escala, { toValue: para, useNativeDriver: nativo, speed: 42, bounciness: 5 }).start();
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled: !!desabilitado }}
-      disabled={desabilitado}
-      onPress={aoPressionar}
-      style={({ pressed }) => [st.botao, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto, { opacity: desabilitado ? 0.45 : pressed ? 0.8 : 1 }, style]}
-    >
-      {tipo === 'primario' ? (
-        <LinearGradient colors={['#6d28d9', '#9d78fb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      ) : null}
-      {conteudo}
-    </Pressable>
+    <Animated.View style={[tipo === 'primario' && !desabilitado && st.brilho, { transform: [{ scale: escala }], borderRadius: raio.m }, style]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !!desabilitado }}
+        disabled={desabilitado}
+        onPress={aoPressionar}
+        onPressIn={() => mola(0.97)}
+        onPressOut={() => mola(1)}
+        style={[st.botao, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto, { opacity: desabilitado ? 0.45 : 1 }]}
+      >
+        {tipo === 'primario' ? (
+          <LinearGradient colors={['#6d28d9', '#9d78fb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+        ) : null}
+        {conteudo}
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -169,12 +187,20 @@ export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar }:
 
 /* ---------- campo de texto ---------- */
 type CampoProps = TextInputProps & { rotulo: string; direita?: React.ReactNode };
-export function Campo({ rotulo, direita, style, ...resto }: CampoProps) {
+export function Campo({ rotulo, direita, style, onFocus, onBlur, ...resto }: CampoProps) {
+  const [foco, setFoco] = useState(false);
   return (
     <View style={{ gap: 6 }}>
-      <T tam={11} mono cor={cores.texto2}>{rotulo.toUpperCase()}</T>
-      <View style={st.campo}>
-        <TextInput placeholderTextColor={cores.texto3} selectionColor={cores.destaque} style={[st.campoTexto, style]} {...resto} />
+      <T tam={11} mono cor={foco ? cores.destaque2 : cores.texto2}>{rotulo.toUpperCase()}</T>
+      <View style={[st.campo, foco && st.campoFoco]}>
+        <TextInput
+          placeholderTextColor={cores.texto3}
+          selectionColor={cores.destaque}
+          style={[st.campoTexto, style]}
+          onFocus={(e) => { setFoco(true); onFocus?.(e); }}
+          onBlur={(e) => { setFoco(false); onBlur?.(e); }}
+          {...resto}
+        />
         {direita}
       </View>
     </View>
@@ -192,20 +218,22 @@ export function Titulo({ children, direita }: { children: React.ReactNode; direi
 }
 
 const st = StyleSheet.create({
-  cartao: { backgroundColor: cores.cartao, borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 16 },
-  cartaoDestaque: { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: 'rgba(109,40,217,0.16)' },
+  cartao: { backgroundColor: 'rgba(255,255,255,0.015)', borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden', boxShadow: '0 22px 40px -28px rgba(0,0,0,0.9)' },
+  cartaoDestaque: { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: 'rgba(109,40,217,0.1)', boxShadow: '0 26px 50px -30px rgba(109,40,217,0.7)' },
+  brilho: { boxShadow: '0 14px 30px -14px rgba(139,92,246,0.85)' },
+  campoFoco: { borderColor: cores.destaque, backgroundColor: 'rgba(139,92,246,0.06)' },
   botao: { borderRadius: raio.m, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   botaoFantasma: { borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.03)' },
   botaoPerigo: { borderWidth: 1, borderColor: 'rgba(255,107,129,0.5)', backgroundColor: 'rgba(255,107,129,0.08)' },
   botaoDiscreto: { backgroundColor: 'rgba(255,255,255,0.06)' },
   botaoMiolo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 15, paddingHorizontal: 22 },
-  chip: { alignSelf: 'flex-start', paddingVertical: 4, paddingHorizontal: 9, borderRadius: raio.p },
+  chip: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 11, borderRadius: raio.pilula },
   passo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderRadius: raio.m, borderWidth: 1, borderColor: cores.linha },
   passoBtn: { width: 36, height: 40, alignItems: 'center', justifyContent: 'center' },
   passoValor: { minWidth: 46, alignItems: 'center', justifyContent: 'center' },
   barra: { height: 6, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 99, overflow: 'hidden' },
-  segmentos: { flexDirection: 'row', backgroundColor: cores.cartao2, borderRadius: raio.m, padding: 3 },
-  segmento: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: raio.m - 2 },
+  segmentos: { flexDirection: 'row', backgroundColor: cores.cartao2, borderRadius: raio.pilula, padding: 4 },
+  segmento: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: raio.pilula },
   segmentoAtivo: { backgroundColor: cores.texto },
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
   campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontWeight: '300', paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0 },

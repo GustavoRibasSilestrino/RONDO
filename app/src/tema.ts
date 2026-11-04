@@ -1,4 +1,4 @@
-/* Identidade visual do app: preto e roxo, fontes finas, cantos quase retos. */
+/* Identidade visual do app: preto e roxo, fontes finas, vidro leve e cantos amplos. */
 export const cores = {
   fundo: '#050507',
   fundo2: '#0b0910',
@@ -19,7 +19,7 @@ export const cores = {
   branco: '#ffffff',
 } as const;
 
-export const raio = { p: 4, m: 8, g: 12, pilula: 999 } as const;
+export const raio = { p: 8, m: 14, g: 22, pilula: 999 } as const;
 
 export type PesoFonte = '200' | '300' | '400' | '500';
 
