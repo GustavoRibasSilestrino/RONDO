@@ -1,11 +1,12 @@
 /* Uma publicação: autor, texto, destaque, fotos e vídeos, e as ações (curtir, comentar, compartilhar, apagar a própria). */
-import React, { useState } from 'react';
-import { Pressable, Share, StyleSheet, TextInput, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Platform, Pressable, Share, StyleSheet, TextInput, View } from 'react-native';
 import { Folha, useAviso } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
 import { Botao, Cartao, T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
 import { removerMidia } from '../../lib/midia';
+import { useMovimentoReduzido } from '../../lib/movimento';
 import { cores } from '../../tema';
 import type { Midia, Post } from '../../tipos';
 import { Avatar } from './Avatar';
@@ -20,11 +21,47 @@ type Props = {
   aoAbrirMidia: (itens: Midia[], indice: number) => void;
 };
 
+/* a palavra CHEERS que pula na tela a cada cheers dado: sobe quicando, e some */
+function PuloCheers({ disparo }: { disparo: number }) {
+  const reduzido = useMovimentoReduzido();
+  const y = useRef(new Animated.Value(0)).current;
+  const escala = useRef(new Animated.Value(0)).current;
+  const opacidade = useRef(new Animated.Value(0)).current;
+  const giro = useRef(new Animated.Value(0)).current;
+  const nativo = Platform.OS !== 'web';
+
+  useEffect(() => {
+    if (disparo === 0) return undefined;
+    y.setValue(0); escala.setValue(0.3); opacidade.setValue(1); giro.setValue(0);
+    const quica = (para: number, ms: number, saindo: boolean) => Animated.timing(y, { toValue: para, duration: ms, easing: saindo ? Easing.out(Easing.quad) : Easing.in(Easing.quad), useNativeDriver: nativo });
+    const anim = Animated.parallel([
+      Animated.sequence([quica(-52, 190, true), quica(-22, 150, false), quica(-70, 190, true), quica(-40, 160, false), quica(-82, 200, true)]),
+      Animated.spring(escala, { toValue: 1, friction: 4, tension: 160, useNativeDriver: nativo }),
+      Animated.sequence([Animated.timing(giro, { toValue: 1, duration: 300, useNativeDriver: nativo }), Animated.timing(giro, { toValue: -1, duration: 420, useNativeDriver: nativo }), Animated.timing(giro, { toValue: 0, duration: 300, useNativeDriver: nativo })]),
+      Animated.sequence([Animated.delay(760), Animated.timing(opacidade, { toValue: 0, duration: 340, useNativeDriver: nativo })]),
+    ]);
+    anim.start();
+    return () => anim.stop();
+  }, [disparo, y, escala, opacidade, giro, nativo]);
+
+  if (disparo === 0 || reduzido) return null;
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[st.pulo, { opacity: opacidade, transform: [{ translateY: y }, { scale: escala }, { rotate: giro.interpolate({ inputRange: [-1, 1], outputRange: ['-9deg', '9deg'] }) }] }]}
+    >
+      <T tam={17} peso="500" style={{ letterSpacing: 2 }}>CHEERS!</T>
+    </Animated.View>
+  );
+}
+
 export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Props) {
   const { estado, commit } = useLoja();
   const avisar = useAviso();
   const [comentando, setComentando] = useState(false);
   const [apagando, setApagando] = useState(false);
+  const [disparo, setDisparo] = useState(0);   // sobe a cada cheers dado: dispara a animação
+  const pop = useRef(new Animated.Value(1)).current;
 
   const curtiu = !!estado.curtidas[post.id];
   const meu = post.autor === 'Você';
@@ -33,7 +70,7 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Prop
 
   const compartilhar = async () => {
     try {
-      await Share.share({ message: `${meu ? 'Eu' : post.autor} no Yesteryou: ${post.texto}` });
+      await Share.share({ message: `${meu ? 'Eu' : post.autor} no KORA: ${post.texto}` });
     } catch {
       avisar('Compartilhar não está disponível neste aparelho.');
     }
@@ -59,7 +96,7 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Prop
           <View style={st.meta}>
             <T tam={12} cor={cores.texto3}>{quando(post.quando)}</T>
             {nomeGrupo ? (
-              <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o grupo ${nomeGrupo}`} onPress={aoAbrirGrupo} hitSlop={6}>
+              <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o clube ${nomeGrupo}`} onPress={aoAbrirGrupo} hitSlop={6}>
                 <T tam={12} peso="500" cor={cores.destaque2}>· {nomeGrupo}</T>
               </Pressable>
             ) : null}
@@ -87,16 +124,28 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Prop
       ) : null}
 
       <View style={st.acoes}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ selected: curtiu }}
-          accessibilityLabel={curtiu ? 'Tirar o seu cheers' : 'Dar cheers'}
-          onPress={() => commit((e) => { e.curtidas[post.id] = !e.curtidas[post.id]; })}
-          style={[st.acao, curtiu && st.cheersDado]}
-        >
-          <Icone nome="cheers" tamanho={20} cor={curtiu ? cores.destaque2 : cores.texto2} />
-          <T tam={13} peso={curtiu ? '500' : '300'} cor={curtiu ? cores.destaque2 : cores.texto2}>Cheers {base + (curtiu ? 1 : 0)}</T>
-        </Pressable>
+        <View style={{ zIndex: 2 }}>
+          <PuloCheers disparo={disparo} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ selected: curtiu }}
+            accessibilityLabel={curtiu ? 'Tirar o seu cheers' : 'Dar cheers'}
+            onPress={() => {
+              if (!curtiu) {
+                setDisparo((d) => d + 1);
+                pop.setValue(0.7);
+                Animated.spring(pop, { toValue: 1, friction: 3, tension: 200, useNativeDriver: Platform.OS !== 'web' }).start();
+              }
+              commit((e) => { e.curtidas[post.id] = !e.curtidas[post.id]; });
+            }}
+            style={[st.acao, curtiu && st.cheersDado]}
+          >
+            <Animated.View style={{ transform: [{ scale: pop }] }}>
+              <Icone nome="cheers" tamanho={22} cor={curtiu ? cores.destaque : cores.texto} />
+            </Animated.View>
+            <T tam={13} peso={curtiu ? '500' : '300'} cor={curtiu ? cores.destaque : cores.texto}>Cheers {base + (curtiu ? 1 : 0)}</T>
+          </Pressable>
+        </View>
         <Pressable accessibilityRole="button" accessibilityLabel={`Comentários: ${nComentarios}`} onPress={() => setComentando(true)} style={st.acao}>
           <Icone nome="comentario" tamanho={19} cor={cores.texto2} />
           <T tam={13} cor={cores.texto2}>{nComentarios}</T>
@@ -175,7 +224,7 @@ function Comentarios({ aberto, aoFechar, postId }: { aberto: boolean; aoFechar: 
           value={texto}
           onChangeText={setTexto}
           placeholder="Escreva um comentário"
-          placeholderTextColor={cores.texto3}
+          placeholderTextColor={cores.placeholder}
           selectionColor={cores.destaque}
           accessibilityLabel="Escrever comentário"
           maxLength={280}
@@ -198,6 +247,7 @@ const st = StyleSheet.create({
   destaque: { marginTop: 12, backgroundColor: cores.fundo2, borderRadius: 12, padding: 12 },
   acoes: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, marginHorizontal: -6 },
   acao: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 8 },
+  pulo: { position: 'absolute', left: 4, bottom: 38, paddingVertical: 7, paddingHorizontal: 14, borderRadius: 999, backgroundColor: '#6a00d4' },
   cheersDado: { backgroundColor: 'rgba(139,92,246,0.14)', borderRadius: 22, paddingHorizontal: 14 },
   linhaComentario: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   campoComentario: { flex: 1, height: 46, paddingHorizontal: 16, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', color: cores.texto, fontSize: 15, fontWeight: '300', outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },

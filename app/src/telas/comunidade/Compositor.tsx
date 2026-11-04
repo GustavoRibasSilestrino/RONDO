@@ -1,6 +1,5 @@
 /* Nova publicação em tela cheia: barra com fechar e Publicar, texto grande, fotos e vídeos em destaque (até 4, galeria ou câmera)
    e o destino (feed geral ou um dos seus grupos). Se a pessoa fechar sem publicar, o rascunho fica guardado até a próxima vez. */
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -75,7 +74,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
     setMidia([]);
     setErro('');
     aoFechar();
-    avisar(destino ? 'Publicado no grupo.' : 'Publicado no feed.');
+    avisar(destino ? 'Publicado no clube.' : 'Publicado no feed.');
   };
 
   if (!montada && !aberto) return null;
@@ -84,7 +83,6 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
   return (
     <Modal visible={aberto} animationType="slide" onRequestClose={aoFechar} statusBarTranslucent>
       <View style={st.tela}>
-        <LinearGradient colors={['rgba(109,40,217,0.34)', 'rgba(109,40,217,0.08)', 'rgba(5,5,7,0)']} style={[StyleSheet.absoluteFill, { height: 300, pointerEvents: 'none' }]} />
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, width: '100%', maxWidth: larguraMax }}>
           <View style={[st.coluna, { paddingTop: insets.top + 10 }]}>
             <View style={st.barra}>
@@ -127,7 +125,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
                 maxLength={LIMITE_TEXTO}
                 autoFocus
                 placeholder="Compartilhe um treino, uma refeição, uma conquista…"
-                placeholderTextColor={cores.texto3}
+                placeholderTextColor={cores.placeholder}
                 selectionColor={cores.destaque}
                 accessibilityLabel="Texto da publicação"
                 style={st.texto}

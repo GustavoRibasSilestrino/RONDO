@@ -87,6 +87,9 @@ export type Recado = {
 /* O lado público do perfil: descrição, títulos exibidos (ids de lib/nivel.ts) e publicações em destaque (ids de Post). */
 export type PerfilSocial = { bio: string; titulos: string[]; destaques: string[] };
 
+/* Tudo o que chega para o perfil: cheers, comentários, novos seguidores e medalhas. `ref` é o id da medalha, quando for uma. */
+export type Notificacao = { id: string; tipo: 'cheers' | 'comentario' | 'seguidor' | 'medalha'; texto: string; quando: number; lida: boolean; ref?: string };
+
 export type Estado = {
   v: 1;
   usuario: Usuario | null;
@@ -107,5 +110,7 @@ export type Estado = {
   grupos: Grupo[];                             // os que a pessoa criou
   clubes: Record<string, boolean>;             // grupos em que a pessoa está (de demonstração ou criados por ela)
   recados: Recado[];
+  notificacoes: Notificacao[];
+  medalhasAvisadas: string[] | null;           // medalhas que já viraram notificação; null até a primeira leitura (as que já estavam abertas não avisam)
   semeado: boolean;
 };

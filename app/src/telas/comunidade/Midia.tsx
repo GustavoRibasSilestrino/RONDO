@@ -1,5 +1,4 @@
 /* Fotos e vídeos nas publicações: a grade (1 a 4 itens), a miniatura e o visor em tela cheia, com vídeo e passagem de um para o outro. */
-import { LinearGradient } from 'expo-linear-gradient';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import React, { useEffect, useState } from 'react';
 import { Image, Modal, Pressable, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
@@ -26,7 +25,7 @@ export function Miniatura({ m, style, aoAbrir, extra }: { m: Midia; style?: Styl
       {m.tipo === 'imagem' && uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : null}
       {m.tipo === 'video' ? (
         <>
-          <LinearGradient colors={['#2a1458', '#0d0a16']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#161616' }]} />
           <View style={st.centro}>
             <View style={st.play}>
               <Icone nome="tocar" tamanho={22} cor="#ffffff" />

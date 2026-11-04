@@ -1,7 +1,7 @@
 /* Perfil: quem você é na comunidade (descrição, títulos, nível, destaques, seguidores e seguindo, suas publicações)
    e, mais abaixo, os dados que calculam a sua meta e a conta. */
 import React, { useEffect, useState } from 'react';
-import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { CampoFlutuante } from '../componentes/CampoFlutuante';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
@@ -12,6 +12,7 @@ import { useLoja } from '../estado/loja';
 import { macrosMeta, metaKcal } from '../lib/calc';
 import { fmt } from '../lib/datas';
 import { medalhasDe } from '../lib/medalhas';
+import { patenteDe } from '../lib/patentes';
 import { MAX_TITULOS, progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
 import { semearSocial } from '../semear';
 import { cores } from '../tema';
@@ -44,6 +45,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const seguindo = Object.keys(estado.seguindo).filter((k) => estado.seguindo[k]);
   const seguidores = estado.seguidores;
   const destacadas = estado.perfilSocial.destaques.map((id) => estado.posts.find((x) => x.id === id)).filter((x): x is Post => !!x);
+  const { atual: patente, proxima } = patenteDe(nivel.nivel);
   const exibidos = TITULOS.filter((t) => estado.perfilSocial.titulos.includes(t.id) && t.nivel <= nivel.nivel);
 
   const mudar = (campo: 'idade' | 'peso' | 'altura', v: number) => commit((e) => { e.perfil[campo] = v; });
@@ -88,6 +90,19 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         )}
       </View>
 
+      {/* a patente da conta, em destaque */}
+      <View style={st.patente} accessibilityLabel={patente ? `Patente ${patente.nome}` : 'Ainda sem patente'}>
+        {patente ? (
+          <Image source={patente.img} style={{ width: 168, height: 160 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+        ) : (
+          <Image source={proxima!.img} style={{ width: 120, height: 114, opacity: 0.25 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+        )}
+        <T tam={22} peso="300" style={{ marginTop: 6 }}>{patente ? `Patente ${patente.nome}` : 'Ainda sem patente'}</T>
+        <T tam={13} style={{ marginTop: 4 }}>
+          {proxima ? `Próxima: ${proxima.nome}, no nível ${proxima.nivel}` : 'A patente mais alta da KORA'}
+        </T>
+      </View>
+
       <View style={st.contagens}>
         <Contagem n={estado.posts.length} rotulo="Publicações" />
         <View style={st.fio} />
@@ -101,6 +116,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       {/* o que não cabe na barra de baixo mora aqui */}
       <View style={st.atalhos}>
         {([
+          { id: 'hoje', rotulo: 'Hoje', sub: 'Resumo do dia', icone: 'relogio' },
           { id: 'evolucao', rotulo: 'Evolução', sub: 'Peso e gráficos', icone: 'evolucao' },
           { id: 'colecoes', rotulo: 'Coleções', sub: `${medalhasDe(estado, new Date()).filter((x) => x.aberta).length} medalhas`, icone: 'medalha' },
           { id: 'recado', rotulo: 'Recados', sub: 'Voz do futuro', icone: 'recado' },
@@ -237,7 +253,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
           aoPressionar={async () => { await limpar(); avisar('Dados apagados.'); }}
         />
       </View>
-      <T tam={11} cor={cores.texto3} style={{ marginTop: 22 }}>Yesteryou · versão 0.1.0</T>
+      <T tam={11} cor={cores.texto3} style={{ marginTop: 22 }}>KORA · versão 0.1.0</T>
 
       {/* editar a descrição */}
       <Folha aberta={editando} aoFechar={() => setEditando(false)} titulo="Editar perfil">
@@ -288,8 +304,9 @@ const st = StyleSheet.create({
   contagem: { flex: 1, alignItems: 'center', gap: 2, minHeight: 56, justifyContent: 'center' },
   fio: { width: 1, height: 32, backgroundColor: cores.linha },
   colecao: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  atalhos: { flexDirection: 'row', gap: 10, marginTop: 14 },
-  atalho: { flex: 1, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', minHeight: 44 },
+  patente: { alignItems: 'center', marginTop: 22, paddingVertical: 18, borderRadius: 22, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
+  atalhos: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
+  atalho: { width: '48%', flexGrow: 1, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', minHeight: 44 },
   atalhoIcone: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(139,92,246,0.16)' },
   chipTitulo: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
   chipTituloAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },

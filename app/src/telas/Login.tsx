@@ -93,7 +93,7 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
       <Tela comDoca={false} animada={false}>
         <View style={[st.coluna, { minHeight: alturaMinima, justifyContent: 'center' }]}>
           <Animated.View style={[{ alignItems: 'center', marginTop: 6 }, surgir(0)]}>
-            <Marca altura={26} />
+            <Marca altura={34} />
           </Animated.View>
 
           <Animated.View style={[{ marginTop: 14 }, surgir(1)]}>
@@ -180,11 +180,11 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
             </T>
             <Pressable
               accessibilityRole="link"
-              accessibilityLabel="Abrir o site do Yesteryou"
+              accessibilityLabel="Abrir o site do KORA"
               onPress={() => Linking.openURL(SITE)}
               style={({ pressed }) => [st.pilula, { opacity: pressed ? 0.7 : 1 }]}
             >
-              <T tam={13.5} peso="500" cor={cores.destaque2}>Abrir o site do Yesteryou</T>
+              <T tam={13.5} peso="500" cor={cores.destaque2}>Abrir o site do KORA</T>
               <Icone nome="setaDireita" tamanho={16} cor={cores.destaque2} />
             </Pressable>
             {modoDemonstracao ? (

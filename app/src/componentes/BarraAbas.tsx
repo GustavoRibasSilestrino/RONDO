@@ -1,12 +1,11 @@
-/* Navegação do app: uma barra contínua de vidro no pé da tela, com todas as abas à vista.
+/* Navegação do app: uma barra contínua de vidro escuro no pé da tela, com todas as abas à vista.
    Cada aba é um círculo do mesmo tamanho; só a atual vira uma pílula roxa, com o ícone e o nome lado a lado. */
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { cores, degradeBotao, larguraMax } from '../tema';
+import { cores, larguraMax } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 import { T } from './Ui';
 
@@ -37,11 +36,9 @@ function Aba({ item, largura, ativo, aoPressionar, movimentoReduzido }: { item: 
   return (
     <Pressable accessibilityRole="tab" accessibilityState={{ selected: ativo }} accessibilityLabel={item.rotulo} onPress={aoPressionar}>
       <Animated.View style={[st.aba, { width: w }]}>
-        <Animated.View style={[StyleSheet.absoluteFill, { opacity: luz }]} pointerEvents="none">
-          <LinearGradient colors={degradeBotao} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-        </Animated.View>
+        <Animated.View style={[StyleSheet.absoluteFill, { opacity: luz, backgroundColor: cores.destaqueForte }]} pointerEvents="none" />
         <View pointerEvents="none" style={st.conteudo}>
-          <Icone nome={item.icone} tamanho={21} cor={ativo ? '#ffffff' : cores.texto2} />
+          <Icone nome={item.icone} tamanho={21} cor="#ffffff" />
           {ativo ? <T tam={12.5} peso="500" linhas={1}>{item.rotulo}</T> : null}
         </View>
       </Animated.View>
@@ -64,7 +61,6 @@ export function BarraAbas({ itens, atual, aoEscolher }: Props) {
   return (
     <View pointerEvents="box-none" style={[st.doca, { bottom: insets.bottom + 10 }]}>
       <View style={[st.barra, vidro, { width: barra, paddingHorizontal: RECHEIO + folga / 2 }]}>
-        <LinearGradient colors={['rgba(255,255,255,0.12)', 'rgba(255,255,255,0.02)']} style={StyleSheet.absoluteFill} pointerEvents="none" />
         {itens.map((it) => {
           const ativo = it.id === atual;
           return (
@@ -91,7 +87,7 @@ const st = StyleSheet.create({
   doca: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   barra: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: ALTURA + 2 * RECHEIO + 2, borderRadius: (ALTURA + 2 * RECHEIO + 2) / 2, overflow: 'hidden',
-    backgroundColor: 'rgba(20,14,40,0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: 'rgba(12,12,12,0.78)', borderWidth: 1, borderColor: cores.linha2,
     shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 22, shadowOffset: { width: 0, height: 10 }, elevation: 12,
   },
   aba: { height: ALTURA, borderRadius: ALTURA / 2, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },

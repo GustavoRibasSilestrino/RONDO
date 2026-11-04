@@ -126,7 +126,7 @@ export function statsSemana(estado: Estado, hoje: Date, semanasAtras: number): S
 
 export type Comparacao = { treinos: number | null; volume: number | null; refeicoes: number | null; agua: number | null; geral: number | null };
 
-/* variação em % de cada número e a média geral (o "+12%" do Você vs. Yesteryou) */
+/* variação em % de cada número e a média geral (o "+12%" do Você vs. ontem) */
 export function comparar(cur: StatsSemana, prev: StatsSemana): Comparacao {
   const pct = (a: number, b: number) => (b > 0 ? ((a - b) / b) * 100 : null);
   const d = {
