@@ -101,8 +101,7 @@ export function Recado() {
       <T tam={14} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 21 }}>Fale com quem você vai ser. Grave hoje, ouça no futuro.</T>
 
       <Cartao destaque style={{ marginTop: 22 }}>
-        <T tam={11} mono cor={cores.destaque2}>PERGUNTA DO DIA</T>
-        <T tam={26} peso="200" style={{ marginTop: 8, lineHeight: 32 }}>{PERGUNTAS[pergunta]}</T>
+        <T tam={26} peso="200" style={{ lineHeight: 32 }}>{PERGUNTAS[pergunta]}</T>
         {!gravando && !rascunho ? (
           <Pressable accessibilityRole="button" onPress={() => setPergunta((p) => (p + 1) % PERGUNTAS.length)} style={{ marginTop: 10, alignSelf: 'flex-start' }}>
             <T tam={13} cor={cores.texto2} style={{ textDecorationLine: 'underline' }}>Outra pergunta</T>
