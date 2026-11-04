@@ -1,0 +1,118 @@
+/* ===== Streak: 12 semanas de registros =====
+   Os quadrados da sequência atual esquentam até hoje. Clique em um: ele cresce, a onda passa pelos vizinhos e tudo volta. */
+
+.streak-board { position: relative; isolation: isolate; }
+.streak-board::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+  background: radial-gradient(90% 60% at 88% 0%, rgba(139, 92, 246, .2), transparent 66%);
+}
+
+/* ---- contagem: chama + número que sobe ---- */
+.streak-count { align-items: center; gap: .9rem; }
+.streak-count b { display: inline-block; transform-origin: 0 100%; font-variant-numeric: tabular-nums; }
+.streak-count b.bump { animation: bump .55s var(--ease); }
+.streak-count .s-sub { align-self: flex-end; padding-bottom: .6rem; }
+.flame {
+  flex: none; width: 2.7rem; height: 2.7rem; transform-origin: 50% 92%;
+  fill: rgba(139, 92, 246, .22); stroke: var(--accent-2); stroke-width: 1.4; stroke-linejoin: round; stroke-linecap: round;
+  filter: drop-shadow(0 6px 12px rgba(109, 40, 217, .65));
+  animation: flicker 2.6s ease-in-out infinite;
+}
+@keyframes flicker {
+  0%, 100% { transform: scale(1) rotate(0); }
+  30% { transform: scale(.96, 1.06) rotate(-1.5deg); }
+  62% { transform: scale(1.04, .97) rotate(1deg); }
+}
+@keyframes bump { 40% { transform: scale(1.12); } }
+
+/* ---- os quadrados ---- */
+.streak-board .heat { gap: 6px; }
+.streak-board .heat .c {
+  position: relative; aspect-ratio: 1; padding: 0; border: 0; cursor: pointer; touch-action: manipulation;
+  border-radius: clamp(5px, 24%, 12px); -webkit-tap-highlight-color: transparent;
+  background-color: rgba(255, 255, 255, .055);
+  transition: background-color .45s var(--ease), box-shadow .45s var(--ease), transform .3s var(--ease);
+}
+/* brilho de vidro no alto de cada quadrado */
+.streak-board .heat .c::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .45s var(--ease);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, 0) 58%);
+}
+/* na sequência: do violeta fundo ao lavanda, quanto mais perto de hoje mais claro */
+.streak-board .heat .c[data-s="run"] {
+  background-color: color-mix(in oklab, #7c3aed, #d3c4ff calc(var(--k, 1) * 100%));
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / .1), 0 10px 22px -12px rgb(139 92 246 / calc(.35 + var(--k, 1) * .55));
+}
+.streak-board .heat .c[data-s="run"]::before { opacity: 1; }
+/* registrado antes da sequência quebrar */
+.streak-board .heat .c[data-s="past"] { background-color: rgb(139 92 246 / .3); box-shadow: inset 0 0 0 1px rgb(167 139 250 / .2); }
+.streak-board .heat .c[data-s="past"]::before { opacity: .3; }
+/* sem registro: um vão fundo */
+.streak-board .heat .c[data-s="off"] { box-shadow: inset 0 2px 6px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .04); }
+/* folga: tracejado, roxo quando está dentro da sequência */
+.streak-board .heat .c[data-s="rest"], .streak-board .heat .c[data-s="restrun"] { background-color: transparent; border: 1.5px dashed var(--ink-3); }
+.streak-board .heat .c[data-s="restrun"] { border-color: rgb(167 139 250 / .65); }
+
+/* hoje: um anel que pulsa */
+.streak-board .heat .c.today::after {
+  content: ""; position: absolute; inset: -5px; border-radius: inherit; pointer-events: none;
+  border: 1.5px solid rgb(196 168 255 / .85); animation: ping 2.6s cubic-bezier(.2, .7, .3, 1) infinite;
+}
+@keyframes ping { 0% { transform: scale(.9); opacity: .9; } 70%, 100% { transform: scale(1.2); opacity: 0; } }
+
+@media (hover: hover) {
+  .streak-board .heat .c:hover { transform: scale(1.14); z-index: 2; }
+}
+
+/* ---- entrada: os quadrados chegam em diagonal ---- */
+.streak-board .heat.arm .c { opacity: 0; transform: scale(.35); }
+.streak-board .heat.go .c { animation: cellIn .7s var(--d, 0ms) cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes cellIn { from { opacity: 0; transform: scale(.35); } to { opacity: 1; transform: scale(1); } }
+
+/* ---- clique: o quadrado cresce e volta; a onda passa pelos vizinhos ---- */
+.streak-board .heat .c.c-pop { z-index: 6; animation: cellPop .9s cubic-bezier(.22, 1, .36, 1) both; }
+@keyframes cellPop {
+  0% { transform: scale(1); }
+  28% { transform: scale(1.95); box-shadow: 0 0 0 2px rgb(230 218 255 / .95), 0 26px 46px -10px rgb(139 92 246 / .95); }
+  46% { transform: scale(1.78); }
+  100% { transform: scale(1); }
+}
+.streak-board .heat .c.c-wave { z-index: 3; animation: cellWave .6s var(--rd, 0ms) cubic-bezier(.3, .7, .3, 1) both; }
+@keyframes cellWave { 0%, 100% { transform: scale(1); } 45% { transform: scale(var(--rs, 1.15)); } }
+
+/* ---- dica flutuante ---- */
+.heat-tip {
+  position: absolute; z-index: 10; pointer-events: none; white-space: nowrap;
+  padding: .5rem .85rem; border-radius: 999px; font-size: .8rem; color: var(--ink);
+  background: rgba(20, 14, 36, .94); border: 1px solid rgba(167, 139, 250, .45);
+  box-shadow: 0 14px 28px -12px rgba(0, 0, 0, .9);
+  opacity: 0; transform: translate(-50%, -100%) translateY(6px); transition: opacity .2s, transform .3s var(--ease);
+}
+.heat-tip.on { opacity: 1; transform: translate(-50%, -100%); }
+.heat-tip b { font-weight: 500; color: var(--accent-2); }
+
+/* ---- legenda ---- */
+.streak-board .legend { gap: .6rem 1.3rem; margin-top: 1.5rem; padding-top: 1.2rem; border-top: 1px solid var(--line); font-size: .8rem; }
+.streak-board .legend .sw { width: 14px; height: 14px; border-radius: 4px; }
+.legend .sw.st-run { background: linear-gradient(135deg, #7c3aed, #d3c4ff); }
+.legend .sw.st-past { background: rgb(139 92 246 / .3); box-shadow: inset 0 0 0 1px rgb(167 139 250 / .3); }
+.legend .sw.st-off { background: rgba(255, 255, 255, .07); }
+.legend .sw.st-rest { border: 1.5px dashed rgb(167 139 250 / .7); }
+
+/* ---- celular ---- */
+@media (max-width: 980px) {
+  .streak-count { justify-content: center; }
+  .streak-board .legend { justify-content: center; }
+}
+@media (max-width: 520px) {
+  .streak-board .heat { gap: 4px; }
+  .flame { width: 2.2rem; height: 2.2rem; }
+  .streak-count { gap: .7rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flame, .streak-board .heat .c.today::after { animation: none; }
+  .streak-board .heat .c.today::after { opacity: .7; transform: scale(1.08); }
+  .streak-count b.bump { animation: none; }
+  .heat-tip { transition: none; }
+}

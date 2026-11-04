@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="css/wheel.css">
 <link rel="stylesheet" href="css/day.css">
 <link rel="stylesheet" href="css/fit.css">
+<link rel="stylesheet" href="css/streak.css">
 <link rel="stylesheet" href="css/mobile.css">
 </head>
 <body>
@@ -338,9 +339,9 @@
       </ul>
     </div>
     <div class="streak-board reveal">
-      <div class="streak-count"><b class="grad" id="streakN">0</b><span class="s-sub" style="font-size:.95rem">dias seguidos</span></div>
+      <div class="streak-count"><svg class="flame" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3s5 4 5 9a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5C9 10 10 10.5 11 10c0-3 1-5 1-7Z"/></svg><b class="grad" id="streakN">0</b><span class="s-sub" style="font-size:.95rem">dias seguidos</span></div>
       <div class="heat" id="heat" aria-label="Calendário de registros"></div>
-      <div class="legend"><span><i style="background:var(--accent)"></i>registrado</span><span><i style="background:rgba(255,255,255,.08)"></i>sem registro</span><span><i style="border:1px dashed var(--ink-3)"></i>folga que não quebra</span></div>
+      <div class="legend"><span><i class="sw st-run"></i>na sequência</span><span><i class="sw st-past"></i>antes da sequência</span><span><i class="sw st-off"></i>sem registro</span><span><i class="sw st-rest"></i>folga que não quebra</span></div>
     </div>
   </div>
 </section>
@@ -486,6 +487,7 @@
 
 <script src="js/sections.js"></script>
 <script src="js/main.js"></script>
+<script src="js/streak.js"></script>
 <script src="js/menu.js"></script>
 <script src="js/wheel.js"></script>
 <script src="js/fit.js"></script>
