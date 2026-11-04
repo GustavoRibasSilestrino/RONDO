@@ -1,45 +1,59 @@
-/* Comunidade: feed, ranking semanal de constância e clubes. */
-import React, { useState } from 'react';
-import { Pressable, Share, View } from 'react-native';
+/* Comunidade: o feed (publicações com texto, fotos e vídeos), os grupos (dá para criar, entrar, convidar e publicar dentro)
+   e o ranking semanal de constância. Tudo guardado no aparelho, como o resto do app em modo demonstração. */
+import React, { useCallback, useEffect, useState } from 'react';
+import { BackHandler, Pressable, Share, StyleSheet, View } from 'react-native';
 import { Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
-import { Barra, Botao, Cartao, Chip, Segmentos, T } from '../componentes/Ui';
-import { CLUBES, POSTS_BASE, RANKING_BASE } from '../dados';
+import { Botao, Cartao, Segmentos, T } from '../componentes/Ui';
 import { useLoja } from '../estado/loja';
-import { comparar, pontosSemana, statsSemana } from '../lib/calc';
-import { fmt } from '../lib/datas';
+import { comparar, statsSemana } from '../lib/calc';
+import { listarGrupos } from '../lib/grupos';
 import { cores } from '../tema';
+import type { Midia } from '../tipos';
+import { Avatar } from './comunidade/Avatar';
+import { CartaoPost } from './comunidade/CartaoPost';
+import { Compositor } from './comunidade/Compositor';
+import { CriarGrupo } from './comunidade/CriarGrupo';
+import { GrupoTela } from './comunidade/GrupoTela';
+import { Grupos } from './comunidade/Grupos';
+import { VisorMidia } from './comunidade/Midia';
+import { todosOsPosts } from './comunidade/posts';
+import { Ranking } from './comunidade/Ranking';
 
-type Aba = 'feed' | 'ranking' | 'clubes';
-
-const quando = (ts: number): string => {
-  const min = Math.max(1, Math.round((Date.now() - ts) / 60000));
-  if (min < 60) return `há ${min} min`;
-  const h = Math.round(min / 60);
-  return h < 24 ? `há ${h} h` : `há ${Math.round(h / 24)} d`;
-};
-
-function Avatar({ nome, voce }: { nome: string; voce?: boolean }) {
-  return (
-    <View style={{ width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: voce ? cores.violeta : cores.violetaEscuro }}>
-      <T tam={14} peso="500" cor="#ffffff">{nome.charAt(0).toUpperCase()}</T>
-    </View>
-  );
-}
+type Aba = 'feed' | 'grupos' | 'ranking';
+type Filtro = 'todos' | 'meus' | 'geral';
 
 export function Social() {
-  const { estado, commit } = useLoja();
+  const { estado } = useLoja();
   const avisar = useAviso();
   const [aba, setAba] = useState<Aba>('feed');
+  const [filtro, setFiltro] = useState<Filtro>('todos');
+  const [grupoAberto, setGrupoAberto] = useState<string | null>(null);
+  const [compor, setCompor] = useState<{ aberto: boolean; grupo: string | null }>({ aberto: false, grupo: null });
+  const [criando, setCriando] = useState(false);
+  const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
+
+  const voltarDoGrupo = useCallback(() => setGrupoAberto(null), []);
+  const abrirMidia = useCallback((itens: Midia[], indice: number) => setVisor({ itens, indice }), []);
+
+  /* botão voltar do Android: dentro de um grupo, volta para a lista */
+  useEffect(() => {
+    if (!grupoAberto) return undefined;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => { setGrupoAberto(null); return true; });
+    return () => sub.remove();
+  }, [grupoAberto]);
+
   const hoje = new Date();
+  const grupos = listarGrupos(estado);
+  const porId = new Map(grupos.map((g) => [g.id, g]));
 
-  const posts = [
-    ...estado.posts,
-    ...POSTS_BASE.map((p) => ({ id: p.id, autor: p.autor, texto: p.texto, destaque: p.destaque, quando: Date.now() - p.horas * 3600000 })),
-  ].sort((a, b) => b.quando - a.quando);
-
-  const meuRanking = pontosSemana(estado, hoje);
-  const ranking = [...RANKING_BASE.map((r) => ({ ...r, voce: false })), { nome: estado.usuario?.nome ?? 'Você', pontos: meuRanking, voce: true }].sort((a, b) => b.pontos - a.pontos);
+  /* o feed mostra o geral e as publicações dos grupos públicos e dos seus; um grupo privado só aparece para quem está nele */
+  const posts = todosOsPosts(estado).filter((p) => {
+    const g = p.grupo ? porId.get(p.grupo) : undefined;
+    if (filtro === 'geral') return !p.grupo;
+    if (filtro === 'meus') return !!g && g.meu;
+    return !p.grupo || (!!g && (!g.privado || g.meu));
+  });
 
   const compartilhar = async () => {
     const cmp = comparar(statsSemana(estado, hoje, 0), statsSemana(estado, hoje, 1));
@@ -51,95 +65,83 @@ export function Social() {
     }
   };
 
+  const abrirCompositor = (grupo: string | null) => setCompor({ aberto: true, grupo });
+
   return (
     <Tela>
-      <T tam={36} peso="200">Comunidade</T>
-      <T tam={14} cor={cores.texto2} style={{ marginTop: 6 }}>Gente que também voltou hoje.</T>
-      <View style={{ marginTop: 20 }}>
-        <Segmentos<Aba> valor={aba} aoMudar={setAba} opcoes={[{ valor: 'feed', nome: 'Feed' }, { valor: 'ranking', nome: 'Ranking' }, { valor: 'clubes', nome: 'Clubes' }]} />
-      </View>
+      {grupoAberto ? (
+        <GrupoTela id={grupoAberto} aoVoltar={voltarDoGrupo} aoCompor={abrirCompositor} aoAbrirMidia={abrirMidia} />
+      ) : (
+        <>
+          <T tam={36} peso="200">Comunidade</T>
+          <T tam={14} cor={cores.texto2} style={{ marginTop: 6 }}>Gente que também voltou hoje.</T>
+          <View style={{ marginTop: 20 }}>
+            <Segmentos<Aba> valor={aba} aoMudar={setAba} opcoes={[{ valor: 'feed', nome: 'Feed' }, { valor: 'grupos', nome: 'Grupos' }, { valor: 'ranking', nome: 'Ranking' }]} />
+          </View>
 
-      {aba === 'feed' ? (
-        <View style={{ gap: 14, marginTop: 18 }}>
-          <Botao tipo="fantasma" icone="social" titulo="Compartilhar o meu card Você vs. Yesteryou" aoPressionar={compartilhar} />
-          {posts.map((p) => {
-            const curtiu = !!estado.curtidas[p.id];
-            const base = p.autor === 'Você' ? 0 : 3 + (p.id.length * 7) % 40;   // números dos outros são de demonstração; o seu post começa do zero
-            return (
-              <Cartao key={p.id}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Avatar nome={p.autor} voce={p.autor === 'Você'} />
-                  <View style={{ flex: 1 }}>
-                    <T tam={14} peso="500">{p.autor}</T>
-                    <T tam={12} cor={cores.texto3}>{quando(p.quando)}</T>
-                  </View>
-                </View>
-                <T tam={15} style={{ marginTop: 12, lineHeight: 22 }}>{p.texto}</T>
-                {p.destaque ? (
-                  <View style={{ marginTop: 12, backgroundColor: cores.fundo2, borderRadius: 8, padding: 12 }}>
-                    <T tam={18} peso="300" cor={cores.destaque2}>{p.destaque}</T>
-                  </View>
-                ) : null}
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: curtiu }}
-                  accessibilityLabel="Curtir"
-                  onPress={() => commit((e) => { e.curtidas[p.id] = !e.curtidas[p.id]; })}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12, alignSelf: 'flex-start' }}
-                >
-                  <Icone nome="coracao" tamanho={18} cor={curtiu ? cores.erro : cores.texto2} />
-                  <T tam={13} cor={curtiu ? cores.erro : cores.texto2}>{base + (curtiu ? 1 : 0)}</T>
-                </Pressable>
-              </Cartao>
-            );
-          })}
-        </View>
-      ) : null}
+          {aba === 'feed' ? (
+            <View style={{ gap: 14, marginTop: 18 }}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Criar publicação" onPress={() => abrirCompositor(null)}>
+                <Cartao style={st.entrada}>
+                  <Avatar nome={estado.usuario?.nome ?? 'Você'} voce />
+                  <T tam={14.5} cor={cores.texto3} linhas={1} style={{ flex: 1 }}>Compartilhe um treino, uma refeição…</T>
+                  <Icone nome="imagem" tamanho={22} cor={cores.destaque2} />
+                </Cartao>
+              </Pressable>
 
-      {aba === 'ranking' ? (
-        <View style={{ marginTop: 18 }}>
-          <Cartao>
-            <T tam={12} mono cor={cores.texto3}>PONTOS DA SEMANA</T>
-            {ranking.map((r, i) => (
-              <View key={r.nome} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: i === ranking.length - 1 ? 0 : 1, borderBottomColor: cores.linha, backgroundColor: r.voce ? 'rgba(139,92,246,0.12)' : 'transparent', marginHorizontal: r.voce ? -8 : 0, paddingHorizontal: r.voce ? 8 : 0, borderRadius: r.voce ? 6 : 0 }}>
-                <T tam={13} mono cor={cores.texto3} style={{ width: 20 }}>{i + 1}</T>
-                <Avatar nome={r.nome} voce={r.voce} />
-                <T tam={15} peso={r.voce ? '500' : '300'} style={{ flex: 1 }}>{r.voce ? 'Você' : r.nome}</T>
-                <T tam={14} mono>{fmt(r.pontos)}</T>
+              <View style={st.filtros}>
+                {([['todos', 'Tudo'], ['meus', 'Meus grupos'], ['geral', 'Geral']] as [Filtro, string][]).map(([v, nome]) => {
+                  const ativo = v === filtro;
+                  return (
+                    <Pressable key={v} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setFiltro(v)} style={[st.filtro, ativo && st.filtroAtivo]}>
+                      <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#ffffff' : cores.texto2}>{nome}</T>
+                    </Pressable>
+                  );
+                })}
               </View>
-            ))}
-          </Cartao>
-          <T tam={12} cor={cores.texto3} style={{ marginTop: 14, lineHeight: 18 }}>
-            O ranking mede constância: treino +30, refeições +20, check-in +10 e meta de água +5 por dia. Nunca peso perdido ou aparência.
-          </T>
-        </View>
-      ) : null}
 
-      {aba === 'clubes' ? (
-        <View style={{ gap: 14, marginTop: 18 }}>
-          {CLUBES.map((c) => {
-            const dentro = !!estado.clubes[c.id];
-            return (
-              <Cartao key={c.id}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <T tam={19} peso="300" style={{ flex: 1 }}>{c.nome}</T>
-                  {dentro ? <Chip texto="membro" tom="bom" /> : null}
-                </View>
-                <T tam={12} cor={cores.texto3} style={{ marginTop: 2 }}>{fmt(c.membros + (dentro ? 1 : 0))} membros</T>
-                <T tam={13} cor={cores.texto2} style={{ marginTop: 10 }}>{c.meta}</T>
-                <View style={{ marginTop: 8 }}><Barra valor={c.progresso} max={1} cor={cores.destaque} /></View>
-                <Botao
-                  pequeno
-                  tipo={dentro ? 'discreto' : 'fantasma'}
-                  titulo={dentro ? 'Sair do clube' : 'Entrar no clube'}
-                  aoPressionar={() => commit((e) => { e.clubes[c.id] = !e.clubes[c.id]; })}
-                  style={{ marginTop: 14, alignSelf: 'flex-start' }}
-                />
-              </Cartao>
-            );
-          })}
-        </View>
-      ) : null}
+              <Botao tipo="fantasma" icone="compartilhar" titulo="Compartilhar o meu card Você vs. Yesteryou" aoPressionar={compartilhar} />
+
+              {posts.length ? (
+                posts.map((p) => {
+                  const g = p.grupo ? porId.get(p.grupo) : undefined;
+                  return (
+                    <CartaoPost
+                      key={p.id}
+                      post={p}
+                      nomeGrupo={g?.nome}
+                      aoAbrirGrupo={g ? () => { setAba('grupos'); setGrupoAberto(g.id); } : undefined}
+                      aoAbrirMidia={abrirMidia}
+                    />
+                  );
+                })
+              ) : (
+                <Cartao>
+                  <T tam={16} peso="300">{filtro === 'meus' ? 'Nada dos seus grupos ainda.' : 'Nada por aqui ainda.'}</T>
+                  <T tam={13.5} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 20 }}>
+                    {filtro === 'meus' ? 'Entre em um grupo, ou crie o seu, para ver as publicações dele aqui.' : 'Seja a primeira pessoa a compartilhar algo hoje.'}
+                  </T>
+                  <Botao pequeno tipo="fantasma" titulo={filtro === 'meus' ? 'Ver grupos' : 'Criar publicação'} aoPressionar={() => (filtro === 'meus' ? setAba('grupos') : abrirCompositor(null))} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
+                </Cartao>
+              )}
+            </View>
+          ) : null}
+
+          {aba === 'grupos' ? <Grupos aoAbrir={setGrupoAberto} aoCriar={() => setCriando(true)} /> : null}
+          {aba === 'ranking' ? <Ranking /> : null}
+        </>
+      )}
+
+      <Compositor aberto={compor.aberto} aoFechar={() => setCompor((c) => ({ ...c, aberto: false }))} grupoInicial={compor.grupo} />
+      <CriarGrupo aberto={criando} aoFechar={() => setCriando(false)} aoCriar={(id) => { setCriando(false); setAba('grupos'); setGrupoAberto(id); }} />
+      <VisorMidia itens={visor?.itens ?? []} inicio={visor ? visor.indice : null} aoFechar={() => setVisor(null)} />
     </Tela>
   );
 }
+
+const st = StyleSheet.create({
+  entrada: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14 },
+  filtros: { flexDirection: 'row', gap: 8 },
+  filtro: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
+  filtroAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
+});

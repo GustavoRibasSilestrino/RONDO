@@ -1,8 +1,9 @@
 /* Blocos básicos de interface: texto fino, cartão, botão, chip, passo (+/−), anel, barra, segmentos e campo. */
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useRef, useState } from 'react';
-import { Animated, Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { useMovimentoReduzido } from '../lib/movimento';
 import { cores, degradeBotao, PesoFonte, raio } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 
@@ -56,15 +57,18 @@ type BotaoProps = {
   aoPressionar: () => void;
   tipo?: 'primario' | 'fantasma' | 'discreto' | 'perigo';
   desabilitado?: boolean;
+  carregando?: boolean;   // mostra o indicador e não aceita outro toque enquanto espera
+  orbita?: boolean;       // um feixe de luz percorre o contorno, como nos botões do site
   icone?: NomeIcone;
   pequeno?: boolean;
   style?: StyleProp<ViewStyle>;
 };
-export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, icone, pequeno, style }: BotaoProps) {
+export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, carregando, orbita, icone, pequeno, style }: BotaoProps) {
   const cor = tipo === 'primario' ? cores.branco : tipo === 'perigo' ? cores.erro : cores.texto;
+  const inativo = !!desabilitado || !!carregando;
   const conteudo = (
-    <View style={[st.botaoMiolo, pequeno && { paddingVertical: 10, paddingHorizontal: 16 }]}>
-      {icone ? <Icone nome={icone} tamanho={pequeno ? 16 : 18} cor={cor} /> : null}
+    <View style={[st.botaoMiolo, pequeno && { paddingVertical: 13, paddingHorizontal: 16 }]}>
+      {carregando ? <ActivityIndicator size="small" color={cor} /> : icone ? <Icone nome={icone} tamanho={pequeno ? 16 : 18} cor={cor} /> : null}
       <T tam={pequeno ? 13 : 15} peso="500" cor={cor}>{titulo}</T>
     </View>
   );
@@ -72,22 +76,65 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, i
   const escala = useRef(new Animated.Value(1)).current;
   const nativo = Platform.OS !== 'web';
   const mola = (para: number) => Animated.spring(escala, { toValue: para, useNativeDriver: nativo, speed: 42, bounciness: 5 }).start();
+
+  /* contorno com luz: o feixe gira por trás do botão e só aparece na faixa fina da borda */
+  const reduzido = useMovimentoReduzido();
+  const comOrbita = !!orbita && !desabilitado;
+  const giro = useRef(new Animated.Value(0)).current;
+  const [medida, setMedida] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    if (!comOrbita || reduzido) return undefined;
+    giro.setValue(0);
+    const laco = Animated.loop(Animated.timing(giro, { toValue: 1, duration: 3600, easing: Easing.linear, useNativeDriver: nativo }));
+    laco.start();
+    return () => laco.stop();
+  }, [comOrbita, reduzido, giro, nativo]);
+
+  const miolo = (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled: inativo, busy: !!carregando }}
+      disabled={inativo}
+      onPress={aoPressionar}
+      onPressIn={() => mola(0.97)}
+      onPressOut={() => mola(1)}
+      style={[st.botao, comOrbita && { borderRadius: raio.m - 1.5 }, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto, { opacity: desabilitado ? 0.45 : 1 }]}
+    >
+      {tipo === 'primario' ? (
+        <LinearGradient colors={degradeBotao} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+      ) : null}
+      {conteudo}
+    </Pressable>
+  );
+
+  const lado = Math.hypot(medida.w, medida.h);   // o quadrado que gira cobre o botão em qualquer ângulo
+  const feixe = comOrbita && !reduzido && medida.w > 0 ? (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: 'absolute', left: (medida.w - lado) / 2, top: (medida.h - lado) / 2, width: lado, height: lado,
+        transform: [{ rotate: giro.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }],
+      }}
+    >
+      <LinearGradient
+        colors={['rgba(255,255,255,0)', 'rgba(205,184,255,0.95)', 'rgba(255,255,255,0)']}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={{ position: 'absolute', left: lado / 2 - 44, top: 0, width: 88, height: lado / 2 }}
+      />
+    </Animated.View>
+  ) : null;
+
   return (
-    <Animated.View style={[tipo === 'primario' && !desabilitado && st.brilho, { transform: [{ scale: escala }], borderRadius: raio.m }, style]}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ disabled: !!desabilitado }}
-        disabled={desabilitado}
-        onPress={aoPressionar}
-        onPressIn={() => mola(0.97)}
-        onPressOut={() => mola(1)}
-        style={[st.botao, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto, { opacity: desabilitado ? 0.45 : 1 }]}
-      >
-        {tipo === 'primario' ? (
-          <LinearGradient colors={degradeBotao} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-        ) : null}
-        {conteudo}
-      </Pressable>
+    <Animated.View style={[tipo === 'primario' && !inativo && st.brilho, { transform: [{ scale: escala }], borderRadius: raio.m }, style]}>
+      {comOrbita ? (
+        <View onLayout={(e) => setMedida({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} style={st.orbita}>
+          {feixe}
+          {miolo}
+        </View>
+      ) : (
+        miolo
+      )}
     </Animated.View>
   );
 }
@@ -221,6 +268,7 @@ const st = StyleSheet.create({
   cartao: { backgroundColor: 'rgba(255,255,255,0.015)', borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden', boxShadow: '0 22px 40px -28px rgba(0,0,0,0.9)' },
   cartaoDestaque: { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: 'rgba(109,40,217,0.1)', boxShadow: '0 26px 50px -30px rgba(109,40,217,0.7)' },
   brilho: { boxShadow: '0 14px 30px -14px rgba(139,92,246,0.85)' },
+  orbita: { borderRadius: raio.m, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(196,168,255,0.2)' },
   campoFoco: { borderColor: cores.destaque, backgroundColor: 'rgba(139,92,246,0.06)' },
   botao: { borderRadius: raio.m, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   botaoFantasma: { borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.03)' },
@@ -236,6 +284,6 @@ const st = StyleSheet.create({
   segmento: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: raio.pilula },
   segmentoAtivo: { backgroundColor: cores.texto },
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
-  campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontWeight: '300', paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0 },
+  campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontWeight: '300', paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, outlineColor: 'transparent' },
   titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },
 });

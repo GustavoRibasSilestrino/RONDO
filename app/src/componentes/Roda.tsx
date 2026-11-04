@@ -125,11 +125,10 @@ export function Roda({ itens, atual, aoEscolher }: Props) {
           <LinearGradient colors={['rgba(5,5,7,0.55)', 'rgba(10,5,24,0.94)', '#0a0518']} locations={[0, 0.55, 1]} style={StyleSheet.absoluteFill} />
           <Pressable style={StyleSheet.absoluteFill} onPress={() => { if (!foiArrasto()) fechar(); }} accessibilityLabel="Fechar menu" />
 
-          <View pointerEvents="none" style={[st.rotulo, { bottom: lift + R + 64 }]}>
+          <View pointerEvents="none" style={[st.rotulo, { bottom: lift + R + 52 }]}>
             <T tam={40} peso="200" centro>{roda[ativo]?.rotulo ?? ''}</T>
           </View>
           <View pointerEvents="none" style={{ position: 'absolute', left: width / 2 - R, bottom: lift - R, width: 2 * R, height: 2 * R, borderRadius: R, borderWidth: 1, borderColor: cores.linha2 }} />
-          <View pointerEvents="none" style={{ position: 'absolute', left: width / 2, bottom: lift + R + 22, width: 1, height: 16, backgroundColor: cores.destaque2 }} />
 
           {roda.map((it, k) => {
             const a = mod(k * passo + rot + periodo / 2, periodo) - periodo / 2;   // ícones passam por trás e reaparecem do outro lado
