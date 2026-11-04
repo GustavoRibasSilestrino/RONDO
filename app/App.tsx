@@ -1,6 +1,6 @@
 /* KORA: o app. Duas coisas: entrar com a conta e a parte funcional (treino, dieta, evolução...).
    Cabeçalho fixo (notificações e a marca) no alto e uma barra de vidro escuro no pé, com todas as abas à vista. */
-import { Poppins_200ExtraLight, Poppins_300Light, Poppins_400Regular, Poppins_500Medium, useFonts } from '@expo-google-fonts/poppins';
+import { Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
@@ -44,7 +44,7 @@ const DO_PERFIL = ['hoje', 'evolucao', 'colecoes', 'recado'];
 
 function Raiz() {
   const { estado, pronto: dadosProntos, commit } = useLoja();
-  const [fontes] = useFonts({ Poppins_200ExtraLight, Poppins_300Light, Poppins_400Regular, Poppins_500Medium });
+  const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
   const pronto = dadosProntos && fontes;   // espera a fonte, para o texto não aparecer trocado
   const [tela, setTela] = useState(INICIO);
   useNotificacoes();
@@ -94,7 +94,7 @@ function Raiz() {
       {tela === 'colecoes' && <Colecoes />}
       {tela === 'notificacoes' && <Notificacoes />}
       {tela === 'perfil' && <Perfil ir={setTela} />}
-      <CabecalhoApp naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={() => setTela(tela === 'notificacoes' ? INICIO : 'notificacoes')} />
+      <CabecalhoApp mostrarNome={tela === 'home'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={() => setTela(tela === 'notificacoes' ? INICIO : 'notificacoes')} />
       <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />
     </View>
   );
