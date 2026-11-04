@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MENU } from "../data/menu";
 import { SECTIONS, type Sec } from "../data/sections";
 import { goMoment } from "../lib/bus";
@@ -16,141 +16,55 @@ function posicionar(item: HTMLElement) {
   mega.style.setProperty("--mx", `${(ajustada - esquerda).toFixed(1)}px`);
 }
 
-/* ---------- a roda do celular ---------- */
-/* Um arco que sobe do item de baixo. Deslize para o lado para girar; o ícone parado no topo é o escolhido; toque para abrir. */
-function Wheel({ open, current, onClose }: { open: boolean; current: number; onClose: () => void }) {
-  const items = useMemo(() => SECTIONS.map((s, i) => ({ s, i })).filter((o) => o.i !== current), [current]);
-  const n = items.length;
-  const step = Math.min(360 / n, 40);   // graus entre dois ícones
-  const period = n * step;              // volta completa
-  const [visible, setVisible] = useState(false);
-  const [shown, setShown] = useState(false);
-  const [rot, setRotState] = useState(0);
-  const [jumps, setJumps] = useState<boolean[]>([]);
-  const [dragging, setDragging] = useState(false);
-  const prevA = useRef<number[]>([]);
-  const drag = useRef<{ r0: number; x: number; k: number } | null>(null);
-  const moved = useRef(false);
-  const ringRef = useRef<HTMLDivElement>(null);
-  const timer = useRef(0);
+/* ---------- celular e tablet: menu de tela cheia aberto pelos três riscos ---------- */
+const LINKS = SECTIONS.filter((s) => s.href !== "#entrar");
 
-  const angle = (k: number, r: number) => ((((k * step + r + period / 2) % period) + period) % period) - period / 2;
-  const setRot = (r: number) => {
-    const as = items.map((_, k) => angle(k, r));
-    // quem dá a volta por trás salta de um lado ao outro: sem animar
-    setJumps(as.map((a, k) => prevA.current[k] !== undefined && Math.abs(a - prevA.current[k]) > period / 2));
-    prevA.current = as;
-    setRotState(r);
-  };
-  const active = ((Math.round(-rot / step) % n) + n) % n;
+function MobileMenu({ open, current, onClose }: { open: boolean; current: number; onClose: () => void }) {
+  const first = useRef<HTMLAnchorElement>(null);
 
-  /* abrir e fechar */
+  /* trava a rolagem da página e leva o foco para o primeiro link */
   useEffect(() => {
-    clearTimeout(timer.current);
-    if (open) {
-      const next = items.findIndex((o) => o.i > current);   // a próxima seção da página começa no topo
-      prevA.current = [];
-      setRot(-Math.max(0, next) * step);
-      setVisible(true);
-      const id = requestAnimationFrame(() => setShown(true));
-      document.body.style.overflow = "hidden";
-      return () => cancelAnimationFrame(id);
-    }
-    setShown(false);
-    document.body.style.overflow = "";
-    timer.current = window.setTimeout(() => setVisible(false), reduceMotion ? 0 : 320);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-  useEffect(() => () => { document.body.style.overflow = ""; }, []);
+    if (!open) return;
+    const y = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    first.current?.focus({ preventScroll: true });
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", key);
+    return () => { document.body.style.overflow = y; document.removeEventListener("keydown", key); };
+  }, [open, onClose]);
 
-  const goTo = (s: Sec) => {
+  /* ao voltar para a tela larga, o menu de celular não faz sentido */
+  useEffect(() => {
+    const m = matchMedia("(min-width: 981px)");
+    const f = () => { if (m.matches) onClose(); };
+    m.addEventListener("change", f);
+    return () => m.removeEventListener("change", f);
+  }, [onClose]);
+
+  const go = (e: React.MouseEvent, s: Sec) => {
+    e.preventDefault();
     onClose();
     history.replaceState(null, "", s.href === "#inicio" ? location.pathname + location.search : s.href);
     const behavior = reduceMotion ? "auto" : "smooth";
-    if (s.href === "#inicio") { scrollTo({ top: 0, behavior }); return; }
-    document.querySelector(s.href)?.scrollIntoView({ behavior, block: "start" });
+    document.body.style.overflow = "";   // destrava a rolagem já, sem esperar o efeito de fechar
+    if (s.href === "#inicio") scrollTo({ top: 0, behavior });
+    else document.querySelector(s.href)?.scrollIntoView({ behavior, block: "start" });
   };
-
-  /* deslizar para girar */
-  const onDown = (e: React.PointerEvent) => {
-    const R = (ringRef.current?.offsetWidth ?? 320) / 2;
-    drag.current = { r0: rot, x: e.clientX, k: 180 / (Math.PI * R) };   // 1 px de deslize = 1 px ao longo do arco
-    moved.current = false;
-    setDragging(true);
-  };
-  const latest = useRef({ setRot, step, rot });
-  latest.current = { setRot, step, rot };
-  useEffect(() => {
-    const move = (e: PointerEvent) => {
-      const d = drag.current;
-      if (!d) return;
-      const dx = e.clientX - d.x;
-      if (Math.abs(dx) > 6) moved.current = true;
-      if (moved.current) latest.current.setRot(d.r0 + dx * d.k);
-    };
-    const end = () => {
-      if (!drag.current) return;
-      drag.current = null;
-      setDragging(false);
-      const { setRot: sr, step: st, rot: r } = latest.current;
-      if (moved.current) sr(-Math.round(-r / st) * st);
-    };
-    addEventListener("pointermove", move);
-    addEventListener("pointerup", end);
-    addEventListener("pointercancel", end);
-    return () => { removeEventListener("pointermove", move); removeEventListener("pointerup", end); removeEventListener("pointercancel", end); };
-  }, []);
-
-  /* teclado */
-  useEffect(() => {
-    if (!open) return;
-    const key = (e: KeyboardEvent) => {
-      const { setRot: sr, step: st, rot: r } = latest.current;
-      if (e.key === "Escape") onClose();
-      else if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); sr(r - st); }
-      else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); sr(r + st); }
-      else if (e.key === "Enter" && !(e.target as Element).closest("a, button")) goTo(items[active].s);
-    };
-    document.addEventListener("keydown", key);
-    return () => document.removeEventListener("keydown", key);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, active, items]);
-
-  /* ao voltar para a tela larga, a roda não faz sentido */
-  useEffect(() => {
-    const m = matchMedia("(min-width: 981px)");
-    const f = () => { if (m.matches && open) onClose(); };
-    m.addEventListener("change", f);
-    return () => m.removeEventListener("change", f);
-  }, [open, onClose]);
 
   return (
-    <div
-      className={`wheel-overlay${shown ? " open" : ""}`} id="wheel" role="dialog" aria-modal="true" aria-label="Navegar pelas seções"
-      hidden={!visible}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}   // só o fundo fecha; a área da roda não
-    >
-      <div className={`wheel-sheet${dragging ? " dragging" : ""}`} onPointerDown={onDown}>
-        <div className="wheel-center"><b>{items[active]?.s.label}</b></div>
-        <div className={`wheel${dragging ? " dragging" : ""}`} ref={ringRef}>
-          {items.map((o, k) => {
-            const a = angle(k, rot);
-            return (
-              <a
-                key={o.s.href} href={o.s.href} aria-label={o.s.label}
-                className={`wheel-item${k === active ? " active" : ""}${Math.abs(a) > 90 ? " far" : ""}`}
-                style={{ ...vars({ "--a": `${a.toFixed(2)}deg` }), ...(jumps[k] ? { transition: "none" } : null) }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (moved.current) { moved.current = false; return; }
-                  goTo(o.s);   // sem confirmação: tocou, abriu
-                }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: o.s.icon }} />
-              </a>
-            );
-          })}
-        </div>
+    <div className={`mnav${open ? " open" : ""}`} id="mnav" role="dialog" aria-modal="true" aria-label="Menu" aria-hidden={!open} inert={!open}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <nav className="mnav-list" aria-label="Seções">
+        {LINKS.map((s, i) => (
+          <a key={s.href} href={s.href} ref={i === 0 ? first : undefined} style={vars({ "--i": i })}
+            aria-current={i === current ? "true" : undefined} onClick={(e) => go(e, s)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: s.icon }} />
+            {s.label}
+          </a>
+        ))}
+      </nav>
+      <div className="mnav-cta" style={vars({ "--i": LINKS.length })} onClick={(e) => go(e, SECTIONS[SECTIONS.length - 1])}>
+        <Btn href="#entrar">Entrar na lista</Btn>
       </div>
     </div>
   );
@@ -159,10 +73,11 @@ function Wheel({ open, current, onClose }: { open: boolean; current: number; onC
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [closing, setClosing] = useState(false);
-  const [wheelOpen, setWheelOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [current, setCurrent] = useState(0);   // índice da seção que está na tela
   const currentRef = useRef(0);
   const closeTimer = useRef(0);
+  const closeMenu = useRef(() => setMenuOpen(false)).current;
 
   useEffect(() => {
     let ticking = false;
@@ -199,19 +114,20 @@ export function Nav() {
     return () => document.removeEventListener("keydown", esc);
   }, []);
 
-  /* clique em um link do menu: vai ao momento certo e fecha o painel */
+  /* clique em um link do menu de cima: vai ao momento certo e fecha o painel */
   const onNavClick = (e: React.MouseEvent) => {
     const a = (e.target as Element).closest<HTMLAnchorElement>("a[href^='#']");
     if (!a) return;
     if (a.dataset.moment) { e.preventDefault(); goMoment(a.dataset.moment); }
     if (a.closest(".mega")) closeMega();
+    if (menuOpen) closeMenu();
   };
 
   return (
     <>
-      <header className={`nav${scrolled ? " scrolled" : ""}${closing ? " closing" : ""}`} id="nav" onClick={onNavClick}>
+      <header className={`nav${scrolled ? " scrolled" : ""}${closing ? " closing" : ""}${menuOpen ? " menu-open" : ""}`} id="nav" onClick={onNavClick}>
         <div className="nav-in">
-          <a href="#" className="logo logo-nome" aria-label="RONDO">RONDO</a>
+          <a href="#" className="logo logo-nome" aria-label="RONDO"><Mark className="logo-mark" />RONDO</a>
           <nav className="nav-links" aria-label="Principal">
             {MENU.map((m) => (
               <div className="nav-item" key={m.key} onPointerEnter={(e) => posicionar(e.currentTarget)} onFocusCapture={(e) => posicionar(e.currentTarget)}>
@@ -232,14 +148,13 @@ export function Nav() {
             ))}
           </nav>
           <div className="nav-end"><Btn href="#entrar" small>Entrar na lista</Btn></div>
-          <button className="nav-single" type="button" aria-haspopup="dialog" aria-expanded={wheelOpen} aria-controls="wheel" onClick={() => setWheelOpen((o) => !o)}>
-            <span className="mark"><Mark /></span>
-            <span className="cur">{SECTIONS[current].label}</span>
-            <svg className="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          <button className="burger" type="button" aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen} aria-controls="mnav"
+            onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o); }}>
+            <span aria-hidden="true"><i /><i /><i /></span>
           </button>
         </div>
       </header>
-      <Wheel open={wheelOpen} current={current} onClose={() => setWheelOpen(false)} />
+      <MobileMenu open={menuOpen} current={current} onClose={closeMenu} />
     </>
   );
 }

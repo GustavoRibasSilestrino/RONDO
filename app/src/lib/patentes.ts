@@ -9,7 +9,7 @@ export const PATENTES: Patente[] = [
   { id: 'ouro', nome: 'Ouro III', nivel: 8, img: require('../../assets/medalhas3d/ouro.png'), verso: require('../../assets/medalhas3d/ouro-verso.png') },
   { id: 'platina', nome: 'Platina IV', nivel: 12, img: require('../../assets/medalhas3d/platina.png'), verso: require('../../assets/medalhas3d/platina-verso.png') },
   { id: 'diamante', nome: 'Diamante V', nivel: 18, img: require('../../assets/medalhas3d/diamante.png'), verso: require('../../assets/medalhas3d/diamante-verso.png') },
-  { id: 'rondo', nome: 'RONDO', nivel: 25, img: require('../../assets/medalhas3d/kora.png'), verso: require('../../assets/medalhas3d/kora-verso.png') },
+  { id: 'rondo', nome: 'RONDO', nivel: 25, img: require('../../assets/medalhas3d/rondo.png'), verso: require('../../assets/medalhas3d/rondo-verso.png') },
 ];
 
 /* a patente atual (a maior já alcançada) e a próxima; antes do nível 2, ainda não há patente */

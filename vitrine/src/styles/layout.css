@@ -67,8 +67,8 @@
 @media (max-width: 980px) {
   .hero {
     min-height: 100vh; min-height: 100svh;
-    /* sem barra no topo; embaixo fica o item de navegação (~58 px + margem) */
-    padding: calc(env(safe-area-inset-top, 0px) + 34px) 0 calc(env(safe-area-inset-bottom, 0px) + 92px);
+    /* barra fina no topo com o logo e o botão do menu */
+    padding: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + 1.2rem) 0 calc(env(safe-area-inset-bottom, 0px) + 2rem);
   }
   .hero-in { grid-template-rows: 1fr auto; gap: 1.5rem; }
   .hero-top { grid-template-columns: minmax(0, 1fr); gap: 1.3rem; align-content: center; }
@@ -87,6 +87,6 @@
   .section { padding-block: 4rem; }
   .section-head { margin-bottom: 2rem; }
   #entrar { padding-top: 4rem; }
-  .footer { margin-top: 4rem; padding-top: 2.6rem; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem); }
+  .footer { margin-top: 4rem; padding-top: 2.6rem; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 2.5rem); }
   .footer-grid { gap: 1.6rem; }
 }
