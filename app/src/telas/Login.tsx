@@ -16,7 +16,7 @@ import { useMovimentoReduzido } from '../lib/movimento';
 import { cores, estilos } from '../tema';
 import type { Usuario } from '../tipos';
 
-export const SITE = 'https://yesteryou.vercel.app';
+export const SITE = 'https://userondo.vercel.app';
 
 const emailValido = (v: string): boolean => /^\S+@\S+\.\S+$/.test(v.trim());
 
