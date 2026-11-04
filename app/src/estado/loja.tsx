@@ -1,7 +1,8 @@
 /* Estado do app: um objeto só, guardado no aparelho (AsyncStorage) e compartilhado por contexto.
    Para mudar algo: commit((e) => { e.agua[hoje] = 5; }). */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { perfilPadrao } from '../dados';
 import type { Estado } from '../tipos';
 
@@ -70,26 +71,40 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  const salvar = useCallback((e: Estado) => {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => { AsyncStorage.setItem(CHAVE, JSON.stringify(e)).catch(() => {}); }, 250);
+  /* gravar no aparelho é caro (o estado inteiro vira texto): junta as mudanças seguidas (digitar, tocar várias
+     vezes) e grava uma vez só; ao sair do app, grava na hora o que estiver pendente */
+  const gravar = useCallback(() => {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
+    AsyncStorage.setItem(CHAVE, JSON.stringify(recente.current)).catch(() => {});
   }, []);
+  const salvar = useCallback(() => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(gravar, 600);
+  }, [gravar]);
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (s) => { if (s !== 'active' && timer.current) gravar(); });
+    return () => sub.remove();
+  }, [gravar]);
 
   const commit = useCallback((mudar: (e: Estado) => void) => {
-    const copia: Estado = JSON.parse(JSON.stringify(recente.current));
+    // cópia profunda: structuredClone é bem mais rápido que ida e volta por JSON; sem ele (aparelhos antigos), JSON
+    const copia: Estado = typeof structuredClone === 'function' ? structuredClone(recente.current) : JSON.parse(JSON.stringify(recente.current));
     mudar(copia);
     recente.current = copia;
     setEstado(copia);
-    salvar(copia);
+    salvar();
   }, [salvar]);
 
   const limpar = useCallback(async () => {
+    if (timer.current) { clearTimeout(timer.current); timer.current = null; }
     recente.current = estadoVazio();
     setEstado(recente.current);
     try { await AsyncStorage.removeItem(CHAVE); } catch { /* nada a limpar */ }
   }, []);
 
-  return <LojaContexto.Provider value={{ estado, pronto, commit, limpar }}>{children}</LojaContexto.Provider>;
+  // o mesmo objeto enquanto nada muda: as telas só redesenham quando o estado muda de fato
+  const valor = useMemo(() => ({ estado, pronto, commit, limpar }), [estado, pronto, commit, limpar]);
+  return <LojaContexto.Provider value={valor}>{children}</LojaContexto.Provider>;
 }
 
 export function useLoja(): Contexto {

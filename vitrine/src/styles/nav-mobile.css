@@ -38,6 +38,7 @@
     opacity: 0; visibility: hidden; transition: opacity .28s var(--ease), visibility 0s .28s;
   }
   .mnav.open { opacity: 1; visibility: visible; transition: opacity .28s var(--ease); }
+  .mnav:not(.open) .btn::before { animation: none; }   /* menu fechado: o botão escondido não precisa girar */
   .mnav-list, .mnav-cta { width: 100%; max-width: 34rem; margin-inline: auto; }
   .mnav-list { display: grid; }
   .mnav-list a {

@@ -7,10 +7,11 @@ import { Nav } from "./components/Nav";
 import { Recado } from "./components/Recado";
 import { Clube, Entrar, Faq, Footer, Planos, Profissionais } from "./components/Sections";
 import { Tools } from "./components/Tools";
-import { useSpotlight } from "./components/ui";
+import { usePauseOffscreen, useSpotlight } from "./components/ui";
 
 export default function App() {
   useSpotlight();
+  usePauseOffscreen();
   return (
     <>
       <Backdrop />

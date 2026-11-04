@@ -65,9 +65,15 @@ export function Hero() {
     const onLeave = () => { run.chase = null; };
     hero.addEventListener("pointermove", onMove);
     hero.addEventListener("pointerleave", onLeave);
-    const io = new IntersectionObserver(([en]) => { run.visible = en.isIntersecting; });
+    /* a corrida só anda com o hero na tela; fora dela, o laço para (e a página não gasta nada com ela) */
+    let off: (() => void) | null = null;
+    const io = new IntersectionObserver(([en]) => {
+      run.visible = en.isIntersecting;
+      if (reduceMotion) return;
+      if (run.visible && !off) off = onFrame((_, dt) => paint(dt));
+      else if (!run.visible && off) { off(); off = null; }
+    });
     io.observe(hero);
-    const off = reduceMotion ? undefined : onFrame((_, dt) => { if (run.visible) paint(dt); });
     return () => { hero.removeEventListener("pointermove", onMove); hero.removeEventListener("pointerleave", onLeave); io.disconnect(); off?.(); };
   }, []);
 

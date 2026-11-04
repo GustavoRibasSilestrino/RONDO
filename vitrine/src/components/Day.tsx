@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { setGoMoment } from "../lib/bus";
-import { onFrame } from "../lib/frame";
 import { clamp, reduceMotion, STACK_QUERY, vars } from "../lib/util";
 import { Spot, Title } from "./ui";
 
@@ -155,28 +154,40 @@ export function Day() {
     const pinEl = pin.current!, trackEl = track.current!, clockEl = clock.current!, barEl = bar.current!;
     const moments = [...trackEl.querySelectorAll<HTMLElement>(".moment")];
     const stacked = matchMedia(STACK_QUERY);
-    let dist = 0, lastClock = "";
-    const measure = () => { dist = Math.max(0, trackEl.offsetWidth - (trackEl.parentElement?.clientWidth ?? 0)); };
-    measure();
-    addEventListener("resize", measure);
-    document.fonts?.ready.then(measure);
+    /* as medidas ficam guardadas e só mudam quando algo muda de tamanho: a cada quadro só se lê o scrollY,
+       sem medir a página (medir depois de escrever estilos força o navegador a refazer o layout no meio do quadro) */
+    let dist = 0, pinTop = 0, total = 0, vh = innerHeight, lastClock = "", lastP = -1, act = -1;
+    const measure = () => {
+      vh = innerHeight;
+      dist = Math.max(0, trackEl.offsetWidth - (trackEl.parentElement?.clientWidth ?? 0));
+      pinTop = pinEl.getBoundingClientRect().top + scrollY;
+      total = pinEl.offsetHeight - vh;
+      lastP = -1;
+      update();
+    };
     const ro = new ResizeObserver(measure);
     ro.observe(trackEl);
+    ro.observe(document.body);   // o que está acima do dia pode mudar de altura (fontes, imagens)
+    addEventListener("resize", measure);
+    document.fonts?.ready.then(measure);
 
-    const update = () => {
+    function update() {
       if (stacked.matches) { if (trackEl.style.transform) trackEl.style.transform = ""; return; }
-      const r = pinEl.getBoundingClientRect(), total = pinEl.offsetHeight - innerHeight;
-      if (r.bottom < -60 || r.top > innerHeight + 60) return;
-      const p = total > 0 ? clamp(-r.top / total, 0, 1) : 0;
+      const top = pinTop - scrollY;
+      if (top + total + vh < -60 || top > vh + 60) return;   // fora da tela: nada a fazer
+      const p = total > 0 ? clamp(-top / total, 0, 1) : 0;
+      if (Math.abs(p - lastP) < 0.00005) return;            // não andou: não escreve nada
+      lastP = p;
       trackEl.style.transform = `translate3d(${(-p * dist).toFixed(1)}px,0,0)`;
       barEl.style.transform = `scaleX(${p.toFixed(4)})`;
       const f = p * (moments.length - 1), i0 = Math.floor(f), i1 = Math.min(i0 + 1, moments.length - 1);
       const m = Math.round(MINS[i0] + (MINS[i1] - MINS[i0]) * (f - i0));
       const text = `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
       if (text !== lastClock) { lastClock = text; clockEl.textContent = text; clockEl.dateTime = text; }
-      const act = Math.round(f);
-      moments.forEach((el, i) => el.classList.toggle("on", i === act));
-    };
+      const now = Math.round(f);
+      if (now !== act) { act = now; moments.forEach((el, i) => el.classList.toggle("on", i === act)); }
+    }
+    measure();
 
     /* vai direto a um momento do dia (usado pelo menu) */
     setGoMoment((name) => {
@@ -188,14 +199,15 @@ export function Day() {
       scrollTo({ top: top + (i / (moments.length - 1)) * total, behavior });
     });
 
-    let off: (() => void) | undefined;
-    if (reduceMotion) { update(); addEventListener("scroll", update, { passive: true }); }
-    else off = onFrame(update);
-    stacked.addEventListener("change", update);
+    /* a linha do tempo só depende da rolagem: atualiza uma vez por quadro enquanto a página rola */
+    let raf = 0;
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(); }); };
+    addEventListener("scroll", onScroll, { passive: true });
+    stacked.addEventListener("change", measure);
     return () => {
-      removeEventListener("resize", measure); removeEventListener("scroll", update);
-      stacked.removeEventListener("change", update);
-      ro.disconnect(); off?.(); setGoMoment(null);
+      removeEventListener("resize", measure); removeEventListener("scroll", onScroll);
+      stacked.removeEventListener("change", measure); cancelAnimationFrame(raf);
+      ro.disconnect(); setGoMoment(null);
     };
   }, []);
 

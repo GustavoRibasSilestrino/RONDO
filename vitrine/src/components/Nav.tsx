@@ -79,24 +79,32 @@ export function Nav() {
   const closeTimer = useRef(0);
   const closeMenu = useRef(() => setMenuOpen(false)).current;
 
+  /* qual seção está na tela: as posições das seções ficam guardadas e só são medidas de novo quando a página muda
+     de tamanho; ao rolar, basta comparar com o scrollY (sem medir nada) */
   useEffect(() => {
-    let ticking = false;
+    let ticking = false, tops: number[] = [];
+    const measure = () => {
+      tops = SECTIONS.map((s) => {
+        const el = document.querySelector(s.href);
+        return el ? el.getBoundingClientRect().top + scrollY : Infinity;
+      });
+      spy();
+    };
     const spy = () => {
       ticking = false;
       setScrolled(scrollY > 20);
-      const y = innerHeight * 0.35;
+      const y = scrollY + innerHeight * 0.35;
       let idx = 0;
-      SECTIONS.forEach((s, i) => {
-        const el = document.querySelector(s.href);
-        if (el && el.getBoundingClientRect().top <= y) idx = i;
-      });
+      tops.forEach((t, i) => { if (t <= y) idx = i; });
       if (idx !== currentRef.current) { currentRef.current = idx; setCurrent(idx); }
     };
     const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(spy); } };
+    const ro = new ResizeObserver(measure);
+    ro.observe(document.body);
     addEventListener("scroll", onScroll, { passive: true });
-    addEventListener("resize", onScroll);
-    spy();
-    return () => { removeEventListener("scroll", onScroll); removeEventListener("resize", onScroll); };
+    addEventListener("resize", measure);
+    measure();
+    return () => { ro.disconnect(); removeEventListener("scroll", onScroll); removeEventListener("resize", measure); };
   }, []);
 
   const closeMega = () => {

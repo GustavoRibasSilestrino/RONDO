@@ -53,7 +53,7 @@ img, svg { display: block; max-width: 100%; }
 
 /* horizonte: um degradê fixo no pé da tela que apaga aos poucos, como o dia terminando */
 .sky {
-  position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: var(--skyo, 1);
+  position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: var(--skyo, 1); will-change: opacity;   /* camada própria: mudar o brilho não repinta a página */
   background:
     radial-gradient(120% 55% at 50% 112%, rgba(109, 40, 217, .34), transparent 62%),
     radial-gradient(55% 38% at 0% 0%, rgba(76, 29, 149, .16), transparent 70%);
@@ -61,7 +61,7 @@ img, svg { display: block; max-width: 100%; }
 
 /* grão sutil sobre toda a página */
 body::before {
-  content: ""; position: fixed; inset: 0; z-index: 100; pointer-events: none; opacity: .04;
+  content: ""; position: fixed; inset: 0; z-index: 100; pointer-events: none; opacity: .04; transform: translateZ(0);   /* pintado uma vez, numa camada própria */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -143,3 +143,6 @@ h2.display { font-size: clamp(2rem, 4.2vw, 3.7rem); }
 }
 .btn-primary::before { background: conic-gradient(from var(--a), transparent 0 50%, var(--accent-2) 72%, #fff 88%, transparent 96%); }
 .btn:hover::before { animation-duration: 1.4s; }
+
+/* animações sem fim fora da tela ficam pausadas (a classe vem de usePauseOffscreen, em components/ui.tsx) */
+.is-off, .is-off::before, .is-off::after { animation-play-state: paused !important; }
