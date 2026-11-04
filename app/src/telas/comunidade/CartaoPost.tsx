@@ -76,7 +76,7 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
 
   const compartilhar = async () => {
     try {
-      await Share.share({ message: `${meu ? 'Eu' : post.autor} no KORA: ${post.texto}` });
+      await Share.share({ message: `${meu ? 'Eu' : post.autor} no RONDO: ${post.texto}` });
     } catch {
       avisar('Compartilhar não está disponível neste aparelho.');
     }

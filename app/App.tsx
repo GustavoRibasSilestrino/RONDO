@@ -1,4 +1,4 @@
-/* KORA: o app. Duas coisas: entrar com a conta e a parte funcional (treino, dieta, evolução...).
+/* RONDO: o app. Duas coisas: entrar com a conta e a parte funcional (treino, dieta, evolução...).
    Cabeçalho fixo (notificações e a marca) no alto e uma barra de vidro escuro no pé, com todas as abas à vista. */
 import { Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins';
 import { StatusBar } from 'expo-status-bar';
@@ -35,7 +35,7 @@ import { aplicarTema, cores } from './src/tema';
 
 /* o app abre no Início (o feed), e o botão voltar do Android leva para ele */
 const INICIO = 'home';
-const CONTA_TESTE = 'teste@kora.app';
+const CONTA_TESTE = 'teste@rondo.app';
 
 /* da esquerda para a direita: o feed (a casinha), o treino, a comunidade, a dieta e o perfil */
 const TELAS: ItemAba[] = [

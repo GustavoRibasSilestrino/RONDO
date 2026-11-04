@@ -93,7 +93,7 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
                           <T tam={16} peso="500" linhas={1} style={{ flexShrink: 1 }}>{p.nome}</T>
                           <Icone nome="verificado" tamanho={18} cor={cores.destaque} />
                         </View>
-                        <T tam={12.5} style={{ marginTop: 2 }}>{p.registro} · verificado pela KORA</T>
+                        <T tam={12.5} style={{ marginTop: 2 }}>{p.registro} · verificado pela RONDO</T>
                       </View>
                     </View>
                     <T tam={14} style={{ marginTop: 12, lineHeight: 20 }}>{p.sobre}</T>
@@ -118,7 +118,7 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
             </View>
 
             <T tam={12} centro style={{ marginTop: 20, lineHeight: 18 }}>
-              Lista de demonstração. Quando a KORA estiver conectada ao servidor, aparecem só profissionais com o registro ({rotulo.registro}) conferido pela equipe.
+              Lista de demonstração. Quando a RONDO estiver conectada ao servidor, aparecem só profissionais com o registro ({rotulo.registro}) conferido pela equipe.
             </T>
           </ScrollView>
         </View>

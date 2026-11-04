@@ -1,4 +1,4 @@
-/* Identidade visual do app (KORA). Há dois temas:
+/* Identidade visual do app (RONDO). Há dois temas:
    - Normal: preto profundo, texto branco e um único roxo puro, sem degradês.
    - Ultra: um tema à parte, de vidro e aurora azul-ciano sobre um fundo que se move; é liberado no nível 15 da conta.
    `cores` é um objeto único que muda de valores quando o tema troca (aplicarTema); os estilos feitos com `estilos(...)` se

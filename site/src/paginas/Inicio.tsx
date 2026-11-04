@@ -31,7 +31,7 @@ export default function Inicio() {
           </div>
 
           <div className="vs-card" aria-hidden>
-            <small>VOCÊ VS. YESTERYOU</small>
+            <small>VOCÊ VS. RONDO</small>
             <h2>
               +12% melhor que
               <br />

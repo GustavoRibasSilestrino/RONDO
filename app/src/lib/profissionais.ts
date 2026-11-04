@@ -1,5 +1,5 @@
 /* Profissionais verificados: nutricionistas (registro no CRN) e profissionais de educação física (registro no CREF).
-   Em modo demonstração a lista é fictícia. Com a API, só aparecem profissionais com o registro conferido pela KORA. */
+   Em modo demonstração a lista é fictícia. Com a API, só aparecem profissionais com o registro conferido pela RONDO. */
 export type TipoProfissional = 'nutricionista' | 'educador';
 
 export type Profissional = {

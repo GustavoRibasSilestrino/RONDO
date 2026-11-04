@@ -36,7 +36,7 @@ export default function Layout() {
           </div>
         </div>
         <p className="wrap aviso">
-          O Yesteryou organiza e acompanha, mas não substitui avaliação profissional.
+          O Rondo organiza e acompanha, mas não substitui avaliação profissional.
         </p>
       </footer>
     </>

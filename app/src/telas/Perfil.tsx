@@ -29,7 +29,7 @@ import { BotaoSeguir } from './comunidade/Seguir';
 import { Configuracoes } from './perfil/Configuracoes';
 
 /* nome de usuário de partida: o nome sem acentos, em minúsculas */
-export const arrobaPadrao = (nome: string): string => (nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '').slice(0, 20) || 'kora');
+export const arrobaPadrao = (nome: string): string => (nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '').slice(0, 20) || 'rondo');
 
 export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const { estado, commit } = useLoja();
@@ -184,7 +184,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
           <View accessibilityLabel={patente ? `Patente ${patente.nome}` : 'Ainda sem patente'} style={{ alignItems: 'center' }}>
             {patente ? <Medalha3D frente={patente.img} verso={patente.verso} tamanho={190} /> : <Image source={proxima!.img} style={{ width: 120, height: 114, opacity: 0.25 }} resizeMode="contain" accessibilityIgnoresInvertColors />}
             <T tam={18} peso="500" style={{ marginTop: 6 }}>{patente ? `Patente ${patente.nome}` : 'Ainda sem patente'}</T>
-            <T tam={12.5} style={{ marginTop: 2 }}>{proxima ? `Próxima: ${proxima.nome}, no nível ${proxima.nivel}` : 'A patente mais alta da KORA'}</T>
+            <T tam={12.5} style={{ marginTop: 2 }}>{proxima ? `Próxima: ${proxima.nome}, no nível ${proxima.nivel}` : 'A patente mais alta da RONDO'}</T>
           </View>
           <View style={st.nivel}>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>

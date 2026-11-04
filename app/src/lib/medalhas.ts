@@ -10,7 +10,7 @@ export type Medalha = {
   nome: string;
   desc: string;                                    // a missão, em uma frase
   img: ImageSourcePropType;                        // a frente da medalha (3D)
-  verso: ImageSourcePropType;                      // o verso: liso, só com o símbolo da KORA
+  verso: ImageSourcePropType;                      // o verso: liso, só com o símbolo da RONDO
   meta: number;
   valor: (e: Estado, hoje: Date) => number;
   mostrar?: (n: number) => string;                 // como escrever o número (ex.: "92 kg"); por padrão, o inteiro

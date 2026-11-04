@@ -1,4 +1,4 @@
-/* Cabeçalho fixo do app: as notificações à esquerda, o nome KORA no meio (só no feed). Fundo preto sólido, para a tela rolar por baixo. */
+/* Cabeçalho fixo do app: as notificações à esquerda, o nome RONDO no meio (só no feed). Fundo preto sólido, para a tela rolar por baixo. */
 import React from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,7 +14,7 @@ function Nome() {
   const ultra = temaAtual() === 'ultra';
   return (
     <T tam={19} peso="500" style={{ letterSpacing: 6, marginRight: -6 }}>
-      {[...'KORA'].map((l, i) => <T key={i} tam={19} peso="500" cor={ultra ? LETRAS_ULTRA[i] : '#ffffff'}>{l}</T>)}
+      {[...'RONDO'].map((l, i) => <T key={i} tam={19} peso="500" cor={ultra ? LETRAS_ULTRA[i] : '#ffffff'}>{l}</T>)}
     </T>
   );
 }

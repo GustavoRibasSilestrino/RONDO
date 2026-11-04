@@ -42,8 +42,8 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia }: Props) {
 
   const convidar = async () => {
     const mensagem = g.privado && g.codigo
-      ? `Entre no meu clube "${g.nome}" no KORA. Código de convite: ${g.codigo}`
-      : `Venha para o clube "${g.nome}" no KORA: ${SITE}`;
+      ? `Entre no meu clube "${g.nome}" no RONDO. Código de convite: ${g.codigo}`
+      : `Venha para o clube "${g.nome}" no RONDO: ${SITE}`;
     try {
       await Share.share({ message: mensagem });
     } catch {
