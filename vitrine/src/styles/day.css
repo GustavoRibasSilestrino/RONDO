@@ -88,7 +88,8 @@
 .day-bar .fill { position: absolute; inset: 0; background: var(--accent-2); transform-origin: left; transform: scaleX(0); }
 .day-bar .tick { position: absolute; top: -4px; width: 1px; height: 9px; background: var(--line-2); }
 
-@media (max-width: 980px) {
+/* a mesma consulta vive em lib/util.ts (STACK_QUERY): sem largura ou altura para o palco fixo, o dia vira lista */
+@media (max-width: 980px), (max-height: 620px) {
   .day-pin { height: auto; }
   .day-sticky { position: static; height: auto; overflow: visible; display: block; padding-block: clamp(4.5rem, 12vw, 6rem) 0; }
   .day-head { flex-direction: column; align-items: flex-start; margin-bottom: 2.6rem; }

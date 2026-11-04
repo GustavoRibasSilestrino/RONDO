@@ -1,5 +1,6 @@
 /* Seções da página, na ordem em que aparecem. Usado pela roda do cabeçalho no celular. */
-window.YY_SECTIONS = [
+export type Sec = { href: string; label: string; icon: string };
+export const SECTIONS: Sec[] = [
   { href: "#inicio", label: "Início", icon: '<path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/>' },
   { href: "#recursos", label: "Recursos", icon: '<rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/>' },
   { href: "#compare", label: "Comparar", icon: '<path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/>' },
