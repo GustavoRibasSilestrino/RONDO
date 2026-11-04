@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { modoDemonstracao } from './src/api/conta';
+import { Abertura } from './src/componentes/Abertura';
 import { AvisoProvider } from './src/componentes/Estrutura';
 import { Marca } from './src/componentes/Marca';
 import { ItemRoda, Roda } from './src/componentes/Roda';
@@ -21,25 +22,28 @@ import { Social } from './src/telas/Social';
 import { Treino } from './src/telas/Treino';
 import { cores } from './src/tema';
 
+/* a Comunidade é a tela principal: o app abre nela, como o feed do Strava, e o botão voltar do Android leva para ela */
+const INICIO = 'social';
+
 const TELAS: ItemRoda[] = [
+  { id: 'social', rotulo: 'Comunidade', icone: 'social' },
   { id: 'hoje', rotulo: 'Hoje', icone: 'hoje' },
   { id: 'treino', rotulo: 'Treino', icone: 'treino' },
   { id: 'dieta', rotulo: 'Dieta', icone: 'dieta' },
   { id: 'evolucao', rotulo: 'Evolução', icone: 'evolucao' },
-  { id: 'social', rotulo: 'Comunidade', icone: 'social' },
   { id: 'recado', rotulo: 'Recado', icone: 'recado' },
   { id: 'perfil', rotulo: 'Perfil', icone: 'perfil' },
 ];
 
 function Raiz() {
   const { estado, pronto, commit } = useLoja();
-  const [tela, setTela] = useState('hoje');
+  const [tela, setTela] = useState(INICIO);
 
-  /* botão voltar do Android: de qualquer tela volta para Hoje; em Hoje, sai do app */
+  /* botão voltar do Android: de qualquer tela volta para o início; no início, sai do app */
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (tela === 'hoje') return false;
-      setTela('hoje');
+      if (tela === INICIO) return false;
+      setTela(INICIO);
       return true;
     });
     return () => sub.remove();
@@ -61,7 +65,7 @@ function Raiz() {
             e.usuario = usuario;
             if (modoDemonstracao) semear(e, new Date());   // histórico de demonstração; com a API configurada, os dados vêm dela
           });
-          setTela('hoje');
+          setTela(INICIO);
         }}
       />
     );
@@ -92,6 +96,7 @@ export default function App() {
             <Raiz />
           </AvisoProvider>
         </LojaProvider>
+        <Abertura />
         <StatusBar style="light" />
       </View>
     </SafeAreaProvider>
