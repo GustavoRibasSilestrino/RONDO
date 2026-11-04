@@ -70,6 +70,20 @@ export function useSpotlight() {
   }, []);
 }
 
+/* ---------- animações sem fim só rodam na tela ----------
+   O contorno dos botões, a respiração do hero, a chama e o pulso do dia de hoje pausam quando saem da tela
+   (classe .is-off, ver styles/base.css): continuam iguais, só param de gastar quando ninguém está vendo. */
+const SEMPRE = ".btn, .hero-in, .flame, .heat .c.today";
+export function usePauseOffscreen() {
+  useEffect(() => {
+    if (reduceMotion || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle("is-off", !e.isIntersecting)));
+    // todos esses elementos já existem quando a página monta (o menu do celular fica sempre no DOM)
+    document.querySelectorAll(SEMPRE).forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+}
+
 /* ---------- botões: o primário é atraído pelo cursor ---------- */
 type BtnProps = {
   href?: string; kind?: "primary" | "ghost"; small?: boolean; type?: "button" | "submit";
