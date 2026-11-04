@@ -1,10 +1,10 @@
-# Yesteryou
+# KORA
 
 Compita com quem você foi ontem. Treino, dieta, constância, comunidade e profissionais verificados.
 
 O repositório tem quatro peças:
 
-- `vitrine/`: o site, em HTML, CSS e JS puros, sem build. É o que está no ar em https://yesteryou.vercel.app (projeto `yesteryou` na Vercel, pasta raiz `vitrine`). A assinatura e o cadastro de profissionais acontecem aqui.
+- `vitrine/`: o site da KORA, em HTML, CSS e JS puros, sem build. É o que está no ar em https://yesteryou.vercel.app (projeto `yesteryou` na Vercel, pasta raiz `vitrine`). A assinatura e o cadastro de profissionais acontecem aqui.
 - `app/`: o aplicativo, em React Native com Expo e TypeScript. Só entrada com a conta e a parte funcional: Hoje, Treino, Dieta, Evolução, Comunidade, Recado de voz e Perfil. A navegação é uma roda no pé da tela.
 - `backend/`: Python + FastAPI. Por enquanto, as regras de treino (1RM); dieta, pontos, assinaturas, webhooks e IA entram aqui.
 - `brand/`: o símbolo da marca, só a parte branca, com fundo transparente.
