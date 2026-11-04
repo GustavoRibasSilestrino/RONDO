@@ -22,7 +22,16 @@ const MODELO_REFEICOES: { refeicao: TipoRefeicao; itens: [string, number][] }[] 
   { refeicao: 'jantar', itens: [['batata-doce', 150], ['patinho', 110], ['alface', 40]] },
 ];
 
+/* gente que segue a pessoa e uma descrição de exemplo (demonstração) */
+export function semearSocial(estado: Estado): void {
+  if (estado.semeadoSocial) return;
+  estado.seguidores = ['Bia Almeida', 'Tiago Santos', 'Camila Duarte', 'Rafa Lima', 'Marina Rocha'];
+  if (!estado.perfilSocial.bio) estado.perfilSocial.bio = 'Competindo todo dia com quem eu fui ontem.';
+  estado.semeadoSocial = true;
+}
+
 export function semear(estado: Estado, hoje: Date): void {
+  semearSocial(estado);
   if (estado.semeado) return;
   const rnd = sorteio(42);
   const DIAS = 70;
