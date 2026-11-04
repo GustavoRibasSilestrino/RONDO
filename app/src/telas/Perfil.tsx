@@ -169,17 +169,8 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
       {aba === 'posts' ? (
         grade.length ? (
-          <View style={st.grade}>
-            {grade.map((x) => (
-              <Pressable key={x.id} accessibilityRole="button" accessibilityLabel="Abrir publicação" onPress={() => setPostAberto(x)} style={st.tile}>
-                {x.midia?.length ? (
-                  <Miniatura m={x.midia[0]} style={StyleSheet.absoluteFill} />
-                ) : (
-                  <View style={st.tileTexto}><T tam={12} linhas={5} centro style={{ lineHeight: 16 }}>{x.texto}</T></View>
-                )}
-                {fixadas.has(x.id) ? <View style={st.fixada}><Icone nome="estrela" tamanho={12} cor="#ffffff" espessura={2.2} /></View> : null}
-              </Pressable>
-            ))}
+          <View style={st.linhaDoTempo}>
+            {grade.map((x) => <CartaoPost key={x.id} post={x} timeline aoAbrirMidia={(itens, indice) => setVisor({ itens, indice })} />)}
           </View>
         ) : (
           <View style={st.vazio}>
@@ -287,7 +278,7 @@ const st = estilos(() => StyleSheet.create({
   abas: { flexDirection: 'row', marginTop: 20, borderTopWidth: 1, borderTopColor: cores.linha },
   aba: { flex: 1, height: 48, alignItems: 'center', justifyContent: 'center', borderTopWidth: 2, borderTopColor: 'transparent', marginTop: -1, opacity: 0.55 },
   abaAtiva: { borderTopColor: '#ffffff', opacity: 1 },
-  grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 3, marginTop: 3 },
+  linhaDoTempo: { marginTop: 4 },
   tile: { width: '32.7%', aspectRatio: 1, backgroundColor: cores.cartao, overflow: 'hidden' },
   tileTexto: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 8, backgroundColor: cores.cartao2 },
   fixada: { position: 'absolute', right: 6, top: 6, width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
