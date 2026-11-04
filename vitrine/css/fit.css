@@ -54,3 +54,9 @@ html { scrollbar-color: #3b2a6b var(--bg); scrollbar-width: thin; }
   .spot { display: none; }
   .tool:hover, .pro:hover, .plan:hover { transform: none; }
 }
+
+/* ---- contraste: um verde-limão para os números e as palavras que precisam saltar do roxo ---- */
+:root { --pop: #c8f751; }
+.delta, .grad, .big-num.accent, .plan.hot .price { color: var(--pop); }
+.delta { text-shadow: none; }
+.chip.good { color: var(--pop); background: rgba(200, 247, 81, .12); }
