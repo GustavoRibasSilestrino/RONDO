@@ -119,6 +119,9 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       {/* topo: @usuário e as ações */}
       <View style={st.barra}>
         <T tam={17} peso="500" linhas={1} style={{ flex: 1 }}>@{arrobaAtual}</T>
+        <Pressable accessibilityRole="button" accessibilityLabel="Recados de voz" onPress={() => ir('recado')} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
+          <Icone nome="recado" tamanho={19} cor="#ffffff" />
+        </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Editar perfil" onPress={abrirEdicao} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
           <Icone nome="lapis" tamanho={19} cor="#ffffff" />
         </Pressable>

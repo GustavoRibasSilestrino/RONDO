@@ -12,6 +12,7 @@ import { comparar, statsSemana } from '../lib/calc';
 import { listarGrupos } from '../lib/grupos';
 import { cores, estilos } from '../tema';
 import type { Midia } from '../tipos';
+import { RecadoDoDia } from '../componentes/RecadoDoDia';
 import { BarraStories } from '../componentes/stories/BarraStories';
 import { CartaoPost } from './comunidade/CartaoPost';
 import { PerfilPessoa } from './comunidade/PerfilPessoa';
@@ -83,6 +84,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
           <>
             <T tam={15} peso="400" centro>Feed</T>
             <View style={{ marginTop: 14 }}><BarraStories /></View>
+            <View style={{ marginTop: 14 }}><RecadoDoDia aoAbrir={() => ir('recado')} /></View>
             <View style={{ gap: 14, marginTop: 16 }}>
               <View style={st.filtros}>
                 {([['todos', 'Tudo'], ['seguindo', 'Seguindo'], ['meus', 'Clubes'], ['geral', 'Geral']] as [Filtro, string][]).map(([v, nome]) => {
