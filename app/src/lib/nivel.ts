@@ -33,8 +33,7 @@ export const TITULOS: Titulo[] = [
   { id: 'atleta', nome: 'Atleta', nivel: 7 },
   { id: 'fisiculturista', nome: 'Fisiculturista', nivel: 9 },
   { id: 'maratonista', nome: 'Maratonista', nivel: 12 },
-  { id: 'lenda', nome: 'Lenda do ontem', nivel: 15 },
+  { id: 'lenda', nome: 'Lenda de ontem', nivel: 15 },
 ];
 
-export const MAX_TITULOS = 3;
-export const MAX_DESTAQUES = 3;
+/* os limites de títulos, destaques, fotos e descrição crescem com o nível: veja lib/beneficios.ts */

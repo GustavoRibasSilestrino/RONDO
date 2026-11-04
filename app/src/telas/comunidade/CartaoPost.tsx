@@ -6,8 +6,9 @@ import { Icone } from '../../componentes/Icone';
 import { Botao, Cartao, T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
 import { removerMidia } from '../../lib/midia';
+import { useConta } from '../../lib/beneficios';
 import { useMovimentoReduzido } from '../../lib/movimento';
-import { cores, FONTE } from '../../tema';
+import { cores, FONTE, estilos } from '../../tema';
 import type { Midia, Post } from '../../tipos';
 import { Avatar } from './Avatar';
 import { MidiaGrade } from './Midia';
@@ -59,6 +60,7 @@ function PuloCheers({ disparo }: { disparo: number }) {
 
 export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Props) {
   const { estado, commit } = useLoja();
+  const { limites } = useConta();
   const avisar = useAviso();
   const [comentando, setComentando] = useState(false);
   const [apagando, setApagando] = useState(false);
@@ -167,7 +169,7 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Prop
           titulo={estado.perfilSocial.destaques.includes(post.id) ? 'Tirar dos destaques do perfil' : 'Destacar no perfil'}
           aoPressionar={() => {
             const ja = estado.perfilSocial.destaques.includes(post.id);
-            if (!ja && estado.perfilSocial.destaques.length >= 3) { setApagando(false); avisar('Você já tem 3 destaques. Tire um antes.'); return; }
+            if (!ja && estado.perfilSocial.destaques.length >= limites.destaques) { setApagando(false); avisar(`Você já tem ${limites.destaques} destaques. Tire um antes ou suba de nível para ganhar mais.`); return; }
             commit((e) => { const d = e.perfilSocial.destaques; const i = d.indexOf(post.id); if (i >= 0) d.splice(i, 1); else d.push(post.id); });
             setApagando(false);
             avisar(ja ? 'Removida dos destaques.' : 'Destacada no seu perfil.');
@@ -242,16 +244,16 @@ function Comentarios({ aberto, aoFechar, postId }: { aberto: boolean; aoFechar: 
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   cabeca: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
   botaoIcone: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   destaque: { marginTop: 12, backgroundColor: cores.fundo2, borderRadius: 12, padding: 12 },
   acoes: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, marginHorizontal: -6 },
   acao: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 8 },
-  pulo: { position: 'absolute', left: 8, bottom: 34, paddingVertical: 3, paddingHorizontal: 10, borderRadius: 999, backgroundColor: '#6a00d4' },
-  cheersDado: { backgroundColor: 'rgba(139,92,246,0.14)', borderRadius: 22, paddingHorizontal: 14 },
+  pulo: { position: 'absolute', left: 8, bottom: 34, paddingVertical: 3, paddingHorizontal: 10, borderRadius: 999, backgroundColor: cores.destaqueForte },
+  cheersDado: { backgroundColor: `rgba(${cores.tom},0.14)`, borderRadius: 22, paddingHorizontal: 14 },
   linhaComentario: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   campoComentario: { flex: 1, height: 46, paddingHorizontal: 16, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   enviar: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
-});
+}));

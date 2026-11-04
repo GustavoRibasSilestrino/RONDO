@@ -199,7 +199,7 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
             </View>
 
             {prox ? (
-              <View style={{ marginTop: 12, backgroundColor: 'rgba(139,92,246,0.12)', borderRadius: 6, paddingVertical: 8, paddingHorizontal: 12 }}>
+              <View style={{ marginTop: 12, backgroundColor: `rgba(${cores.tom},0.12)`, borderRadius: 6, paddingVertical: 8, paddingHorizontal: 12 }}>
                 <T tam={12} peso="500" cor={cores.destaque2}>
                   {prox.sobe ? `Topo da faixa batido. Próxima carga: ${num(prox.kg)} kg` : `Mantenha ${num(prox.kg)} kg até bater ${def.faixa[1]} repetições em todas as séries`}
                 </T>

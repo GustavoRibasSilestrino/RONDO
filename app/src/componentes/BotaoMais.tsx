@@ -2,7 +2,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { larguraMax } from '../tema';
+import { cores, larguraMax, estilos } from '../tema';
 import { Icone } from './Icone';
 
 export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPressionar: () => void }) {
@@ -19,7 +19,7 @@ export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPression
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   faixa: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  mais: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', backgroundColor: '#6a00d4', boxShadow: '0 10px 24px -8px rgba(0,0,0,0.9)' },
-});
+  mais: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte, boxShadow: '0 10px 24px -8px rgba(0,0,0,0.9)' },
+}));

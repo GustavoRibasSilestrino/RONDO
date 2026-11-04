@@ -4,7 +4,7 @@ import { Pressable, StyleSheet } from 'react-native';
 import { Icone } from '../../componentes/Icone';
 import { T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
-import { cores } from '../../tema';
+import { cores, estilos } from '../../tema';
 
 export function BotaoSeguir({ nome }: { nome: string }) {
   const { estado, commit } = useLoja();
@@ -24,7 +24,7 @@ export function BotaoSeguir({ nome }: { nome: string }) {
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   pilula: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 7, paddingHorizontal: 14, borderRadius: 999, backgroundColor: cores.destaqueForte, borderWidth: 1, borderColor: cores.destaqueForte },
   seguindo: { backgroundColor: 'transparent', borderColor: 'rgba(196,168,255,0.4)' },
-});
+}));

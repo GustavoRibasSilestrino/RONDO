@@ -1,5 +1,23 @@
-/* Identidade visual do app (KORA): preto profundo, texto branco, um único roxo puro, fontes finas. Sem degradês. */
-export const cores = {
+/* Identidade visual do app (KORA). Há dois temas:
+   - Normal: preto profundo, texto branco e um único roxo puro, sem degradês.
+   - Ultra: um tema à parte, de vidro e aurora azul-ciano sobre um fundo que se move; é liberado no nível 15 da conta.
+   `cores` é um objeto único que muda de valores quando o tema troca (aplicarTema); os estilos feitos com `estilos(...)` se
+   recalculam com ele, então toda a interface se pinta de novo sem reabrir as telas. */
+
+export type TemaId = 'normal' | 'ultra';
+
+export type Paleta = {
+  fundo: string; fundo2: string; cartao: string; cartao2: string; linha: string; linha2: string;
+  texto: string; texto2: string; texto3: string;
+  violeta: string; violetaEscuro: string; destaque: string; destaqueForte: string; destaque2: string;
+  bom: string; alerta: string; erro: string; branco: string; placeholder: string;
+  tom: string;      // "r,g,b" da cor de destaque, para fazer tons transparentes: `rgba(${cores.tom},0.14)`
+  painel: string;   // fundo das folhas que sobem de baixo
+  aviso: string;    // fundo do aviso rápido
+  barra: string;    // fundo da barra de abas
+};
+
+const normal: Paleta = {
   fundo: '#000000',
   fundo2: '#0a0a0a',
   cartao: '#0a0a0a',
@@ -19,10 +37,62 @@ export const cores = {
   erro: '#ff6b81',
   branco: '#ffffff',
   placeholder: 'rgba(255,255,255,0.45)',
-} as const;
+  tom: '139,92,246',
+  painel: '#0a0a0a',
+  aviso: '#161616',
+  barra: 'rgba(12,12,12,0.78)',
+};
 
-/* cor dos botões primários e da aba escolhida */
-export const degradeBotao = ['#6a00d4', '#6a00d4'] as const;   // sem degradê: o roxo puro, nos dois pontos
+const ultra: Paleta = {
+  fundo: '#040817',
+  fundo2: '#0a1230',
+  cartao: 'rgba(120,160,255,0.09)',
+  cartao2: 'rgba(120,160,255,0.17)',
+  linha: 'rgba(150,190,255,0.18)',
+  linha2: 'rgba(150,190,255,0.36)',
+  texto: '#ffffff',
+  texto2: '#e4edff',
+  texto3: '#c3d3ff',
+  violeta: '#2760ff',
+  violetaEscuro: '#0b1a4d',
+  destaque: '#5fd4ff',
+  destaqueForte: '#2760ff', /* azul vivo que leva texto branco (5:1) */
+  destaque2: '#9ff3ff',
+  bom: '#4dffc3',
+  alerta: '#ffb36b',
+  erro: '#ff7a96',
+  branco: '#ffffff',
+  placeholder: 'rgba(220,235,255,0.5)',
+  tom: '95,212,255',
+  painel: '#0a1230',
+  aviso: '#13204d',
+  barra: 'rgba(8,18,52,0.6)',
+};
+
+export const PALETAS: Record<TemaId, Paleta> = { normal, ultra };
+
+/* o objeto que o app inteiro lê; seus valores mudam quando o tema muda */
+export const cores: Paleta = { ...normal };
+
+let atual: TemaId = 'normal';
+export const temaAtual = (): TemaId => atual;
+
+export function aplicarTema(id: TemaId): void {
+  if (id === atual) return;
+  atual = id;
+  Object.assign(cores, PALETAS[id]);
+}
+
+/* estilos que acompanham o tema: a fábrica roda de novo (uma vez por tema) quando as cores mudam */
+export function estilos<T extends object>(fabrica: () => T): T {
+  const cache: Partial<Record<TemaId, T>> = {};
+  return new Proxy({} as T, {
+    get: (_alvo, chave) => {
+      const feitos = cache[atual] ?? (cache[atual] = fabrica());
+      return (feitos as Record<string | symbol, unknown>)[chave];
+    },
+  });
+}
 
 export const raio = { p: 8, m: 14, g: 22, pilula: 999 } as const;
 

@@ -5,7 +5,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { cores, larguraMax } from '../tema';
+import { cores, larguraMax, estilos } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 
 export type ItemAba = { id: string; rotulo: string; icone: NomeIcone };
@@ -76,12 +76,12 @@ export function BarraAbas({ itens, atual, aoEscolher }: Props) {
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   doca: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   barra: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: ALTURA + 2 * RECHEIO + 2, borderRadius: (ALTURA + 2 * RECHEIO + 2) / 2, overflow: 'hidden',
-    backgroundColor: 'rgba(12,12,12,0.78)', borderWidth: 1, borderColor: cores.linha2,
+    backgroundColor: cores.barra, borderWidth: 1, borderColor: cores.linha2,
     shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 22, shadowOffset: { width: 0, height: 10 }, elevation: 12,
   },
   aba: { height: ALTURA, alignItems: 'center', justifyContent: 'center' },
-});
+}));

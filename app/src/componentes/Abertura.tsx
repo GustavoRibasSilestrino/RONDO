@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, View } from 'react-native';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { Marca } from './Marca';
+import { cores, estilos } from '../tema';
 import { T } from './Ui';
 
 export function Abertura() {
@@ -38,6 +39,6 @@ export function Abertura() {
   );
 }
 
-const st = StyleSheet.create({
-  tela: { backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-});
+const st = estilos(() => StyleSheet.create({
+  tela: { backgroundColor: cores.fundo, alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+}));

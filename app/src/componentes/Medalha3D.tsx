@@ -2,6 +2,7 @@
    Ao soltar, ela assenta de frente ou de costas. Arrastar para cima e para baixo inclina um pouco. */
 import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Image, ImageSourcePropType, PanResponder, Platform, StyleSheet, View } from 'react-native';
+import { estilos } from '../tema';
 import { useMovimentoReduzido } from '../lib/movimento';
 
 type Props = { frente: ImageSourcePropType; verso: ImageSourcePropType; tamanho: number; apagada?: boolean };
@@ -71,7 +72,7 @@ export function Medalha3D({ frente, verso, tamanho, apagada }: Props) {
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   face: { ...StyleSheet.absoluteFill, backfaceVisibility: 'hidden' },
   img: { width: '100%', height: '100%' },
-});
+}));

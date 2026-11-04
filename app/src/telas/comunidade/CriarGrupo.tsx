@@ -5,15 +5,18 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { CampoFlutuante } from '../../componentes/CampoFlutuante';
 import { Folha } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
+import { AvisoPro, SeloPro } from '../../componentes/Pro';
 import { Botao, Segmentos, T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
 import { categoria, CATEGORIAS, CORES_GRUPO, novoCodigo } from '../../lib/grupos';
-import { cores } from '../../tema';
+import { cores, estilos } from '../../tema';
 import type { CategoriaGrupo } from '../../tipos';
+import { SITE } from '../Login';
 import { Capa } from './Capa';
 
 export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoFechar: () => void; aoCriar: (id: string) => void }) {
   const { commit } = useLoja();
+  const [pro, setPro] = useState(false);   // aviso do plano PRO
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [cat, setCat] = useState<CategoriaGrupo>('treino');
@@ -70,6 +73,19 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
         {privado ? 'Só entra quem tem o código de convite, que aparece na página do clube.' : 'Qualquer pessoa da comunidade pode entrar.'}
       </T>
 
+      <Pressable accessibilityRole="button" accessibilityLabel="Clube em destaque, recurso PRO" onPress={() => setPro(true)} style={st.destaque}>
+        <Icone nome="estrela" tamanho={20} cor="#ffffff" />
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <T tam={14.5} peso="500">Clube em destaque</T>
+            <SeloPro />
+          </View>
+          <T tam={12.5} style={{ marginTop: 2, lineHeight: 17 }}>Aparece no topo da busca de clubes.</T>
+        </View>
+        <Icone nome="cadeado" tamanho={17} cor="#ffffff" />
+      </Pressable>
+      <AvisoPro aberto={pro} aoFechar={() => setPro(false)} recurso="Clube em destaque" site={SITE} />
+
       <View style={{ marginTop: 18 }}>
         <CampoFlutuante rotulo="Meta ou objetivo (opcional)" value={meta} onChangeText={setMeta} maxLength={70} returnKeyType="done" />
       </View>
@@ -92,7 +108,8 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
+  destaque: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 18, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   previa: { position: 'absolute', left: 16, right: 16, bottom: 14, gap: 2 },
   pilulas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   pilula: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
@@ -100,4 +117,4 @@ const st = StyleSheet.create({
   cores: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
   amostra: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
   amostraAtiva: { borderColor: '#ffffff' },
-});
+}));

@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { cores, FONTE, PesoFonte, raio } from '../tema';
+import { cores, FONTE, PesoFonte, raio, estilos } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 
 /* ---------- texto ---------- */
@@ -131,7 +131,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
 /* ---------- chip ---------- */
 export function Chip({ texto, tom = 'violeta', style }: { texto: string; tom?: 'violeta' | 'bom' | 'alerta' | 'neutro'; style?: StyleProp<ViewStyle> }) {
   const mapa = {
-    violeta: { fundo: 'rgba(139,92,246,0.14)', texto: cores.destaque2 },
+    violeta: { fundo: `rgba(${cores.tom},0.14)`, texto: cores.destaque2 },
     bom: { fundo: 'rgba(61,220,151,0.14)', texto: cores.bom },
     alerta: { fundo: 'rgba(255,154,92,0.14)', texto: cores.alerta },
     neutro: { fundo: 'rgba(255,255,255,0.07)', texto: cores.texto2 },
@@ -253,12 +253,12 @@ export function Titulo({ children, direita }: { children: React.ReactNode; direi
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   cartao: { backgroundColor: cores.cartao, borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden', boxShadow: '0 22px 40px -28px rgba(0,0,0,0.9)' },
   cartaoDestaque: { borderColor: cores.destaqueForte, backgroundColor: cores.cartao },
   brilho: {},
   orbita: { borderRadius: raio.m, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(196,168,255,0.2)' },
-  campoFoco: { borderColor: cores.destaque, backgroundColor: 'rgba(139,92,246,0.06)' },
+  campoFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.06)` },
   botao: { borderRadius: raio.m, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   botaoFantasma: { borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.03)' },
   botaoPerigo: { borderWidth: 1, borderColor: 'rgba(255,107,129,0.5)', backgroundColor: 'rgba(255,107,129,0.08)' },
@@ -275,4 +275,4 @@ const st = StyleSheet.create({
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
   campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },
-});
+}));

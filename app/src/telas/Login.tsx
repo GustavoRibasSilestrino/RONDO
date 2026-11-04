@@ -13,7 +13,7 @@ import { Marca } from '../componentes/Marca';
 import { PistaMarca } from '../componentes/PistaMarca';
 import { Botao, T } from '../componentes/Ui';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { cores } from '../tema';
+import { cores, estilos } from '../tema';
 import type { Usuario } from '../tipos';
 
 export const SITE = 'https://yesteryou.vercel.app';
@@ -200,7 +200,7 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   coluna: { width: '100%', maxWidth: 400, alignSelf: 'center' },
   olho: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   banner: {
@@ -214,4 +214,4 @@ const st = StyleSheet.create({
     borderRadius: 999, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.03)',
   },
   demo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-});
+}));

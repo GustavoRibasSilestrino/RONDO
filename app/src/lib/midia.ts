@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import type { Midia } from '../tipos';
 
-export const MAX_MIDIAS = 4;
+export const MAX_MIDIAS = 4;   // o mínimo; sobe com o nível da conta (lib/beneficios.ts)
 
 const CHAVE = 'yy.midia.';
 const LIMITE_VIDEO_WEB = 3_000_000;   // caracteres do data URI: acima disso o navegador não guardaria

@@ -9,7 +9,7 @@ import { Botao, Cartao, Segmentos, T } from '../componentes/Ui';
 import { useLoja } from '../estado/loja';
 import { comparar, statsSemana } from '../lib/calc';
 import { listarGrupos } from '../lib/grupos';
-import { cores } from '../tema';
+import { cores, estilos } from '../tema';
 import type { Midia } from '../tipos';
 import { CartaoPost } from './comunidade/CartaoPost';
 import { Compositor } from './comunidade/Compositor';
@@ -131,8 +131,8 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   filtros: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   filtro: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
   filtroAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
-});
+}));
