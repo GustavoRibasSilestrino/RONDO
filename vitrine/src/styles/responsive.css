@@ -99,7 +99,7 @@ img, svg, video, canvas { max-width: 100%; }
   .cups { grid-template-columns: repeat(4, 1fr); gap: .35rem; }
   .streak-board .heat { gap: 3px; }
   .legend { gap: .5rem .9rem; }
-  .podium { height: 160px; }
+  .podium { --degrau: .8rem; }
 }
 
 .day-snap { display: none; }

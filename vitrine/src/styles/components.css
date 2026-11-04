@@ -135,10 +135,12 @@
 /* ===== Ranking ===== */
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 2rem; }
 .panel h3 { font-family: var(--font-display); font-size: 1.7rem; letter-spacing: -.04em; margin-bottom: .4rem; }
-.podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; align-items: end; margin: 2rem 0 1.4rem; height: 210px; }
-.pod { border-radius: 6px 6px 2px 2px; padding: .9rem .6rem; text-align: center; display: grid; align-content: space-between; background: var(--card-2); border: 1px solid var(--line-2); }
-.pod.p1 { height: 100%; background: linear-gradient(180deg, rgba(139, 92, 246, .35), var(--card-2)); border-color: rgba(139, 92, 246, .5); }
-.pod.p2 { height: 76%; } .pod.p3 { height: 60%; }
+/* pódio: a altura vem do conteúdo (nunca transborda); os degraus são espaço extra no topo de cada coluna */
+.podium { --degrau: 1.4rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; align-items: end; margin: 2rem 0 1.4rem; }
+.pod { min-width: 0; border-radius: 6px 6px 2px 2px; padding: .9rem .6rem; text-align: center; display: grid; align-content: end; gap: .15rem; background: var(--card-2); border: 1px solid var(--line-2); }
+.pod.p1 { padding-top: calc(.9rem + var(--degrau) * 2); background: linear-gradient(180deg, rgba(139, 92, 246, .35), var(--card-2)); border-color: rgba(139, 92, 246, .5); }
+.pod.p2 { padding-top: calc(.9rem + var(--degrau)); }
+.pod b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pod .avatar { margin: 0 auto .4rem; }
 .pod b { font-size: .82rem; display: block; }
 .pod span { font-family: var(--font-mono); font-size: .75rem; color: var(--ink-2); }
@@ -252,7 +254,7 @@
   .recorder { gap: 1.4rem; }
   .rec-q h3 { font-size: 1.6rem; }
   .tool h3, .panel h3 { font-size: 1.45rem; }
-  .podium { height: 180px; margin-block: 1.4rem 1rem; }
+  .podium { --degrau: 1rem; margin-block: 1.4rem 1rem; }
   .streak-count b { font-size: 3.6rem; }
   .streak-board .heat { gap: 3px; }
   .price { font-size: 2.6rem; }
