@@ -44,7 +44,36 @@ export type Refeicao = {
   g: number;
 };
 
-export type Post = { id: string; autor: string; texto: string; destaque?: string; quando: number };
+/* Foto ou vídeo de uma publicação. O arquivo em si fica em lib/midia.ts; aqui só a referência e as medidas. */
+export type Midia = { id: string; tipo: 'imagem' | 'video'; largura: number; altura: number; duracao?: number };
+
+export type Comentario = { id: string; autor: string; texto: string; quando: number };
+
+export type Post = {
+  id: string;
+  autor: string;
+  texto: string;
+  destaque?: string;
+  quando: number;
+  midia?: Midia[];
+  grupo?: string;   // id do grupo onde foi publicado; sem isso, vai para o feed geral
+};
+
+export type CategoriaGrupo = 'treino' | 'corrida' | 'dieta' | 'constancia' | 'outro';
+
+/* Grupo criado pela pessoa. Os grupos de demonstração ficam em dados.ts (CLUBES); entrar em qualquer um é estado.clubes[id]. */
+export type Grupo = {
+  id: string;
+  nome: string;
+  descricao: string;
+  categoria: CategoriaGrupo;
+  privado: boolean;
+  cor: number;       // posição em CORES_GRUPO (lib/grupos.ts)
+  dono: string;
+  criado: number;
+  codigo: string;    // código de convite
+  meta?: string;
+};
 
 export type Recado = {
   id: string;
@@ -67,7 +96,9 @@ export type Estado = {
   pesos: { data: string; kg: number }[];
   posts: Post[];
   curtidas: Record<string, boolean>;
-  clubes: Record<string, boolean>;
+  comentarios: Record<string, Comentario[]>;   // por id da publicação
+  grupos: Grupo[];                             // os que a pessoa criou
+  clubes: Record<string, boolean>;             // grupos em que a pessoa está (de demonstração ou criados por ela)
   recados: Recado[];
   semeado: boolean;
 };

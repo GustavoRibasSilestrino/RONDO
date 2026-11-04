@@ -7,13 +7,14 @@ import { cores, larguraMax, raio } from '../tema';
 import { T } from './Ui';
 
 /* ---------- Tela ---------- */
-export function Tela({ children, comDoca = true }: { children: React.ReactNode; comDoca?: boolean }) {
+export function Tela({ children, comDoca = true, animada = true }: { children: React.ReactNode; comDoca?: boolean; animada?: boolean }) {
   const insets = useSafeAreaInsets();
-  /* a tela entra subindo e aparecendo; o brilho roxo no topo dá profundidade ao preto */
-  const entrada = useRef(new Animated.Value(0)).current;
+  /* a tela entra subindo e aparecendo; o brilho roxo no topo dá profundidade ao preto (animada={false}: a tela coreografa a própria entrada) */
+  const entrada = useRef(new Animated.Value(animada ? 0 : 1)).current;
   useEffect(() => {
+    if (!animada) return;
     Animated.timing(entrada, { toValue: 1, duration: 520, easing: Easing.out(Easing.exp), useNativeDriver: Platform.OS !== 'web' }).start();
-  }, [entrada]);
+  }, [entrada, animada]);
   return (
     <View style={{ flex: 1 }}>
       <LinearGradient
@@ -42,6 +43,15 @@ export function Tela({ children, comDoca = true }: { children: React.ReactNode; 
 /* ---------- Folha: painel que sobe de baixo ---------- */
 export function Folha({ aberta, aoFechar, titulo, children }: { aberta: boolean; aoFechar: () => void; titulo?: string; children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
+  /* garantia de saída: o Modal só se desmonta quando o sistema avisa que a animação terminou; se esse aviso não vier
+     (janela em segundo plano, por exemplo), a folha ficaria aberta por cima de tudo. Passados 400 ms, ela sai de qualquer jeito. */
+  const [montada, setMontada] = useState(aberta);
+  useEffect(() => {
+    if (aberta) { setMontada(true); return undefined; }
+    const t = setTimeout(() => setMontada(false), 400);
+    return () => clearTimeout(t);
+  }, [aberta]);
+  if (!montada && !aberta) return null;
   return (
     <Modal visible={aberta} transparent animationType="slide" onRequestClose={aoFechar} statusBarTranslucent>
       <View style={st.fundo}>

@@ -29,10 +29,11 @@ cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload
 - **Entrar:** o app não tem cadastro. A conta e a assinatura são criadas no site; o app só entra com ela.
 - **Modo demonstração:** sem `EXPO_PUBLIC_API_URL`, qualquer e-mail válido com senha de 6 ou mais caracteres entra. Os dados ficam só no aparelho, com um histórico de 10 semanas para as telas não começarem vazias. Com `EXPO_PUBLIC_API_URL=https://sua-api`, o login chama `POST /auth/login` e nenhum dado de demonstração é criado.
 - **Regras:** as contas do produto estão em `app/src/lib/calc.ts`: força estimada (Epley), progressão dupla de carga, estagnação, meta calórica (Mifflin-St Jeor com piso de segurança), streak com uma folga por semana, pontos do ranking e a comparação "Você vs. Yesteryou".
+- **Comunidade:** feed com publicações de texto, fotos e vídeos (até 4 por publicação, da galeria ou da câmera, com `expo-image-picker` e `expo-video`), curtidas e comentários, e grupos que a pessoa cria, em que entra, convida e publica (públicos ou privados, com código de convite). Tudo fica só no aparelho: o estado guarda as referências e `app/src/lib/midia.ts` guarda os arquivos, copiados para a pasta do app no celular e reduzidos no navegador. As outras pessoas, os números e os grupos de exemplo são de demonstração (`app/src/dados.ts`).
 - **Conferir o código:** `cd app && npm run typecheck`. Para ver no navegador: `npm run export:web` e servir a pasta `dist`.
 
 Antes de publicar nas lojas:
 
 - troque o identificador `br.com.yesteryou.app` em `app/app.json` pelo definitivo;
 - guarde o token do login no `expo-secure-store` (há um `TODO` em `app/src/api/conta.ts`);
-- troque os dados de demonstração de comunidade e ranking por dados da API.
+- troque os dados de demonstração de comunidade e ranking por dados da API, incluindo o envio e o armazenamento das fotos e vídeos, a entrada nos grupos por código de convite e a moderação das publicações.

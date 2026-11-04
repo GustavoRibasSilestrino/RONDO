@@ -36,7 +36,16 @@
         {
           "microphonePermission": "O Yesteryou usa o microfone para gravar os seus recados de voz."
         }
-      ]
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Yesteryou acessa as suas fotos e vídeos para você publicar na comunidade.",
+          "cameraPermission": "O Yesteryou usa a câmera para você tirar fotos e gravar vídeos para a comunidade.",
+          "microphonePermission": "O Yesteryou usa o microfone para gravar o som dos vídeos que você publica."
+        }
+      ],
+      "expo-video"
     ]
   }
 }
