@@ -68,8 +68,8 @@ export function Evolucao() {
 
   return (
     <Tela>
-      <T tam={36} peso="200">Evolução</T>
-      <T tam={14} cor={cores.texto2} style={{ marginTop: 6 }}>Você, comparado com você.</T>
+      <T tam={15} peso="400" centro>Evolução</T>
+      <T tam={13} centro cor={cores.texto2} style={{ marginTop: 6 }}>Você, comparado com você.</T>
 
       <Titulo>Força</Titulo>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}>

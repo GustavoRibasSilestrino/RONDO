@@ -33,8 +33,8 @@ export function Colecoes() {
 
   return (
     <Tela>
-      <T tam={36} peso="200">Coleções</T>
-      <T tam={14} cor={cores.texto2} style={{ marginTop: 6 }}>Cumpra missões e ganhe medalhas.</T>
+      <T tam={15} peso="400" centro>Coleções</T>
+      <T tam={13} centro cor={cores.texto2} style={{ marginTop: 6 }}>Cumpra missões e ganhe medalhas.</T>
 
       <Cartao destaque style={{ marginTop: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>

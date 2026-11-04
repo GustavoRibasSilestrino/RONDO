@@ -23,8 +23,8 @@ export function Notificacoes() {
   const lista = estado.notificacoes;
   return (
     <Tela>
-      <T tam={36} peso="200">Notificações</T>
-      <T tam={14} style={{ marginTop: 6 }}>Tudo o que chega para o seu perfil fica guardado aqui.</T>
+      <T tam={15} peso="400" centro>Notificações</T>
+      <T tam={13} centro style={{ marginTop: 6 }}>Tudo o que chega para o seu perfil fica guardado aqui.</T>
       <View style={{ gap: 10, marginTop: 22 }}>
         {lista.length === 0 ? (
           <Cartao>
