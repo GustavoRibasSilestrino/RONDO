@@ -2,7 +2,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import Svg, { Circle, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
-import { cores } from '../tema';
+import { cores, FONTE } from '../tema';
 
 /* ---------- linha com marcadores ---------- */
 export type Ponto = { x: number; y: number; destaque?: boolean };
@@ -26,7 +26,7 @@ export function GraficoLinha({ pontos, largura, altura = 150, cor = cores.destaq
       <Path d={linha} stroke={cor} strokeWidth={2} fill="none" strokeLinejoin="round" strokeLinecap="round" />
       {pontos.map((p, i) => (p.destaque ? <Circle key={i} cx={ex(p.x)} cy={ey(p.y)} r={4} fill={cores.bom} /> : null))}
       <Circle cx={ex(ultimo.x)} cy={ey(ultimo.y)} r={5} fill="#ffffff" stroke="rgba(139,92,246,0.5)" strokeWidth={5} />
-      <SvgText x={ex(ultimo.x)} y={Math.max(topo, ey(ultimo.y) - 12)} fill={cores.texto} fontSize={12} fontWeight="500" textAnchor="end">{formato(ultimo.y)}</SvgText>
+      <SvgText x={ex(ultimo.x)} y={Math.max(topo, ey(ultimo.y) - 12)} fill={cores.texto} fontSize={12} fontFamily={FONTE['500']} textAnchor="end">{formato(ultimo.y)}</SvgText>
     </Svg>
   );
 }
@@ -45,7 +45,7 @@ export function GraficoBarras({ valores, rotulos, largura, altura = 120 }: { val
         return (
           <React.Fragment key={i}>
             <Rect x={i * (w + folga)} y={altura - base - h} width={w} height={Math.max(h, 2)} rx={3} fill={ultimo ? cores.destaque2 : 'rgba(139,92,246,0.45)'} />
-            <SvgText x={i * (w + folga) + w / 2} y={altura - 4} fill={cores.texto3} fontSize={10} textAnchor="middle">{rotulos[i]}</SvgText>
+            <SvgText x={i * (w + folga) + w / 2} y={altura - 4} fill={cores.texto3} fontSize={10} fontFamily={FONTE['300']} textAnchor="middle">{rotulos[i]}</SvgText>
           </React.Fragment>
         );
       })}

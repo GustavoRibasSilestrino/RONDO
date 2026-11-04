@@ -1,5 +1,6 @@
 /* KORA: o app. Duas coisas: entrar com a conta e a parte funcional (treino, dieta, evolução...).
    Cabeçalho fixo (notificações e a marca) no alto e uma barra de vidro escuro no pé, com todas as abas à vista. */
+import { Poppins_200ExtraLight, Poppins_300Light, Poppins_400Regular, Poppins_500Medium, useFonts } from '@expo-google-fonts/poppins';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
@@ -41,7 +42,9 @@ const TELAS: ItemAba[] = [
 const DO_PERFIL = ['hoje', 'evolucao', 'colecoes', 'recado'];
 
 function Raiz() {
-  const { estado, pronto, commit } = useLoja();
+  const { estado, pronto: dadosProntos, commit } = useLoja();
+  const [fontes] = useFonts({ Poppins_200ExtraLight, Poppins_300Light, Poppins_400Regular, Poppins_500Medium });
+  const pronto = dadosProntos && fontes;   // espera a fonte, para o texto não aparecer trocado
   const [tela, setTela] = useState(INICIO);
   useNotificacoes();
 
