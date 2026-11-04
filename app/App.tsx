@@ -31,11 +31,11 @@ const TELAS: ItemAba[] = [
   { id: 'hoje', rotulo: 'Hoje', icone: 'hoje' },
   { id: 'treino', rotulo: 'Treino', icone: 'treino' },
   { id: 'dieta', rotulo: 'Dieta', icone: 'dieta' },
-  { id: 'evolucao', rotulo: 'Evolução', icone: 'evolucao' },
-  { id: 'recado', rotulo: 'Recado', icone: 'recado' },
-  { id: 'colecoes', rotulo: 'Coleções', icone: 'medalha' },
   { id: 'perfil', rotulo: 'Perfil', icone: 'perfil' },
 ];
+
+/* telas que moram dentro do Perfil: a barra mantém o Perfil aceso e o voltar leva para ele */
+const DO_PERFIL = ['evolucao', 'colecoes', 'recado'];
 
 function Raiz() {
   const { estado, pronto, commit } = useLoja();
@@ -45,7 +45,7 @@ function Raiz() {
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (tela === INICIO) return false;
-      setTela(INICIO);
+      setTela(DO_PERFIL.includes(tela) ? 'perfil' : INICIO);
       return true;
     });
     return () => sub.remove();
@@ -82,8 +82,8 @@ function Raiz() {
       {tela === 'social' && <Social />}
       {tela === 'recado' && <Recado />}
       {tela === 'colecoes' && <Colecoes />}
-      {tela === 'perfil' && <Perfil />}
-      <BarraAbas itens={TELAS} atual={tela} aoEscolher={setTela} />
+      {tela === 'perfil' && <Perfil ir={setTela} />}
+      <BarraAbas itens={TELAS} atual={DO_PERFIL.includes(tela) ? 'perfil' : tela} aoEscolher={setTela} />
     </View>
   );
 }

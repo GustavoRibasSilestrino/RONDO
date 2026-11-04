@@ -97,7 +97,7 @@ const st = StyleSheet.create({
   icone: { marginRight: 12 },
   meio: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
   rotulo: { position: 'absolute', left: 0, top: 20, fontSize: 16, fontWeight: '300', transformOrigin: 'left center' },
-  entrada: { height: 60, paddingTop: 20, paddingBottom: 0, paddingHorizontal: 0, color: cores.texto, fontSize: 16, fontWeight: '300', outlineWidth: 0, outlineColor: 'transparent' },
+  entrada: { height: 60, paddingTop: 20, paddingBottom: 0, paddingHorizontal: 0, color: cores.texto, fontSize: 16, fontWeight: '300', outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   entradaAlta: { height: undefined, minHeight: 112, paddingTop: 32, paddingBottom: 12, textAlignVertical: 'top' },
   valido: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   erroLinha: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 8, paddingHorizontal: 6 },

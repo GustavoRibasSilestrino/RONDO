@@ -200,6 +200,6 @@ const st = StyleSheet.create({
   acao: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 8 },
   cheersDado: { backgroundColor: 'rgba(139,92,246,0.14)', borderRadius: 22, paddingHorizontal: 14 },
   linhaComentario: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  campoComentario: { flex: 1, height: 46, paddingHorizontal: 16, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', color: cores.texto, fontSize: 15, fontWeight: '300', outlineWidth: 0, outlineColor: 'transparent' },
+  campoComentario: { flex: 1, height: 46, paddingHorizontal: 16, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', color: cores.texto, fontSize: 15, fontWeight: '300', outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   enviar: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
 });

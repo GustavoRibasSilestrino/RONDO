@@ -284,6 +284,6 @@ const st = StyleSheet.create({
   segmento: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: raio.pilula },
   segmentoAtivo: { backgroundColor: cores.texto },
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
-  campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontWeight: '300', paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, outlineColor: 'transparent' },
+  campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontWeight: '300', paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },
 });
