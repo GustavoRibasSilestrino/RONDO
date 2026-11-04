@@ -29,7 +29,6 @@
   .tool h3, .panel h3, .plan h3, .recado-side h3 { text-align: center; }
   .tool > p { text-align: center; }
   .plan { align-items: center; text-align: center; }
-  .plan .chip { align-self: center; }
   .plan ul { align-self: stretch; text-align: left; max-width: 19rem; margin-inline: auto; width: 100%; }
   .plan .btn { width: 100%; }
   .price { text-align: center; }

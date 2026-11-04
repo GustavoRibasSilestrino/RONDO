@@ -169,7 +169,6 @@
 /* ===== Planos ===== */
 .plan { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 2.2rem; display: flex; flex-direction: column; gap: 1.2rem; position: relative; }
 .plan.hot { --ink-2: #bdb4e0; --ink-3: #a39acb; background: linear-gradient(170deg, #2b1558, var(--card) 62%); border-color: rgba(139, 92, 246, .7); }
-.plan .chip { align-self: flex-start; }
 .plan h3 { font-family: var(--font-display); font-size: 1.5rem; letter-spacing: -.035em; }
 .price { font-family: var(--font-display); font-size: 3rem; font-weight: 300; letter-spacing: -.045em; line-height: 1; }
 .price small { font-family: var(--font-body); font-size: .9rem; font-weight: 400; letter-spacing: 0; color: var(--ink-2); }
