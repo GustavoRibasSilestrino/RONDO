@@ -1,12 +1,23 @@
 /* Cabeçalho fixo do app: as notificações à esquerda, o nome KORA no meio (só no feed). Fundo preto sólido, para a tela rolar por baixo. */
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { cores, larguraMax, estilos } from '../tema';
+import { cores, estilos, larguraMax, temaAtual } from '../tema';
 import { Icone } from './Icone';
 import { T } from './Ui';
 
 export const ALTURA_CABECALHO = 56;
+
+/* no tema Ultra, cada letra do nome tem uma cor; no Normal, é branco */
+const LETRAS_ULTRA = ['#5fd4ff', '#6f9bff', '#a07dff', '#ff7ad9'];
+function Nome() {
+  const ultra = temaAtual() === 'ultra';
+  return (
+    <T tam={19} peso="500" style={{ letterSpacing: 6, marginRight: -6 }}>
+      {[...'KORA'].map((l, i) => <T key={i} tam={19} peso="500" cor={ultra ? LETRAS_ULTRA[i] : '#ffffff'}>{l}</T>)}
+    </T>
+  );
+}
 
 type Props = { mostrarNome: boolean; mostrarTema: boolean; temaBloqueado: boolean; aoTrocarTema: () => void; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
 
@@ -32,7 +43,7 @@ export function CabecalhoApp({ mostrarNome, mostrarTema, temaBloqueado, aoTrocar
 
         {mostrarNome ? (
           <View pointerEvents="none" style={st.marca}>
-            <T tam={19} peso="500" style={{ letterSpacing: 6, marginRight: -6 }}>KORA</T>
+            <Nome />
           </View>
         ) : null}
         {mostrarTema ? (
@@ -52,7 +63,7 @@ export function CabecalhoApp({ mostrarNome, mostrarTema, temaBloqueado, aoTrocar
 }
 
 const st = estilos(() => StyleSheet.create({
-  fundo: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: cores.fundo, borderBottomWidth: 1, borderBottomColor: cores.linha, alignItems: 'center', zIndex: 20 },
+  fundo: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: cores.cabecalho, ...(Platform.OS === 'web' ? ({ backdropFilter: 'blur(22px) saturate(1.5)', WebkitBackdropFilter: 'blur(22px) saturate(1.5)' } as object) : null), borderBottomWidth: 1, borderBottomColor: cores.linha, alignItems: 'center', zIndex: 20 },
   linha: { width: '100%', maxWidth: larguraMax, height: ALTURA_CABECALHO, justifyContent: 'center', paddingHorizontal: 12 },
   tema: { position: 'absolute', right: 12, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   cadeado: { position: 'absolute', right: 5, bottom: 7, width: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
