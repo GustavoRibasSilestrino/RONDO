@@ -226,6 +226,8 @@ export function Day() {
             </div>
           </div>
         </div>
+        {/* pontos de encaixe da rolagem, um por momento (só valem no celular; ver styles/responsive.css) */}
+        {MOMENTS.map((m, i) => <i key={m.id} className="day-snap" aria-hidden="true" style={vars({ "--k": i / (MOMENTS.length - 1) })} />)}
       </div>
     </section>
   );
