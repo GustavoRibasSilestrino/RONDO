@@ -109,8 +109,21 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia }: Prop
 
       <Comentarios aberto={comentando} aoFechar={() => setComentando(false)} postId={post.id} />
 
-      <Folha aberta={apagando} aoFechar={() => setApagando(false)} titulo="Apagar publicação?">
-        <T tam={14} cor={cores.texto2} style={{ lineHeight: 21 }}>Ela some do feed e as fotos e vídeos são removidos do aparelho. Isso não dá para desfazer.</T>
+      <Folha aberta={apagando} aoFechar={() => setApagando(false)} titulo="Sua publicação">
+        <Botao
+          tipo="fantasma"
+          icone="ok"
+          titulo={estado.perfilSocial.destaques.includes(post.id) ? 'Tirar dos destaques do perfil' : 'Destacar no perfil'}
+          aoPressionar={() => {
+            const ja = estado.perfilSocial.destaques.includes(post.id);
+            if (!ja && estado.perfilSocial.destaques.length >= 3) { setApagando(false); avisar('Você já tem 3 destaques. Tire um antes.'); return; }
+            commit((e) => { const d = e.perfilSocial.destaques; const i = d.indexOf(post.id); if (i >= 0) d.splice(i, 1); else d.push(post.id); });
+            setApagando(false);
+            avisar(ja ? 'Removida dos destaques.' : 'Destacada no seu perfil.');
+          }}
+          style={{ marginBottom: 16 }}
+        />
+        <T tam={14} cor={cores.texto2} style={{ lineHeight: 21 }}>Apagar remove a publicação do feed e as fotos e vídeos do aparelho. Isso não dá para desfazer.</T>
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
           <Botao tipo="discreto" titulo="Cancelar" aoPressionar={() => setApagando(false)} style={{ flex: 1 }} />
           <Botao tipo="perigo" icone="lixo" titulo="Apagar" aoPressionar={apagar} style={{ flex: 1 }} />

@@ -84,6 +84,9 @@ export type Recado = {
   uri: string;
 };
 
+/* O lado público do perfil: descrição, títulos exibidos (ids de lib/nivel.ts) e publicações em destaque (ids de Post). */
+export type PerfilSocial = { bio: string; titulos: string[]; destaques: string[] };
+
 export type Estado = {
   v: 1;
   usuario: Usuario | null;
@@ -96,7 +99,10 @@ export type Estado = {
   pesos: { data: string; kg: number }[];
   posts: Post[];
   curtidas: Record<string, boolean>;           // os cheers dados, por id da publicação
-  seguindo: Record<string, boolean>;           // as conexões: pessoas que a pessoa segue, pelo nome
+  seguidores: string[];                        // quem segue a pessoa (de demonstração; em produção vem da API)
+  perfilSocial: PerfilSocial;
+  semeadoSocial: boolean;
+  seguindo: Record<string, boolean>;          // as conexões: pessoas que a pessoa segue, pelo nome
   comentarios: Record<string, Comentario[]>;   // por id da publicação
   grupos: Grupo[];                             // os que a pessoa criou
   clubes: Record<string, boolean>;             // grupos em que a pessoa está (de demonstração ou criados por ela)
