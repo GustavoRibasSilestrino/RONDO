@@ -71,7 +71,7 @@
 .wheel-item svg { width: 22px; height: 22px; }
 .wheel-item.active {
   scale: 1.18; color: #fff; border-color: transparent;
-  background: linear-gradient(135deg, #6d28d9, #9d78fb);
+  background: linear-gradient(135deg, #6d28d9, #8352f0);
 }
 /* ícones que passariam por trás do item de baixo ficam escondidos */
 .wheel-item.far { opacity: 0; scale: .6; pointer-events: none; }

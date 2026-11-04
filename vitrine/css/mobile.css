@@ -50,6 +50,15 @@
   .footer-links { justify-items: center; }
   .disclaimer { margin-inline: auto; text-align: center; }
 
+  /* ---- recado: pergunta, controles e painéis do lado ---- */
+  .rec-q { text-align: center; }
+  .rec-ctrl { justify-content: center; }
+  .when { justify-content: center; }
+  .when legend { float: none; width: 100%; margin: 0 0 .3rem; padding-top: 0; text-align: center; }
+  .rec-result { text-align: center; }
+  .mini { justify-items: center; text-align: center; }
+  .themes { justify-content: center; }
+
   /* ---- toque: alvos de 48px nos campos e botões ---- */
   .btn { min-height: 48px; }
   input, select { min-height: 48px; }
@@ -62,4 +71,10 @@
   .reveal.in { transform: none; }
   .plans > .plan:nth-child(2), .pro-grid > .pro:nth-child(2), .tools > .tool:nth-child(2) { transition-delay: .12s; }
   .plans > .plan:nth-child(3) { transition-delay: .24s; }
+}
+
+/* ---- recado: os quatro prazos viram uma grade 2x2, com alvo de toque maior ---- */
+@media (max-width: 520px) {
+  .when { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+  .when label span { display: block; padding: .8rem 1rem; text-align: center; }
 }

@@ -58,15 +58,14 @@
 .set .f i { font-style: normal; color: var(--ink-3); font-weight: 400; font-size: .68rem; margin-left: .2rem; }
 .ok { width: 30px; height: 30px; border-radius: 4px; background: var(--bg-2); color: transparent; display: grid; place-items: center; transition: .25s; }
 .ok.on { background: var(--good); color: #04140c; }
-.suggest { margin-top: .7rem; padding: .6rem .7rem; border-radius: 4px; background: rgba(139, 92, 246, .12); color: var(--accent-2); font-size: .74rem; font-weight: 500; }
+.suggest { margin-top: .7rem; padding: .6rem .7rem; border-radius: 4px; background: rgba(139, 92, 246, .12); color: var(--accent-2); font-size: .75rem; font-weight: 500; }
 
 /* anel de calorias */
 .ring {
   --p: 60; width: 120px; height: 120px; border-radius: 50%; position: relative; margin-inline: auto;
   background: conic-gradient(var(--accent) calc(var(--p) * 1%), rgba(255, 255, 255, .08) 0);
 }
-.ring::after { content: ""; position: absolute; inset: 11px; border-radius: 50%; background: #07050c; }
-.ring b { position: absolute; inset: 0; z-index: 1; display: grid; place-content: center; text-align: center; font-family: var(--font-display); font-weight: 300; font-size: 1.4rem; letter-spacing: -.04em; line-height: 1.1; }
+.ring b { position: absolute; inset: 11px; z-index: 1; border-radius: 50%; background: #07050c; display: grid; place-content: center; text-align: center; font-family: var(--font-display); font-weight: 300; font-size: 1.4rem; letter-spacing: -.04em; line-height: 1.1; }
 .ring b small { display: block; font-family: var(--font-body); font-size: .62rem; font-weight: 400; letter-spacing: 0; }
 .bar { height: 6px; background: rgba(255, 255, 255, .08); border-radius: 99px; overflow: hidden; margin-top: .35rem; }
 .bar i { display: block; height: 100%; background: var(--violet); border-radius: 99px; }
@@ -169,7 +168,7 @@
 
 /* ===== Planos ===== */
 .plan { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 2.2rem; display: flex; flex-direction: column; gap: 1.2rem; position: relative; }
-.plan.hot { background: linear-gradient(170deg, #2b1558, var(--card) 62%); border-color: rgba(139, 92, 246, .7); }
+.plan.hot { --ink-2: #bdb4e0; --ink-3: #a39acb; background: linear-gradient(170deg, #2b1558, var(--card) 62%); border-color: rgba(139, 92, 246, .7); }
 .plan .chip { align-self: flex-start; }
 .plan h3 { font-family: var(--font-display); font-size: 1.5rem; letter-spacing: -.035em; }
 .price { font-family: var(--font-display); font-size: 3rem; font-weight: 300; letter-spacing: -.045em; line-height: 1; }
@@ -202,6 +201,7 @@
 .recado-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 1.2rem; align-items: start; }
 .recorder {
   border-radius: var(--r-lg); padding: 2.2rem; display: grid; gap: 1.8rem;
+  --ink-2: #bdb4e0; --ink-3: #a39acb;   /* texto de apoio com o matiz do fundo roxo, não cinza */
   background: linear-gradient(160deg, #241448 0%, var(--card) 65%); border: 1px solid var(--line-2);
 }
 .rec-q h3 { font-family: var(--font-display); font-size: clamp(1.7rem, 3.4vw, 2.5rem); letter-spacing: -.045em; line-height: 1.05; margin: 0 0 .7rem; }
@@ -232,7 +232,7 @@
 .when label { cursor: pointer; }
 .when input { position: absolute; opacity: 0; pointer-events: none; }
 .when span { display: inline-block; padding: .5rem 1rem; border-radius: 6px; border: 1px solid var(--line-2); font-size: .85rem; transition: .2s; }
-.when input:checked + span { background: var(--accent); border-color: var(--accent); color: #fff; }
+.when input:checked + span { background: #7c3aed; border-color: #7c3aed; color: #fff; }
 .when input:focus-visible + span { outline: 2px solid var(--accent-2); outline-offset: 2px; }
 .rec-result { font-size: .92rem; color: var(--ink-2); padding: 1rem 1.2rem; border-radius: 6px; background: rgba(0, 0, 0, .3); border: 1px dashed var(--line-2); }
 .rec-result b { color: var(--ink); }
