@@ -13,6 +13,7 @@ import { macrosMeta, metaKcal } from '../lib/calc';
 import { fmt } from '../lib/datas';
 import { medalhasDe } from '../lib/medalhas';
 import { patenteDe } from '../lib/patentes';
+import { Medalha3D } from '../componentes/Medalha3D';
 import { MAX_TITULOS, progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
 import { semearSocial } from '../semear';
 import { cores } from '../tema';
@@ -93,7 +94,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       {/* a patente da conta, em destaque */}
       <View style={st.patente} accessibilityLabel={patente ? `Patente ${patente.nome}` : 'Ainda sem patente'}>
         {patente ? (
-          <Image source={patente.img} style={{ width: 168, height: 160 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+          <Medalha3D frente={patente.img} verso={patente.verso} tamanho={200} />
         ) : (
           <Image source={proxima!.img} style={{ width: 120, height: 114, opacity: 0.25 }} resizeMode="contain" accessibilityIgnoresInvertColors />
         )}
