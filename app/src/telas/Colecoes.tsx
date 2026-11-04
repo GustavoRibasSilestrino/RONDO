@@ -1,6 +1,7 @@
 /* Coleções: as missões em andamento e as medalhas que elas premiam. Cada medalha é a recompensa de uma missão. */
 import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Medalha3D } from '../componentes/Medalha3D';
 import { Folha, Tela } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
 import { Barra, Cartao, Segmentos, T } from '../componentes/Ui';
@@ -12,7 +13,7 @@ import { cores } from '../tema';
 function Selo({ m, tamanho }: { m: MedalhaVista; tamanho: number }) {
   return (
     <View style={{ width: tamanho, height: tamanho * 0.95, alignItems: 'center', justifyContent: 'center' }}>
-      <Image source={m.img} accessibilityIgnoresInvertColors style={{ width: tamanho, height: tamanho * 0.95, opacity: m.aberta ? 1 : 0.42 }} resizeMode="contain" />
+      <Image source={m.img} accessibilityIgnoresInvertColors style={{ width: tamanho, height: tamanho * 0.95, opacity: m.aberta ? 1 : 0.4 }} resizeMode="contain" />
       {!m.aberta ? (
         <View pointerEvents="none" style={st.cadeado}>
           <Icone nome="cadeado" tamanho={Math.round(tamanho * 0.22)} cor="#ffffff" />
@@ -113,7 +114,8 @@ export function Colecoes() {
       <Folha aberta={aberta !== null} aoFechar={() => setAberta(null)} titulo={aberta?.nome}>
         {aberta ? (
           <View style={{ alignItems: 'center', gap: 12, paddingBottom: 6 }}>
-            <Selo m={aberta} tamanho={150} />
+            <Medalha3D frente={aberta.img} verso={aberta.verso} tamanho={230} apagada={!aberta.aberta} />
+            <T tam={12} cor={cores.placeholder}>Arraste para girar a medalha</T>
             <T tam={11.5} peso="500" cor={cores.destaque2} style={{ letterSpacing: 0.4 }}>MISSÃO</T>
             <T tam={16} centro style={{ lineHeight: 23, marginTop: -6 }}>{aberta.desc}</T>
             {aberta.aberta ? (
