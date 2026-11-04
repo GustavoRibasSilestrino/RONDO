@@ -118,7 +118,6 @@ h2.display { font-size: clamp(2rem, 4.2vw, 3.7rem); }
   background: rgba(139, 92, 246, .12); color: var(--accent-2); letter-spacing: .04em;
 }
 .chip.good { background: rgba(61, 220, 151, .12); color: var(--good); }
-.chip.teal { background: rgba(109, 40, 217, .16); color: #c4a8ff; }
 
 /* revelar ao rolar */
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s var(--ease), transform .8s var(--ease); }
