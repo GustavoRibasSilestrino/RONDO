@@ -8,7 +8,7 @@
   --line-2: rgba(255, 255, 255, .16);
   --ink: #f1eefb;
   --ink-2: #a09bb5;
-  --ink-3: #6a6485;
+  --ink-3: #8d84b8;
   --violet: #6d28d9;
   --violet-d: #2e1065;
   --accent: #8b5cf6;
@@ -99,7 +99,7 @@ h2.display { font-size: clamp(2rem, 4.2vw, 3.7rem); }
 }
 .btn:hover { transform: translateY(-2px); }
 .btn-primary {
-  background: linear-gradient(135deg, #6d28d9, #9d78fb); color: #fff;
+  background: linear-gradient(135deg, #6d28d9, #8352f0); color: #fff;
   box-shadow: 0 14px 34px -16px rgba(139, 92, 246, .85), inset 0 1px 0 rgba(255, 255, 255, .22);
 }
 .btn-ghost { border: 1px solid var(--line-2); background: rgba(255, 255, 255, .02); }

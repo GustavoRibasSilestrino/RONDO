@@ -74,7 +74,7 @@
   border: 1px solid var(--line-2); border-radius: var(--r-lg); background: rgba(8, 6, 13, .72);
 }
 .m-ui h4 { font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; letter-spacing: -.03em; line-height: 1.15; }
-.m-ui small, .s-sub { color: var(--ink-2); font-size: .74rem; }
+.m-ui small, .s-sub { color: var(--ink-2); font-size: .75rem; }
 .m-cmp {
   display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; padding-top: .8rem; margin-top: .1rem;
   border-top: 1px dashed var(--line-2); font-family: var(--font-mono); font-size: .64rem; letter-spacing: .06em; color: var(--ink-3);
@@ -109,5 +109,5 @@
   .macros { font-size: .76rem; }
   .ring b small, .set .f i { font-size: .7rem; }
   .seal { font-size: .76rem; }
-  .set span:first-child { font-size: .74rem; }
+  .set span:first-child { font-size: .75rem; }
 }
