@@ -6,7 +6,7 @@
   .nav { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 14px); z-index: 90; display: flex; justify-content: center; }
   .nav::before { display: none; }
   .nav-in {
-    width: auto; height: auto; margin: 0; padding: .3rem; gap: 0;
+    display: flex; width: auto; height: auto; margin: 0; padding: .3rem; gap: 0;
     border: 1px solid var(--line-2); border-radius: 99px;
     background: rgba(5, 5, 7, .84); backdrop-filter: blur(14px) saturate(1.3);
     box-shadow: 0 12px 32px -12px rgba(0, 0, 0, .9);
