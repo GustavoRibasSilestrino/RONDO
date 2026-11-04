@@ -1,4 +1,4 @@
-/* ===== Comparador Ontem x Hoje (cartão Você vs. RONDO) ===== */
+/* ===== Comparador Ontem x Hoje (cartão Você vs. ontem) ===== */
 .cmp {
   --pos: 50%;
   position: relative; border-radius: var(--r-lg); overflow: hidden; user-select: none;

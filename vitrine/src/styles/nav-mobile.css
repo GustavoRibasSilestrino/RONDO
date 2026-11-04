@@ -1,0 +1,68 @@
+/* ===== Celular e tablet: barra no topo com o logo e o botão de três riscos =====
+   O botão abre um menu de tela cheia com todas as seções; o "x" (o mesmo botão) fecha. */
+.burger, .mnav { display: none; }
+.logo .logo-mark { height: 20px; width: auto; margin-right: .6rem; }
+
+@media (max-width: 980px) {
+  :root { --nav-h: 60px; }
+  .nav-in {
+    display: flex; justify-content: space-between; gap: 1rem;
+    height: calc(var(--nav-h) + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px);
+  }
+  .nav-links, .nav-end { display: none; }
+  .nav.menu-open::before { opacity: 1; background: #050507; backdrop-filter: none; }
+  .logo-nome { font-size: 1rem; letter-spacing: .28em; }
+  .logo .logo-mark { height: 18px; margin-right: .55rem; }
+
+  .burger {
+    display: grid; place-items: center; width: 44px; height: 44px; margin-right: -10px;
+    border-radius: 10px; color: var(--ink); -webkit-tap-highlight-color: transparent;
+  }
+  .burger span { position: relative; display: block; width: 22px; height: 14px; }
+  .burger i {
+    position: absolute; left: 0; width: 100%; height: 1.5px; border-radius: 2px; background: currentColor;
+    transition: top .3s var(--ease), transform .3s var(--ease), opacity .2s;
+  }
+  .burger i:nth-child(1) { top: 0; }
+  .burger i:nth-child(2) { top: 6.25px; }
+  .burger i:nth-child(3) { top: 12.5px; }
+  .burger[aria-expanded="true"] i:nth-child(1) { top: 6.25px; transform: rotate(45deg); }
+  .burger[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
+  .burger[aria-expanded="true"] i:nth-child(3) { top: 6.25px; transform: rotate(-45deg); }
+
+  /* o menu fica por baixo da barra, para o "x" continuar à mão */
+  .mnav {
+    display: block; position: fixed; inset: 0; z-index: 49;
+    padding: calc(var(--nav-h) + env(safe-area-inset-top, 0px) + .8rem) var(--gutter) calc(env(safe-area-inset-bottom, 0px) + 2rem);
+    background: rgba(5, 5, 7, .97); overflow-y: auto; overscroll-behavior: contain;
+    opacity: 0; visibility: hidden; transition: opacity .28s var(--ease), visibility 0s .28s;
+  }
+  .mnav.open { opacity: 1; visibility: visible; transition: opacity .28s var(--ease); }
+  .mnav-list, .mnav-cta { width: 100%; max-width: 34rem; margin-inline: auto; }
+  .mnav-list { display: grid; }
+  .mnav-list a {
+    display: flex; align-items: center; gap: .9rem; min-height: 54px; padding: .7rem .2rem;
+    border-bottom: 1px solid var(--line); color: var(--ink);
+    font-family: var(--font-display); font-weight: 300; font-size: 1.3rem; letter-spacing: -.02em;
+    opacity: 0; translate: 0 10px;
+    transition: opacity .4s var(--ease) calc(var(--i) * 30ms), translate .4s var(--ease) calc(var(--i) * 30ms), color .2s;
+  }
+  .mnav.open .mnav-list a { opacity: 1; translate: 0 0; }
+  .mnav-list a svg { flex: none; width: 22px; height: 22px; color: var(--ink-3); transition: color .2s; }
+  .mnav-list a[aria-current="true"], .mnav-list a[aria-current="true"] svg { color: var(--accent-2); }
+  .mnav-list a:active { color: var(--accent-2); }
+  .mnav-cta { display: grid; margin-top: 1.6rem; }
+  .mnav-cta .btn { width: 100%; min-height: 52px; border-radius: 14px; }
+}
+
+/* telas baixas (celular deitado): duas colunas para caber sem rolar */
+@media (max-width: 980px) and (min-width: 560px) and (max-height: 560px) {
+  .mnav-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.5rem; max-width: 46rem; }
+  .mnav-list a { min-height: 46px; font-size: 1.1rem; }
+  .mnav-cta { max-width: 46rem; margin-top: 1rem; }
+}
+
+@media (min-width: 981px) { .mnav { display: none !important; } }
+@media (prefers-reduced-motion: reduce) {
+  .mnav, .mnav-list a, .burger i { transition: none; }
+}

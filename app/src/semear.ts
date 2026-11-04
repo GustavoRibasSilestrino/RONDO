@@ -1,4 +1,4 @@
-/* Dados de demonstração: 10 semanas de histórico para os gráficos e o "Você vs. Rondo" já terem o que mostrar.
+/* Dados de demonstração: 10 semanas de histórico para os gráficos e o "Você vs. ontem" já terem o que mostrar.
    Gerados de forma determinística a partir da data de hoje. Em produção isto vem da API. */
 import { ALIMENTOS, ROTINAS } from './dados';
 import { diaDaSemana, iso, somarDias } from './lib/datas';
