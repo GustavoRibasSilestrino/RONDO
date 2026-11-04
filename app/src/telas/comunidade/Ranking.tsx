@@ -20,7 +20,7 @@ export function Ranking() {
       <Cartao>
         <T tam={12} mono cor={cores.texto3}>PONTOS DA SEMANA</T>
         {ranking.map((r, i) => (
-          <View key={r.nome} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: i === ranking.length - 1 ? 0 : 1, borderBottomColor: cores.linha, backgroundColor: r.voce ? 'rgba(139,92,246,0.12)' : 'transparent', marginHorizontal: r.voce ? -8 : 0, paddingHorizontal: r.voce ? 8 : 0, borderRadius: r.voce ? 6 : 0 }}>
+          <View key={r.nome} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: i === ranking.length - 1 ? 0 : 1, borderBottomColor: cores.linha, backgroundColor: r.voce ? `rgba(${cores.tom},0.12)` : 'transparent', marginHorizontal: r.voce ? -8 : 0, paddingHorizontal: r.voce ? 8 : 0, borderRadius: r.voce ? 6 : 0 }}>
             <T tam={13} mono cor={cores.texto3} style={{ width: 20 }}>{i + 1}</T>
             <Avatar nome={r.nome} voce={r.voce} />
             <T tam={15} peso={r.voce ? '500' : '300'} style={{ flex: 1 }}>{r.voce ? 'Você' : r.nome}</T>

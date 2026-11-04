@@ -22,10 +22,10 @@ export function GraficoLinha({ pontos, largura, altura = 150, cor = cores.destaq
   return (
     <Svg width={largura} height={altura}>
       <Line x1={mx} x2={largura - mx} y1={altura - base} y2={altura - base} stroke={cores.linha2} strokeWidth={1} />
-      <Path d={area} fill="rgba(139,92,246,0.12)" />
+      <Path d={area} fill={`rgba(${cores.tom},0.12)`} />
       <Path d={linha} stroke={cor} strokeWidth={2} fill="none" strokeLinejoin="round" strokeLinecap="round" />
       {pontos.map((p, i) => (p.destaque ? <Circle key={i} cx={ex(p.x)} cy={ey(p.y)} r={4} fill={cores.bom} /> : null))}
-      <Circle cx={ex(ultimo.x)} cy={ey(ultimo.y)} r={5} fill="#ffffff" stroke="rgba(139,92,246,0.5)" strokeWidth={5} />
+      <Circle cx={ex(ultimo.x)} cy={ey(ultimo.y)} r={5} fill="#ffffff" stroke={`rgba(${cores.tom},0.5)`} strokeWidth={5} />
       <SvgText x={ex(ultimo.x)} y={Math.max(topo, ey(ultimo.y) - 12)} fill={cores.texto} fontSize={12} fontFamily={FONTE['500']} textAnchor="end">{formato(ultimo.y)}</SvgText>
     </Svg>
   );
@@ -44,7 +44,7 @@ export function GraficoBarras({ valores, rotulos, largura, altura = 120 }: { val
         const ultimo = i === valores.length - 1;
         return (
           <React.Fragment key={i}>
-            <Rect x={i * (w + folga)} y={altura - base - h} width={w} height={Math.max(h, 2)} rx={3} fill={ultimo ? cores.destaque2 : 'rgba(139,92,246,0.45)'} />
+            <Rect x={i * (w + folga)} y={altura - base - h} width={w} height={Math.max(h, 2)} rx={3} fill={ultimo ? cores.destaque2 : `rgba(${cores.tom},0.45)`} />
             <SvgText x={i * (w + folga) + w / 2} y={altura - 4} fill={cores.texto3} fontSize={10} fontFamily={FONTE['300']} textAnchor="middle">{rotulos[i]}</SvgText>
           </React.Fragment>
         );

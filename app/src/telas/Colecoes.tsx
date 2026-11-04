@@ -7,7 +7,7 @@ import { Icone } from '../componentes/Icone';
 import { Barra, Cartao, Segmentos, T } from '../componentes/Ui';
 import { useLoja } from '../estado/loja';
 import { COLECOES, emAndamento, MedalhaVista, medalhasDe, textoValor } from '../lib/medalhas';
-import { cores } from '../tema';
+import { cores, estilos } from '../tema';
 
 /* a imagem da medalha; fechada fica apagada, com um cadeado */
 function Selo({ m, tamanho }: { m: MedalhaVista; tamanho: number }) {
@@ -133,11 +133,11 @@ export function Colecoes() {
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   missao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', minHeight: 44 },
   feita: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6, paddingHorizontal: 10, minHeight: 44 },
   cabeca: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 },
   grade: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 14 },
   item: { width: '33.33%', alignItems: 'center', minHeight: 44 },
   cadeado: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
-});
+}));

@@ -15,9 +15,11 @@ import { escolherFoto, removerMidia } from '../lib/midia';
 import { medalhasDe } from '../lib/medalhas';
 import { patenteDe } from '../lib/patentes';
 import { Medalha3D } from '../componentes/Medalha3D';
-import { MAX_TITULOS, progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
+import { progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
+import { BENEFICIOS, limitesDe, NIVEL_ULTRA } from '../lib/beneficios';
+import { useTrocaTema } from '../componentes/TrocaTema';
 import { semearSocial } from '../semear';
-import { cores } from '../tema';
+import { cores, estilos } from '../tema';
 import type { Midia, Post, Sexo } from '../tipos';
 import { Avatar } from './comunidade/Avatar';
 import { CartaoPost } from './comunidade/CartaoPost';
@@ -39,6 +41,8 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
   const [editando, setEditando] = useState(false);
   const [apagandoConta, setApagandoConta] = useState(false);   // confirmação de apagar a conta
+  const [beneficios, setBeneficios] = useState(false);          // lista de benefícios por nível
+  const trocarTema = useTrocaTema();
   const [bio, setBio] = useState('');
   const [nomeEd, setNomeEd] = useState('');
   const [arrobaEd, setArrobaEd] = useState('');
@@ -53,6 +57,8 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
   const xp = xpTotal(estado);
   const nivel = progressoNivel(xp);
+  const limites = limitesDe(nivel.nivel);
+  const temaEfetivo = nivel.nivel >= NIVEL_ULTRA ? estado.tema : 'normal';
   const seguindo = Object.keys(estado.seguindo).filter((k) => estado.seguindo[k]);
   const seguidores = estado.seguidores;
   const destacadas = estado.perfilSocial.destaques.map((id) => estado.posts.find((x) => x.id === id)).filter((x): x is Post => !!x);
@@ -105,7 +111,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       const l = e.perfilSocial.titulos;
       const i = l.indexOf(id);
       if (i >= 0) l.splice(i, 1);
-      else if (l.length < MAX_TITULOS) l.push(id);
+      else if (l.length < limites.titulos) l.push(id);
     });
   };
 
@@ -189,10 +195,43 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         <T tam={12.5} cor={cores.texto3} style={{ marginTop: 10, lineHeight: 18 }}>
           Você ganha XP registrando treinos, refeições, check-ins e água, publicando e comentando. Cada nível libera novos títulos.
         </T>
+        <Botao pequeno tipo="fantasma" icone="medalha" titulo="Ver benefícios por nível" aoPressionar={() => setBeneficios(true)} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
       </Cartao>
 
+      {/* aparência: o tema Normal e o Ultra (liberado no nível 15) */}
+      <Titulo>Aparência</Titulo>
+      <View style={st.temas}>
+        {(['normal', 'ultra'] as const).map((id) => {
+          const ativo = temaEfetivo === id;
+          const bloqueado = id === 'ultra' && nivel.nivel < NIVEL_ULTRA;
+          return (
+            <Pressable
+              key={id}
+              accessibilityRole="button"
+              accessibilityState={{ selected: ativo, disabled: bloqueado }}
+              accessibilityLabel={`Tema ${id === 'ultra' ? 'Ultra' : 'Normal'}${bloqueado ? ', bloqueado até o nível 15' : ativo ? ', ativo' : ''}`}
+              onPress={() => {
+                if (bloqueado) { avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); return; }
+                if (!ativo) trocarTema(id);
+              }}
+              style={[st.tema, ativo && { borderColor: cores.destaque }]}
+            >
+              <View style={[st.previa, id === 'ultra' ? st.previaUltra : st.previaNormal]}>
+                {id === 'ultra' ? <><View style={[st.mancha, { backgroundColor: '#2f6bff', left: -10, top: -10 }]} /><View style={[st.mancha, { backgroundColor: '#00d4ff', right: -14, bottom: -14 }]} /></> : <View style={[st.mancha, { backgroundColor: '#6a00d4', width: 26, height: 26, left: 12, bottom: 10 }]} />}
+                {bloqueado ? <View style={st.cadeado}><Icone nome="cadeado" tamanho={20} cor="#ffffff" /></View> : null}
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10 }}>
+                <T tam={14} peso="500">{id === 'ultra' ? 'Ultra' : 'Normal'}</T>
+                {ativo ? <Icone nome="ok" tamanho={16} cor={cores.bom} /> : null}
+              </View>
+              <T tam={12} style={{ marginTop: 2 }}>{bloqueado ? 'Libera no nível 15' : id === 'ultra' ? 'Vidro, aurora e ondas' : 'Preto profundo'}</T>
+            </Pressable>
+          );
+        })}
+      </View>
+
       <Titulo>Títulos</Titulo>
-      <T tam={13} cor={cores.texto2} style={{ marginTop: -4, marginBottom: 12, lineHeight: 19 }}>Escolha até {MAX_TITULOS} para mostrar no seu perfil.</T>
+      <T tam={13} cor={cores.texto2} style={{ marginTop: -4, marginBottom: 12, lineHeight: 19 }}>Escolha até {limites.titulos} para mostrar no seu perfil.</T>
       <View style={st.colecao}>
         {TITULOS.map((t) => {
           const liberado = t.nivel <= nivel.nivel;
@@ -297,6 +336,22 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       </View>
       <T tam={11} cor={cores.texto3} style={{ marginTop: 22 }}>KORA · versão 0.1.0</T>
 
+      {/* benefícios de cada nível */}
+      <Folha aberta={beneficios} aoFechar={() => setBeneficios(false)} titulo="Benefícios por nível">
+        <View style={{ gap: 8, paddingBottom: 4 }}>
+          {BENEFICIOS.map((b) => {
+            const aberto = nivel.nivel >= b.nivel;
+            return (
+              <View key={b.nivel} style={[st.linhaBeneficio, aberto && { borderColor: cores.linha2 }]}>
+                <View style={[st.nivelBeneficio, aberto && { backgroundColor: cores.destaqueForte }]}><T tam={13} peso="500">{b.nivel}</T></View>
+                <T tam={14} style={{ flex: 1, lineHeight: 19, opacity: aberto ? 1 : 0.6 }}>{b.texto}</T>
+                {aberto ? <Icone nome="ok" tamanho={18} cor={cores.bom} /> : <Icone nome="cadeado" tamanho={16} cor="#ffffff" />}
+              </View>
+            );
+          })}
+        </View>
+      </Folha>
+
       {/* apagar a conta: pede confirmação */}
       <Folha aberta={apagandoConta} aoFechar={() => setApagandoConta(false)} titulo="Apagar conta?">
         <T tam={14} style={{ lineHeight: 21 }}>Isso apaga a sua conta e todos os seus dados deste aparelho: treinos, dieta, publicações, medalhas e recados. Não dá para desfazer.</T>
@@ -320,8 +375,8 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         <View style={{ height: 12 }} />
         <CampoFlutuante rotulo="Nome de usuário" value={arrobaEd} onChangeText={(v) => setArrobaEd(v.replace(/^@/, '').toLowerCase())} maxLength={20} erro={erroEd.arroba} autoCapitalize="none" autoCorrect={false} returnKeyType="next" />
         <View style={{ height: 12 }} />
-        <CampoFlutuante rotulo="Descrição" value={bio} onChangeText={setBio} maxLength={160} multiline />
-        <T tam={12} mono style={{ alignSelf: 'flex-end', marginTop: 6 }}>{bio.length}/160</T>
+        <CampoFlutuante rotulo="Descrição" value={bio} onChangeText={setBio} maxLength={limites.bio} multiline />
+        <T tam={12} mono style={{ alignSelf: 'flex-end', marginTop: 6 }}>{bio.length}/{limites.bio}</T>
         <T tam={12.5} style={{ marginTop: 8, lineHeight: 18 }}>Idade, peso, altura e objetivo ficam em Seus dados, mais abaixo no perfil.</T>
         <Botao titulo="Salvar" aoPressionar={salvar} style={{ marginTop: 14 }} />
       </Folha>
@@ -359,21 +414,30 @@ function Contagem({ n, rotulo, aoTocar }: { n: number; rotulo: string; aoTocar?:
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   topo: { alignItems: 'center' },
   lapis: { position: 'absolute', top: -4, right: 0, width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2, zIndex: 2 },
   selo: { marginTop: -12, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.destaqueForte, borderWidth: 2, borderColor: cores.fundo },
   titulos: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 12 },
-  titulo: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: 'rgba(139,92,246,0.14)' },
+  titulo: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: `rgba(${cores.tom},0.14)` },
   contagens: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 4, marginTop: 14 },
   contagem: { alignItems: 'center', minWidth: 78, paddingHorizontal: 6, minHeight: 44, justifyContent: 'center' },
   fio: { width: 1, height: 22, backgroundColor: cores.linha },
   colecao: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   patente: { alignItems: 'center', marginTop: 22, paddingVertical: 18, borderRadius: 22, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
+  temas: { flexDirection: 'row', gap: 10 },
+  tema: { flex: 1, padding: 12, borderRadius: 18, borderWidth: 1.5, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  previa: { height: 74, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  previaNormal: { backgroundColor: '#000000', borderWidth: 1, borderColor: '#333333' },
+  previaUltra: { backgroundColor: '#040817' },
+  mancha: { position: 'absolute', width: 70, height: 70, borderRadius: 35, opacity: 0.7 },
+  cadeado: { position: 'absolute', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)' },
+  linhaBeneficio: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, borderWidth: 1, borderColor: cores.linha },
+  nivelBeneficio: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
   atalhos: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
   atalho: { width: '48%', flexGrow: 1, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', minHeight: 44 },
-  atalhoIcone: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(139,92,246,0.16)' },
+  atalhoIcone: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(${cores.tom},0.16)` },
   chipTitulo: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
   chipTituloAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
   destaque: { width: 240 },
-});
+}));

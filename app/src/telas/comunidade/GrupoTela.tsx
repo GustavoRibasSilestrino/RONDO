@@ -8,7 +8,7 @@ import { useLoja } from '../../estado/loja';
 import { fmt } from '../../lib/datas';
 import { categoria, listarGrupos, membrosAmostra } from '../../lib/grupos';
 import { removerMidia } from '../../lib/midia';
-import { cores } from '../../tema';
+import { cores, estilos } from '../../tema';
 import type { Midia } from '../../tipos';
 import { SITE } from '../Login';
 import { Avatar } from './Avatar';
@@ -163,11 +163,11 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia }: Props) {
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   barra: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
   circulo: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha },
   titulo: { position: 'absolute', left: 18, right: 18, bottom: 16, gap: 6 },
   chips: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   rostos: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
   rosto: { borderRadius: 20, borderWidth: 2, borderColor: 'rgba(5,5,7,0.9)' },
-});
+}));

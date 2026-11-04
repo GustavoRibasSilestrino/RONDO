@@ -2,7 +2,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { cores, larguraMax } from '../tema';
+import { cores, larguraMax, estilos } from '../tema';
 import { Icone } from './Icone';
 import { T } from './Ui';
 
@@ -40,10 +40,10 @@ export function CabecalhoApp({ mostrarNome, naoLidas, aberto, aoAbrirNotificacoe
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   fundo: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: cores.fundo, borderBottomWidth: 1, borderBottomColor: cores.linha, alignItems: 'center', zIndex: 20 },
   linha: { width: '100%', maxWidth: larguraMax, height: ALTURA_CABECALHO, justifyContent: 'center', paddingHorizontal: 12 },
   sino: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   selo: { position: 'absolute', top: 3, right: 1, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   marca: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-});
+}));

@@ -9,7 +9,7 @@ import { Botao, Cartao, T } from '../componentes/Ui';
 import { useLoja } from '../estado/loja';
 import { adicionar } from '../lib/notificacoes';
 import { Profissional, PROFISSIONAIS, ROTULO_TIPO, TipoProfissional } from '../lib/profissionais';
-import { cores, FONTE, larguraMax } from '../tema';
+import { cores, FONTE, larguraMax, estilos } from '../tema';
 import { Avatar } from './comunidade/Avatar';
 import { normalizar } from './comunidade/util';
 
@@ -127,7 +127,7 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   tela: { flex: 1, backgroundColor: cores.fundo, alignItems: 'center' },
   coluna: { flex: 1, width: '100%', maxWidth: larguraMax },
   topo: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 52 },
@@ -140,4 +140,4 @@ const st = StyleSheet.create({
   chip: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
   meta: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, gap: 8, flexWrap: 'wrap' },
   rodape: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: cores.linha },
-});
+}));

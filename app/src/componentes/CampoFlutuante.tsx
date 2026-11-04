@@ -2,7 +2,7 @@
    O rótulo nunca some (some só o "placeholder"), o erro aparece colado ao campo com ícone e texto, e o foco acende a borda. */
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, TextInput, TextInputProps, View } from 'react-native';
-import { cores, FONTE } from '../tema';
+import { cores, FONTE, estilos } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 import { T } from './Ui';
 
@@ -86,13 +86,13 @@ export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuant
   );
 });
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   caixa: {
     height: 60, flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 6,
     borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)',
   },
   caixaAlta: { height: undefined, minHeight: 112, alignItems: 'stretch' },
-  caixaFoco: { borderColor: cores.destaque, backgroundColor: 'rgba(139,92,246,0.07)', boxShadow: '0 0 0 4px rgba(139,92,246,0.18)' },
+  caixaFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.07)`, boxShadow: `0 0 0 4px rgba(${cores.tom},0.18)` },
   caixaErro: { borderColor: cores.erro, boxShadow: '0 0 0 4px rgba(255,107,129,0.14)' },
   icone: { marginRight: 12 },
   meio: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
@@ -101,4 +101,4 @@ const st = StyleSheet.create({
   entradaAlta: { height: undefined, minHeight: 112, paddingTop: 32, paddingBottom: 12, textAlignVertical: 'top' },
   valido: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   erroLinha: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 8, paddingHorizontal: 6 },
-});
+}));

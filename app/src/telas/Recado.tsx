@@ -114,7 +114,7 @@ export function Recado() {
             accessibilityRole="button"
             accessibilityLabel={gravando ? 'Parar gravação' : 'Gravar recado'}
             onPress={() => (gravando ? parar() : iniciar())}
-            style={{ width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center', backgroundColor: gravando ? cores.erro : cores.destaque, borderWidth: 6, borderColor: gravando ? 'rgba(255,107,129,0.3)' : 'rgba(139,92,246,0.3)' }}
+            style={{ width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center', backgroundColor: gravando ? cores.erro : cores.destaque, borderWidth: 6, borderColor: gravando ? 'rgba(255,107,129,0.3)' : `rgba(${cores.tom},0.3)` }}
           >
             <Icone nome={gravando ? 'parar' : 'recado'} tamanho={30} cor="#ffffff" />
           </Pressable>

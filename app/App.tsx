@@ -7,6 +7,9 @@ import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { modoDemonstracao } from './src/api/conta';
 import { Abertura } from './src/componentes/Abertura';
+import { AvisoNivel } from './src/componentes/AvisoNivel';
+import { FundoUltra } from './src/componentes/FundoUltra';
+import { TrocaTemaProvider } from './src/componentes/TrocaTema';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
 import { AvisoProvider } from './src/componentes/Estrutura';
@@ -25,7 +28,10 @@ import { Perfil } from './src/telas/Perfil';
 import { Recado } from './src/telas/Recado';
 import { Social } from './src/telas/Social';
 import { Treino } from './src/telas/Treino';
-import { cores } from './src/tema';
+import { estilos } from './src/tema';
+import { NIVEL_ULTRA } from './src/lib/beneficios';
+import { nivelDe, xpTotal } from './src/lib/nivel';
+import { aplicarTema, cores } from './src/tema';
 
 /* o app abre no Início (o feed), e o botão voltar do Android leva para ele */
 const INICIO = 'home';
@@ -48,6 +54,9 @@ function Raiz() {
   const pronto = dadosProntos && fontes;   // espera a fonte, para o texto não aparecer trocado
   const [tela, setTela] = useState(INICIO);
   useNotificacoes();
+  /* o tema vale antes de tudo ser desenhado; o Ultra só a partir do nível 15 */
+  const tema = estado.usuario && nivelDe(xpTotal(estado)) >= NIVEL_ULTRA ? estado.tema : 'normal';
+  aplicarTema(tema);
 
   /* botão voltar do Android: de qualquer tela volta para o início; no início, sai do app */
   useEffect(() => {
@@ -84,6 +93,7 @@ function Raiz() {
   const naBarra = tela === 'notificacoes' ? '' : DO_PERFIL.includes(tela) ? 'perfil' : tela;
   return (
     <View style={{ flex: 1 }}>
+      {tema === 'ultra' ? <FundoUltra /> : null}
       {tela === 'home' && <Social modo="home" ir={setTela} />}
       {tela === 'comunidade' && <Social modo="comunidade" ir={setTela} />}
       {tela === 'treino' && <><Treino />{estado.treinoAtual ? null : <CriarPlano tipo="treino" />}</>}
@@ -96,6 +106,7 @@ function Raiz() {
       {tela === 'perfil' && <Perfil ir={setTela} />}
       <CabecalhoApp mostrarNome={tela === 'home'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={() => setTela(tela === 'notificacoes' ? INICIO : 'notificacoes')} />
       <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />
+      <AvisoNivel />
     </View>
   );
 }
@@ -105,9 +116,11 @@ export default function App() {
     <SafeAreaProvider>
       <View style={st.raiz}>
         <LojaProvider>
-          <AvisoProvider>
-            <Raiz />
-          </AvisoProvider>
+          <TrocaTemaProvider>
+            <AvisoProvider>
+              <Raiz />
+            </AvisoProvider>
+          </TrocaTemaProvider>
         </LojaProvider>
         <Abertura />
         <StatusBar style="light" />
@@ -116,7 +129,7 @@ export default function App() {
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   raiz: { flex: 1, backgroundColor: cores.fundo },
   centro: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.fundo },
-});
+}));

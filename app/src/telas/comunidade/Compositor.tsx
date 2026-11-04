@@ -8,8 +8,9 @@ import { Icone } from '../../componentes/Icone';
 import { T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
 import { listarGrupos } from '../../lib/grupos';
-import { escolherMidia, MAX_MIDIAS, removerMidia } from '../../lib/midia';
-import { cores, larguraMax, FONTE } from '../../tema';
+import { useConta } from '../../lib/beneficios';
+import { escolherMidia, removerMidia } from '../../lib/midia';
+import { cores, larguraMax, FONTE, estilos } from '../../tema';
 import type { Midia } from '../../tipos';
 import { Avatar } from './Avatar';
 import { Miniatura } from './Midia';
@@ -38,6 +39,8 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
   }, [aberto, grupoInicial]);
 
   const pode = (texto.trim().length > 0 || midia.length > 0) && origem === null;
+  const { limites } = useConta();
+  const MAX_MIDIAS = limites.midias;
   const cheio = midia.length >= MAX_MIDIAS;
 
   const adicionar = async (de: 'galeria' | 'camera') => {
@@ -200,7 +203,7 @@ function Ferramenta({ icone, rotulo, ocupado, desabilitado, aoTocar }: { icone: 
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   tela: { flex: 1, backgroundColor: cores.fundo, alignItems: 'center' },
   coluna: { flex: 1, width: '100%', maxWidth: larguraMax },
   barra: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 10 },
@@ -215,8 +218,8 @@ const st = StyleSheet.create({
   miniaturas: { gap: 10, paddingTop: 16, paddingBottom: 8 },
   tile: { width: 132, height: 132 },
   x: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#17122a', borderWidth: 1, borderColor: cores.linha2 },
-  mais: { width: 132, height: 132, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(196,168,255,0.4)', backgroundColor: 'rgba(139,92,246,0.06)' },
+  mais: { width: 132, height: 132, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(196,168,255,0.4)', backgroundColor: `rgba(${cores.tom},0.06)` },
   erro: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 12, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,107,129,0.35)', backgroundColor: 'rgba(255,107,129,0.08)' },
   ferramentas: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: cores.linha, backgroundColor: 'rgba(5,5,7,0.96)' },
-  ferramenta: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(139,92,246,0.12)' },
-});
+  ferramenta: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(${cores.tom},0.12)` },
+}));

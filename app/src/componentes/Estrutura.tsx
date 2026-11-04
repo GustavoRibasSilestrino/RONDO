@@ -2,7 +2,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { cores, larguraMax, raio } from '../tema';
+import { cores, larguraMax, raio, estilos } from '../tema';
 import { T } from './Ui';
 
 /* ---------- Tela ---------- */
@@ -94,10 +94,10 @@ export function AvisoProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-const st = StyleSheet.create({
+const st = estilos(() => StyleSheet.create({
   fundo: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
   espaco: { width: '100%', maxWidth: larguraMax, alignSelf: 'center' },
-  corpo: { backgroundColor: '#0a0a0a', borderColor: cores.linha2, borderWidth: 1, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 22, paddingTop: 12 },
+  corpo: { backgroundColor: cores.painel, borderColor: cores.linha2, borderWidth: 1, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 22, paddingTop: 12 },
   alca: { alignSelf: 'center', width: 42, height: 5, borderRadius: 3, backgroundColor: cores.linha2, marginBottom: 16 },
-  aviso: { position: 'absolute', left: 24, right: 24, alignSelf: 'center', maxWidth: 420, backgroundColor: '#161616', borderColor: cores.linha2, borderWidth: 1, borderRadius: raio.pilula, paddingVertical: 12, paddingHorizontal: 20, boxShadow: '0 16px 34px -14px rgba(0,0,0,0.9)' },
-});
+  aviso: { position: 'absolute', left: 24, right: 24, alignSelf: 'center', maxWidth: 420, backgroundColor: cores.aviso, borderColor: cores.linha2, borderWidth: 1, borderRadius: raio.pilula, paddingVertical: 12, paddingHorizontal: 20, boxShadow: '0 16px 34px -14px rgba(0,0,0,0.9)' },
+}));

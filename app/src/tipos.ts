@@ -112,6 +112,8 @@ export type Estado = {
   clubes: Record<string, boolean>;             // grupos em que a pessoa está (de demonstração ou criados por ela)
   recados: Recado[];
   notificacoes: Notificacao[];
+  tema: 'normal' | 'ultra';                      // a aparência escolhida; o Ultra só vale a partir do nível 15
+  nivelAvisado: number | null;                 // o último nível que a pessoa já viu comemorado; null até a primeira leitura
   profissionais: Record<string, boolean>;      // profissionais para quem a pessoa enviou um pedido de contato, por id
   medalhasAvisadas: string[] | null;           // medalhas que já viraram notificação; null até a primeira leitura (as que já estavam abertas não avisam)
   semeado: boolean;
