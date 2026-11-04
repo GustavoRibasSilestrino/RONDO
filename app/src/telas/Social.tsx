@@ -75,9 +75,8 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
           <GrupoTela id={grupoAberto} aoVoltar={voltarDoGrupo} aoCompor={abrirCompositor} aoAbrirMidia={abrirMidia} />
         ) : modo === 'home' ? (
           <>
-            <T tam={36} peso="200">Início</T>
-            <T tam={14} style={{ marginTop: 6 }}>O que a galera está fazendo hoje.</T>
-            <View style={{ gap: 14, marginTop: 20 }}>
+            <T tam={15} peso="400" centro>Início</T>
+            <View style={{ gap: 14, marginTop: 16 }}>
               <View style={st.filtros}>
                 {([['todos', 'Tudo'], ['seguindo', 'Seguindo'], ['meus', 'Clubes'], ['geral', 'Geral']] as [Filtro, string][]).map(([v, nome]) => {
                   const ativo = v === filtro;

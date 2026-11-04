@@ -1,4 +1,4 @@
-/* Cabeçalho fixo do app: as notificações à esquerda, o nome KORA no meio. Fundo preto sólido, para a tela rolar por baixo. */
+/* Cabeçalho fixo do app: as notificações à esquerda, o nome KORA no meio (só no feed). Fundo preto sólido, para a tela rolar por baixo. */
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,9 +8,9 @@ import { T } from './Ui';
 
 export const ALTURA_CABECALHO = 56;
 
-type Props = { naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
+type Props = { mostrarNome: boolean; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
 
-export function CabecalhoApp({ naoLidas, aberto, aoAbrirNotificacoes }: Props) {
+export function CabecalhoApp({ mostrarNome, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[st.fundo, { paddingTop: insets.top, height: insets.top + ALTURA_CABECALHO }]}>
@@ -30,9 +30,11 @@ export function CabecalhoApp({ naoLidas, aberto, aoAbrirNotificacoes }: Props) {
           ) : null}
         </Pressable>
 
-        <View pointerEvents="none" style={st.marca}>
-          <T tam={19} peso="500" style={{ letterSpacing: 6, marginRight: -6 }}>KORA</T>
-        </View>
+        {mostrarNome ? (
+          <View pointerEvents="none" style={st.marca}>
+            <T tam={19} peso="500" style={{ letterSpacing: 6, marginRight: -6 }}>KORA</T>
+          </View>
+        ) : null}
       </View>
     </View>
   );
