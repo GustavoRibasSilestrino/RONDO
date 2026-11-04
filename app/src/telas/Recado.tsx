@@ -134,7 +134,7 @@ export function Recado() {
                 {PRAZOS_RECADO.map((p) => {
                   const ativo = p.dias === prazo;
                   return (
-                    <Pressable key={p.dias} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setPrazo(p.dias)} style={{ paddingVertical: 9, paddingHorizontal: 16, borderRadius: 8, backgroundColor: ativo ? cores.destaque : 'transparent', borderWidth: 1, borderColor: ativo ? cores.destaque : cores.linha2 }}>
+                    <Pressable key={p.dias} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setPrazo(p.dias)} style={{ paddingVertical: 9, paddingHorizontal: 16, borderRadius: 8, backgroundColor: ativo ? cores.destaqueForte : 'transparent', borderWidth: 1, borderColor: ativo ? cores.destaqueForte : cores.linha2 }}>
                       <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#ffffff' : cores.texto2}>{p.nome}</T>
                     </Pressable>
                   );

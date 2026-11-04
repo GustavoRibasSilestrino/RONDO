@@ -3,7 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useRef, useState } from 'react';
 import { Animated, Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
-import { cores, PesoFonte, raio } from '../tema';
+import { cores, degradeBotao, PesoFonte, raio } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 
 const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'ui-monospace, Menlo, monospace' });
@@ -84,7 +84,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, i
         style={[st.botao, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto, { opacity: desabilitado ? 0.45 : 1 }]}
       >
         {tipo === 'primario' ? (
-          <LinearGradient colors={['#6d28d9', '#9d78fb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+          <LinearGradient colors={degradeBotao} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
         ) : null}
         {conteudo}
       </Pressable>
