@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, BackHandler, Easing, PanResponder, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { cores } from '../tema';
+import { cores, degradeBotao } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 import { T } from './Ui';
 
@@ -145,7 +145,7 @@ export function Roda({ itens, atual, aoEscolher }: Props) {
                 accessibilityLabel={it.rotulo}
                 style={[st.item, { left: width / 2 + R * Math.sin(rad) - 28, bottom: lift + R * Math.cos(rad) - 28, opacity: longe ? 0 : 1, transform: [{ scale: longe ? 0.6 : sel ? 1.18 : 1 }] }]}
               >
-                {sel ? <LinearGradient colors={['#6d28d9', '#9d78fb']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} /> : null}
+                {sel ? <LinearGradient colors={degradeBotao} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} /> : null}
                 <View pointerEvents="none" style={{ zIndex: 1 }}>
                   <Icone nome={it.icone} tamanho={22} cor={sel ? '#ffffff' : cores.texto2} />
                 </View>
