@@ -30,3 +30,11 @@ export type PesoFonte = '200' | '300' | '400' | '500';
 
 /* largura máxima do conteúdo (na web o app vira uma coluna de celular) */
 export const larguraMax = 520;
+
+/* a fonte do app é a Poppins, em todo o texto: um arquivo por peso (carregados em App.tsx) */
+export const FONTE: Record<PesoFonte, string> = {
+  '200': 'Poppins_200ExtraLight',
+  '300': 'Poppins_300Light',
+  '400': 'Poppins_400Regular',
+  '500': 'Poppins_500Medium',
+};

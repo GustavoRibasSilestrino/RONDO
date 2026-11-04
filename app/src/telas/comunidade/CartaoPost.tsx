@@ -7,7 +7,7 @@ import { Botao, Cartao, T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
 import { removerMidia } from '../../lib/midia';
 import { useMovimentoReduzido } from '../../lib/movimento';
-import { cores } from '../../tema';
+import { cores, FONTE } from '../../tema';
 import type { Midia, Post } from '../../tipos';
 import { Avatar } from './Avatar';
 import { MidiaGrade } from './Midia';
@@ -250,6 +250,6 @@ const st = StyleSheet.create({
   pulo: { position: 'absolute', left: 4, bottom: 38, paddingVertical: 7, paddingHorizontal: 14, borderRadius: 999, backgroundColor: '#6a00d4' },
   cheersDado: { backgroundColor: 'rgba(139,92,246,0.14)', borderRadius: 22, paddingHorizontal: 14 },
   linhaComentario: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  campoComentario: { flex: 1, height: 46, paddingHorizontal: 16, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', color: cores.texto, fontSize: 15, fontWeight: '300', outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
+  campoComentario: { flex: 1, height: 46, paddingHorizontal: 16, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   enviar: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
 });

@@ -2,7 +2,7 @@
    O rótulo nunca some (some só o "placeholder"), o erro aparece colado ao campo com ícone e texto, e o foco acende a borda. */
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, TextInput, TextInputProps, View } from 'react-native';
-import { cores } from '../tema';
+import { cores, FONTE } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 import { T } from './Ui';
 
@@ -96,8 +96,8 @@ const st = StyleSheet.create({
   caixaErro: { borderColor: cores.erro, boxShadow: '0 0 0 4px rgba(255,107,129,0.14)' },
   icone: { marginRight: 12 },
   meio: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
-  rotulo: { position: 'absolute', left: 0, top: 20, fontSize: 16, fontWeight: '300', transformOrigin: 'left center' },
-  entrada: { height: 60, paddingTop: 20, paddingBottom: 0, paddingHorizontal: 0, color: cores.texto, fontSize: 16, fontWeight: '300', outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
+  rotulo: { position: 'absolute', left: 0, top: 20, fontSize: 16, fontFamily: FONTE['300'], transformOrigin: 'left center' },
+  entrada: { height: 60, paddingTop: 20, paddingBottom: 0, paddingHorizontal: 0, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   entradaAlta: { height: undefined, minHeight: 112, paddingTop: 32, paddingBottom: 12, textAlignVertical: 'top' },
   valido: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   erroLinha: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 8, paddingHorizontal: 6 },

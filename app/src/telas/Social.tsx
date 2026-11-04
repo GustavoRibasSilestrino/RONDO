@@ -83,7 +83,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
             <T tam={14} style={{ marginTop: 6 }}>O que a galera está fazendo hoje.</T>
             <View style={{ gap: 14, marginTop: 20 }}>
               <View style={st.filtros}>
-                {([['todos', 'Tudo'], ['seguindo', 'Seguindo'], ['meus', 'Meus clubes'], ['geral', 'Geral']] as [Filtro, string][]).map(([v, nome]) => {
+                {([['todos', 'Tudo'], ['seguindo', 'Seguindo'], ['meus', 'Clubes'], ['geral', 'Geral']] as [Filtro, string][]).map(([v, nome]) => {
                   const ativo = v === filtro;
                   return (
                     <Pressable key={v} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setFiltro(v)} style={[st.filtro, ativo && st.filtroAtivo]}>
@@ -93,7 +93,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
                 })}
               </View>
 
-              <Botao tipo="fantasma" icone="compartilhar" titulo="Compartilhar o meu card Você vs. ontem" aoPressionar={compartilhar} />
+              <Botao tipo="fantasma" icone="compartilhar" titulo="Compartilhar meu card" aoPressionar={compartilhar} />
 
               {posts.length ? (
                 posts.map((p) => {
