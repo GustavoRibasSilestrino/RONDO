@@ -27,8 +27,8 @@ import { Social } from './src/telas/Social';
 import { Treino } from './src/telas/Treino';
 import { cores } from './src/tema';
 
-/* o app abre no Treino, e o botão voltar do Android leva para ele */
-const INICIO = 'treino';
+/* o app abre no Início (o feed), e o botão voltar do Android leva para ele */
+const INICIO = 'home';
 
 /* da esquerda para a direita: o feed (a casinha), o treino, a comunidade, a dieta e o perfil */
 const TELAS: ItemAba[] = [
