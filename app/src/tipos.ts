@@ -83,6 +83,7 @@ export type Recado = {
   pergunta: string;
   segundos: number;
   uri: string;
+  onda?: number[];   // o volume da gravação resumido em barras (0 a 1), para desenhar a onda
 };
 
 /* O lado público do perfil: descrição, títulos exibidos (ids de lib/nivel.ts) e publicações em destaque (ids de Post). */
