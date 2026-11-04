@@ -9,10 +9,10 @@ import { modoDemonstracao } from './src/api/conta';
 import { Abertura } from './src/componentes/Abertura';
 import { AvisoNivel } from './src/componentes/AvisoNivel';
 import { FundoUltra } from './src/componentes/FundoUltra';
-import { TrocaTemaProvider } from './src/componentes/TrocaTema';
+import { TrocaTemaProvider, useTrocaTema } from './src/componentes/TrocaTema';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
-import { AvisoProvider } from './src/componentes/Estrutura';
+import { AvisoProvider, useAviso } from './src/componentes/Estrutura';
 import { Marca } from './src/componentes/Marca';
 import { LojaProvider, useLoja } from './src/estado/loja';
 import { naoLidas, useNotificacoes } from './src/lib/notificacoes';
@@ -35,6 +35,7 @@ import { aplicarTema, cores } from './src/tema';
 
 /* o app abre no Início (o feed), e o botão voltar do Android leva para ele */
 const INICIO = 'home';
+const CONTA_TESTE = 'teste@kora.app';
 
 /* da esquerda para a direita: o feed (a casinha), o treino, a comunidade, a dieta e o perfil */
 const TELAS: ItemAba[] = [
@@ -54,6 +55,8 @@ function Raiz() {
   const pronto = dadosProntos && fontes;   // espera a fonte, para o texto não aparecer trocado
   const [tela, setTela] = useState(INICIO);
   useNotificacoes();
+  const trocarTema = useTrocaTema();
+  const avisar = useAviso();
   /* o tema vale antes de tudo ser desenhado; o Ultra só a partir do nível 15 */
   const tema = estado.usuario && nivelDe(xpTotal(estado)) >= NIVEL_ULTRA ? estado.tema : 'normal';
   aplicarTema(tema);
@@ -82,7 +85,9 @@ function Raiz() {
         aoEntrar={(usuario) => {
           commit((e) => {
             e.usuario = usuario;
-            if (modoDemonstracao) semear(e, new Date());   // histórico de demonstração; com a API configurada, os dados vêm dela
+            if (modoDemonstracao) semear(e, new Date());
+            /* a conta de teste: nível 15 e tudo liberado (tema Ultra, plano PRO), para dar para experimentar de tudo */
+            if (modoDemonstracao && usuario.email.toLowerCase() === CONTA_TESTE) { e.xpExtra = Math.max(0, 10500 - xpTotal({ ...e, xpExtra: 0 })); e.pro = true; e.usuario.nome = 'Conta Teste'; }   // histórico de demonstração; com a API configurada, os dados vêm dela
           });
           setTela(INICIO);
         }}
@@ -104,7 +109,7 @@ function Raiz() {
       {tela === 'colecoes' && <Colecoes />}
       {tela === 'notificacoes' && <Notificacoes />}
       {tela === 'perfil' && <Perfil ir={setTela} />}
-      <CabecalhoApp mostrarNome={tela === 'home'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={() => setTela(tela === 'notificacoes' ? INICIO : 'notificacoes')} />
+      <CabecalhoApp mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={nivelDe(xpTotal(estado)) < NIVEL_ULTRA} aoTrocarTema={() => { if (nivelDe(xpTotal(estado)) < NIVEL_ULTRA) avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); else trocarTema(tema === 'ultra' ? 'normal' : 'ultra'); }} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={() => setTela(tela === 'notificacoes' ? INICIO : 'notificacoes')} />
       <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />
       <AvisoNivel />
     </View>
