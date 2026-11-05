@@ -39,7 +39,7 @@
   background: #fff; color: #0b0910; font-size: 1.2rem; font-weight: 500;
   box-shadow: 0 8px 30px rgba(0, 0, 0, .5);
 }
-.cmp-range { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0; }
+.cmp-range { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0; touch-action: none; }   /* arrastar de lado move o comparador, não a página */
 .cmp-range:focus-visible ~ .cmp-handle::after { outline: 2px solid var(--accent); outline-offset: 3px; }
 .cmp-hint {
   position: absolute; bottom: 1.1rem; left: 50%; translate: -50% 0;

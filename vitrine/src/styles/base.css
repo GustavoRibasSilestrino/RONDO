@@ -38,6 +38,9 @@
 /* ===== Reset ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav-h) + 24px); background: var(--bg); }
+/* a página só rola na vertical: sem zoom de pinça ou de toque duplo e sem arrastar para o lado.
+   O que anda de lado (abas e momentos do dia) libera o gesto no próprio elemento (styles/day.css). */
+html, body { overflow-x: hidden; overscroll-behavior-x: none; touch-action: pan-y; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   font-family: var(--font-body); font-weight: 300;
   background: transparent; color: var(--ink);

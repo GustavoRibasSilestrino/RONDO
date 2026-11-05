@@ -73,8 +73,9 @@
 .streak-board .heat .c.c-pop { z-index: 6; animation: cellPop .9s cubic-bezier(.22, 1, .36, 1) both; }
 @keyframes cellPop {
   0% { transform: scale(1); }
-  28% { transform: scale(1.95); box-shadow: 0 0 0 2px rgb(230 218 255 / .95), 0 26px 46px -10px rgb(139 92 246 / .95); }
-  46% { transform: scale(1.78); }
+  /* um pulo curto: antes ia a quase 2x e cobria a grade inteira no celular */
+  35% { transform: scale(1.22); box-shadow: 0 0 0 2px rgb(230 218 255 / .95), 0 12px 24px -8px rgb(139 92 246 / .9); }
+  60% { transform: scale(1.12); }
   100% { transform: scale(1); }
 }
 .streak-board .heat .c.c-wave { z-index: 3; animation: cellWave .6s var(--rd, 0ms) cubic-bezier(.3, .7, .3, 1) both; }
