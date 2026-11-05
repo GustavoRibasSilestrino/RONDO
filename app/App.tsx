@@ -49,7 +49,7 @@ const TELAS: ItemAba[] = [
 const DO_PERFIL = ['hoje', 'evolucao', 'colecoes', 'recado'];
 
 function Raiz() {
-  const { estado, pronto: dadosProntos, commit } = useLoja();
+  const { estado, pronto: dadosProntos, commit, puxarDoServidor } = useLoja();
   const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
   const pronto = dadosProntos && fontes;   // espera a fonte, para o texto não aparecer trocado
   const [tela, setTela] = useState(INICIO);
@@ -94,6 +94,7 @@ function Raiz() {
             e.pro = usuario.papel === 'dono' || !!usuario.pro;
             e.xpExtra = usuario.papel === 'dono' ? Math.max(0, 10500 - xpTotal({ ...e, xpExtra: 0 })) : 0;
           });
+          void puxarDoServidor();   // traz os treinos, a dieta e o resto desta conta que estão no servidor
           setTela(INICIO);
         }}
       />

@@ -3,6 +3,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import { ErroHttp } from '../api/cliente';
+import { esquecerToken, lerToken } from '../api/sessao';
+import { CHAVES_SINCRONIZADAS, baixarDados, enviarDados } from '../api/sincronia';
 import { perfilPadrao } from '../dados';
 import type { Estado } from '../tipos';
 
@@ -47,6 +50,8 @@ type Contexto = {
   pronto: boolean;
   commit: (mudar: (e: Estado) => void) => void;
   limpar: () => Promise<void>;
+  /* traz do servidor os dados da conta logada (no login e ao abrir o app); o que só existe aqui sobe em seguida */
+  puxarDoServidor: () => Promise<void>;
 };
 
 const LojaContexto = createContext<Contexto | null>(null);
@@ -56,6 +61,64 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
   const [pronto, setPronto] = useState(false);
   const recente = useRef<Estado>(estado);   // sempre o estado mais novo, mesmo com vários commits no mesmo quadro
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /* ---------- sincronia com o servidor ----------
+     `enviado` guarda, por chave, o texto do último valor que o servidor já tem. Só sobe o que mudou desde então;
+     se a rede falhar, nada se perde: a diferença continua e sobe na próxima tentativa. */
+  const enviado = useRef<Record<string, string>>({});
+  const ocupado = useRef(false);
+  const timerSync = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const sessaoVenceu = useCallback(async () => {
+    await esquecerToken();
+    recente.current = { ...recente.current, usuario: null };
+    setEstado(recente.current);
+  }, []);
+
+  const sincronizar = useCallback(async () => {
+    if (ocupado.current || !recente.current.usuario) return;
+    const itens: Record<string, unknown> = {};
+    const textos: Record<string, string> = {};
+    for (const k of CHAVES_SINCRONIZADAS) {
+      const texto = JSON.stringify(recente.current[k]);
+      if (texto !== undefined && enviado.current[k] !== texto) { itens[k] = recente.current[k]; textos[k] = texto; }
+    }
+    if (Object.keys(itens).length === 0 || !(await lerToken())) return;
+    ocupado.current = true;
+    try {
+      await enviarDados(itens);
+      Object.assign(enviado.current, textos);
+    } catch (e) {
+      if (e instanceof ErroHttp && e.status === 401) await sessaoVenceu();
+      /* sem rede ou servidor fora: tenta de novo na próxima mudança, ao voltar ao app ou no ciclo de 30 s */
+    } finally {
+      ocupado.current = false;
+    }
+  }, [sessaoVenceu]);
+
+  const agendarSync = useCallback(() => {
+    if (timerSync.current) clearTimeout(timerSync.current);
+    timerSync.current = setTimeout(() => { timerSync.current = null; void sincronizar(); }, 2000);
+  }, [sincronizar]);
+
+  const salvar0 = useRef<() => void>(() => {});
+
+  const puxarDoServidor = useCallback(async () => {
+    if (!recente.current.usuario || !(await lerToken())) return;
+    try {
+      const itens = await baixarDados();
+      const copia: Estado = { ...recente.current };
+      for (const k of CHAVES_SINCRONIZADAS) {
+        if (k in itens) { (copia as unknown as Record<string, unknown>)[k] = itens[k]; enviado.current[k] = JSON.stringify(itens[k]); }
+      }
+      recente.current = copia;
+      setEstado(copia);
+      salvar0.current();
+      void sincronizar();   // o que só existe neste aparelho sobe agora
+    } catch (e) {
+      if (e instanceof ErroHttp && e.status === 401) await sessaoVenceu();
+    }
+  }, [sincronizar, sessaoVenceu]);
 
   useEffect(() => {
     (async () => {
@@ -72,8 +135,9 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
         /* sem dados guardados (ou ilegíveis): começa do zero */
       }
       setPronto(true);
+      if (recente.current.usuario) void puxarDoServidor();   // já estava logado: atualiza com o que o servidor tem
     })();
-  }, []);
+  }, [puxarDoServidor]);
 
   /* gravar no aparelho é caro (o estado inteiro vira texto): junta as mudanças seguidas (digitar, tocar várias
      vezes) e grava uma vez só; ao sair do app, grava na hora o que estiver pendente */
@@ -85,10 +149,15 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(gravar, 600);
   }, [gravar]);
+  salvar0.current = salvar;
   useEffect(() => {
-    const sub = AppState.addEventListener('change', (s) => { if (s !== 'active' && timer.current) gravar(); });
-    return () => sub.remove();
-  }, [gravar]);
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s !== 'active' && timer.current) gravar();
+      if (s === 'active') void sincronizar();   // voltou ao app: sobe o que ficou pendente
+    });
+    const ciclo = setInterval(() => { void sincronizar(); }, 30_000);   // rede que voltou, mudanças que falharam
+    return () => { sub.remove(); clearInterval(ciclo); };
+  }, [gravar, sincronizar]);
 
   const commit = useCallback((mudar: (e: Estado) => void) => {
     // cópia profunda: structuredClone é bem mais rápido que ida e volta por JSON; sem ele (aparelhos antigos), JSON
@@ -97,17 +166,19 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
     recente.current = copia;
     setEstado(copia);
     salvar();
-  }, [salvar]);
+    agendarSync();
+  }, [salvar, agendarSync]);
 
   const limpar = useCallback(async () => {
     if (timer.current) { clearTimeout(timer.current); timer.current = null; }
     recente.current = estadoVazio();
+    enviado.current = {};
     setEstado(recente.current);
     try { await AsyncStorage.removeItem(CHAVE); } catch { /* nada a limpar */ }
   }, []);
 
   // o mesmo objeto enquanto nada muda: as telas só redesenham quando o estado muda de fato
-  const valor = useMemo(() => ({ estado, pronto, commit, limpar }), [estado, pronto, commit, limpar]);
+  const valor = useMemo(() => ({ estado, pronto, commit, limpar, puxarDoServidor }), [estado, pronto, commit, limpar, puxarDoServidor]);
   return <LojaContexto.Provider value={valor}>{children}</LojaContexto.Provider>;
 }
 
