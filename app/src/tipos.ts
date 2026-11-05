@@ -50,33 +50,11 @@ export type Refeicao = {
 /* Foto ou vídeo de uma publicação. O arquivo em si fica em lib/midia.ts; aqui só a referência e as medidas. */
 export type Midia = { id: string; tipo: 'imagem' | 'video'; largura: number; altura: number; duracao?: number };
 
-export type Comentario = { id: string; autor: string; texto: string; quando: number };
-
-export type Post = {
-  id: string;
-  autor: string;
-  texto: string;
-  destaque?: string;
-  quando: number;
-  midia?: Midia[];
-  grupo?: string;   // id do grupo onde foi publicado; sem isso, vai para o feed geral
-};
-
 export type CategoriaGrupo = 'treino' | 'corrida' | 'dieta' | 'constancia' | 'outro';
 
-/* Grupo criado pela pessoa. Os grupos de demonstração ficam em dados.ts (CLUBES); entrar em qualquer um é estado.clubes[id]. */
-export type Grupo = {
-  id: string;
-  nome: string;
-  descricao: string;
-  categoria: CategoriaGrupo;
-  privado: boolean;
-  cor: number;       // posição em CORES_GRUPO (lib/grupos.ts)
-  dono: string;
-  criado: number;
-  codigo: string;    // código de convite
-  meta?: string;
-};
+/* Publicações, cheers, comentários, seguidores e clubes ficam no servidor, compartilhados entre as pessoas (api/social.ts).
+   Aqui só o resumo da pessoa, guardado no aparelho para o nível e as medalhas funcionarem sem rede. Não sobe para o servidor. */
+export type ResumoSocial = { id: number; posts: number; cheersDados: number; seguindo: number; seguidores: number; comentarios: number; clubesCriados: number; naoLidas: number };
 
 export type Recado = {
   id: string;
@@ -91,7 +69,7 @@ export type Recado = {
 /* O lado público do perfil: descrição, títulos exibidos (ids de lib/nivel.ts) e publicações em destaque (ids de Post). */
 export type PerfilSocial = { bio: string; titulos: string[]; destaques: string[] };
 
-/* Tudo o que chega para o perfil: cheers, comentários, novos seguidores e medalhas. `ref` é o id da medalha, quando for uma. */
+/* Avisos locais do perfil (medalhas e profissionais); os de cheers, comentários e seguidores vêm do servidor. `ref` é o id da medalha, quando for uma. */
 export type Notificacao = { id: string; tipo: 'cheers' | 'comentario' | 'seguidor' | 'medalha' | 'profissional'; texto: string; quando: number; lida: boolean; ref?: string };
 
 /* Story: uma foto (midia) ou um texto sobre fundo colorido (texto + fundo), com legenda. Vale 24 horas no ar. */
@@ -108,15 +86,9 @@ export type Estado = {
   agua: Record<string, number>;
   checkins: Record<string, boolean>;
   pesos: { data: string; kg: number }[];
-  posts: Post[];
-  curtidas: Record<string, boolean>;           // os cheers dados, por id da publicação
-  seguidores: string[];                        // quem segue a pessoa (de demonstração; em produção vem da API)
+  social: ResumoSocial;                        // o que o servidor diz sobre a atividade social da pessoa
   perfilSocial: PerfilSocial;
   semeadoSocial: boolean;
-  seguindo: Record<string, boolean>;          // as conexões: pessoas que a pessoa segue, pelo nome
-  comentarios: Record<string, Comentario[]>;   // por id da publicação
-  grupos: Grupo[];                             // os que a pessoa criou
-  clubes: Record<string, boolean>;             // grupos em que a pessoa está (de demonstração ou criados por ela)
   recados: Recado[];
   notificacoes: Notificacao[];
   stories: Story[];                            // todos os seus stories (os de mais de 24 h só aparecem no arquivo)

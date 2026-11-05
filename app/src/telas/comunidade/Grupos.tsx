@@ -1,30 +1,66 @@
-/* Aba Grupos: busca, criar grupo, os seus grupos e os que vale descobrir. */
-import React, { useState } from 'react';
+/* Aba Clubes: busca, entrar com código de convite, os seus clubes e os que vale descobrir. Tudo vem do servidor. */
+import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { entrarNoClube, entrarPorCodigo, listarClubes, sairDoClube } from '../../api/social';
+import type { Clube } from '../../api/social';
+import { useAviso } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
 import { Botao, Cartao, Chip, T } from '../../componentes/Ui';
+import { useLista } from '../../estado/lista';
 import { useLoja } from '../../estado/loja';
-import { categoria, GrupoVista, listarGrupos } from '../../lib/grupos';
+import { categoria } from '../../lib/grupos';
 import { fmt } from '../../lib/datas';
 import { cores, FONTE, estilos } from '../../tema';
 import { Capa } from './Capa';
 import { ConfirmarSaida } from './ConfirmarSaida';
-import { normalizar } from './util';
 
-export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: string) => void; aoCriar: () => void }) {
-  const { estado, commit } = useLoja();
+export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: number) => void; aoCriar: () => void }) {
+  const { atualizarSocial } = useLoja();
+  const avisar = useAviso();
   const [busca, setBusca] = useState('');
-  const [saindo, setSaindo] = useState<GrupoVista | null>(null);   // o clube de que a pessoa quer sair, esperando a confirmação
+  const [q, setQ] = useState('');
+  const [codigo, setCodigo] = useState('');
+  const [entrando, setEntrando] = useState(false);
+  const [saindo, setSaindo] = useState<Clube | null>(null);   // o clube de que a pessoa quer sair, esperando a confirmação
 
-  const q = normalizar(busca);
-  const passa = (g: GrupoVista) => !q || normalizar(`${g.nome} ${g.descricao} ${categoria(g.categoria).nome}`).includes(q);
-  const todos = listarGrupos(estado);
-  const meus = todos.filter((g) => g.meu && passa(g));
-  const descobrir = todos.filter((g) => !g.meu && passa(g));
+  useEffect(() => { const t = setTimeout(() => setQ(busca.trim()), 300); return () => clearTimeout(t); }, [busca]);
+  const lista = useLista((cursor) => listarClubes({ q, antes: cursor }), [q]);
+  const meus = lista.itens.filter((g) => g.meu);
+  const descobrir = lista.itens.filter((g) => !g.meu);
 
-  const alternar = (g: GrupoVista) => {
-    if (g.meu) { setSaindo(g); return; }   // sair pede confirmação
-    commit((e) => { e.clubes[g.id] = true; });
+  const entrar = async (g: Clube) => {
+    try {
+      await entrarNoClube(g.id);
+      void atualizarSocial(true);
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'Não foi possível entrar agora.');
+    }
+  };
+
+  const sair = async (g: Clube) => {
+    try {
+      await sairDoClube(g.id);
+      void atualizarSocial(true);
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'Não foi possível sair agora.');
+    }
+  };
+
+  const usarCodigo = async () => {
+    const c = codigo.trim().toUpperCase();
+    if (c.length !== 6 || entrando) { if (c) avisar('O código de convite tem 6 letras e números.'); return; }
+    setEntrando(true);
+    try {
+      const g = await entrarPorCodigo(c);
+      setCodigo('');
+      void atualizarSocial(true);
+      avisar(`Você entrou em ${g.nome}.`);
+      aoAbrir(g.id);
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'Não foi possível entrar agora.');
+    } finally {
+      setEntrando(false);
+    }
   };
 
   return (
@@ -49,38 +85,72 @@ export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: string) => void; ao
         ) : null}
       </View>
 
+      <View style={st.busca}>
+        <Icone nome="cadeado" tamanho={18} cor={cores.texto3} />
+        <TextInput
+          value={codigo}
+          onChangeText={(v) => setCodigo(v.toUpperCase())}
+          placeholder="Código de convite"
+          placeholderTextColor={cores.placeholder}
+          selectionColor={cores.destaque}
+          accessibilityLabel="Código de convite de um clube"
+          autoCapitalize="characters"
+          autoCorrect={false}
+          maxLength={6}
+          returnKeyType="go"
+          onSubmitEditing={usarCodigo}
+          style={st.campoBusca}
+        />
+        <Botao pequeno tipo="fantasma" titulo="Entrar" aoPressionar={usarCodigo} carregando={entrando} desabilitado={codigo.trim().length !== 6} />
+      </View>
 
       {meus.length ? (
         <>
           <T tam={20} peso="300" style={st.titulo}>Seus clubes</T>
-          {meus.map((g) => <GrupoCartao key={g.id} g={g} aoAbrir={() => aoAbrir(g.id)} aoAlternar={() => alternar(g)} />)}
+          {meus.map((g) => <GrupoCartao key={g.id} g={g} aoAbrir={() => aoAbrir(g.id)} aoAlternar={() => setSaindo(g)} />)}
         </>
       ) : null}
 
       {descobrir.length ? (
         <>
           <T tam={20} peso="300" style={st.titulo}>{meus.length ? 'Descobrir' : 'Clubes para entrar'}</T>
-          {descobrir.map((g) => <GrupoCartao key={g.id} g={g} aoAbrir={() => aoAbrir(g.id)} aoAlternar={() => alternar(g)} />)}
+          {descobrir.map((g) => <GrupoCartao key={g.id} g={g} aoAbrir={() => aoAbrir(g.id)} aoAlternar={() => entrar(g)} />)}
         </>
       ) : null}
 
-      {!meus.length && !descobrir.length ? (
+      {lista.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais clubes" aoPressionar={lista.maisItens} carregando={lista.carregando} /> : null}
+
+      {!lista.itens.length ? (
         <Cartao>
-          <T tam={15} peso="300">Nenhum clube com “{busca.trim()}”.</T>
-          <T tam={13} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 19 }}>Tente outra palavra, ou crie o clube que está faltando.</T>
+          {lista.erro ? (
+            <T tam={15} peso="300">{lista.erro}</T>
+          ) : lista.carregando ? (
+            <T tam={15} peso="300">Carregando os clubes...</T>
+          ) : q ? (
+            <>
+              <T tam={15} peso="300">Nenhum clube com “{q}”.</T>
+              <T tam={13} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 19 }}>Tente outra palavra, ou crie o clube que está faltando.</T>
+            </>
+          ) : (
+            <>
+              <T tam={15} peso="300">Ainda não há clubes.</T>
+              <T tam={13} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 19 }}>Crie o primeiro, ou entre em um clube privado com o código de convite.</T>
+              <Botao pequeno tipo="fantasma" titulo="Criar clube" aoPressionar={aoCriar} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
+            </>
+          )}
         </Cartao>
       ) : null}
       <ConfirmarSaida
         aberto={saindo !== null}
         nome={saindo?.nome ?? ''}
         aoFechar={() => setSaindo(null)}
-        aoConfirmar={() => { if (saindo) commit((e) => { e.clubes[saindo.id] = false; }); setSaindo(null); }}
+        aoConfirmar={() => { if (saindo) void sair(saindo); setSaindo(null); }}
       />
     </View>
   );
 }
 
-function GrupoCartao({ g, aoAbrir, aoAlternar }: { g: GrupoVista; aoAbrir: () => void; aoAlternar: () => void }) {
+function GrupoCartao({ g, aoAbrir, aoAlternar }: { g: Clube; aoAbrir: () => void; aoAlternar: () => void }) {
   return (
     <Cartao style={{ padding: 0 }}>
       <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o clube ${g.nome}`} onPress={aoAbrir}>

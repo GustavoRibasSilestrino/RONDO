@@ -1,15 +1,17 @@
 /* Início e Comunidade. O Início é o feed: as publicações de quem você segue e dos clubes (texto, fotos e vídeos).
    A Comunidade tem os clubes (criar, entrar, convidar e publicar dentro) e o ranking semanal de constância.
-   O botão + roxo, sobre a barra, cria uma publicação. Tudo guardado no aparelho, como o resto do app em modo demonstração. */
+   O botão + roxo, sobre a barra, cria uma publicação. Feed, clubes e perfis vêm do servidor e são os mesmos para todo mundo. */
 import React, { useCallback, useEffect, useState } from 'react';
 import { BackHandler, Pressable, Share, StyleSheet, View } from 'react-native';
+import { lerFeed } from '../api/social';
+import type { FiltroFeed, Pessoa } from '../api/social';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { BotaoMais } from '../componentes/BotaoMais';
 import { Icone } from '../componentes/Icone';
 import { Botao, Cartao, Segmentos, T } from '../componentes/Ui';
+import { useLista } from '../estado/lista';
 import { useLoja } from '../estado/loja';
 import { comparar, statsSemana } from '../lib/calc';
-import { listarGrupos } from '../lib/grupos';
 import { cores, estilos } from '../tema';
 import type { Midia } from '../tipos';
 import { RecadoDoDia } from '../componentes/RecadoDoDia';
@@ -22,7 +24,6 @@ import { CriarGrupo } from './comunidade/CriarGrupo';
 import { GrupoTela } from './comunidade/GrupoTela';
 import { Grupos } from './comunidade/Grupos';
 import { VisorMidia } from './comunidade/Midia';
-import { todosOsPosts } from './comunidade/posts';
 import { Ranking } from './comunidade/Ranking';
 
 type Aba = 'grupos' | 'ranking';
@@ -33,12 +34,12 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
   const avisar = useAviso();
   const [aba, setAba] = useState<Aba>('grupos');
   const [filtro, setFiltro] = useState<Filtro>('todos');
-  const [grupoAberto, setGrupoAberto] = useState<string | null>(null);
-  const [compor, setCompor] = useState<{ aberto: boolean; grupo: string | null }>({ aberto: false, grupo: null });
+  const [grupoAberto, setGrupoAberto] = useState<number | null>(null);
+  const [compor, setCompor] = useState<{ aberto: boolean; grupo: number | null }>({ aberto: false, grupo: null });
   const [criando, setCriando] = useState(false);
   const [menuMais, setMenuMais] = useState(false);   // o menu do botão +
   const [buscando, setBuscando] = useState(false);   // a busca de pessoas, aberta pela lupa
-  const [perfilAberto, setPerfilAberto] = useState<string | null>(null);   // o perfil de quem publicou, aberto ao tocar na foto
+  const [perfilAberto, setPerfilAberto] = useState<number | null>(null);   // o perfil de quem publicou, aberto ao tocar na foto
   const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
 
   const voltarDoGrupo = useCallback(() => setGrupoAberto(null), []);
@@ -52,17 +53,13 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
   }, [grupoAberto]);
 
   const hoje = new Date();
-  const grupos = listarGrupos(estado);
-  const porId = new Map(grupos.map((g) => [g.id, g]));
-
-  /* o feed mostra o geral e as publicações dos clubes públicos e dos seus; um clube privado só aparece para quem está nele */
-  const posts = todosOsPosts(estado).filter((p) => {
-    const g = p.grupo ? porId.get(p.grupo) : undefined;
-    if (filtro === 'seguindo') return !!estado.seguindo[p.autor];
-    if (filtro === 'geral') return !p.grupo;
-    if (filtro === 'meus') return !!g && g.meu;
-    return !p.grupo || (!!g && (!g.privado || g.meu));
-  });
+  /* o servidor decide o que a pessoa pode ver: o geral, os clubes públicos e os clubes em que ela está (privado nunca vaza) */
+  const feed = useLista(
+    (cursor) => lerFeed({ filtro: (filtro === 'meus' ? 'clubes' : filtro) as FiltroFeed, antes: cursor }),
+    [filtro],
+    modo === 'home' && grupoAberto === null,
+  );
+  const posts = feed.itens;
 
   const compartilhar = async () => {
     const cmp = comparar(statsSemana(estado, hoje, 0), statsSemana(estado, hoje, 1));
@@ -74,14 +71,14 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
     }
   };
 
-  const abrirCompositor = (grupo: string | null) => setCompor({ aberto: true, grupo });
-  const abrirPerfil = (autor: string) => { if (autor === 'Você') ir('perfil'); else setPerfilAberto(autor); };
+  const abrirCompositor = (grupo: number | null) => setCompor({ aberto: true, grupo });
+  const abrirPerfil = (autor: Pessoa) => { if (autor.voce) ir('perfil'); else setPerfilAberto(autor.id); };
 
   return (
     <>
       <Tela>
         {grupoAberto ? (
-          <GrupoTela id={grupoAberto} aoVoltar={voltarDoGrupo} aoCompor={abrirCompositor} aoAbrirMidia={abrirMidia} />
+          <GrupoTela id={grupoAberto} aoVoltar={voltarDoGrupo} aoCompor={abrirCompositor} aoAbrirMidia={abrirMidia} aoAbrirPerfil={abrirPerfil} />
         ) : modo === 'home' ? (
           <>
             <View style={st.tituloFeed}>
@@ -105,12 +102,22 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
               </View>
 
               {posts.length ? (
-                posts.map((p) => {
-                  const g = p.grupo ? porId.get(p.grupo) : undefined;
-                  return (
-                    <CartaoPost key={p.id} post={p} nomeGrupo={g?.nome} aoAbrirGrupo={g ? () => setGrupoAberto(g.id) : undefined} aoAbrirMidia={abrirMidia} aoAbrirPerfil={abrirPerfil} />
-                  );
-                })
+                <>
+                  {posts.map((p) => (
+                    <CartaoPost key={p.id} post={p} aoAbrirGrupo={p.clube ? () => setGrupoAberto(p.clube!.id) : undefined} aoAbrirMidia={abrirMidia} aoAbrirPerfil={abrirPerfil} aoApagar={(id) => feed.mudar((l) => l.filter((x) => x.id !== id))} />
+                  ))}
+                  {feed.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais" aoPressionar={feed.maisItens} carregando={feed.carregando} /> : null}
+                </>
+              ) : feed.erro || feed.carregando ? (
+                <Cartao>
+                  <T tam={16}>{feed.erro ? 'Não foi possível carregar o feed.' : 'Carregando o feed...'}</T>
+                  {feed.erro ? (
+                    <>
+                      <T tam={13.5} style={{ marginTop: 6, lineHeight: 20 }}>{feed.erro}</T>
+                      <Botao pequeno tipo="fantasma" titulo="Tentar de novo" aoPressionar={feed.recarregar} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
+                    </>
+                  ) : null}
+                </Cartao>
               ) : (
                 <Cartao>
                   <T tam={16}>{filtro === 'seguindo' ? 'Você ainda não segue ninguém.' : filtro === 'meus' ? 'Nada dos seus clubes ainda.' : 'Nada por aqui ainda.'}</T>
@@ -136,8 +143,8 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
 
         <Compositor aberto={compor.aberto} aoFechar={() => setCompor((c) => ({ ...c, aberto: false }))} grupoInicial={compor.grupo} />
         <CriarGrupo aberto={criando} aoFechar={() => setCriando(false)} aoCriar={(id) => { setCriando(false); setAba('grupos'); setGrupoAberto(id); }} />
-        <BuscaUsuarios aberto={buscando} aoFechar={() => setBuscando(false)} aoAbrirPerfil={(n) => setPerfilAberto(n)} />
-        <PerfilPessoa nome={perfilAberto} aoFechar={() => setPerfilAberto(null)} aoAbrirMidia={abrirMidia} />
+        <BuscaUsuarios aberto={buscando} aoFechar={() => setBuscando(false)} aoAbrirPerfil={(id) => setPerfilAberto(id)} />
+        <PerfilPessoa id={perfilAberto} aoFechar={() => setPerfilAberto(null)} aoAbrirMidia={abrirMidia} />
         <VisorMidia itens={visor?.itens ?? []} inicio={visor ? visor.indice : null} aoFechar={() => setVisor(null)} />
       </Tela>
 

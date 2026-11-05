@@ -1,20 +1,44 @@
-/* Seguir é a conexão: quem você segue aparece no filtro "Seguindo" do feed. Botão pequeno em forma de pílula. */
-import React from 'react';
+/* Seguir é a conexão: quem você segue aparece no filtro "Seguindo" do feed. Botão pequeno em forma de pílula.
+   O toque muda na hora e o servidor confirma; se falhar, volta ao que era. */
+import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
+import { deixarDeSeguir, seguirPessoa } from '../../api/social';
+import type { Pessoa } from '../../api/social';
+import { useAviso } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
 import { T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
 import { cores, estilos } from '../../tema';
 
-export function BotaoSeguir({ nome }: { nome: string }) {
-  const { estado, commit } = useLoja();
-  const seguindo = !!estado.seguindo[nome];
+export function BotaoSeguir({ pessoa }: { pessoa: Pick<Pessoa, 'id' | 'nome' | 'seguindo'> }) {
+  const { atualizarSocial } = useLoja();
+  const avisar = useAviso();
+  const [seguindo, setSeguindo] = useState(pessoa.seguindo);
+  const ocupado = useRef(false);
+  useEffect(() => setSeguindo(pessoa.seguindo), [pessoa.seguindo]);
+
+  const alternar = async () => {
+    if (ocupado.current) return;
+    ocupado.current = true;
+    const novo = !seguindo;
+    setSeguindo(novo);
+    try {
+      await (novo ? seguirPessoa(pessoa.id) : deixarDeSeguir(pessoa.id));
+      void atualizarSocial();
+    } catch (e) {
+      setSeguindo(!novo);
+      avisar(e instanceof Error ? e.message : 'Não foi possível concluir agora.');
+    } finally {
+      ocupado.current = false;
+    }
+  };
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected: seguindo }}
-      accessibilityLabel={seguindo ? `Deixar de seguir ${nome}` : `Seguir ${nome}`}
-      onPress={() => commit((e) => { e.seguindo[nome] = !e.seguindo[nome]; })}
+      accessibilityLabel={seguindo ? `Deixar de seguir ${pessoa.nome}` : `Seguir ${pessoa.nome}`}
+      onPress={alternar}
       hitSlop={6}
       style={[st.pilula, seguindo && st.seguindo]}
     >

@@ -1,6 +1,6 @@
-/* Grupos da comunidade: junta os de demonstração (dados.ts) com os que a pessoa criou, e guarda as cores e categorias. */
+/* Clubes da comunidade: as cores das capas e as categorias. Os clubes em si vêm do servidor (api/social.ts). */
 import type { NomeIcone } from '../componentes/Icone';
-import type { CategoriaGrupo, Estado } from '../tipos';
+import type { CategoriaGrupo } from '../tipos';
 
 /* capas: pares de cor (topo, fundo), todos na família do roxo do app */
 export const CORES_GRUPO: readonly (readonly [string, string])[] = [
@@ -21,38 +21,3 @@ export const CATEGORIAS: { id: CategoriaGrupo; nome: string; icone: NomeIcone }[
 ];
 
 export const categoria = (id: CategoriaGrupo) => CATEGORIAS.find((c) => c.id === id) ?? CATEGORIAS[CATEGORIAS.length - 1];
-
-export type GrupoVista = {
-  id: string;
-  nome: string;
-  descricao: string;
-  categoria: CategoriaGrupo;
-  privado: boolean;
-  cor: number;
-  dono: string;
-  membros: number;
-  meta?: string;
-  progresso?: number;   // só nos de demonstração: o andamento da meta coletiva
-  codigo?: string;      // só nos que a pessoa criou
-  meu: boolean;         // a pessoa está no grupo
-  proprio: boolean;     // a pessoa criou o grupo
-};
-
-export function listarGrupos(estado: Estado): GrupoVista[] {
-  const meus: GrupoVista[] = estado.grupos.map((g) => ({
-    id: g.id, nome: g.nome, descricao: g.descricao, categoria: g.categoria, privado: g.privado, cor: g.cor, dono: g.dono,
-    membros: 1, meta: g.meta, codigo: g.codigo, meu: !!estado.clubes[g.id], proprio: true,
-  }));
-  return meus;
-}
-
-/* os rostinhos do clube: por enquanto, só você (os outros membros vão chegar pela API) */
-export const membrosAmostra = (_g: GrupoVista): string[] => ['Você'];
-
-/* código de convite: 6 letras e números, sem 0/O/1/I para não confundir */
-export function novoCodigo(): string {
-  const alfabeto = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let s = '';
-  for (let i = 0; i < 6; i++) s += alfabeto[Math.floor(Math.random() * alfabeto.length)];
-  return s;
-}

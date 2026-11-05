@@ -5,7 +5,7 @@ import { chamar } from './cliente';
 
 export const CHAVES_SINCRONIZADAS = [
   'perfil', 'treinos', 'treinoAtual', 'rotinasProprias', 'refeicoes', 'agua', 'checkins', 'pesos',
-  'perfilSocial', 'posts', 'curtidas', 'seguindo', 'seguidores', 'comentarios', 'grupos', 'clubes',
+  'perfilSocial',
   'recados', 'notificacoes', 'profissionais', 'stories', 'storiesVistos', 'tema', 'nivelAvisado', 'medalhasAvisadas',
 ] as const satisfies readonly (keyof Estado)[];
 

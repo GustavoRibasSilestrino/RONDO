@@ -8,8 +8,7 @@ export function xpTotal(e: Estado): number {
   const refeicoes = Object.values(e.refeicoes).filter((l) => l.length >= 3).length;
   const checkins = Object.values(e.checkins).filter(Boolean).length;
   const agua = Object.values(e.agua).filter((n) => n >= 8).length;
-  const comentarios = Object.values(e.comentarios).reduce((t, l) => t + l.filter((c) => c.autor === 'Você').length, 0);
-  return e.treinos.length * XP.treino + refeicoes * XP.refeicoes + checkins * XP.checkin + agua * XP.agua + e.posts.length * XP.post + comentarios * XP.comentario + (e.xpExtra ?? 0);
+  return e.treinos.length * XP.treino + refeicoes * XP.refeicoes + checkins * XP.checkin + agua * XP.agua + e.social.posts * XP.post + e.social.comentarios * XP.comentario + (e.xpExtra ?? 0);
 }
 
 export const xpDoNivel = (n: number): number => 50 * (n - 1) * (n - 1);

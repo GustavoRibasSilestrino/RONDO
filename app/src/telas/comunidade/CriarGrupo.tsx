@@ -3,19 +3,22 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { CampoFlutuante } from '../../componentes/CampoFlutuante';
-import { Folha } from '../../componentes/Estrutura';
+import { criarClube } from '../../api/social';
+import { Folha, useAviso } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
 import { AvisoPro, SeloPro } from '../../componentes/Pro';
 import { Botao, Segmentos, T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
-import { categoria, CATEGORIAS, CORES_GRUPO, novoCodigo } from '../../lib/grupos';
+import { categoria, CATEGORIAS, CORES_GRUPO } from '../../lib/grupos';
 import { cores, estilos } from '../../tema';
 import type { CategoriaGrupo } from '../../tipos';
 import { SITE } from '../Login';
 import { Capa } from './Capa';
 
-export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoFechar: () => void; aoCriar: (id: string) => void }) {
-  const { commit } = useLoja();
+export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoFechar: () => void; aoCriar: (id: number) => void }) {
+  const { atualizarSocial } = useLoja();
+  const avisar = useAviso();
+  const [enviando, setEnviando] = useState(false);
   const [pro, setPro] = useState(false);   // aviso do plano PRO
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
@@ -28,16 +31,20 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
   const nomeLimpo = nome.trim();
   const erroNome = tentou && nomeLimpo.length < 3 ? 'Dê um nome com pelo menos 3 letras.' : '';
 
-  const criar = () => {
+  const criar = async () => {
     setTentou(true);
-    if (nomeLimpo.length < 3) return;
-    const id = `g${Date.now().toString(36)}`;
-    commit((e) => {
-      e.grupos.unshift({ id, nome: nomeLimpo, descricao: descricao.trim(), categoria: cat, privado, cor, dono: 'Você', criado: Date.now(), codigo: novoCodigo(), meta: meta.trim() || undefined });
-      e.clubes[id] = true;
-    });
-    setNome(''); setDescricao(''); setCat('treino'); setPrivado(false); setMeta(''); setCor(0); setTentou(false);
-    aoCriar(id);
+    if (nomeLimpo.length < 3 || enviando) return;
+    setEnviando(true);
+    try {
+      const clube = await criarClube({ nome: nomeLimpo, descricao: descricao.trim(), categoria: cat, privado, cor, meta: meta.trim() || undefined });
+      void atualizarSocial(true);
+      setNome(''); setDescricao(''); setCat('treino'); setPrivado(false); setMeta(''); setCor(0); setTentou(false);
+      aoCriar(clube.id);
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'Não foi possível criar o clube agora.');
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
@@ -103,7 +110,7 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
         })}
       </View>
 
-      <Botao titulo="Criar clube" icone="mais" aoPressionar={criar} style={{ marginTop: 24 }} />
+      <Botao titulo={enviando ? 'Criando...' : 'Criar clube'} icone="mais" aoPressionar={criar} style={{ marginTop: 24 }} />
     </Folha>
   );
 }

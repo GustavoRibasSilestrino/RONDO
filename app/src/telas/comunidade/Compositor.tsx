@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { listarClubes, publicarPost } from '../../api/social';
 import { useAviso } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
 import { T } from '../../componentes/Ui';
+import { useLista } from '../../estado/lista';
 import { useLoja } from '../../estado/loja';
-import { listarGrupos } from '../../lib/grupos';
 import { useConta } from '../../lib/beneficios';
 import { escolherMidia, removerMidia } from '../../lib/midia';
 import { cores, larguraMax, FONTE, estilos } from '../../tema';
@@ -17,18 +18,19 @@ import { Miniatura } from './Midia';
 
 const LIMITE_TEXTO = 600;
 
-export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean; aoFechar: () => void; grupoInicial: string | null }) {
-  const { estado, commit } = useLoja();
+export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean; aoFechar: () => void; grupoInicial: number | null }) {
+  const { estado, atualizarSocial } = useLoja();
   const avisar = useAviso();
   const insets = useSafeAreaInsets();
-  const meusGrupos = listarGrupos(estado).filter((g) => g.meu);
+  const meusGrupos = useLista((cursor) => listarClubes({ meus: true, antes: cursor }), [], aberto).itens;
   const nome = estado.usuario?.nome ?? 'Você';
 
   const [texto, setTexto] = useState('');
   const [midia, setMidia] = useState<Midia[]>([]);
-  const [destino, setDestino] = useState<string | null>(grupoInicial);
+  const [destino, setDestino] = useState<number | null>(grupoInicial);
   const [origem, setOrigem] = useState<'galeria' | 'camera' | null>(null);   // qual botão está esperando o seletor
   const [erro, setErro] = useState('');
+  const [enviando, setEnviando] = useState(false);
 
   /* garantia de saída: o Modal só se desmonta quando o sistema avisa o fim da animação; passados 400 ms, sai de qualquer jeito */
   const [montada, setMontada] = useState(aberto);
@@ -38,7 +40,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
     return () => clearTimeout(t);
   }, [aberto, grupoInicial]);
 
-  const pode = (texto.trim().length > 0 || midia.length > 0) && origem === null;
+  const pode = (texto.trim().length > 0 || midia.length > 0) && origem === null && !enviando;
   const { limites } = useConta();
   const MAX_MIDIAS = limites.midias;
   const cheio = midia.length >= MAX_MIDIAS;
@@ -69,14 +71,22 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
     setErro('');
   };
 
-  const publicar = () => {
+  const publicar = async () => {
     if (!pode) return;
-    const post = { id: `u${Date.now()}`, autor: 'Você', texto: texto.trim(), quando: Date.now(), midia: midia.length ? midia : undefined, grupo: destino ?? undefined };
-    commit((e) => { e.posts.unshift(post); });
+    setEnviando(true);
+    setErro('');
+    try {
+      await publicarPost({ texto: texto.trim(), midia: midia.length ? midia : undefined, clubeId: destino });
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : 'Não foi possível publicar agora. Tente de novo.');
+      setEnviando(false);
+      return;
+    }
+    setEnviando(false);
     setTexto('');
     setMidia([]);
-    setErro('');
     aoFechar();
+    void atualizarSocial(true);
     avisar(destino ? 'Publicado no clube.' : 'Publicado no feed.');
   };
 
