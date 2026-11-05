@@ -85,3 +85,17 @@ class Notificacao(Base):
     post_id: Mapped[int | None] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"), nullable=True)
     lida: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_agora)
+
+
+class Story(Base):
+    """Foto ou texto que fica no ar por 24 horas para quem segue o autor (e para o próprio autor)."""
+
+    __tablename__ = "stories"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    autor_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), index=True)
+    texto: Mapped[str | None] = mapped_column(String(140), nullable=True)
+    fundo: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    legenda: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    midia: Mapped[object | None] = mapped_column(JSON, nullable=True)   # {id, tipo, largura, altura, url}
+    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_agora, index=True)

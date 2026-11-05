@@ -162,3 +162,36 @@ class ResumoOut(BaseModel):
     clubes_criados: int
     clubes: list[int]
     nao_lidas: int
+
+
+class StoryIn(BaseModel):
+    texto: str | None = Field(default=None, max_length=140)
+    fundo: int = Field(default=0, ge=0, le=20)
+    legenda: str | None = Field(default=None, max_length=120)
+    midia: dict[str, Any] | None = None
+
+    @model_validator(mode="after")
+    def tem_conteudo(self):
+        self.texto = (self.texto or "").strip() or None
+        self.legenda = (self.legenda or "").strip() or None
+        if not self.texto and not self.midia:
+            raise ValueError("O story está vazio.")
+        return self
+
+
+class StoryOut(BaseModel):
+    id: int
+    texto: str | None = None
+    fundo: int = 0
+    legenda: str | None = None
+    midia: dict[str, Any] | None = None
+    quando: int
+
+
+class StoriesDaPessoa(BaseModel):
+    autor: PessoaOut
+    itens: list[StoryOut]   # do mais antigo para o mais novo
+
+
+class StoriesOut(BaseModel):
+    pessoas: list[StoriesDaPessoa]   # você primeiro, depois quem você segue

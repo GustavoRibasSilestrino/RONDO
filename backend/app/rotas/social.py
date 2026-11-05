@@ -1,8 +1,9 @@
 """Feed, publicações, curtidas, comentários, notificações e o resumo da pessoa logada."""
+from datetime import datetime, timedelta, timezone
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.banco import obter_sessao
@@ -10,9 +11,10 @@ from app.deps import usuario_atual
 from app.esquemas import StatusOut
 from app.esquemas_social import (
     ComentarioIn, ComentarioOut, NotificacaoOut, PaginaComentarios, PaginaNotificacoes, PaginaPosts, PostIn,
+    StoriesDaPessoa, StoriesOut, StoryIn, StoryOut,
     PostOut, ResumoOut,
 )
-from app.modelos import Clube, Comentario, Curtida, Membro, Notificacao, Post, Seguidor, Usuario
+from app.modelos import Clube, Comentario, Curtida, Membro, Notificacao, Post, Seguidor, Story, Usuario
 from app.servicos import midia as servico_midia
 from app.servicos.social import (
     TEXTOS, clube_visivel, condicao_post_visivel, limite_valido, montar_posts, ms, notificar, pagina_de_posts,
@@ -235,3 +237,50 @@ def resumo(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(
         clubes=list(sessao.scalars(select(Membro.clube_id).where(Membro.usuario_id == uid))),
         nao_lidas=_contar(sessao, select(Notificacao.id).where(Notificacao.usuario_id == uid, Notificacao.lida.is_(False))),
     )
+
+
+# ---------- stories: 24 horas no ar, só para quem segue o autor ----------
+
+DURACAO_STORY = timedelta(hours=24)
+
+
+def _story_out(s: Story) -> StoryOut:
+    return StoryOut(id=s.id, texto=s.texto, fundo=s.fundo, legenda=s.legenda, midia=s.midia, quando=ms(s.criado_em))
+
+
+@router.post("/stories", response_model=StoryOut, status_code=201)
+def publicar_story(dados: StoryIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    midia = _midia_valida([dados.midia], usuario.id) if dados.midia else None
+    s = Story(autor_id=usuario.id, texto=dados.texto, fundo=dados.fundo, legenda=dados.legenda, midia=midia[0] if midia else None)
+    sessao.add(s)
+    sessao.commit()
+    return _story_out(s)
+
+
+@router.get("/stories", response_model=StoriesOut)
+def stories_no_ar(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    """Os seus e os de quem você segue, dos últimos 24 horas. Quem você não segue não aparece."""
+    desde = datetime.now(timezone.utc) - DURACAO_STORY
+    sigo = select(Seguidor.seguido_id).where(Seguidor.seguidor_id == usuario.id)
+    linhas = list(sessao.scalars(
+        select(Story).where(Story.criado_em >= desde, or_(Story.autor_id == usuario.id, Story.autor_id.in_(sigo))).order_by(Story.id)
+    ))
+    por_autor: dict[int, list[Story]] = {}
+    for s in linhas:
+        por_autor.setdefault(s.autor_id, []).append(s)
+    pessoas = pessoas_out(sessao, usuario.id, set(por_autor))
+    # você primeiro; os outros, do story mais recente para o mais antigo
+    ordem = sorted(por_autor, key=lambda a: (a != usuario.id, -por_autor[a][-1].id))
+    return StoriesOut(pessoas=[StoriesDaPessoa(autor=pessoas[a], itens=[_story_out(s) for s in por_autor[a]]) for a in ordem])
+
+
+@router.delete("/stories/{story_id}", response_model=StatusOut)
+def apagar_story(story_id: int, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    s = sessao.get(Story, story_id)
+    if not s or s.autor_id != usuario.id:
+        raise HTTPException(404, "Story não encontrado.")   # de outra pessoa: nem confirma que existe
+    if s.midia and s.midia.get("url"):
+        servico_midia.apagar_arquivos([s.midia["url"]])
+    sessao.delete(s)
+    sessao.commit()
+    return StatusOut(status="ok")
