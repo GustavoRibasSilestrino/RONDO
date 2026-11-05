@@ -17,7 +17,9 @@
     },
     "android": {
       "package": "br.com.rondo.app",
-      "permissions": ["RECORD_AUDIO"],
+      "permissions": [
+        "RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#000000",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -45,7 +47,8 @@
           "microphonePermission": "O RONDO usa o microfone para gravar o som dos vídeos que você publica."
         }
       ],
-      "expo-video"
+      "expo-video",
+      "expo-secure-store"
     ]
   }
 }

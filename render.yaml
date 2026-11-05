@@ -1,0 +1,21 @@
+# Blueprint do Render para a API do Rondo (FastAPI).
+# Os segredos (DATABASE_URL, JWT_SEGREDO) são preenchidos no painel do Render, nunca aqui.
+services:
+  - type: web
+    name: rondo-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    region: oregon            # mesma região do banco no Supabase (us-west-2)
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /saude
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SEGREDO
+        sync: false
+      - key: ORIGENS_PERMITIDAS
+        value: https://yesteryou.vercel.app,https://rondo-app-eight.vercel.app,https://userondo.vercel.app

@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { esquecerToken } from '../../api/sessao';
 import { Folha, useAviso } from '../../componentes/Estrutura';
 import { Icone, NomeIcone } from '../../componentes/Icone';
 import { useTrocaTema } from '../../componentes/TrocaTema';
@@ -172,7 +173,7 @@ export function Configuracoes({ aberto, aoFechar, ir }: Props) {
 
             {secao === 'conta' ? (
               <View style={{ gap: 12 }}>
-                <Botao tipo="fantasma" icone="sair" titulo="Sair da conta" aoPressionar={() => { sair(); commit((e) => { e.usuario = null; }); }} />
+                <Botao tipo="fantasma" icone="sair" titulo="Sair da conta" aoPressionar={() => { sair(); void esquecerToken(); commit((e) => { e.usuario = null; }); }} />
                 <Pressable accessibilityRole="link" onPress={() => Linking.openURL(SITE)} style={{ alignSelf: 'flex-start', paddingVertical: 8 }}>
                   <T tam={13} peso="500">Assinatura, termos e privacidade no site →</T>
                 </Pressable>
@@ -187,7 +188,7 @@ export function Configuracoes({ aberto, aoFechar, ir }: Props) {
         <T tam={14} style={{ lineHeight: 21 }}>Isso apaga a sua conta e todos os seus dados deste aparelho: treinos, dieta, publicações, stories, medalhas e recados. Não dá para desfazer.</T>
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
           <Botao tipo="discreto" titulo="Cancelar" aoPressionar={() => setApagando(false)} style={{ flex: 1 }} />
-          <Botao tipo="perigo" icone="lixo" titulo="Apagar" aoPressionar={async () => { setApagando(false); sair(); await limpar(); avisar('Conta apagada.'); }} style={{ flex: 1 }} />
+          <Botao tipo="perigo" icone="lixo" titulo="Apagar" aoPressionar={async () => { setApagando(false); sair(); await esquecerToken(); await limpar(); avisar('Conta apagada.'); }} style={{ flex: 1 }} />
         </View>
       </Folha>
     </Modal>

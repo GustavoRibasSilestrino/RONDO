@@ -1,2 +1,9 @@
 fastapi
 uvicorn[standard]
+sqlalchemy>=2
+alembic
+psycopg[binary]
+pydantic-settings
+pyjwt
+argon2-cffi
+email-validator

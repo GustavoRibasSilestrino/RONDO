@@ -3,6 +3,7 @@
    Sem ela, roda em modo demonstração: aceita qualquer e-mail válido e senha com 6+ caracteres e nada sai do aparelho.
    A senha nunca é guardada. */
 import type { Usuario } from '../tipos';
+import { guardarToken } from './sessao';
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -31,8 +32,8 @@ export async function entrar(email: string, senha: string): Promise<Usuario> {
     }
     if (resposta.status === 401 || resposta.status === 403) throw new Error('E-mail ou senha incorretos.');
     if (!resposta.ok) throw new Error('Não foi possível entrar agora. Tente de novo.');
-    const dados = (await resposta.json()) as { email?: string; nome?: string };
-    // TODO: guardar o token da resposta no armazenamento seguro (expo-secure-store)
+    const dados = (await resposta.json()) as { email?: string; nome?: string; token?: string };
+    if (dados.token) await guardarToken(dados.token);
     return { email: dados.email ?? email, nome: dados.nome ?? nomeDoEmail(email) };
   }
 
