@@ -20,6 +20,7 @@ class UsuarioOut(BaseModel):
     papel: str = "usuario"
     verificado: bool = False
     pro: bool = False
+    selo: str | None = None
     model_config = {"from_attributes": True}
 
 

@@ -16,4 +16,6 @@ class Usuario(Base):
     papel: Mapped[str] = mapped_column(String(12), default="usuario", server_default="usuario")  # usuario | dono
     verificado: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     pro: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    # selo ao lado do nome, definido só pelo banco: profissional | famoso | dono (nulo = sem selo)
+    selo: Mapped[str | None] = mapped_column(String(12), nullable=True)
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
