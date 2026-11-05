@@ -32,9 +32,9 @@ export async function entrar(email: string, senha: string): Promise<Usuario> {
     }
     if (resposta.status === 401 || resposta.status === 403) throw new Error('E-mail ou senha incorretos.');
     if (!resposta.ok) throw new Error('Não foi possível entrar agora. Tente de novo.');
-    const dados = (await resposta.json()) as { email?: string; nome?: string; token?: string };
+    const dados = (await resposta.json()) as { email?: string; nome?: string; token?: string; papel?: string; verificado?: boolean; pro?: boolean };
     if (dados.token) await guardarToken(dados.token);
-    return { email: dados.email ?? email, nome: dados.nome ?? nomeDoEmail(email) };
+    return { email: dados.email ?? email, nome: dados.nome ?? nomeDoEmail(email), papel: dados.papel, verificado: dados.verificado, pro: dados.pro };
   }
 
   await new Promise((r) => setTimeout(r, 450));   // simula a ida ao servidor

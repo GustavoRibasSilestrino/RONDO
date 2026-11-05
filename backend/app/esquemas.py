@@ -17,6 +17,9 @@ class LoginIn(BaseModel):
 class UsuarioOut(BaseModel):
     email: str
     nome: str
+    papel: str = "usuario"
+    verificado: bool = False
+    pro: bool = False
     model_config = {"from_attributes": True}
 
 

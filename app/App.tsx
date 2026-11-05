@@ -91,6 +91,9 @@ function Raiz() {
             e.usuario = usuario;
             if (modoDemonstracao) semear(e, new Date());
             /* a conta de teste: nível 15 e tudo liberado (tema Ultra, plano PRO), para dar para experimentar de tudo */
+            /* conta do dono (vem da API): nível máximo e PRO liberados; o plano PRO também vale para quem o API marcar */
+            if (usuario.papel === 'dono') e.xpExtra = Math.max(0, 10500 - xpTotal({ ...e, xpExtra: 0 }));
+            if (usuario.papel === 'dono' || usuario.pro) e.pro = true;
             if (modoDemonstracao && usuario.email.toLowerCase() === CONTA_TESTE) { e.xpExtra = Math.max(0, 10500 - xpTotal({ ...e, xpExtra: 0 })); e.pro = true; e.usuario.nome = 'Conta Teste'; }   // histórico de demonstração; com a API configurada, os dados vêm dela
           });
           setTela(INICIO);

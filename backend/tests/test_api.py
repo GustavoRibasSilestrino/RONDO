@@ -30,8 +30,26 @@ def test_cadastro_login_e_eu(cliente):
     assert r.status_code == 200
     token = r.json()["token"]
     eu = cliente.get("/auth/eu", headers={"Authorization": f"Bearer {token}"})
-    assert eu.json() == {"email": "ana@x.com", "nome": "Ana"}
+    assert eu.json() == {"email": "ana@x.com", "nome": "Ana", "papel": "usuario", "verificado": False, "pro": False}
     assert cliente.get("/auth/eu").status_code == 401
+
+
+def test_papel_do_dono_vem_do_banco_e_nao_do_cadastro(cliente):
+    from sqlalchemy import select
+
+    from app.banco import Sessao
+    from app.modelos import Usuario
+
+    corpo = {"nome": "Dono", "email": "dono@x.com", "senha": "segredo1", "papel": "dono", "verificado": True, "pro": True}
+    r = cliente.post("/auth/cadastro", json=corpo).json()
+    assert (r["papel"], r["verificado"], r["pro"]) == ("usuario", False, False)   # o cadastro ignora esses campos
+
+    with Sessao() as s:
+        u = s.scalar(select(Usuario).where(Usuario.email == "dono@x.com"))
+        u.papel, u.verificado, u.pro = "dono", True, True
+        s.commit()
+    r = cliente.post("/auth/login", json={"email": "dono@x.com", "senha": "segredo1"}).json()
+    assert (r["papel"], r["verificado"], r["pro"]) == ("dono", True, True)
 
 
 def test_profissional(cliente):
