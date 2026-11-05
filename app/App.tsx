@@ -10,6 +10,7 @@ import { AvisoNivel } from './src/componentes/AvisoNivel';
 import { FundoUltra } from './src/componentes/FundoUltra';
 import { TrocaTemaProvider, useTrocaTema } from './src/componentes/TrocaTema';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
+import { BotaoVoltar } from './src/componentes/BotaoVoltar';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
 import { PlanoPro } from './src/componentes/PlanoPro';
 import { AvisoProvider, useAviso } from './src/componentes/Estrutura';
@@ -113,6 +114,7 @@ function Raiz() {
       {tela === 'colecoes' && <Colecoes />}
       {tela === 'notificacoes' && <Notificacoes />}
       {tela === 'perfil' && <Perfil ir={setTela} />}
+      {DO_PERFIL.includes(tela) ? <BotaoVoltar rotulo="Voltar ao perfil" aoPressionar={() => setTela('perfil')} /> : null}
       <CabecalhoApp aoAbrirPro={() => setPlanoAberto(true)} mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={nivelDe(xpTotal(estado)) < NIVEL_ULTRA} aoTrocarTema={() => { if (nivelDe(xpTotal(estado)) < NIVEL_ULTRA) avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); else trocarTema(tema === 'ultra' ? 'normal' : 'ultra'); }} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={() => { if (tela === 'notificacoes') { setTela(antes); } else { setAntes(tela); setTela('notificacoes'); } }} />
       <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />
       <PlanoPro aberto={planoAberto} aoFechar={() => setPlanoAberto(false)} />
