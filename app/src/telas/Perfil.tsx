@@ -151,7 +151,10 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         </View>
       </View>
 
-      <T tam={17} peso="500" linhas={1} style={{ marginTop: 12 }}>{nome}</T>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
+        <T tam={17} peso="500" linhas={1}>{nome}</T>
+        {estado.usuario?.verificado ? <View accessibilityLabel="Conta verificada"><Icone nome="verificado" tamanho={18} cor={cores.destaque} /></View> : null}
+      </View>
       <T tam={13} style={{ marginTop: 2 }}>Nível {nivel.nivel}{patente ? ` · ${patente.nome}` : ''}</T>
       {exibidos.length ? (
         <View style={st.titulos}>

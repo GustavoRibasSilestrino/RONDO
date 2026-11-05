@@ -2,7 +2,7 @@
 export type Sexo = 'm' | 'f';
 
 /* `arroba` é o nome de usuário (sem o @) e `foto` é o id da foto de perfil (guardada em lib/midia.ts); sem eles, vale o nome e a inicial. */
-export type Usuario = { email: string; nome: string; arroba?: string; foto?: string };
+export type Usuario = { email: string; nome: string; arroba?: string; foto?: string; papel?: string; verificado?: boolean; pro?: boolean };
 
 export type Perfil = {
   sexo: Sexo;
