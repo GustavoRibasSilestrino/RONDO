@@ -1,26 +1,29 @@
 /* Uma publicação: autor, texto, destaque, fotos e vídeos, e as ações (curtir, comentar, compartilhar, apagar a própria). */
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, Pressable, Share, StyleSheet, TextInput, View } from 'react-native';
+import { apagarComentario, apagarPost, comentar, darCheers, lerComentarios, tirarCheers } from '../../api/social';
+import type { ComentarioSocial, Pessoa, PostSocial } from '../../api/social';
 import { Folha, useAviso } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
 import { Botao, Cartao, T } from '../../componentes/Ui';
+import { useLista } from '../../estado/lista';
 import { useLoja } from '../../estado/loja';
 import { removerMidia } from '../../lib/midia';
 import { useConta } from '../../lib/beneficios';
 import { useMovimentoReduzido } from '../../lib/movimento';
 import { cores, FONTE, estilos } from '../../tema';
-import type { Midia, Post } from '../../tipos';
+import type { Midia } from '../../tipos';
 import { Avatar } from './Avatar';
 import { MidiaGrade } from './Midia';
 import { BotaoSeguir } from './Seguir';
 import { arrobaDe, quando } from './util';
 
 type Props = {
-  post: Post;
-  nomeGrupo?: string;
+  post: PostSocial;
   aoAbrirGrupo?: () => void;
   aoAbrirMidia: (itens: Midia[], indice: number) => void;
-  aoAbrirPerfil?: (autor: string) => void;
+  aoAbrirPerfil?: (autor: Pessoa) => void;
+  aoApagar?: (id: number) => void;           // avisa a tela que a publicação saiu do servidor
   timeline?: boolean;                        // estilo X (Twitter): sem cartão, com avatar à esquerda e linha entre as publicações   // tocar na foto ou no nome de quem publicou abre o perfil dessa pessoa
 };
 
@@ -60,8 +63,8 @@ function PuloCheers({ disparo }: { disparo: number }) {
   );
 }
 
-export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, timeline }: Props) {
-  const { estado, commit } = useLoja();
+export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, aoApagar, timeline }: Props) {
+  const { estado, commit, atualizarSocial } = useLoja();
   const { limites } = useConta();
   const avisar = useAviso();
   const [comentando, setComentando] = useState(false);
@@ -69,27 +72,61 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
   const [disparo, setDisparo] = useState(0);   // sobe a cada cheers dado: dispara a animação
   const pop = useRef(new Animated.Value(1)).current;
 
-  const curtiu = !!estado.curtidas[post.id];
-  const meu = post.autor === 'Você';
-  const base = 0;   // os cheers vêm só de quem de fato deu cheers; sem a API, só os seus
-  const nComentarios = (estado.comentarios[post.id] ?? []).length;
+  /* cheers e comentários vêm do servidor; o toque muda na hora e o servidor confirma em seguida */
+  const [curtiu, setCurtiu] = useState(post.curtiu);
+  const [cheers, setCheers] = useState(post.cheers);
+  const [nComentarios, setNComentarios] = useState(post.comentarios);
+  useEffect(() => { setCurtiu(post.curtiu); setCheers(post.cheers); setNComentarios(post.comentarios); }, [post.curtiu, post.cheers, post.comentarios]);
+  const ocupado = useRef(false);
+
+  const meu = post.meu;
+  const nomeGrupo = post.clube?.nome;
+  const midia = meu ? post.midia ?? undefined : undefined;   // as fotos e vídeos ainda ficam só no aparelho de quem publicou
+  const idLocal = String(post.id);
+
+  const alternarCheers = async () => {
+    if (ocupado.current) return;
+    ocupado.current = true;
+    const dar = !curtiu;
+    if (dar) {
+      setDisparo((d) => d + 1);
+      pop.setValue(0.88);
+      Animated.spring(pop, { toValue: 1, friction: 5, tension: 220, useNativeDriver: Platform.OS !== 'web' }).start();
+    }
+    setCurtiu(dar); setCheers((n) => Math.max(0, n + (dar ? 1 : -1)));
+    try {
+      const novo = await (dar ? darCheers(post.id) : tirarCheers(post.id));
+      setCurtiu(novo.curtiu); setCheers(novo.cheers);
+      void atualizarSocial();
+    } catch (e) {
+      setCurtiu(!dar); setCheers((n) => Math.max(0, n + (dar ? -1 : 1)));
+      avisar(e instanceof Error ? e.message : 'Não foi possível dar cheers agora.');
+    } finally {
+      ocupado.current = false;
+    }
+  };
 
   const compartilhar = async () => {
     try {
-      await Share.share({ message: `${meu ? 'Eu' : post.autor} no RONDO: ${post.texto}` });
+      await Share.share({ message: `${meu ? 'Eu' : post.autor.nome} no RONDO: ${post.texto}` });
     } catch {
       avisar('Compartilhar não está disponível neste aparelho.');
     }
   };
 
-  const apagar = () => {
-    commit((e) => {
-      e.posts = e.posts.filter((p) => p.id !== post.id);
-      delete e.comentarios[post.id];
-      delete e.curtidas[post.id];
-    });
-    if (post.midia?.length) removerMidia(post.midia.map((m) => m.id));
+  const apagar = async () => {
+    try {
+      await apagarPost(post.id);
+    } catch (e) {
+      setApagando(false);
+      avisar(e instanceof Error ? e.message : 'Não foi possível apagar agora.');
+      return;
+    }
+    if (midia?.length) removerMidia(midia.map((m) => m.id));
+    commit((e) => { const d = e.perfilSocial.destaques; const i = d.indexOf(idLocal); if (i >= 0) d.splice(i, 1); });
     setApagando(false);
+    aoApagar?.(post.id);
+    void atualizarSocial(true);
     avisar('Publicação apagada.');
   };
 
@@ -101,20 +138,13 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
           accessibilityRole="button"
           accessibilityState={{ selected: curtiu }}
           accessibilityLabel={curtiu ? 'Tirar o seu cheers' : 'Dar cheers'}
-          onPress={() => {
-            if (!curtiu) {
-              setDisparo((d) => d + 1);
-              pop.setValue(0.88);
-              Animated.spring(pop, { toValue: 1, friction: 5, tension: 220, useNativeDriver: Platform.OS !== 'web' }).start();
-            }
-            commit((e) => { e.curtidas[post.id] = !e.curtidas[post.id]; });
-          }}
+          onPress={alternarCheers}
           style={[st.acao, curtiu && st.cheersDado]}
         >
           <Animated.View style={{ transform: [{ scale: pop }] }}>
             <Icone nome="cheers" tamanho={22} cor={curtiu ? cores.destaque : cores.texto} />
           </Animated.View>
-          <T tam={13} peso={curtiu ? '500' : '300'} cor={curtiu ? cores.destaque : cores.texto}>Cheers {base + (curtiu ? 1 : 0)}</T>
+          <T tam={13} peso={curtiu ? '500' : '300'} cor={curtiu ? cores.destaque : cores.texto}>Cheers {cheers}</T>
         </Pressable>
       </View>
       <Pressable accessibilityRole="button" accessibilityLabel={`Comentários: ${nComentarios}`} onPress={() => setComentando(true)} style={st.acao}>
@@ -129,23 +159,23 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
   );
   const folhas = (
     <>
-        <Comentarios aberto={comentando} aoFechar={() => setComentando(false)} postId={post.id} />
+        <Comentarios aberto={comentando} aoFechar={() => setComentando(false)} postId={post.id} aoMudarTotal={setNComentarios} />
 
         <Folha aberta={apagando} aoFechar={() => setApagando(false)} titulo="Sua publicação">
           <Botao
             tipo="fantasma"
             icone="ok"
-            titulo={estado.perfilSocial.destaques.includes(post.id) ? 'Tirar dos destaques do perfil' : 'Destacar no perfil'}
+            titulo={estado.perfilSocial.destaques.includes(idLocal) ? 'Tirar dos destaques do perfil' : 'Destacar no perfil'}
             aoPressionar={() => {
-              const ja = estado.perfilSocial.destaques.includes(post.id);
+              const ja = estado.perfilSocial.destaques.includes(idLocal);
               if (!ja && estado.perfilSocial.destaques.length >= limites.destaques) { setApagando(false); avisar(`Você já tem ${limites.destaques} destaques. Tire um antes ou suba de nível para ganhar mais.`); return; }
-              commit((e) => { const d = e.perfilSocial.destaques; const i = d.indexOf(post.id); if (i >= 0) d.splice(i, 1); else d.push(post.id); });
+              commit((e) => { const d = e.perfilSocial.destaques; const i = d.indexOf(idLocal); if (i >= 0) d.splice(i, 1); else d.push(idLocal); });
               setApagando(false);
               avisar(ja ? 'Removida dos destaques.' : 'Destacada no seu perfil.');
             }}
             style={{ marginBottom: 16 }}
           />
-          <T tam={14} cor={cores.texto2} style={{ lineHeight: 21 }}>Apagar remove a publicação do feed e as fotos e vídeos do aparelho. Isso não dá para desfazer.</T>
+          <T tam={14} cor={cores.texto2} style={{ lineHeight: 21 }}>Apagar remove a publicação do feed, com os comentários e os cheers, e as fotos e vídeos do aparelho. Isso não dá para desfazer.</T>
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
             <Botao tipo="discreto" titulo="Cancelar" aoPressionar={() => setApagando(false)} style={{ flex: 1 }} />
             <Botao tipo="perigo" icone="lixo" titulo="Apagar" aoPressionar={apagar} style={{ flex: 1 }} />
@@ -156,16 +186,16 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
 
   /* no estilo do X (Twitter): sem cartão, foto à esquerda e o conteúdo à direita, com uma linha separando cada publicação */
   if (timeline) {
-    const nomeMostrado = meu ? estado.usuario?.nome ?? 'Você' : post.autor;
+    const nomeMostrado = meu ? estado.usuario?.nome ?? post.autor.nome : post.autor.nome;
     return (
       <View style={st.tweet}>
-        <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)}>
-          <Avatar nome={post.autor} voce={meu} tamanho={42} />
+        <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor.nome}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)}>
+          <Avatar nome={post.autor.nome} voce={meu} tamanho={42} />
         </Pressable>
         <View style={{ flex: 1 }}>
           <View style={st.linhaTweet}>
             <T tam={14.5} peso="500" linhas={1} style={{ flexShrink: 1 }}>{nomeMostrado}</T>
-            <T tam={13} linhas={1} style={{ flexShrink: 2, opacity: 0.7 }}>@{meu ? estado.usuario?.arroba ?? arrobaDe(nomeMostrado) : arrobaDe(post.autor)}</T>
+            <T tam={13} linhas={1} style={{ flexShrink: 2, opacity: 0.7 }}>@{meu ? estado.usuario?.arroba ?? post.autor.arroba ?? arrobaDe(nomeMostrado) : post.autor.arroba ?? arrobaDe(post.autor.nome)}</T>
             <T tam={13} style={{ opacity: 0.7 }}>· {quando(post.quando)}</T>
             {meu ? (
               <Pressable accessibilityRole="button" accessibilityLabel="Mais opções da publicação" onPress={() => setApagando(true)} hitSlop={8} style={{ marginLeft: 'auto' }}>
@@ -175,9 +205,9 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
           </View>
           {post.texto ? <T tam={15} style={{ marginTop: 3, lineHeight: 21 }}>{post.texto}</T> : null}
           {post.destaque ? <T tam={17} peso="400" style={{ marginTop: 6 }}>{post.destaque}</T> : null}
-          {post.midia?.length ? (
+          {midia?.length ? (
             <View style={{ marginTop: 10 }}>
-              <MidiaGrade itens={post.midia} aoAbrir={(i) => aoAbrirMidia(post.midia ?? [], i)} />
+              <MidiaGrade itens={midia} aoAbrir={(i) => aoAbrirMidia(midia, i)} />
             </View>
           ) : null}
           {acoes}
@@ -190,12 +220,12 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
   return (
     <Cartao>
       <View style={st.cabeca}>
-        <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)} hitSlop={6}>
-          <Avatar nome={post.autor} voce={meu} />
+        <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor.nome}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)} hitSlop={6}>
+          <Avatar nome={post.autor.nome} voce={meu} />
         </Pressable>
         <View style={{ flex: 1 }}>
-          <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)} style={{ alignSelf: 'flex-start' }}>
-            <T tam={14} peso="500">{post.autor}</T>
+          <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor.nome}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)} style={{ alignSelf: 'flex-start' }}>
+            <T tam={14} peso="500">{post.autor.nome}</T>
           </Pressable>
           <View style={st.meta}>
             <T tam={12} cor={cores.texto3}>{quando(post.quando)}</T>
@@ -211,7 +241,7 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
             <Icone nome="pontos" tamanho={20} cor={cores.texto2} />
           </Pressable>
         ) : (
-          <BotaoSeguir nome={post.autor} />
+          <BotaoSeguir pessoa={post.autor} />
         )}
       </View>
 
@@ -221,25 +251,25 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
           <T tam={18} peso="300" cor={cores.destaque2}>{post.destaque}</T>
         </View>
       ) : null}
-      {post.midia?.length ? (
+      {midia?.length ? (
         <View style={{ marginTop: 12 }}>
-          <MidiaGrade itens={post.midia} aoAbrir={(i) => aoAbrirMidia(post.midia ?? [], i)} />
+          <MidiaGrade itens={midia} aoAbrir={(i) => aoAbrirMidia(midia, i)} />
         </View>
       ) : null}
 
       {acoes}
 
-      <Comentarios aberto={comentando} aoFechar={() => setComentando(false)} postId={post.id} />
+      <Comentarios aberto={comentando} aoFechar={() => setComentando(false)} postId={post.id} aoMudarTotal={setNComentarios} />
 
       <Folha aberta={apagando} aoFechar={() => setApagando(false)} titulo="Sua publicação">
         <Botao
           tipo="fantasma"
           icone="ok"
-          titulo={estado.perfilSocial.destaques.includes(post.id) ? 'Tirar dos destaques do perfil' : 'Destacar no perfil'}
+          titulo={estado.perfilSocial.destaques.includes(idLocal) ? 'Tirar dos destaques do perfil' : 'Destacar no perfil'}
           aoPressionar={() => {
-            const ja = estado.perfilSocial.destaques.includes(post.id);
+            const ja = estado.perfilSocial.destaques.includes(idLocal);
             if (!ja && estado.perfilSocial.destaques.length >= limites.destaques) { setApagando(false); avisar(`Você já tem ${limites.destaques} destaques. Tire um antes ou suba de nível para ganhar mais.`); return; }
-            commit((e) => { const d = e.perfilSocial.destaques; const i = d.indexOf(post.id); if (i >= 0) d.splice(i, 1); else d.push(post.id); });
+            commit((e) => { const d = e.perfilSocial.destaques; const i = d.indexOf(idLocal); if (i >= 0) d.splice(i, 1); else d.push(idLocal); });
             setApagando(false);
             avisar(ja ? 'Removida dos destaques.' : 'Destacada no seu perfil.');
           }}
@@ -255,41 +285,67 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
   );
 }
 
-/* comentários: lista e uma linha para escrever */
-function Comentarios({ aberto, aoFechar, postId }: { aberto: boolean; aoFechar: () => void; postId: string }) {
-  const { estado, commit } = useLoja();
+/* comentários: lista (do servidor, em páginas) e uma linha para escrever */
+function Comentarios({ aberto, aoFechar, postId, aoMudarTotal }: { aberto: boolean; aoFechar: () => void; postId: number; aoMudarTotal: (n: number) => void }) {
+  const { atualizarSocial } = useLoja();
+  const avisar = useAviso();
   const [texto, setTexto] = useState('');
-  const lista = estado.comentarios[postId] ?? [];
+  const [enviando, setEnviando] = useState(false);
+  const lista = useLista<ComentarioSocial>((cursor) => lerComentarios(postId, cursor), [postId], aberto);
+  const itens = lista.itens;
 
-  const enviar = () => {
+  const enviar = async () => {
     const t = texto.trim();
-    if (!t) return;
-    commit((e) => {
-      const atual = e.comentarios[postId] ?? [];
-      atual.push({ id: `c${Date.now()}`, autor: 'Você', texto: t, quando: Date.now() });
-      e.comentarios[postId] = atual;
-    });
-    setTexto('');
+    if (!t || enviando) return;
+    setEnviando(true);
+    try {
+      const novo = await comentar(postId, t);
+      lista.mudar((l) => [...l, novo]);
+      aoMudarTotal(itens.length + 1);
+      setTexto('');
+      void atualizarSocial();
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'Não foi possível comentar agora.');
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  const apagarC = async (c: ComentarioSocial) => {
+    try {
+      await apagarComentario(c.id);
+      lista.mudar((l) => l.filter((x) => x.id !== c.id));
+      aoMudarTotal(Math.max(0, itens.length - 1));
+      void atualizarSocial();
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'Não foi possível apagar agora.');
+    }
   };
 
   return (
-    <Folha aberta={aberto} aoFechar={aoFechar} titulo={lista.length ? `Comentários (${lista.length})` : 'Comentários'}>
-      {lista.length === 0 ? (
-        <T tam={14} cor={cores.texto2} style={{ lineHeight: 21, marginBottom: 14 }}>Ainda sem comentários. Seja a primeira pessoa a responder.</T>
+    <Folha aberta={aberto} aoFechar={aoFechar} titulo={itens.length ? `Comentários (${itens.length}${lista.temMais ? '+' : ''})` : 'Comentários'}>
+      {itens.length === 0 ? (
+        <T tam={14} cor={cores.texto2} style={{ lineHeight: 21, marginBottom: 14 }}>{lista.erro ? lista.erro : lista.carregando ? 'Carregando...' : 'Ainda sem comentários. Seja a primeira pessoa a responder.'}</T>
       ) : (
         <View style={{ gap: 14, marginBottom: 16 }}>
-          {lista.map((c) => (
+          {itens.map((c) => (
             <View key={c.id} style={{ flexDirection: 'row', gap: 10 }}>
-              <Avatar nome={c.autor} voce={c.autor === 'Você'} tamanho={32} />
+              <Avatar nome={c.autor.nome} voce={c.meu} tamanho={32} />
               <View style={{ flex: 1 }}>
                 <View style={st.meta}>
-                  <T tam={13.5} peso="500">{c.autor}</T>
+                  <T tam={13.5} peso="500">{c.autor.nome}</T>
                   <T tam={12} cor={cores.texto3}>{quando(c.quando)}</T>
+                  {c.meu ? (
+                    <Pressable accessibilityRole="button" accessibilityLabel="Apagar o seu comentário" onPress={() => apagarC(c)} hitSlop={8} style={{ marginLeft: 'auto' }}>
+                      <Icone nome="lixo" tamanho={15} cor={cores.texto3} />
+                    </Pressable>
+                  ) : null}
                 </View>
                 <T tam={14.5} style={{ marginTop: 2, lineHeight: 21 }}>{c.texto}</T>
               </View>
             </View>
           ))}
+          {lista.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais comentários" aoPressionar={lista.maisItens} carregando={lista.carregando} /> : null}
         </View>
       )}
       <View style={st.linhaComentario}>
@@ -305,7 +361,7 @@ function Comentarios({ aberto, aoFechar, postId }: { aberto: boolean; aoFechar: 
           onSubmitEditing={enviar}
           style={st.campoComentario}
         />
-        <Pressable accessibilityRole="button" accessibilityLabel="Enviar comentário" disabled={!texto.trim()} onPress={enviar} style={[st.enviar, { opacity: texto.trim() ? 1 : 0.4 }]}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Enviar comentário" disabled={!texto.trim() || enviando} onPress={enviar} style={[st.enviar, { opacity: texto.trim() && !enviando ? 1 : 0.4 }]}>
           <Icone nome="enviar" tamanho={20} cor="#ffffff" />
         </Pressable>
       </View>

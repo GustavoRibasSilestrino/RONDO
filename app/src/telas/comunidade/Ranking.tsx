@@ -7,12 +7,11 @@ import { fmt } from '../../lib/datas';
 import { pontosSemana } from '../../lib/calc';
 import { cores } from '../../tema';
 import { Avatar } from './Avatar';
-import { BotaoSeguir } from './Seguir';
 
 export function Ranking() {
   const { estado } = useLoja();
   const meuRanking = pontosSemana(estado, new Date());
-  const ranking = [{ nome: estado.usuario?.nome ?? 'Você', pontos: meuRanking, voce: true }];   // as outras pessoas chegam pela API
+  const ranking = [{ nome: estado.usuario?.nome ?? 'Você', pontos: meuRanking, voce: true }];   // o ranking entre pessoas ainda não existe no servidor
 
   return (
     <View style={{ marginTop: 18 }}>
@@ -24,7 +23,6 @@ export function Ranking() {
             <Avatar nome={r.nome} voce={r.voce} />
             <T tam={15} peso={r.voce ? '500' : '300'} style={{ flex: 1 }}>{r.voce ? 'Você' : r.nome}</T>
             <T tam={14} mono>{fmt(r.pontos)}</T>
-            {r.voce ? null : <BotaoSeguir nome={r.nome} />}
           </View>
         ))}
       </Cartao>

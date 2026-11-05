@@ -23,8 +23,8 @@ export const COLECOES = [
   { id: 'comunidade', nome: 'Comunidade' },
 ] as const;
 
-const cheersDados = (e: Estado) => Object.values(e.curtidas).filter(Boolean).length;
-const seguindoN = (e: Estado) => Object.values(e.seguindo).filter(Boolean).length;
+const cheersDados = (e: Estado) => e.social.cheersDados;
+const seguindoN = (e: Estado) => e.social.seguindo;
 const treinos = (e: Estado) => e.treinos.length;
 const diasDeTreino = (e: Estado) => new Set(e.treinos.map((t) => t.data)).size;
 const checkins = (e: Estado) => Object.values(e.checkins).filter(Boolean).length;
@@ -97,10 +97,10 @@ export const MEDALHAS: Medalha[] = [
   { id: 'pr5', colecao: 'corpo', nome: 'Em evolução', desc: 'Bata 5 recordes de carga.', img: ASSETS['evolution'].frente, verso: ASSETS['evolution'].verso, meta: 5, valor: recordes },
   { id: 'min90', colecao: 'corpo', nome: 'Resistência', desc: 'Faça um treino de 90 minutos.', img: ASSETS['long-run'].frente, verso: ASSETS['long-run'].verso, meta: 90, valor: minutosMax, mostrar: (n) => `${n} min` },
 
-  { id: 'p1', colecao: 'comunidade', nome: 'Desafio aceito', desc: 'Publique na comunidade.', img: ASSETS['challenge-accepted'].frente, verso: ASSETS['challenge-accepted'].verso, meta: 1, valor: (e) => e.posts.length },
+  { id: 'p1', colecao: 'comunidade', nome: 'Desafio aceito', desc: 'Publique na comunidade.', img: ASSETS['challenge-accepted'].frente, verso: ASSETS['challenge-accepted'].verso, meta: 1, valor: (e) => e.social.posts },
   { id: 'c10', colecao: 'comunidade', nome: 'Torcedor', desc: 'Dê cheers em 10 publicações.', img: ASSETS['got-a-pulse'].frente, verso: ASSETS['got-a-pulse'].verso, meta: 10, valor: cheersDados },
   { id: 'f5', colecao: 'comunidade', nome: 'Conectado', desc: 'Siga 5 pessoas.', img: ASSETS['social-beast'].frente, verso: ASSETS['social-beast'].verso, meta: 5, valor: seguindoN },
-  { id: 'g1', colecao: 'comunidade', nome: 'Fundador', desc: 'Crie um clube.', img: ASSETS['community'].frente, verso: ASSETS['community'].verso, meta: 1, valor: (e) => e.grupos.length },
+  { id: 'g1', colecao: 'comunidade', nome: 'Fundador', desc: 'Crie um clube.', img: ASSETS['community'].frente, verso: ASSETS['community'].verso, meta: 1, valor: (e) => e.social.clubesCriados },
 ];
 
 export type MedalhaVista = Medalha & { atual: number; aberta: boolean };

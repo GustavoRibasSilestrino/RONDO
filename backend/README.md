@@ -1,6 +1,6 @@
 # Rondo API (FastAPI + Postgres)
 
-Rotas: `POST /auth/cadastro`, `POST /auth/login`, `GET /auth/eu`, `POST /profissionais`, `POST /assinaturas`, `GET /treinos/1rm`, `GET /saude`.
+Rotas: `POST /auth/cadastro`, `POST /auth/login`, `GET /auth/eu`, social (`/social`, `/pessoas`, `/clubes`: feed, posts, cheers, comentários, seguir, clubes, avisos), `POST /profissionais`, `POST /assinaturas`, `GET /treinos/1rm`, `GET /saude`.
 
 ## Rodar local
 

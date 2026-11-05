@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { CalendarioMes } from '../componentes/CalendarioMes';
 import { CorpoMusculos } from '../componentes/CorpoMusculos';
 import { EditorTreino, type Rascunho } from '../componentes/EditorTreino';
+import { publicarPost } from '../api/social';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { GraficoLinha } from '../componentes/Grafico';
 import { Icone } from '../componentes/Icone';
@@ -212,7 +213,7 @@ function Contador({ rotulo, valor, passo, min, max, formato, unidade, aoMudar, f
 }
 
 function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
-  const { estado, commit } = useLoja();
+  const { estado, commit, atualizarSocial } = useLoja();
   const avisar = useAviso();
   const ta = estado.treinoAtual;
   const [agora, setAgora] = useState(Date.now());
@@ -276,8 +277,9 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
       e.treinos.push({ data: hojeIso, rotina: ta.rotina, nome, inicio: ta.inicio, fim, exercicios: feitos });
       e.treinoAtual = null;
       e.checkins[hojeIso] = true;
-      e.posts.unshift({ id: `u${fim}`, autor: 'Você', texto: `Concluí ${nome} · volume de ${fmt(volume / 1000, 1)} t`, destaque: recordes[0] ? `Recorde: ${recordes[0]}` : undefined, quando: fim });
     });
+    /* o treino concluído vira uma publicação no feed (se o servidor não responder agora, ela não é criada) */
+    publicarPost({ texto: `Concluí ${nome} · volume de ${fmt(volume / 1000, 1)} t`, destaque: recordes[0] ? `Recorde: ${recordes[0]}` : undefined }).then(() => atualizarSocial(true)).catch(() => {});
     aoConcluir({ nome, volume, series: feitos.reduce((t, ex) => t + ex.series.length, 0), minutos: Math.max(1, Math.round((fim - ta.inicio) / 60000)), recordes });
   };
 

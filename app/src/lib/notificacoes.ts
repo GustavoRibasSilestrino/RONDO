@@ -1,10 +1,11 @@
-/* O que chega para o perfil vira notificação: por enquanto, as medalhas novas. As reações de outras pessoas virão do servidor. */
+/* O que chega para o perfil vira notificação. As medalhas novas são avisos locais (estado.notificacoes);
+   cheers, comentários e seguidores vêm do servidor e entram só na contagem (estado.social.naoLidas). */
 import { useEffect } from 'react';
 import { useLoja } from '../estado/loja';
 import type { Estado } from '../tipos';
 import { MEDALHAS, medalhasDe } from './medalhas';
 
-export const naoLidas = (e: Estado): number => e.notificacoes.filter((n) => !n.lida).length;
+export const naoLidas = (e: Estado): number => e.notificacoes.filter((n) => !n.lida).length + e.social.naoLidas;
 
 export function adicionar(e: Estado, n: Pick<Estado['notificacoes'][number], 'tipo' | 'texto'> & { ref?: string }): void {
   e.notificacoes.unshift({ ...n, id: `n${Date.now()}${Math.floor(Math.random() * 1000)}`, quando: Date.now(), lida: false });

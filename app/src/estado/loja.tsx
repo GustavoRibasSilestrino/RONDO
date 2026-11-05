@@ -5,11 +5,14 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { AppState } from 'react-native';
 import { ErroHttp } from '../api/cliente';
 import { esquecerToken, lerToken } from '../api/sessao';
+import { resumoSocial } from '../api/social';
 import { CHAVES_SINCRONIZADAS, baixarDados, enviarDados } from '../api/sincronia';
 import { perfilPadrao } from '../dados';
-import type { Estado } from '../tipos';
+import type { Estado, ResumoSocial } from '../tipos';
 
 const CHAVE = 'yy.app.v1';
+
+export const socialVazio = (): ResumoSocial => ({ id: 0, posts: 0, cheersDados: 0, seguindo: 0, seguidores: 0, comentarios: 0, clubesCriados: 0, naoLidas: 0 });
 
 export const estadoVazio = (): Estado => ({
   v: 1,
@@ -22,15 +25,9 @@ export const estadoVazio = (): Estado => ({
   agua: {},
   checkins: {},
   pesos: [],
-  posts: [],
-  curtidas: {},
-  seguindo: {},
-  seguidores: [],
+  social: socialVazio(),
   perfilSocial: { bio: '', titulos: ['iniciante'], destaques: [] },
   semeadoSocial: false,
-  comentarios: {},
-  grupos: [],
-  clubes: {},
   recados: [],
   notificacoes: [],
   profissionais: {},
@@ -52,6 +49,9 @@ type Contexto = {
   limpar: () => Promise<void>;
   /* traz do servidor os dados da conta logada (no login e ao abrir o app); o que só existe aqui sobe em seguida */
   puxarDoServidor: () => Promise<void>;
+  /* a parte social mora no servidor: traz o resumo (nível, medalhas, avisos) e, com `listas`, manda as telas recarregarem */
+  atualizarSocial: (listas?: boolean) => Promise<void>;
+  versaoSocial: number;   // sobe quando algo social mudou: feeds, clubes e avisos recarregam
 };
 
 const LojaContexto = createContext<Contexto | null>(null);
@@ -59,6 +59,7 @@ const LojaContexto = createContext<Contexto | null>(null);
 export function LojaProvider({ children }: { children: React.ReactNode }) {
   const [estado, setEstado] = useState<Estado>(estadoVazio);
   const [pronto, setPronto] = useState(false);
+  const [versaoSocial, setVersaoSocial] = useState(0);
   const recente = useRef<Estado>(estado);   // sempre o estado mais novo, mesmo com vários commits no mesmo quadro
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -103,6 +104,22 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
 
   const salvar0 = useRef<() => void>(() => {});
 
+  const atualizarSocial = useCallback(async (listas = false) => {
+    if (listas) setVersaoSocial((v) => v + 1);
+    if (!recente.current.usuario || !(await lerToken())) return;
+    try {
+      const r = await resumoSocial();
+      const social = { id: r.id, posts: r.posts, cheersDados: r.cheers_dados, seguindo: r.seguindo, seguidores: r.seguidores, comentarios: r.comentarios, clubesCriados: r.clubes_criados, naoLidas: r.nao_lidas };
+      const atual = recente.current.social;
+      if (JSON.stringify(atual) === JSON.stringify(social)) return;
+      recente.current = { ...recente.current, social };
+      setEstado(recente.current);
+      salvar0.current();
+    } catch (e) {
+      if (e instanceof ErroHttp && e.status === 401) await sessaoVenceu();
+    }
+  }, [sessaoVenceu]);
+
   const puxarDoServidor = useCallback(async () => {
     if (!recente.current.usuario || !(await lerToken())) return;
     try {
@@ -115,10 +132,11 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
       setEstado(copia);
       salvar0.current();
       void sincronizar();   // o que só existe neste aparelho sobe agora
+      void atualizarSocial(true);
     } catch (e) {
       if (e instanceof ErroHttp && e.status === 401) await sessaoVenceu();
     }
-  }, [sincronizar, sessaoVenceu]);
+  }, [sincronizar, sessaoVenceu, atualizarSocial]);
 
   useEffect(() => {
     (async () => {
@@ -153,11 +171,11 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => {
       if (s !== 'active' && timer.current) gravar();
-      if (s === 'active') void sincronizar();   // voltou ao app: sobe o que ficou pendente
+      if (s === 'active') { void sincronizar(); void atualizarSocial(); }   // voltou ao app: sobe o que ficou pendente
     });
-    const ciclo = setInterval(() => { void sincronizar(); }, 30_000);   // rede que voltou, mudanças que falharam
+    const ciclo = setInterval(() => { void sincronizar(); void atualizarSocial(); }, 30_000);   // rede que voltou, mudanças que falharam
     return () => { sub.remove(); clearInterval(ciclo); };
-  }, [gravar, sincronizar]);
+  }, [gravar, sincronizar, atualizarSocial]);
 
   const commit = useCallback((mudar: (e: Estado) => void) => {
     // cópia profunda: structuredClone é bem mais rápido que ida e volta por JSON; sem ele (aparelhos antigos), JSON
@@ -178,7 +196,7 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // o mesmo objeto enquanto nada muda: as telas só redesenham quando o estado muda de fato
-  const valor = useMemo(() => ({ estado, pronto, commit, limpar, puxarDoServidor }), [estado, pronto, commit, limpar, puxarDoServidor]);
+  const valor = useMemo(() => ({ estado, pronto, commit, limpar, puxarDoServidor, atualizarSocial, versaoSocial }), [estado, pronto, commit, limpar, puxarDoServidor, atualizarSocial, versaoSocial]);
   return <LojaContexto.Provider value={valor}>{children}</LojaContexto.Provider>;
 }
 

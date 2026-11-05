@@ -1,34 +1,45 @@
 /* Procurar pessoas: a lupa do Feed abre esta tela. Busca por nome ou @usuário; ao tocar em alguém, abre o perfil dela.
-   A busca de pessoas vai usar a API quando ela tiver esse recurso. */
-import React, { useMemo, useState } from 'react';
+   A busca é no servidor, por nome ou @; sem texto, ele sugere quem você ainda não segue. */
+import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { buscarPessoas } from '../../api/social';
+import type { Pessoa } from '../../api/social';
 import { Icone } from '../../componentes/Icone';
 import { T } from '../../componentes/Ui';
-import { useLoja } from '../../estado/loja';
 import { cores, estilos, FONTE, larguraMax } from '../../tema';
 import { Avatar } from './Avatar';
 import { BotaoSeguir } from './Seguir';
-import { arrobaDe, normalizar } from './util';
+import { arrobaDe } from './util';
 
-/* as pessoas que dá para encontrar: por enquanto nenhuma, porque a API ainda não tem a busca de usuários */
-const PESSOAS: string[] = [];
-
-type Props = { aberto: boolean; aoFechar: () => void; aoAbrirPerfil: (nome: string) => void };
+type Props = { aberto: boolean; aoFechar: () => void; aoAbrirPerfil: (id: number) => void };
 
 export function BuscaUsuarios({ aberto, aoFechar, aoAbrirPerfil }: Props) {
   const insets = useSafeAreaInsets();
-  const { estado } = useLoja();
   const [busca, setBusca] = useState('');
+  const [lista, setLista] = useState<Pessoa[]>([]);
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState('');
 
-  const q = normalizar(busca.replace(/^@/, ''));
-  const lista = useMemo(() => {
-    const todas = [...new Set(PESSOAS)];
-    if (!q) return todas.filter((n) => !estado.seguindo[n]).slice(0, 8);   // sem busca: sugestões de quem você ainda não segue
-    return todas.filter((n) => normalizar(n).includes(q) || arrobaDe(n).includes(q));
-  }, [q, estado.seguindo]);
+  const q = busca.replace(/^@/, '').trim();
+  useEffect(() => {
+    if (!aberto) return undefined;
+    let valido = true;
+    setCarregando(true);
+    const t = setTimeout(async () => {
+      try {
+        const r = await buscarPessoas(q);
+        if (valido) { setLista(r.itens); setErro(''); }
+      } catch (e) {
+        if (valido) setErro(e instanceof Error ? e.message : 'Não foi possível buscar agora.');
+      } finally {
+        if (valido) setCarregando(false);
+      }
+    }, q ? 300 : 0);
+    return () => { valido = false; clearTimeout(t); };
+  }, [q, aberto]);
 
-  const abrir = (nome: string) => { setBusca(''); aoFechar(); aoAbrirPerfil(nome); };
+  const abrir = (id: number) => { setBusca(''); aoFechar(); aoAbrirPerfil(id); };
   const fechar = () => { setBusca(''); aoFechar(); };
 
   return (
@@ -67,21 +78,21 @@ export function BuscaUsuarios({ aberto, aoFechar, aoAbrirPerfil }: Props) {
             {lista.length === 0 ? (
               <View style={st.vazio}>
                 <Icone nome="busca" tamanho={28} cor="#ffffff" />
-                <T tam={15} peso="500" style={{ marginTop: 10 }}>{q ? 'Ninguém encontrado' : 'A busca de pessoas está chegando'}</T>
-                <T tam={13} centro style={{ marginTop: 4, lineHeight: 19 }}>{q ? 'Tente outro nome ou o @usuário da pessoa.' : 'Assim que o servidor listar as contas, você poderá procurar e seguir pessoas por aqui.'}</T>
+                <T tam={15} peso="500" style={{ marginTop: 10 }}>{erro ? 'Sem conexão' : carregando ? 'Buscando...' : q ? 'Ninguém encontrado' : 'Sem sugestões por enquanto'}</T>
+                <T tam={13} centro style={{ marginTop: 4, lineHeight: 19 }}>{erro || (q ? 'Tente outro nome ou o @usuário da pessoa.' : 'Quando mais gente entrar no RONDO, ela aparece aqui.')}</T>
               </View>
             ) : (
               <View style={{ gap: 4 }}>
                 {lista.map((n) => (
-                  <View key={n} style={st.linha}>
-                    <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${n}`} onPress={() => abrir(n)} style={st.pessoa}>
-                      <Avatar nome={n} tamanho={46} />
+                  <View key={n.id} style={st.linha}>
+                    <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${n.nome}`} onPress={() => abrir(n.id)} style={st.pessoa}>
+                      <Avatar nome={n.nome} tamanho={46} />
                       <View style={{ flex: 1 }}>
-                        <T tam={15} peso="500" linhas={1}>{n}</T>
-                        <T tam={12.5} linhas={1} style={{ opacity: 0.75 }}>@{arrobaDe(n)}</T>
+                        <T tam={15} peso="500" linhas={1}>{n.nome}</T>
+                        <T tam={12.5} linhas={1} style={{ opacity: 0.75 }}>@{n.arroba ?? arrobaDe(n.nome)}</T>
                       </View>
                     </Pressable>
-                    <BotaoSeguir nome={n} />
+                    <BotaoSeguir pessoa={n} />
                   </View>
                 ))}
               </View>

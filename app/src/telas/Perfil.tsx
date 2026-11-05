@@ -22,7 +22,10 @@ import { progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
 import { patenteDe } from '../lib/patentes';
 import { meusStories } from '../lib/stories';
 import { cores, estilos } from '../tema';
-import type { Midia, Post } from '../tipos';
+import type { Midia } from '../tipos';
+import { lerPostsDaPessoa, lerSeguidores, lerSeguindo } from '../api/social';
+import type { PostSocial } from '../api/social';
+import { useLista } from '../estado/lista';
 import { Avatar } from './comunidade/Avatar';
 import { CartaoPost } from './comunidade/CartaoPost';
 import { Miniatura, VisorMidia } from './comunidade/Midia';
@@ -45,7 +48,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const [config, setConfig] = useState(false);
   const [criandoStory, setCriandoStory] = useState(false);
   const [verStory, setVerStory] = useState(false);
-  const [postAberto, setPostAberto] = useState<Post | null>(null);
+  const [postAberto, setPostAberto] = useState<PostSocial | null>(null);
   const [bio, setBio] = useState('');
   const [nomeEd, setNomeEd] = useState('');
   const [arrobaEd, setArrobaEd] = useState('');
@@ -59,8 +62,10 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const xp = xpTotal(estado);
   const nivel = progressoNivel(xp);
   const limites = limitesDe(nivel.nivel);
-  const seguindo = Object.keys(estado.seguindo).filter((k) => estado.seguindo[k]);
-  const seguidores = estado.seguidores;
+  /* as contagens, as publicações e as listas de conexões vêm do servidor */
+  const meuId = estado.social.id;
+  const publicacoes = useLista((cursor) => lerPostsDaPessoa(meuId, cursor), [meuId], meuId > 0);
+  const conexoes = useLista((cursor) => (lista === 'seguidores' ? lerSeguidores(meuId, cursor) : lerSeguindo(meuId, cursor)), [meuId, lista], meuId > 0 && lista !== null);
   const { atual: patente, proxima } = patenteDe(nivel.nivel);
   const exibidos = TITULOS.filter((t) => estado.perfilSocial.titulos.includes(t.id) && t.nivel <= nivel.nivel);
   const arrobaAtual = estado.usuario?.arroba ?? arrobaPadrao(nome);
@@ -68,7 +73,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
   /* publicações em grade: as fixadas (destacadas) primeiro */
   const fixadas = new Set(estado.perfilSocial.destaques);
-  const grade = [...estado.posts].sort((a, b) => Number(fixadas.has(b.id)) - Number(fixadas.has(a.id)) || b.quando - a.quando);
+  const grade = [...publicacoes.itens].sort((a, b) => Number(fixadas.has(String(b.id))) - Number(fixadas.has(String(a.id))) || b.quando - a.quando);
   const medalhasGanhas = medalhasDe(estado, new Date()).filter((m) => m.aberta);
 
   const abrirEdicao = () => {
@@ -153,9 +158,9 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
           <Avatar nome={nome} voce tamanho={tamFoto} />
         </AnelStory>
         <View style={st.contagens}>
-          <Contagem n={estado.posts.length} rotulo="Publicações" />
-          <Contagem n={seguidores.length} rotulo="Seguidores" aoTocar={() => setLista('seguidores')} />
-          <Contagem n={seguindo.length} rotulo="Seguindo" aoTocar={() => setLista('seguindo')} />
+          <Contagem n={estado.social.posts} rotulo="Publicações" />
+          <Contagem n={estado.social.seguidores} rotulo="Seguidores" aoTocar={() => setLista('seguidores')} />
+          <Contagem n={estado.social.seguindo} rotulo="Seguindo" aoTocar={() => setLista('seguindo')} />
         </View>
       </View>
 
@@ -187,7 +192,8 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       {aba === 'posts' ? (
         grade.length ? (
           <View style={st.linhaDoTempo}>
-            {grade.map((x) => <CartaoPost key={x.id} post={x} timeline aoAbrirMidia={(itens, indice) => setVisor({ itens, indice })} />)}
+            {grade.map((x) => <CartaoPost key={x.id} post={x} timeline aoAbrirMidia={(itens, indice) => setVisor({ itens, indice })} aoApagar={(id) => publicacoes.mudar((l) => l.filter((p) => p.id !== id))} />)}
+            {publicacoes.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais" aoPressionar={publicacoes.maisItens} carregando={publicacoes.carregando} style={{ marginTop: 12 }} /> : null}
           </View>
         ) : (
           <View style={st.vazio}>
@@ -250,19 +256,23 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
       {/* seguidores e seguindo */}
       <Folha aberta={lista !== null} aoFechar={() => setLista(null)} titulo={lista === 'seguidores' ? 'Seguidores' : 'Seguindo'}>
-        {(lista === 'seguidores' ? seguidores : seguindo).length ? (
+        {conexoes.itens.length ? (
           <View style={{ gap: 14 }}>
-            {(lista === 'seguidores' ? seguidores : seguindo).map((n) => (
-              <View key={n} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Avatar nome={n} />
-                <T tam={15} style={{ flex: 1 }} linhas={1}>{n}</T>
-                <BotaoSeguir nome={n} />
+            {conexoes.itens.map((n) => (
+              <View key={n.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <Avatar nome={n.nome} voce={n.voce} />
+                <View style={{ flex: 1 }}>
+                  <T tam={15} linhas={1}>{n.nome}</T>
+                  {n.arroba ? <T tam={12.5} linhas={1} style={{ opacity: 0.75 }}>@{n.arroba}</T> : null}
+                </View>
+                {n.voce ? null : <BotaoSeguir pessoa={n} />}
               </View>
             ))}
+            {conexoes.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais" aoPressionar={conexoes.maisItens} carregando={conexoes.carregando} /> : null}
           </View>
         ) : (
           <T tam={14} style={{ lineHeight: 20 }}>
-            {lista === 'seguidores' ? 'Ninguém segue você ainda.' : 'Você ainda não segue ninguém. Toque em Seguir nas publicações e no ranking da Comunidade.'}
+            {conexoes.erro || (conexoes.carregando ? 'Carregando...' : lista === 'seguidores' ? 'Ninguém segue você ainda.' : 'Você ainda não segue ninguém. Toque em Seguir nas publicações do Feed ou na busca de pessoas.')}
           </T>
         )}
       </Folha>
