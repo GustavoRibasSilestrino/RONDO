@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { CadastroProfissional, CriarConta } from "./Cadastro";
 import { Btn, Mark, Reveal, Section, Spot, Title } from "./ui";
 
 /* ---------- clube ---------- */
@@ -90,6 +90,7 @@ export function Profissionais() {
         <Reveal className="steps">
           {STEPS.map(([t, d]) => <div className="step" key={t}><b>{t}</b><p>{d}</p></div>)}
         </Reveal>
+        <Reveal><CadastroProfissional /></Reveal>
       </div>
     </Section>
   );
@@ -99,7 +100,7 @@ export function Profissionais() {
 const PLANS = [
   { nome: "Grátis", preco: "R$ 0", per: "", itens: ["Treino, dieta e água", "Streak e check-ins", "Feed e clubes", "Um recado por dia e um para o futuro por vez"], cta: "Começar", kind: "ghost" as const },
   { nome: "PRO", preco: "R$ 14,90", per: " /mês", itens: ["Ranking com prêmios mensais", "Clubes VIP", "Estatísticas completas", "Recados para o futuro sem limite", "Seu ano em áudio completo"], cta: "Quero o PRO", kind: "primary" as const, hot: true },
-  { nome: "Profissional", preco: "R$ 59", per: " /mês", itens: ["Perfil verificado na busca", "Até 25 alunos", "Planos, painel e chat", "Profissional+ (R$ 99): ilimitado"], cta: "Cadastrar perfil", kind: "ghost" as const },
+  { nome: "Profissional", preco: "R$ 59", per: " /mês", itens: ["Perfil verificado na busca", "Até 25 alunos", "Planos, painel e chat", "Profissional+ (R$ 99): ilimitado"], cta: "Cadastrar perfil", kind: "ghost" as const, href: "#cadastro-profissional" },
 ];
 
 export function Planos() {
@@ -114,7 +115,7 @@ export function Planos() {
               <h3>{p.nome}</h3>
               <div className="price">{p.preco}{p.per && <small>{p.per}</small>}</div>
               <ul>{p.itens.map((i) => <li key={i}>{i}</li>)}</ul>
-              <Btn href="#entrar" kind={p.kind}>{p.cta}</Btn>
+              <Btn href={p.href ?? "#entrar"} kind={p.kind}>{p.cta}</Btn>
             </Reveal>
           ))}
         </div>
@@ -147,24 +148,12 @@ export function Faq() {
 
 /* ---------- chamada final ---------- */
 export function Entrar() {
-  const [email, setEmail] = useState("");
-  const [ok, setOk] = useState("");
   return (
     <section className="wrap" id="entrar">
       <Reveal className="cta-final">
         <Title parts="Amanhã você vai querer ter começado hoje." />
-        <p className="lead">Entre na lista e seja avisado quando o RONDO abrir o beta.</p>
-        <form className="signup" onSubmit={(e) => {
-          e.preventDefault();
-          // TODO: enviar para a API (POST /lista-de-espera) quando o backend existir.
-          setOk("Anotado! Avisaremos quando o beta abrir.");
-          setEmail("");
-        }}>
-          <label className="sr-only" htmlFor="email">E-mail</label>
-          <input id="email" type="email" required placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <Btn type="submit">Entrar na lista</Btn>
-        </form>
-        <p className="signup-ok" role="status">{ok}</p>
+        <p className="lead">Crie a sua conta e entre no app com o mesmo e-mail.</p>
+        <CriarConta />
       </Reveal>
     </section>
   );

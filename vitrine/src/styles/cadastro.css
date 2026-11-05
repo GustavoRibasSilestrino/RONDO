@@ -1,0 +1,11 @@
+/* ===== Cadastro (conta e profissional) ===== */
+.cadastro { display: grid; gap: .9rem; max-width: 420px; margin-inline: auto; text-align: left; }
+.cadastro .btn { justify-self: center; margin-top: .4rem; }
+.cadastro-aviso { min-height: 1.4em; text-align: center; font-size: .9rem; color: var(--ink-2); }
+.cadastro-aviso.is-ok { color: var(--good); }
+.cadastro-aviso.is-erro { color: #ff8da1; }
+
+.cadastro-pro { max-width: none; margin-top: 1.2rem; padding: 2rem; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--card); }
+.cadastro-pro h3 { font-family: var(--font-display); font-weight: 300; font-size: 1.7rem; letter-spacing: -.04em; }
+.cadastro-pro .fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) { .cadastro-pro { padding: 1.4rem; } .cadastro-pro .fields { grid-template-columns: minmax(0, 1fr); } }
