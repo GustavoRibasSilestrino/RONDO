@@ -128,7 +128,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
           <Icone nome="lapis" tamanho={19} cor="#ffffff" />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Configurações" onPress={() => setConfig(true)} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
-          <Icone nome="menu" tamanho={19} cor="#ffffff" />
+          <Icone nome="engrenagem" tamanho={20} cor="#ffffff" />
         </Pressable>
       </View>
 
