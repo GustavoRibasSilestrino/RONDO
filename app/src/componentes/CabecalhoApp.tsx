@@ -3,6 +3,7 @@ import React from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cores, estilos, larguraMax, temaAtual } from '../tema';
+import { useRolada } from '../lib/rolagem';
 import { Icone } from './Icone';
 import { T } from './Ui';
 
@@ -23,6 +24,7 @@ type Props = { aoAbrirPro: () => void; mostrarNome: boolean; mostrarTema: boolea
 
 export function CabecalhoApp({ aoAbrirPro, mostrarNome, mostrarTema, temaBloqueado, aoTrocarTema, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
   const insets = useSafeAreaInsets();
+  const rolada = useRolada();   // com a tela rolada, só o nome some; as outras opções ficam
   return (
     <View style={[st.fundo, { paddingTop: insets.top, height: insets.top + ALTURA_CABECALHO }]}>
       <View style={st.linha}>
@@ -47,7 +49,7 @@ export function CabecalhoApp({ aoAbrirPro, mostrarNome, mostrarTema, temaBloquea
         </View>
 
         {mostrarNome ? (
-          <View pointerEvents="none" style={st.marca}>
+          <View pointerEvents="none" style={[st.marca, { opacity: rolada ? 0 : 1 }, Platform.OS === 'web' ? ({ transition: 'opacity 220ms ease' } as object) : null]}>
             <Nome />
           </View>
         ) : null}
