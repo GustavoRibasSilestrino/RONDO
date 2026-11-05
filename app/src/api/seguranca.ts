@@ -1,6 +1,6 @@
-/* Segurança da conta: alterar a senha.
-   O servidor ainda não tem a rota de troca de senha (hoje só há cadastro, entrada e /auth/eu), então o app valida os campos
-   e avisa com clareza. Quando a rota existir, é só trocar o corpo de alterarSenha por uma chamada a ela. */
+/* Segurança da conta: alterar a senha. O app valida os campos e o servidor confere a senha atual (POST /auth/senha). */
+import { trocarSenhaNoServidor } from './sincronia';
+
 export const SENHA_MIN = 6;
 
 export function validarNovaSenha(atual: string, nova: string, repetida: string): { atual?: string; nova?: string; repetida?: string } {
@@ -12,6 +12,6 @@ export function validarNovaSenha(atual: string, nova: string, repetida: string):
   return erros;
 }
 
-export async function alterarSenha(_atual: string, _nova: string): Promise<void> {
-  throw new Error('A troca de senha ainda não está disponível: o servidor ainda não tem essa função.');
+export async function alterarSenha(atual: string, nova: string): Promise<void> {
+  await trocarSenhaNoServidor(atual, nova);
 }

@@ -30,7 +30,7 @@ def test_cadastro_login_e_eu(cliente):
     assert r.status_code == 200
     token = r.json()["token"]
     eu = cliente.get("/auth/eu", headers={"Authorization": f"Bearer {token}"})
-    assert eu.json() == {"email": "ana@x.com", "nome": "Ana", "papel": "usuario", "verificado": False, "pro": False, "selo": None}
+    assert eu.json() == {"email": "ana@x.com", "nome": "Ana", "papel": "usuario", "verificado": False, "pro": False, "selo": None, "arroba": None, "bio": ""}
     assert cliente.get("/auth/eu").status_code == 401
 
 
@@ -62,3 +62,50 @@ def test_profissional(cliente):
 def test_assinatura(cliente):
     assert cliente.post("/assinaturas", json={"plano_id": "pro-mensal", "token": "t"}).json() == {"status": "pendente"}
     assert cliente.post("/assinaturas", json={"plano_id": "nada", "token": "t"}).status_code == 422
+
+
+def _conta(cliente, email="ana@x.com", nome="Ana"):
+    r = cliente.post("/auth/cadastro", json={"nome": nome, "email": email, "senha": "segredo1"}).json()
+    return {"Authorization": f"Bearer {r['token']}"}
+
+
+def test_dados_exigem_login_e_guardam_por_usuario(cliente):
+    assert cliente.get("/me/dados").status_code == 401
+    ana, bia = _conta(cliente), _conta(cliente, "bia@x.com", "Bia")
+
+    corpo = {"itens": {"treinos": [{"data": "2026-11-05", "nome": "Peito"}], "agua": {"2026-11-05": 6}}}
+    assert cliente.put("/me/dados", json=corpo, headers=ana).status_code == 200
+    assert cliente.get("/me/dados", headers=ana).json()["itens"] == corpo["itens"]
+    assert cliente.get("/me/dados", headers=bia).json()["itens"] == {}   # cada pessoa só vê o que é dela
+
+    # atualizar uma chave troca o valor sem mexer nas outras
+    cliente.put("/me/dados", json={"itens": {"agua": {"2026-11-05": 8}}}, headers=ana)
+    itens = cliente.get("/me/dados", headers=ana).json()["itens"]
+    assert itens["agua"] == {"2026-11-05": 8} and itens["treinos"][0]["nome"] == "Peito"
+
+
+def test_dados_so_aceitam_chaves_conhecidas(cliente):
+    ana = _conta(cliente)
+    # xpExtra e pro são do servidor: o app não pode gravá-los
+    r = cliente.put("/me/dados", json={"itens": {"xpExtra": 99999, "pro": True}}, headers=ana)
+    assert r.status_code == 422
+    assert cliente.get("/me/dados", headers=ana).json()["itens"] == {}
+
+
+def test_perfil_e_arroba_unica(cliente):
+    ana, bia = _conta(cliente), _conta(cliente, "bia@x.com", "Bia")
+    r = cliente.patch("/me/perfil", json={"nome": "Ana Souza", "arroba": "@Ana.Souza", "bio": "Treino de manhã"}, headers=ana)
+    assert r.status_code == 200
+    assert (r.json()["nome"], r.json()["arroba"], r.json()["bio"]) == ("Ana Souza", "ana.souza", "Treino de manhã")
+    assert cliente.patch("/me/perfil", json={"arroba": "ana.souza"}, headers=bia).status_code == 409
+    assert cliente.patch("/me/perfil", json={"arroba": "a"}, headers=bia).status_code == 422
+    assert cliente.get("/auth/eu", headers=ana).json()["arroba"] == "ana.souza"
+
+
+def test_trocar_senha(cliente):
+    ana = _conta(cliente)
+    assert cliente.post("/auth/senha", json={"atual": "errada!", "nova": "novasenha1"}, headers=ana).status_code == 401
+    assert cliente.post("/auth/senha", json={"atual": "segredo1", "nova": "segredo1"}, headers=ana).status_code == 422
+    assert cliente.post("/auth/senha", json={"atual": "segredo1", "nova": "novasenha1"}, headers=ana).status_code == 200
+    assert cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "segredo1"}).status_code == 401
+    assert cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "novasenha1"}).status_code == 200

@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { CampoFlutuante } from '../componentes/CampoFlutuante';
+import { ErroHttp } from '../api/cliente';
+import { salvarPerfilNoServidor } from '../api/sincronia';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
 import { Selo, tipoDeSelo } from '../componentes/Selos';
@@ -87,7 +89,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       avisar(e instanceof Error ? e.message : 'Não foi possível abrir as fotos.');
     }
   };
-  const salvar = () => {
+  const salvar = async () => {
     const n = nomeEd.trim();
     const a = arrobaEd.trim().replace(/^@/, '').toLowerCase();
     const erros: { nome?: string; arroba?: string } = {};
@@ -95,6 +97,14 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
     if (!/^[a-z0-9._]{3,20}$/.test(a)) erros.arroba = 'Use de 3 a 20 letras minúsculas, números, ponto ou _.';
     setErroEd(erros);
     if (erros.nome || erros.arroba) return;
+    /* o servidor guarda o nome, o @ e a bio; se o @ já for de outra pessoa, avisa aqui e não muda nada */
+    try {
+      await salvarPerfilNoServidor({ nome: n, arroba: a, bio: bio.trim() });
+    } catch (e) {
+      if (e instanceof ErroHttp && e.status === 409) { setErroEd({ arroba: e.message }); return; }
+      avisar(e instanceof Error ? e.message : 'Não foi possível salvar o perfil agora.');
+      return;
+    }
     const antiga = estado.usuario?.foto;
     commit((e) => {
       e.perfilSocial.bio = bio.trim();

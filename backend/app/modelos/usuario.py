@@ -18,4 +18,6 @@ class Usuario(Base):
     pro: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     # selo ao lado do nome, definido só pelo banco: profissional | famoso | dono (nulo = sem selo)
     selo: Mapped[str | None] = mapped_column(String(12), nullable=True)
+    arroba: Mapped[str | None] = mapped_column(String(30), unique=True, index=True, nullable=True)   # nome de usuário, sem o @
+    bio: Mapped[str] = mapped_column(String(300), default="", server_default="")
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
