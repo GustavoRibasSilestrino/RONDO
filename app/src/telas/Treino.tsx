@@ -1,16 +1,17 @@
 /* Treino: escolher a rotina, registrar série a série, descansar, bater recordes e finalizar. */
 import React, { useEffect, useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
-import { Botao, Cartao, Chip, Passo, T } from '../componentes/Ui';
+import { Botao, Chip, T } from '../componentes/Ui';
 import { ROTINAS, exercicioPorId } from '../dados';
 import { useLoja } from '../estado/loja';
 import { epley, estagnado, melhor1RM, proximaCarga, ultimaVez, volumeDe } from '../lib/calc';
-import { dataCurta, fmt, iso, mmss, num } from '../lib/datas';
-import { cores } from '../tema';
+import { diaDaSemana, doIso, fmt, iso, mmss, num, somarDias } from '../lib/datas';
+import { cores, estilos } from '../tema';
 
 const DESCANSO_MS = 90_000;
+const SEMANA = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
 
 export function Treino() {
   const { estado } = useLoja();
@@ -23,6 +24,14 @@ export function Treino() {
       </Folha>
     </>
   );
+}
+
+/* "hoje", "ontem" ou "há 3 dias" */
+function haQuanto(data: string): string {
+  const dias = Math.round((doIso(iso()).getTime() - doIso(data).getTime()) / 86400000);
+  if (dias <= 0) return 'hoje';
+  if (dias === 1) return 'ontem';
+  return `há ${dias} dias`;
 }
 
 /* ---------- escolher a rotina ---------- */
@@ -47,27 +56,78 @@ function Lista() {
       };
     });
 
+  const ultimaData = (id: string): string | null => [...estado.treinos].reverse().find((t) => t.rotina === id)?.data ?? null;
+
+  /* a rotina sugerida é a que está há mais tempo sem treinar (ou nunca foi feita) */
+  const sugerida = [...ROTINAS].sort((a, b) => (ultimaData(a.id) ?? '').localeCompare(ultimaData(b.id) ?? ''))[0];
+  const outras = ROTINAS.filter((r) => r.id !== sugerida.id);
+
+  /* a semana: segunda a domingo, com os dias em que houve treino */
+  const hoje = new Date();
+  const segunda = somarDias(hoje, -diaDaSemana(hoje));
+  const dias = Array.from({ length: 7 }, (_, k) => { const d = somarDias(segunda, k); return { letra: SEMANA[k], treinou: estado.treinos.some((t) => t.data === iso(d)), hoje: iso(d) === iso(hoje) }; });
+  const naSemana = dias.filter((d) => d.treinou).length;
+
+  const totalSeries = (r: (typeof ROTINAS)[number]) => r.exercicios.reduce((t, x) => t + x.series, 0);
+
   return (
     <Tela>
       <T tam={15} peso="400" centro>Treino</T>
-      <T tam={13} centro cor={cores.texto2} style={{ marginTop: 6, lineHeight: 21 }}>
-        Escolha a rotina. O app abre com a sua última carga e sugere a próxima.
-      </T>
-      <View style={{ gap: 14, marginTop: 24 }}>
-        {ROTINAS.map((r) => {
-          const feito = [...estado.treinos].reverse().find((t) => t.rotina === r.id);
+
+      {/* a semana */}
+      <View style={st.semana}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <T tam={14} peso="500">Esta semana</T>
+          <T tam={13}>{naSemana} {naSemana === 1 ? 'treino' : 'treinos'}</T>
+        </View>
+        <View style={st.dias}>
+          {dias.map((d, k) => (
+            <View key={k} style={{ alignItems: 'center', gap: 6 }}>
+              <View style={[st.dia, d.treinou && st.diaFeito, d.hoje && !d.treinou && st.diaHoje]}>
+                {d.treinou ? <Icone nome="ok" tamanho={16} cor="#ffffff" espessura={2.4} /> : null}
+              </View>
+              <T tam={11.5} peso={d.hoje ? '500' : '300'} style={{ opacity: d.hoje ? 1 : 0.7 }}>{d.letra}</T>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* o treino sugerido, em destaque */}
+      <View style={st.hero}>
+        <View style={st.selo}><T tam={10.5} peso="500" style={{ letterSpacing: 1 }}>SUGERIDO PARA HOJE</T></View>
+        <T tam={28} peso="500" style={{ marginTop: 12, letterSpacing: -0.5 }}>{sugerida.nome}</T>
+        <View style={st.metas}>
+          <View style={st.meta}><Icone nome="relogio" tamanho={15} cor="#ffffff" /><T tam={12.5}>{sugerida.minutos} min</T></View>
+          <View style={st.meta}><Icone nome="treino" tamanho={15} cor="#ffffff" /><T tam={12.5}>{sugerida.exercicios.length} exercícios</T></View>
+          <View style={st.meta}><Icone nome="ok" tamanho={15} cor="#ffffff" /><T tam={12.5}>{totalSeries(sugerida)} séries</T></View>
+        </View>
+        <View style={{ marginTop: 16, gap: 10 }}>
+          {sugerida.exercicios.map((x, k) => (
+            <View key={x.id} style={st.linhaEx}>
+              <View style={st.numero}><T tam={12} peso="500">{k + 1}</T></View>
+              <T tam={14.5} style={{ flex: 1 }} linhas={1}>{x.nome}</T>
+              <T tam={13} style={{ opacity: 0.75 }}>{x.series} × {x.faixa[0]}-{x.faixa[1]}</T>
+            </View>
+          ))}
+        </View>
+        <T tam={12.5} style={{ marginTop: 14, opacity: 0.75 }}>{ultimaData(sugerida.id) ? `Última vez: ${haQuanto(ultimaData(sugerida.id)!)}` : 'Ainda não feito'}. O app abre com a sua última carga e sugere a próxima.</T>
+        <Botao titulo="Começar treino" icone="treino" aoPressionar={() => iniciar(sugerida.id)} style={{ marginTop: 16 }} />
+      </View>
+
+      {/* as outras rotinas */}
+      <T tam={13} peso="500" style={{ marginTop: 24, marginBottom: 12 }}>Outras rotinas</T>
+      <View style={{ gap: 10 }}>
+        {outras.map((r) => {
+          const data = ultimaData(r.id);
           return (
-            <Cartao key={r.id}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <T tam={22} peso="300" style={{ flex: 1 }}>{r.nome}</T>
-                <Chip texto={`~ ${r.minutos} min`} />
+            <Pressable key={r.id} accessibilityRole="button" accessibilityLabel={`Começar ${r.nome}`} onPress={() => iniciar(r.id)} style={({ pressed }) => [st.rotina, pressed && { opacity: 0.85 }]}>
+              <View style={st.iconeRotina}><Icone nome="treino" tamanho={22} cor="#ffffff" /></View>
+              <View style={{ flex: 1 }}>
+                <T tam={16.5} peso="500" linhas={1}>{r.nome}</T>
+                <T tam={12.5} style={{ marginTop: 2, opacity: 0.8 }} linhas={1}>{r.exercicios.length} exercícios · {r.minutos} min · {data ? haQuanto(data) : 'ainda não feito'}</T>
               </View>
-              <T tam={13} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 20 }}>{r.exercicios.map((x) => x.nome).join(' · ')}</T>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14 }}>
-                <T tam={12} cor={cores.texto3}>{feito ? `Última vez: ${dataCurta(feito.data)}` : 'Ainda não feito'}</T>
-                <Botao pequeno titulo="Começar" icone="treino" aoPressionar={() => iniciar(r.id)} />
-              </View>
-            </Cartao>
+              <View style={st.play}><Icone nome="tocar" tamanho={16} cor="#ffffff" /></View>
+            </Pressable>
           );
         })}
       </View>
@@ -77,6 +137,21 @@ function Lista() {
 
 /* ---------- treino em andamento ---------- */
 type Resumo = { nome: string; volume: number; series: number; minutos: number; recordes: string[] };
+
+/* um contador com − e + nas pontas e o valor grande no meio */
+function Contador({ rotulo, valor, passo, min, max, formato, unidade, aoMudar, feita }: { rotulo: string; valor: number; passo: number; min: number; max: number; formato?: (n: number) => string; unidade: string; aoMudar: (v: number) => void; feita: boolean }) {
+  const mudar = (d: number) => aoMudar(Math.min(max, Math.max(min, Math.round((valor + d) * 100) / 100)));
+  return (
+    <View style={[st.contador, feita && st.contadorFeito]}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Diminuir ${rotulo}`} onPress={() => mudar(-passo)} hitSlop={4} style={st.botaoContador}><Icone nome="menos" tamanho={16} cor="#ffffff" /></Pressable>
+      <View style={{ alignItems: 'center', flex: 1 }}>
+        <T tam={17} peso="500">{formato ? formato(valor) : String(valor)}</T>
+        <T tam={10.5} style={{ opacity: 0.7, marginTop: -1 }}>{unidade}</T>
+      </View>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Aumentar ${rotulo}`} onPress={() => mudar(passo)} hitSlop={4} style={st.botaoContador}><Icone nome="mais" tamanho={16} cor="#ffffff" /></Pressable>
+    </View>
+  );
+}
 
 function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
   const { estado, commit } = useLoja();
@@ -95,6 +170,9 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
   const rotina = ROTINAS.find((r) => r.id === ta.rotina);
   const restante = ta.descansoAte ? Math.max(0, Math.ceil((ta.descansoAte - agora) / 1000)) : 0;
   const hoje = new Date();
+  const totalSeries = ta.exercicios.reduce((t, ex) => t + ex.series.length, 0);
+  const feitas = ta.exercicios.reduce((t, ex) => t + ex.series.filter((s) => s.ok).length, 0);
+  const volumeAgora = ta.exercicios.reduce((t, ex) => t + ex.series.filter((s) => s.ok).reduce((a, s) => a + s.kg * s.reps, 0), 0);
 
   const mudarSerie = (i: number, j: number, campo: 'kg' | 'reps', valor: number) =>
     commit((e) => { const s = e.treinoAtual?.exercicios[i]?.series[j]; if (s) s[campo] = valor; });
@@ -153,24 +231,38 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
 
   return (
     <Tela>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <View style={{ flex: 1, paddingRight: 12 }}>
-          <T tam={30} peso="200">{rotina?.nome}</T>
-          <T tam={13} cor={cores.texto2} mono style={{ marginTop: 4 }}>{mmss((agora - ta.inicio) / 1000)}</T>
+      {/* topo: nome da rotina, tempo e finalizar */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <View style={{ flex: 1 }}>
+          <T tam={22} peso="500" linhas={1} style={{ letterSpacing: -0.3 }}>{rotina?.nome}</T>
+          <View style={st.tempo}><Icone nome="relogio" tamanho={14} cor="#ffffff" /><T tam={13} peso="500">{mmss((agora - ta.inicio) / 1000)}</T></View>
         </View>
         <Botao pequeno titulo="Finalizar" icone="ok" aoPressionar={finalizar} />
       </View>
 
+      {/* progresso da sessão */}
+      <View style={st.progresso}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <T tam={13} peso="500">{feitas} de {totalSeries} séries</T>
+          <T tam={13}>{fmt(volumeAgora / 1000, 2)} t de volume</T>
+        </View>
+        <View style={st.trilho}><View style={[st.enche, { width: `${totalSeries ? (feitas / totalSeries) * 100 : 0}%` }]} /></View>
+      </View>
+
+      {/* descanso: aparece depois de marcar uma série */}
       {restante > 0 ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: cores.texto, borderRadius: 99, paddingVertical: 10, paddingLeft: 18, paddingRight: 10, marginTop: 18 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Icone nome="relogio" tamanho={18} cor={cores.fundo} />
-            <T tam={13} peso="500" cor={cores.fundo}>Descanso</T>
-            <T tam={20} peso="500" mono cor={cores.fundo}>{mmss(restante)}</T>
+        <View style={st.descanso}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+            <Icone nome="relogio" tamanho={20} cor="#ffffff" />
+            <View>
+              <T tam={11.5} peso="500" style={{ letterSpacing: 0.8 }}>DESCANSO</T>
+              <T tam={24} peso="500">{mmss(restante)}</T>
+            </View>
           </View>
-          <Pressable accessibilityRole="button" onPress={pularDescanso} style={{ paddingVertical: 6, paddingHorizontal: 14, borderRadius: 99, backgroundColor: 'rgba(5,5,7,0.1)' }}>
-            <T tam={12} peso="500" cor={cores.fundo}>Pular</T>
+          <Pressable accessibilityRole="button" accessibilityLabel="Pular o descanso" onPress={pularDescanso} style={st.pular}>
+            <T tam={13} peso="500">Pular</T>
           </Pressable>
+          <View style={st.descansoTrilho}><View style={[st.descansoEnche, { width: `${(restante * 1000 / DESCANSO_MS) * 100}%` }]} /></View>
         </View>
       ) : null}
 
@@ -183,51 +275,69 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
         const sessao = exAtual.series.filter((s) => s.ok).map((s) => epley(s.kg, s.reps));
         const recorde = sessao.length > 0 && historico > 0 && Math.max(...sessao) > historico + 0.01;
         const parado = estagnado(estado, def.id, hoje);
+        const feitasEx = exAtual.series.filter((s) => s.ok).length;
+        const completo = feitasEx === exAtual.series.length;
         return (
-          <Cartao key={def.id} style={{ marginTop: 16 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <View style={{ flex: 1, paddingRight: 8 }}>
-                <T tam={20} peso="300">{def.nome}</T>
-                <T tam={12} cor={cores.texto2} style={{ marginTop: 3 }}>
+          <View key={def.id} style={[st.exercicio, completo && st.exercicioFeito]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={[st.indice, completo && { backgroundColor: cores.bom }]}>
+                {completo ? <Icone nome="ok" tamanho={16} cor="#04140c" espessura={2.6} /> : <T tam={13} peso="500">{i + 1}</T>}
+              </View>
+              <View style={{ flex: 1 }}>
+                <T tam={18} peso="500" linhas={1} style={{ letterSpacing: -0.2 }}>{def.nome}</T>
+                <T tam={12} style={{ marginTop: 2, opacity: 0.8 }} linhas={1}>
                   {ult ? `Última vez: ${num(Math.max(...ult.series.map((s) => s.kg)))} kg × ${ult.series[0].reps} · 1RM ${num(Math.round(historico))} kg` : `Faixa: ${def.faixa[0]} a ${def.faixa[1]} repetições`}
                 </T>
               </View>
-              <View style={{ gap: 6, alignItems: 'flex-end' }}>
+              <T tam={12.5} peso="500" style={{ opacity: 0.8 }}>{feitasEx}/{exAtual.series.length}</T>
+            </View>
+
+            {recorde || parado ? (
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
                 {recorde ? <Chip texto="RECORDE" tom="bom" /> : null}
                 {parado ? <Chip texto="ESTAGNOU" tom="alerta" /> : null}
               </View>
-            </View>
+            ) : null}
 
             {prox ? (
-              <View style={{ marginTop: 12, backgroundColor: `rgba(${cores.tom},0.12)`, borderRadius: 6, paddingVertical: 8, paddingHorizontal: 12 }}>
-                <T tam={12} peso="500" cor={cores.destaque2}>
+              <View style={st.dica}>
+                <Icone nome="evolucao" tamanho={16} cor="#ffffff" />
+                <T tam={12.5} style={{ flex: 1, lineHeight: 17 }}>
                   {prox.sobe ? `Topo da faixa batido. Próxima carga: ${num(prox.kg)} kg` : `Mantenha ${num(prox.kg)} kg até bater ${def.faixa[1]} repetições em todas as séries`}
                 </T>
               </View>
             ) : null}
 
-            <View style={{ marginTop: 12, gap: 10 }}>
+            {/* cabeçalho da tabela de séries */}
+            <View style={st.cabecalho}>
+              <T tam={10.5} peso="500" style={{ width: 30, textAlign: 'center', opacity: 0.6 }}>SÉRIE</T>
+              <T tam={10.5} peso="500" style={{ flex: 1, textAlign: 'center', opacity: 0.6 }}>CARGA</T>
+              <T tam={10.5} peso="500" style={{ flex: 1, textAlign: 'center', opacity: 0.6 }}>REPETIÇÕES</T>
+              <View style={{ width: 44 }} />
+            </View>
+
+            <View style={{ gap: 8 }}>
               {exAtual.series.map((s, j) => (
-                <View key={j} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <T tam={12} mono cor={cores.texto3} style={{ width: 16 }}>{j + 1}</T>
-                  <Passo rotulo="carga" valor={s.kg} passo={def.passo} min={0} max={500} formato={num} unidade="kg" aoMudar={(v) => mudarSerie(i, j, 'kg', v)} />
-                  <Passo rotulo="repetições" valor={s.reps} passo={1} min={1} max={50} unidade="reps" aoMudar={(v) => mudarSerie(i, j, 'reps', v)} />
+                <View key={j} style={[st.serie, s.ok && st.serieFeita]}>
+                  <View style={st.numeroSerie}><T tam={13} peso="500" style={{ opacity: 0.8 }}>{j + 1}</T></View>
+                  <Contador rotulo="carga" valor={s.kg} passo={def.passo} min={0} max={500} formato={num} unidade="kg" aoMudar={(v) => mudarSerie(i, j, 'kg', v)} feita={s.ok} />
+                  <Contador rotulo="repetições" valor={s.reps} passo={1} min={1} max={50} unidade="reps" aoMudar={(v) => mudarSerie(i, j, 'reps', v)} feita={s.ok} />
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={`Série ${j + 1} ${s.ok ? 'feita' : 'pendente'}`}
                     onPress={() => alternar(i, j)}
-                    style={{ width: 40, height: 40, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: s.ok ? cores.bom : cores.fundo2, borderWidth: 1, borderColor: s.ok ? cores.bom : cores.linha }}
+                    style={[st.marcar, s.ok && { backgroundColor: cores.bom, borderColor: cores.bom }]}
                   >
-                    <Icone nome="ok" tamanho={18} cor={s.ok ? '#04140c' : cores.texto3} />
+                    <Icone nome="ok" tamanho={20} cor={s.ok ? '#04140c' : '#ffffff'} espessura={2.2} />
                   </Pressable>
                 </View>
               ))}
             </View>
-            <Pressable accessibilityRole="button" onPress={() => adicionarSerie(i)} style={{ alignSelf: 'flex-start', marginTop: 12, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Icone nome="mais" tamanho={14} cor={cores.texto2} />
-              <T tam={13} cor={cores.texto2}>Adicionar série</T>
+            <Pressable accessibilityRole="button" onPress={() => adicionarSerie(i)} style={st.adicionar}>
+              <Icone nome="mais" tamanho={15} cor="#ffffff" />
+              <T tam={13} peso="500">Adicionar série</T>
             </Pressable>
-          </Cartao>
+          </View>
         );
       })}
 
@@ -264,3 +374,44 @@ function ConteudoResumo({ r, aoFechar }: { r: Resumo; aoFechar: () => void }) {
     </View>
   );
 }
+
+const st = estilos(() => StyleSheet.create({
+  /* lista */
+  semana: { marginTop: 18, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
+  dias: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 14 },
+  dia: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: cores.linha2 },
+  diaFeito: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
+  diaHoje: { borderColor: cores.destaque },
+  hero: { marginTop: 14, padding: 20, borderRadius: 28, borderWidth: 1.5, borderColor: cores.destaqueForte, backgroundColor: cores.cartao },
+  selo: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.destaqueForte },
+  metas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
+  linhaEx: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  numero: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  rotina: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 72 },
+  iconeRotina: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  play: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+
+  /* sessão */
+  tempo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
+  progresso: { marginTop: 16, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
+  trilho: { height: 8, borderRadius: 4, backgroundColor: cores.cartao2, marginTop: 10, overflow: 'hidden' },
+  enche: { height: 8, borderRadius: 4, backgroundColor: cores.destaqueForte },
+  descanso: { marginTop: 14, flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingLeft: 16, paddingRight: 12, borderRadius: 20, backgroundColor: cores.destaqueForte, overflow: 'hidden' },
+  pular: { paddingVertical: 9, paddingHorizontal: 18, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.2)' },
+  descansoTrilho: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 4, backgroundColor: 'rgba(255,255,255,0.18)' },
+  descansoEnche: { height: 4, backgroundColor: '#ffffff' },
+  exercicio: { marginTop: 16, padding: 16, borderRadius: 24, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  exercicioFeito: { borderColor: `${cores.bom}66` },
+  indice: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  dica: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 14, backgroundColor: cores.cartao2 },
+  cabecalho: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16, marginBottom: 8 },
+  serie: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 6, borderRadius: 18, borderWidth: 1, borderColor: 'transparent' },
+  serieFeita: { backgroundColor: `${cores.bom}1a`, borderColor: `${cores.bom}55` },
+  numeroSerie: { width: 30, alignItems: 'center' },
+  contador: { flex: 1, flexDirection: 'row', alignItems: 'center', height: 52, borderRadius: 14, backgroundColor: cores.cartao2, paddingHorizontal: 4 },
+  contadorFeito: { opacity: 0.85 },
+  botaoContador: { width: 32, height: 40, alignItems: 'center', justifyContent: 'center' },
+  marcar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  adicionar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12, minHeight: 46, borderRadius: 14, borderWidth: 1, borderStyle: 'dashed', borderColor: cores.linha2 },
+}));
