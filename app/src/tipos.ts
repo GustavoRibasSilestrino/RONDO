@@ -72,8 +72,6 @@ export type PerfilSocial = { bio: string; titulos: string[]; destaques: string[]
 /* Avisos locais do perfil (medalhas e profissionais); os de cheers, comentários e seguidores vêm do servidor. `ref` é o id da medalha, quando for uma. */
 export type Notificacao = { id: string; tipo: 'cheers' | 'comentario' | 'seguidor' | 'medalha' | 'profissional'; texto: string; quando: number; lida: boolean; ref?: string };
 
-/* Story: uma foto (midia) ou um texto sobre fundo colorido (texto + fundo), com legenda. Vale 24 horas no ar. */
-export type Story = { id: string; criado: number; midia?: Midia; texto?: string; fundo?: number; legenda?: string };
 
 export type Estado = {
   v: 1;
@@ -91,8 +89,7 @@ export type Estado = {
   semeadoSocial: boolean;
   recados: Recado[];
   notificacoes: Notificacao[];
-  stories: Story[];                            // todos os seus stories (os de mais de 24 h só aparecem no arquivo)
-  storiesVistos: Record<string, boolean>;      // stories de outras pessoas que você já viu, por id
+  storiesVistos: Record<string, boolean>;      // stories de outras pessoas que você já viu, pelo id do servidor (os stories ficam no servidor)
   ultimoEmail: string;                         // o e-mail da última conta que entrou neste aparelho: outra conta começa com os dados limpos
   xpExtra: number;                             // XP somado ao da atividade; só o dono da conta usa (vem da API)
   pro: boolean;                                // plano PRO ativo, vindo da API

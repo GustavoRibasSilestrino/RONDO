@@ -31,7 +31,6 @@ export const estadoVazio = (): Estado => ({
   recados: [],
   notificacoes: [],
   profissionais: {},
-  stories: [],
   storiesVistos: {},
   ultimoEmail: '',
   xpExtra: 0,

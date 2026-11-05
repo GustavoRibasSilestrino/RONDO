@@ -21,8 +21,8 @@ type Props = {
   aoExcluir?: (s: StoryVista) => void;          // só nos seus stories
 };
 
-function Foto({ id }: { id: string }) {
-  const uri = useUriMidia(id);
+function Foto({ id, url }: { id: string; url?: string }) {
+  const uri = useUriMidia(id, url);   // o arquivo do aparelho (seus stories) ou o do servidor (de quem você segue)
   return uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="contain" accessibilityIgnoresInvertColors /> : null;
 }
 
@@ -68,7 +68,7 @@ export function VisorStory({ aberto, listas, inicio = 0, aoFechar, aoVer, aoExcl
       <View style={st.tela}>
         <View style={st.coluna}>
           <View style={[StyleSheet.absoluteFill, { backgroundColor: story.midia ? '#000000' : FUNDOS_STORY[(story.fundo ?? 0) % FUNDOS_STORY.length] }]} />
-          {story.midia ? <Foto id={story.midia.id} /> : (
+          {story.midia ? <Foto id={story.midia.id} url={story.midia.url} /> : (
             <View style={st.centro}><T tam={28} peso="500" centro style={{ lineHeight: 38 }}>{story.texto}</T></View>
           )}
 

@@ -1,9 +1,10 @@
-/* Criar um story: uma foto (galeria ou câmera) com legenda, ou um texto sobre um fundo colorido. */
+/* Criar um story: uma foto (galeria ou câmera) com legenda, ou um texto sobre um fundo colorido.
+   Vai para o servidor: a foto sobe antes (enviarMidia) e o story guarda o endereço dela. */
 import React, { useState } from 'react';
 import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useLoja } from '../../estado/loja';
-import { escolherFoto, removerMidia, useUriMidia } from '../../lib/midia';
+import { publicarStory } from '../../api/social';
+import { enviarMidia, escolherFoto, removerMidia, useUriMidia } from '../../lib/midia';
 import { FUNDOS_STORY } from '../../lib/stories';
 import { cores, estilos, FONTE, larguraMax } from '../../tema';
 import type { Midia } from '../../tipos';
@@ -18,10 +19,10 @@ function Previa({ id }: { id: string }) {
   return uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="cover" accessibilityIgnoresInvertColors /> : null;
 }
 
-export function CriarStory({ aberto, aoFechar }: { aberto: boolean; aoFechar: () => void }) {
+export function CriarStory({ aberto, aoFechar, aoPublicar }: { aberto: boolean; aoFechar: () => void; aoPublicar?: () => void }) {
   const insets = useSafeAreaInsets();
-  const { commit } = useLoja();
   const avisar = useAviso();
+  const [enviando, setEnviando] = useState(false);
   const [etapa, setEtapa] = useState<Etapa>('escolher');
   const [foto, setFoto] = useState<Midia | null>(null);
   const [legenda, setLegenda] = useState('');
@@ -32,7 +33,7 @@ export function CriarStory({ aberto, aoFechar }: { aberto: boolean; aoFechar: ()
     if (apagarFoto && foto) removerMidia([foto.id]);   // desistiu: a foto escolhida não fica no aparelho
     setEtapa('escolher'); setFoto(null); setLegenda(''); setTexto(''); setFundo(0);
   };
-  const fechar = () => { limpar(true); aoFechar(); };
+  const fechar = () => { if (enviando) return; limpar(true); aoFechar(); };
 
   const escolher = async (origem: 'galeria' | 'camera') => {
     try {
@@ -45,13 +46,27 @@ export function CriarStory({ aberto, aoFechar }: { aberto: boolean; aoFechar: ()
     }
   };
 
-  const publicar = () => {
-    const id = `s${Date.now()}`;
-    if (etapa === 'foto' && foto) commit((e) => { e.stories.push({ id, criado: Date.now(), midia: foto, legenda: legenda.trim() || undefined }); });
-    else if (etapa === 'texto' && texto.trim()) commit((e) => { e.stories.push({ id, criado: Date.now(), texto: texto.trim(), fundo }); });
-    else return;
+  const publicar = async () => {
+    if (enviando) return;
+    const comFoto = etapa === 'foto' && !!foto;
+    if (!comFoto && !(etapa === 'texto' && texto.trim())) return;
+    setEnviando(true);
+    try {
+      if (comFoto && foto) {
+        const enviada = await enviarMidia(foto);   // a foto sobe primeiro; o story guarda o endereço dela
+        await publicarStory({ midia: enviada, legenda: legenda.trim() || undefined });
+      } else {
+        await publicarStory({ texto: texto.trim(), fundo });
+      }
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'Não foi possível publicar agora. Tente de novo.');
+      return;
+    } finally {
+      setEnviando(false);
+    }
     avisar('Story publicado. Fica no ar por 24 horas.');
-    limpar(false);
+    limpar(false);   // a foto continua no aparelho: o seu story abre mais rápido
+    aoPublicar?.();
     aoFechar();
   };
 
@@ -70,7 +85,7 @@ export function CriarStory({ aberto, aoFechar }: { aberto: boolean; aoFechar: ()
       <View style={[st.tela, etapa === 'texto' && { backgroundColor: FUNDOS_STORY[fundo] }]}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={st.coluna}>
           <View style={[st.topo, { paddingTop: insets.top + 8 }]}>
-            <Pressable accessibilityRole="button" accessibilityLabel={etapa === 'escolher' ? 'Fechar' : 'Voltar'} onPress={() => (etapa === 'escolher' ? fechar() : limpar(true))} style={st.botaoTopo}>
+            <Pressable accessibilityRole="button" accessibilityLabel={etapa === 'escolher' ? 'Fechar' : 'Voltar'} onPress={() => { if (enviando) return; if (etapa === 'escolher') fechar(); else limpar(true); }} style={st.botaoTopo}>
               <Icone nome={etapa === 'escolher' ? 'fechar' : 'voltar'} tamanho={22} cor="#ffffff" />
             </Pressable>
             <T tam={16} peso="500" style={{ flex: 1 }}>Novo story</T>
@@ -90,8 +105,8 @@ export function CriarStory({ aberto, aoFechar }: { aberto: boolean; aoFechar: ()
               <View style={st.moldura}><Previa id={foto.id} /></View>
               <TextInput value={legenda} onChangeText={setLegenda} placeholder="Escreva uma legenda (opcional)" placeholderTextColor={cores.placeholder} selectionColor={cores.destaque} maxLength={120} accessibilityLabel="Legenda do story" style={st.campo} />
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                <Botao tipo="discreto" titulo="Trocar foto" aoPressionar={() => limpar(true)} style={{ flex: 1 }} />
-                <Botao icone="enviar" titulo="Publicar" aoPressionar={publicar} style={{ flex: 1 }} />
+                <Botao tipo="discreto" titulo="Trocar foto" desabilitado={enviando} aoPressionar={() => limpar(true)} style={{ flex: 1 }} />
+                <Botao icone="enviar" titulo="Publicar" carregando={enviando} aoPressionar={publicar} style={{ flex: 1 }} />
               </View>
             </View>
           ) : null}
@@ -106,7 +121,7 @@ export function CriarStory({ aberto, aoFechar }: { aberto: boolean; aoFechar: ()
                   <Pressable key={c} accessibilityRole="button" accessibilityLabel={`Cor ${k + 1}`} accessibilityState={{ selected: k === fundo }} onPress={() => setFundo(k)} style={[st.cor, { backgroundColor: c }, k === fundo && st.corAtiva]} />
                 ))}
               </View>
-              <Botao icone="enviar" titulo="Publicar" desabilitado={!texto.trim()} aoPressionar={publicar} style={{ marginTop: 14, marginBottom: insets.bottom + 8 }} />
+              <Botao icone="enviar" titulo="Publicar" desabilitado={!texto.trim()} carregando={enviando} aoPressionar={publicar} style={{ marginTop: 14, marginBottom: insets.bottom + 8 }} />
             </View>
           ) : null}
         </KeyboardAvoidingView>

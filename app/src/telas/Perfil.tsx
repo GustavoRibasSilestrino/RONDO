@@ -20,10 +20,10 @@ import { medalhasDe } from '../lib/medalhas';
 import { escolherFoto, removerMidia } from '../lib/midia';
 import { progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
 import { patenteDe } from '../lib/patentes';
-import { meusStories } from '../lib/stories';
+import { useStories } from '../lib/stories';
 import { cores, estilos } from '../tema';
 import type { Midia } from '../tipos';
-import { lerPostsDaPessoa, lerSeguidores, lerSeguindo } from '../api/social';
+import { apagarStory, lerPostsDaPessoa, lerSeguidores, lerSeguindo } from '../api/social';
 import type { PostSocial } from '../api/social';
 import { useLista } from '../estado/lista';
 import { Avatar } from './comunidade/Avatar';
@@ -69,7 +69,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const { atual: patente, proxima } = patenteDe(nivel.nivel);
   const exibidos = TITULOS.filter((t) => estado.perfilSocial.titulos.includes(t.id) && t.nivel <= nivel.nivel);
   const arrobaAtual = estado.usuario?.arroba ?? arrobaPadrao(nome);
-  const stories = meusStories(estado);
+  const { meus: stories, recarregar: recarregarStories } = useStories();
 
   /* publicações em grade: as fixadas (destacadas) primeiro */
   const fixadas = new Set(estado.perfilSocial.destaques);
@@ -121,12 +121,16 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
     avisar('Perfil atualizado.');
   };
 
-  const excluirStory = (id: string) => {
-    const original = estado.stories.find((x) => x.id === id);
-    commit((e) => { e.stories = e.stories.filter((x) => x.id !== id); });
-    if (original?.midia) removerMidia([original.midia.id]);
+  const excluirStory = async (id: string) => {
+    try {
+      await apagarStory(Number(id));
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'Não foi possível excluir agora.');
+      return;
+    }
     avisar('Story excluído.');
     if (stories.length <= 1) setVerStory(false);
+    recarregarStories().catch(() => {});
   };
 
   return (
@@ -279,7 +283,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
       <Configuracoes aberto={config} aoFechar={() => setConfig(false)} />
       <EditarTitulos aberta={editandoTitulos} aoFechar={() => setEditandoTitulos(false)} />
-      <CriarStory aberto={criandoStory} aoFechar={() => setCriandoStory(false)} />
+      <CriarStory aberto={criandoStory} aoFechar={() => setCriandoStory(false)} aoPublicar={() => { recarregarStories().catch(() => {}); }} />
       <VisorStory aberto={verStory} listas={[{ autor: 'Você', itens: stories }]} aoFechar={() => setVerStory(false)} aoExcluir={(s) => excluirStory(s.id)} />
       <VisorMidia itens={visor?.itens ?? []} inicio={visor ? visor.indice : null} aoFechar={() => setVisor(null)} />
     </Tela>

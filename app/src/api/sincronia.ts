@@ -6,7 +6,7 @@ import { chamar } from './cliente';
 export const CHAVES_SINCRONIZADAS = [
   'perfil', 'treinos', 'treinoAtual', 'rotinasProprias', 'refeicoes', 'agua', 'checkins', 'pesos',
   'perfilSocial',
-  'recados', 'notificacoes', 'profissionais', 'stories', 'storiesVistos', 'tema', 'nivelAvisado', 'medalhasAvisadas',
+  'recados', 'notificacoes', 'profissionais', 'storiesVistos', 'tema', 'nivelAvisado', 'medalhasAvisadas',
 ] as const satisfies readonly (keyof Estado)[];
 
 export type ChaveSincronizada = (typeof CHAVES_SINCRONIZADAS)[number];
