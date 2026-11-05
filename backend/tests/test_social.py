@@ -245,3 +245,39 @@ def test_resumo(cliente):
     assert isinstance(r.pop("id"), int)
     assert r == {"posts": 0, "cheers_dados": 1, "seguindo": 1, "seguidores": 0, "comentarios": 1, "clubes_criados": 1, "clubes": [clube["id"]], "nao_lidas": 0}
     assert cliente.get("/social/resumo", headers=a).json()["seguidores"] == 1
+
+
+def test_stories_so_para_quem_segue_e_por_24_horas(cliente):
+    from datetime import datetime, timedelta, timezone
+
+    from app.banco import Sessao
+    from app.modelos import Story
+
+    a, b = duas(cliente)
+    ana = id_de(cliente, b, "Ana")
+    assert cliente.post("/social/stories", json={}, headers=a).status_code == 422
+    assert cliente.post("/social/stories", json={"texto": "  "}, headers=a).status_code == 422
+    s1 = cliente.post("/social/stories", json={"texto": "Bom dia", "fundo": 2}, headers=a)
+    assert s1.status_code == 201 and s1.json()["texto"] == "Bom dia"
+    assert cliente.post("/social/stories", json={"midia": {"id": "m", "tipo": "imagem", "url": "https://evil.com/x.jpg"}}, headers=a).status_code == 422
+
+    # quem não segue não vê; o próprio autor vê
+    assert cliente.get("/social/stories", headers=b).json()["pessoas"] == []
+    mine = cliente.get("/social/stories", headers=a).json()["pessoas"]
+    assert len(mine) == 1 and mine[0]["autor"]["voce"] is True
+    cliente.put(f"/pessoas/{ana}/seguir", headers=b)
+    vistos = cliente.get("/social/stories", headers=b).json()["pessoas"]
+    assert [p["autor"]["nome"] for p in vistos] == ["Ana"] and [i["texto"] for i in vistos[0]["itens"]] == ["Bom dia"]
+
+    # passadas 24 horas, some
+    with Sessao() as s:
+        st = s.get(Story, s1.json()["id"])
+        st.criado_em = datetime.now(timezone.utc) - timedelta(hours=25)
+        s.commit()
+    assert cliente.get("/social/stories", headers=b).json()["pessoas"] == []
+
+    # só o autor apaga
+    s2 = cliente.post("/social/stories", json={"texto": "outro"}, headers=a).json()
+    assert cliente.delete(f"/social/stories/{s2['id']}", headers=b).status_code == 404
+    assert cliente.delete(f"/social/stories/{s2['id']}", headers=a).status_code == 200
+    assert cliente.get("/social/stories", headers=a).json()["pessoas"] == []
