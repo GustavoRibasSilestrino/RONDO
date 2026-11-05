@@ -5,7 +5,7 @@ import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { GraficoBarras, GraficoLinha, MapaCalor, Ponto } from '../componentes/Grafico';
 import { Icone } from '../componentes/Icone';
 import { Botao, Cartao, Chip, Passo, T, Titulo } from '../componentes/Ui';
-import { TODOS_EXERCICIOS } from '../dados';
+import { todosExercicios } from '../lib/rotinas';
 import { useLoja } from '../estado/loja';
 import { diaAtivo, epley, estagnado, inicioDaSemana, streakAtual, volumeDe } from '../lib/calc';
 import { dataCurta, fmt, iso, num, somarDias } from '../lib/datas';
@@ -73,7 +73,7 @@ export function Evolucao() {
 
       <Titulo>Força</Titulo>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}>
-        {TODOS_EXERCICIOS.map((e) => {
+        {todosExercicios(estado).map((e) => {
           const ativo = e.id === exId;
           return (
             <Pressable key={e.id} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setExId(e.id)} style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 99, backgroundColor: ativo ? cores.texto : cores.cartao2 }}>

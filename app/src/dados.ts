@@ -1,4 +1,5 @@
 /* Conteúdo fixo do app: rotinas de treino, alimentos, perguntas do dia, clubes e a comunidade de exemplo. */
+import type { GrupoMuscular } from './lib/musculos';
 import type { CategoriaGrupo, Perfil, TipoRefeicao } from './tipos';
 
 export const perfilPadrao = (): Perfil => ({ sexo: 'm', idade: 28, peso: 78, altura: 178, atividade: 1.55, objetivo: 1 });
@@ -12,7 +13,9 @@ export type Exercicio = {
   passo: number;             // kg por toque no "+" e no "−"
   inicial: number;           // carga inicial sugerida (kg)
 };
-export type Rotina = { id: string; nome: string; minutos: number; exercicios: Exercicio[] };
+/* `propria`: treino criado ou enviado pela pessoa (fica em estado.rotinasProprias); `musculos`: o que pinta na figura do corpo
+   (os treinos fixos usam MUSCULOS_DA_ROTINA, em lib/musculos.ts). */
+export type Rotina = { id: string; nome: string; minutos: number; exercicios: Exercicio[]; musculos?: GrupoMuscular[]; propria?: boolean };
 
 export const ROTINAS: Rotina[] = [
   {
