@@ -12,6 +12,7 @@ import { FundoUltra } from './src/componentes/FundoUltra';
 import { TrocaTemaProvider, useTrocaTema } from './src/componentes/TrocaTema';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
+import { PlanoPro } from './src/componentes/PlanoPro';
 import { AvisoProvider, useAviso } from './src/componentes/Estrutura';
 import { Marca } from './src/componentes/Marca';
 import { LojaProvider, useLoja } from './src/estado/loja';
@@ -54,6 +55,7 @@ function Raiz() {
   const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
   const pronto = dadosProntos && fontes;   // espera a fonte, para o texto não aparecer trocado
   const [tela, setTela] = useState(INICIO);
+  const [planoAberto, setPlanoAberto] = useState(false);   // a folha do plano PRO, aberta pela estrela do topo
   const [antes, setAntes] = useState(INICIO);   // a aba em que a pessoa estava ao abrir as notificações: o sino volta para ela
   useNotificacoes();
   const trocarTema = useTrocaTema();
@@ -111,8 +113,9 @@ function Raiz() {
       {tela === 'colecoes' && <Colecoes />}
       {tela === 'notificacoes' && <Notificacoes />}
       {tela === 'perfil' && <Perfil ir={setTela} />}
-      <CabecalhoApp mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={nivelDe(xpTotal(estado)) < NIVEL_ULTRA} aoTrocarTema={() => { if (nivelDe(xpTotal(estado)) < NIVEL_ULTRA) avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); else trocarTema(tema === 'ultra' ? 'normal' : 'ultra'); }} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={() => { if (tela === 'notificacoes') { setTela(antes); } else { setAntes(tela); setTela('notificacoes'); } }} />
+      <CabecalhoApp aoAbrirPro={() => setPlanoAberto(true)} mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={nivelDe(xpTotal(estado)) < NIVEL_ULTRA} aoTrocarTema={() => { if (nivelDe(xpTotal(estado)) < NIVEL_ULTRA) avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); else trocarTema(tema === 'ultra' ? 'normal' : 'ultra'); }} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={() => { if (tela === 'notificacoes') { setTela(antes); } else { setAntes(tela); setTela('notificacoes'); } }} />
       <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />
+      <PlanoPro aberto={planoAberto} aoFechar={() => setPlanoAberto(false)} />
       <AvisoNivel />
     </View>
   );

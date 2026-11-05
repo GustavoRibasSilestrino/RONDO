@@ -12,7 +12,7 @@ export type ItemAba = { id: string; rotulo: string; icone: NomeIcone };
 
 type Props = { itens: ItemAba[]; atual: string; aoEscolher: (id: string) => void };
 
-const MARGEM = 12;     // da borda da tela até a barra
+const MARGEM = 6;      // da borda da tela até a barra
 const RECHEIO = 6;     // da borda da barra até as abas
 const ALTURA = 48;     // altura de cada aba: igual à largura do círculo das inativas, para ficarem redondas
 
@@ -52,7 +52,7 @@ export function BarraAbas({ itens, atual, aoEscolher }: Props) {
   const folga = util - circulo * n;                              // sobra de arredondamento, repartida nas pontas
 
   return (
-    <View pointerEvents="box-none" style={[st.doca, { bottom: insets.bottom + 10 }]}>
+    <View pointerEvents="box-none" style={[st.doca, { bottom: insets.bottom + 6 }]}>
       <View style={[st.barra, vidro, { width: barra, paddingHorizontal: RECHEIO + folga / 2 }]}>
         {itens.map((it) => {
           const ativo = it.id === atual;

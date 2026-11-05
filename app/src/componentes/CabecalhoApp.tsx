@@ -19,13 +19,17 @@ function Nome() {
   );
 }
 
-type Props = { mostrarNome: boolean; mostrarTema: boolean; temaBloqueado: boolean; aoTrocarTema: () => void; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
+type Props = { aoAbrirPro: () => void; mostrarNome: boolean; mostrarTema: boolean; temaBloqueado: boolean; aoTrocarTema: () => void; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
 
-export function CabecalhoApp({ mostrarNome, mostrarTema, temaBloqueado, aoTrocarTema, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
+export function CabecalhoApp({ aoAbrirPro, mostrarNome, mostrarTema, temaBloqueado, aoTrocarTema, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
   const insets = useSafeAreaInsets();
   return (
     <View style={[st.fundo, { paddingTop: insets.top, height: insets.top + ALTURA_CABECALHO }]}>
       <View style={st.linha}>
+        <View style={st.esquerda}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Plano PRO: assinar ou aumentar o plano" onPress={aoAbrirPro} style={st.sino}>
+          <Icone nome="estrela" tamanho={24} cor="#ffffff" />
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={naoLidas > 0 ? `Notificações: ${naoLidas} novas` : 'Notificações'}
@@ -40,6 +44,7 @@ export function CabecalhoApp({ mostrarNome, mostrarTema, temaBloqueado, aoTrocar
             </View>
           ) : null}
         </Pressable>
+        </View>
 
         {mostrarNome ? (
           <View pointerEvents="none" style={st.marca}>
@@ -67,6 +72,7 @@ const st = estilos(() => StyleSheet.create({
   linha: { width: '100%', maxWidth: larguraMax, height: ALTURA_CABECALHO, justifyContent: 'center', paddingHorizontal: 12 },
   tema: { position: 'absolute', right: 12, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   cadeado: { position: 'absolute', right: 5, bottom: 7, width: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  esquerda: { position: 'absolute', left: 4, flexDirection: 'row', alignItems: 'center' },
   sino: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   selo: { position: 'absolute', top: 3, right: 1, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   marca: { position: 'absolute', left: 0, right: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
