@@ -7,6 +7,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
+import { pedirUpload } from '../api/social';
 import type { Midia } from '../tipos';
 
 export const MAX_MIDIAS = 4;   // o mínimo; sobe com o nível da conta (lib/beneficios.ts)
@@ -119,6 +120,25 @@ export async function escolherFoto(origem: 'galeria' | 'camera', aspecto: [numbe
   return guardar(resultado.assets[0]);
 }
 
+/* sobe a foto ou o vídeo para o servidor e devolve a referência com a url pública, para os outros verem.
+   Se já foi enviada, devolve como está. */
+export async function enviarMidia(m: Midia): Promise<Midia> {
+  if (m.url) return m;
+  let uri = uris.get(m.id) ?? null;
+  if (!uri) { try { uri = await AsyncStorage.getItem(CHAVE + m.id); } catch { /* sem leitura */ } }
+  if (!uri) throw new Error('Não encontrei a foto neste aparelho. Escolha de novo.');
+  const ext = m.tipo === 'video' ? 'mp4' : 'jpg';
+  const { url_envio, url } = await pedirUpload(m.tipo, ext);
+  let corpo: Blob;
+  try { corpo = await (await fetch(uri)).blob(); } catch { throw new Error('Não foi possível ler o arquivo.'); }
+  let resposta: Response;
+  try {
+    resposta = await fetch(url_envio, { method: 'PUT', headers: { 'Content-Type': corpo.type || (m.tipo === 'video' ? 'video/mp4' : 'image/jpeg') }, body: corpo });
+  } catch { throw new Error('Sem conexão para enviar a foto. Tente de novo.'); }
+  if (!resposta.ok) throw new Error('Não foi possível enviar a foto agora. Tente de novo.');
+  return { ...m, url };
+}
+
 /* apaga o arquivo e a referência (ao apagar uma publicação ou descartar um rascunho) */
 export function removerMidia(ids: string[]): void {
   for (const id of ids) {
@@ -132,7 +152,7 @@ export function removerMidia(ids: string[]): void {
 }
 
 /* endereço do arquivo de uma mídia, carregado do aparelho quando precisa */
-export function useUriMidia(id: string): string | null {
+export function useUriMidia(id: string, url?: string): string | null {
   const [uri, setUri] = useState<string | null>(uris.get(id) ?? null);
   useEffect(() => {
     const emMemoria = uris.get(id);
@@ -143,5 +163,5 @@ export function useUriMidia(id: string): string | null {
       .catch(() => {});
     return () => { vivo = false; };
   }, [id]);
-  return uri;
+  return uri ?? url ?? null;   // o arquivo local, se existir; senão o do servidor (posts de outras pessoas)
 }

@@ -81,7 +81,8 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
 
   const meu = post.meu;
   const nomeGrupo = post.clube?.nome;
-  const midia = meu ? post.midia ?? undefined : undefined;   // as fotos e vídeos ainda ficam só no aparelho de quem publicou
+  /* as suas fotos abrem do aparelho; as dos outros vêm do servidor (só as que já foram enviadas) */
+  const midia = (post.midia ?? []).filter((m) => meu || m.url);
   const idLocal = String(post.id);
 
   const alternarCheers = async () => {

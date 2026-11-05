@@ -13,7 +13,7 @@ const mmss = (s: number): string => `${Math.floor(s / 60)}:${String(s % 60).padS
 
 /* uma miniatura: a foto, ou um bloco escuro com o play e a duração quando é vídeo */
 export function Miniatura({ m, style, aoAbrir, extra }: { m: Midia; style?: StyleProp<ViewStyle>; aoAbrir?: () => void; extra?: number }) {
-  const uri = useUriMidia(m.id);
+  const uri = useUriMidia(m.id, m.url);
   return (
     <Pressable
       onPress={aoAbrir}
@@ -88,7 +88,7 @@ export function MidiaGrade({ itens, aoAbrir }: { itens: Midia[]; aoAbrir: (i: nu
 
 /* ---------- visor em tela cheia ---------- */
 function FotoTela({ m }: { m: Midia }) {
-  const uri = useUriMidia(m.id);
+  const uri = useUriMidia(m.id, m.url);
   return uri ? <Image source={{ uri }} style={{ flex: 1 }} resizeMode="contain" accessibilityLabel="Foto da publicação" /> : null;
 }
 
@@ -98,7 +98,7 @@ function Reprodutor({ uri }: { uri: string }) {
 }
 
 function VideoTela({ m }: { m: Midia }) {
-  const uri = useUriMidia(m.id);
+  const uri = useUriMidia(m.id, m.url);
   return uri ? <Reprodutor uri={uri} /> : null;
 }
 
