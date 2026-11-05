@@ -1,7 +1,7 @@
 /* Perfil, no estilo do Instagram: nome de usuário e ações no alto, foto com anel de story e as contagens ao lado, descrição,
    e abaixo duas abas: Publicações (em grade) e Conquistas (patente, nível e medalhas). O resto fica em Configurações (o ícone ☰). */
 import React, { useEffect, useState } from 'react';
-import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { CampoFlutuante } from '../componentes/CampoFlutuante';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
@@ -35,6 +35,8 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const { estado, commit } = useLoja();
   const avisar = useAviso();
   const nome = estado.usuario?.nome ?? 'Você';
+  const { width } = useWindowDimensions();
+  const tamFoto = width < 360 ? 70 : 86;   // em telas estreitas a foto encolhe, para as três contagens caberem ao lado
 
   const [aba, setAba] = useState<'posts' | 'conquistas'>('posts');
   const [editando, setEditando] = useState(false);
@@ -133,14 +135,14 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       {/* foto com o anel de story e as contagens */}
       <View style={st.cabeca}>
         <AnelStory
-          tamanho={86}
+          tamanho={tamFoto}
           estado={stories.length ? 'novo' : 'nenhum'}
           mais
           aoMais={() => setCriandoStory(true)}
           aoPressionar={() => (stories.length ? setVerStory(true) : setCriandoStory(true))}
           rotulo={stories.length ? 'Ver o seu story' : 'Criar um story'}
         >
-          <Avatar nome={nome} voce tamanho={86} />
+          <Avatar nome={nome} voce tamanho={tamFoto} />
         </AnelStory>
         <View style={st.contagens}>
           <Contagem n={estado.posts.length} rotulo="Publicações" />
@@ -274,8 +276,8 @@ const st = estilos(() => StyleSheet.create({
   barra: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
   redondo: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
   cabeca: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  contagens: { flex: 1, flexDirection: 'row', justifyContent: 'space-around' },
-  contagem: { alignItems: 'center', minWidth: 64, minHeight: 44, justifyContent: 'center' },
+  contagens: { flex: 1, minWidth: 0, flexDirection: 'row', justifyContent: 'space-around' },
+  contagem: { alignItems: 'center', flex: 1, minWidth: 0, minHeight: 44, justifyContent: 'center' },
   titulos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   titulo: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: `rgba(${cores.tom},0.16)` },
   abas: { flexDirection: 'row', marginTop: 20, borderTopWidth: 1, borderTopColor: cores.linha },
