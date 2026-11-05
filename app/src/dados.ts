@@ -95,38 +95,6 @@ export const OBJETIVOS = [
   { valor: 1.1, nome: 'Ganhar' },
 ];
 
-/* ---------- comunidade ---------- */
-/* Grupos de demonstração (números e pessoas de exemplo; em produção vêm da API). `cor` é a posição em CORES_GRUPO. */
-export const CLUBES: {
-  id: string; nome: string; descricao: string; categoria: CategoriaGrupo; cor: number;
-  membros: number; meta: string; progresso: number;
-}[] = [
-  { id: 'hipertrofia', nome: 'Hipertrofia iniciantes', descricao: 'Para quem está começando a ganhar força. Técnica, cargas e progressão, sem pressa e sem ego.', categoria: 'treino', cor: 0, membros: 2480, meta: 'Somar 500 treinos em novembro', progresso: 0.74 },
-  { id: 'corrida', nome: 'Corrida de rua', descricao: 'Do primeiro quilômetro à meia maratona. Divida ritmos, rotas e provas.', categoria: 'corrida', cor: 4, membros: 5120, meta: 'Somar 2.500 km em novembro', progresso: 0.52 },
-  { id: 'bairro', nome: 'Academia do bairro', descricao: 'Quem treina na mesma academia combina horários e se cobra com carinho.', categoria: 'treino', cor: 2, membros: 318, meta: 'Somar 300 treinos em novembro', progresso: 0.31 },
-  { id: 'refeicoes', nome: 'Refeições registradas', descricao: 'Rotina de refeições anotadas todos os dias. O foco é constância, não restrição.', categoria: 'dieta', cor: 3, membros: 1260, meta: 'Registrar 3.000 refeições em novembro', progresso: 0.41 },
-  { id: 'streak30', nome: 'Streak de 30 dias', descricao: 'Para quem quer fechar um mês inteiro sem quebrar a sequência. Uma folga por semana vale.', categoria: 'constancia', cor: 1, membros: 860, meta: 'Todo mundo com 30 dias seguidos', progresso: 0.63 },
-];
-
-export const POSTS_BASE: { id: string; autor: string; texto: string; destaque?: string; horas: number; grupo?: string }[] = [
-  { id: 'p1', autor: 'Marina Rocha', texto: 'Primeira vez abaixo de 6\'00"/km. Ontem eu achava impossível.', destaque: '5,2 km em 31:08', horas: 0.2, grupo: 'corrida' },
-  { id: 'p2', autor: 'Lucas Prado', texto: 'Semana fechada: 5 treinos e todas as refeições registradas.', destaque: '+18% de volume', horas: 1.1 },
-  { id: 'p3', autor: 'Bia Almeida', texto: 'Dia de perna pesado. O streak segue vivo.', destaque: 'Streak de 41 dias', horas: 3, grupo: 'streak30' },
-  { id: 'p4', autor: 'Tiago Santos', texto: 'Recorde pessoal no agachamento depois de 3 semanas estagnado.', destaque: '140 kg × 5', horas: 6, grupo: 'hipertrofia' },
-  { id: 'p5', autor: 'Camila Duarte', texto: 'Meu primeiro 10 km sem parar. O ontem ficou lá atrás.', destaque: '10 km em 58:40', horas: 9, grupo: 'corrida' },
-  { id: 'p6', autor: 'Rafa Lima', texto: 'Treino de sábado na academia do bairro, quem vem?', horas: 14, grupo: 'bairro' },
-  { id: 'p7', autor: 'Lucas Prado', texto: 'Quinta semana seguida com as quatro refeições anotadas.', horas: 20, grupo: 'refeicoes' },
-];
-
-export const RANKING_BASE = [
-  { nome: 'Bia Almeida', pontos: 338 },
-  { nome: 'Tiago Santos', pontos: 322 },
-  { nome: 'Lucas Prado', pontos: 301 },
-  { nome: 'Camila Duarte', pontos: 276 },
-  { nome: 'Rafa Lima', pontos: 249 },
-  { nome: 'Marina Rocha', pontos: 205 },
-];
-
 /* ---------- recado de voz ---------- */
 export const PERGUNTAS = [
   'Do que você tem orgulho esta semana?',

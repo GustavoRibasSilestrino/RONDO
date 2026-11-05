@@ -2,7 +2,6 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Cartao, T } from '../../componentes/Ui';
-import { RANKING_BASE } from '../../dados';
 import { useLoja } from '../../estado/loja';
 import { fmt } from '../../lib/datas';
 import { pontosSemana } from '../../lib/calc';
@@ -13,7 +12,7 @@ import { BotaoSeguir } from './Seguir';
 export function Ranking() {
   const { estado } = useLoja();
   const meuRanking = pontosSemana(estado, new Date());
-  const ranking = [...RANKING_BASE.map((r) => ({ ...r, voce: false })), { nome: estado.usuario?.nome ?? 'Você', pontos: meuRanking, voce: true }].sort((a, b) => b.pontos - a.pontos);
+  const ranking = [{ nome: estado.usuario?.nome ?? 'Você', pontos: meuRanking, voce: true }];   // as outras pessoas chegam pela API
 
   return (
     <View style={{ marginTop: 18 }}>

@@ -5,7 +5,6 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
 import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { modoDemonstracao } from './src/api/conta';
 import { Abertura } from './src/componentes/Abertura';
 import { AvisoNivel } from './src/componentes/AvisoNivel';
 import { FundoUltra } from './src/componentes/FundoUltra';
@@ -15,9 +14,8 @@ import { CabecalhoApp } from './src/componentes/CabecalhoApp';
 import { PlanoPro } from './src/componentes/PlanoPro';
 import { AvisoProvider, useAviso } from './src/componentes/Estrutura';
 import { Marca } from './src/componentes/Marca';
-import { LojaProvider, useLoja } from './src/estado/loja';
+import { estadoVazio, LojaProvider, useLoja } from './src/estado/loja';
 import { naoLidas, useNotificacoes } from './src/lib/notificacoes';
-import { semear } from './src/semear';
 import { Colecoes } from './src/telas/Colecoes';
 import { CriarPlano } from './src/telas/CriarPlano';
 import { Dieta } from './src/telas/Dieta';
@@ -36,7 +34,6 @@ import { aplicarTema, cores } from './src/tema';
 
 /* o app abre no Início (o feed), e o botão voltar do Android leva para ele */
 const INICIO = 'home';
-const CONTA_TESTE = 'teste@rondo.app';
 
 /* da esquerda para a direita: o feed (a casinha), o treino, a comunidade, a dieta e o perfil */
 const TELAS: ItemAba[] = [
@@ -88,13 +85,13 @@ function Raiz() {
       <Login
         aoEntrar={(usuario) => {
           commit((e) => {
+            /* outra conta no mesmo aparelho: começa limpa, para não herdar os treinos e as publicações da conta anterior */
+            if (e.ultimoEmail && e.ultimoEmail !== usuario.email) Object.assign(e, estadoVazio());
             e.usuario = usuario;
-            if (modoDemonstracao) semear(e, new Date());
-            /* a conta de teste: nível 15 e tudo liberado (tema Ultra, plano PRO), para dar para experimentar de tudo */
-            /* conta do dono (vem da API): nível máximo e PRO liberados; o plano PRO também vale para quem o API marcar */
-            if (usuario.papel === 'dono') e.xpExtra = Math.max(0, 10500 - xpTotal({ ...e, xpExtra: 0 }));
-            if (usuario.papel === 'dono' || usuario.pro) e.pro = true;
-            if (modoDemonstracao && usuario.email.toLowerCase() === CONTA_TESTE) { e.xpExtra = Math.max(0, 10500 - xpTotal({ ...e, xpExtra: 0 })); e.pro = true; e.usuario.nome = 'Conta Teste'; }   // histórico de demonstração; com a API configurada, os dados vêm dela
+            e.ultimoEmail = usuario.email;
+            /* o plano e o nível vêm da API: o dono tem nível máximo e PRO; os outros, o que a conta tiver */
+            e.pro = usuario.papel === 'dono' || !!usuario.pro;
+            e.xpExtra = usuario.papel === 'dono' ? Math.max(0, 10500 - xpTotal({ ...e, xpExtra: 0 })) : 0;
           });
           setTela(INICIO);
         }}

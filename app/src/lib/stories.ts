@@ -19,22 +19,6 @@ export function meusStories(e: Estado, apenasNoAr = true, agora = Date.now()): S
     .map((s) => ({ ...s, autor: 'Você', meu: true }));
 }
 
-/* stories de demonstração de quem aparece no feed (em produção vêm da API) */
-const DEMO: { autor: string; itens: { texto: string; fundo: number; horas: number }[] }[] = [
-  { autor: 'Marina Rocha', itens: [{ texto: '5,2 km em 31:08. Ontem eu achava impossível.', fundo: 1, horas: 1 }, { texto: 'Segundo treino do dia: pernas.', fundo: 0, horas: 3 }] },
-  { autor: 'Lucas Prado', itens: [{ texto: 'Semana fechada: 5 treinos e todas as refeições registradas.', fundo: 3, horas: 2 }] },
-  { autor: 'Bia Almeida', itens: [{ texto: 'Streak de 41 dias. Sem pausa.', fundo: 4, horas: 5 }, { texto: 'Cheers para quem treinou hoje!', fundo: 2, horas: 6 }] },
-  { autor: 'Tiago Santos', itens: [{ texto: 'Recorde no agachamento: 140 kg.', fundo: 5, horas: 8 }] },
-  { autor: 'Camila Duarte', itens: [{ texto: 'Primeiro 10 km sem parar.', fundo: 1, horas: 10 }] },
-];
-
-export function storiesDeDemo(agora = Date.now()): { autor: string; itens: StoryVista[] }[] {
-  return DEMO.map((d) => ({
-    autor: d.autor,
-    itens: d.itens.map((it, i) => ({ id: `demo-${d.autor}-${i}`, autor: d.autor, criado: agora - it.horas * 3600000, texto: it.texto, fundo: it.fundo })),
-  }));
-}
-
 export const haStoryNovo = (itens: StoryVista[], vistos: Record<string, boolean>): boolean => itens.some((s) => !vistos[s.id]);
 
 export function tempoStory(criado: number): string {

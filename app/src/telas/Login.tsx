@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { entrar, modoDemonstracao } from '../api/conta';
+import { entrar } from '../api/conta';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
 import { Tela } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
@@ -187,17 +187,6 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
               <T tam={13.5} peso="500" cor={cores.destaque2}>Abrir o site do RONDO</T>
               <Icone nome="setaDireita" tamanho={16} cor={cores.destaque2} />
             </Pressable>
-            {modoDemonstracao ? (
-              <View style={st.demo}>
-                <Icone nome="cadeado" tamanho={13} cor={cores.texto3} />
-                <T tam={12} cor={cores.texto3}>Protótipo: nenhum dado sai do seu aparelho.</T>
-              </View>
-            ) : null}
-            {modoDemonstracao ? (
-              <Pressable accessibilityRole="button" accessibilityLabel="Preencher com a conta de teste" onPress={() => { setEmail('teste@rondo.app'); setSenha('teste1234'); }} style={{ alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 12, minHeight: 44, justifyContent: 'center' }}>
-                <T tam={13} peso="500" cor={cores.destaque2}>Usar a conta de teste (nível 15, tudo liberado)</T>
-              </Pressable>
-            ) : null}
           </Animated.View>
         </View>
       </Tela>

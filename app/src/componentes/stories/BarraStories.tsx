@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useLoja } from '../../estado/loja';
 import { removerMidia } from '../../lib/midia';
-import { haStoryNovo, meusStories, StoryVista, storiesDeDemo } from '../../lib/stories';
+import { meusStories, StoryVista } from '../../lib/stories';
 import { cores, estilos } from '../../tema';
 import { Avatar } from '../../telas/comunidade/Avatar';
 import { useAviso } from '../Estrutura';
@@ -19,8 +19,6 @@ export function BarraStories() {
   const [visor, setVisor] = useState<{ listas: ListaStory[]; inicio: number } | null>(null);
 
   const meus = meusStories(estado);
-  const outros = storiesDeDemo().sort((a, b) => Number(haStoryNovo(b.itens, estado.storiesVistos)) - Number(haStoryNovo(a.itens, estado.storiesVistos)));
-  const listasOutros: ListaStory[] = outros.map((o) => ({ autor: o.autor, itens: o.itens }));
 
   const abrirMeus = () => {
     if (meus.length === 0) { setCriando(true); return; }
@@ -46,17 +44,6 @@ export function BarraStories() {
           </AnelStory>
           <T tam={12} linhas={1} centro style={st.nome}>Seu story</T>
         </View>
-        {outros.map((o, k) => {
-          const novo = haStoryNovo(o.itens, estado.storiesVistos);
-          return (
-            <View key={o.autor} style={st.item}>
-              <AnelStory tamanho={58} estado={novo ? 'novo' : 'visto'} rotulo={`Story de ${o.autor}`} aoPressionar={() => setVisor({ listas: listasOutros, inicio: k })}>
-                <Avatar nome={o.autor} tamanho={58} />
-              </AnelStory>
-              <T tam={12} linhas={1} centro style={st.nome}>{o.autor.split(' ')[0]}</T>
-            </View>
-          );
-        })}
       </ScrollView>
 
       <CriarStory aberto={criando} aoFechar={() => setCriando(false)} />

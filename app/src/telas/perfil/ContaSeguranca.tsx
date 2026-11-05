@@ -7,7 +7,6 @@ import { CampoFlutuante } from '../../componentes/CampoFlutuante';
 import { Folha, useAviso } from '../../componentes/Estrutura';
 import { Icone, NomeIcone } from '../../componentes/Icone';
 import { Botao, T } from '../../componentes/Ui';
-import { modoDemonstracao } from '../../api/conta';
 import { useLoja } from '../../estado/loja';
 import { cores, estilos } from '../../tema';
 
@@ -44,7 +43,7 @@ export function ContaSeguranca() {
     try {
       await alterarSenha(atual, nova);
       setTrocando(false);
-      avisar(modoDemonstracao ? 'Senha alterada (modo demonstração).' : 'Senha alterada.');
+      avisar('Senha alterada.');
     } catch (err) {
       setErros({ geral: err instanceof Error ? err.message : 'Não foi possível alterar a senha.' });
     } finally {
@@ -72,7 +71,6 @@ export function ContaSeguranca() {
         {erros.geral ? (
           <View style={st.aviso}><Icone nome="alerta" tamanho={16} cor={cores.erro} /><T tam={13} cor={cores.erro} style={{ flex: 1, lineHeight: 18 }}>{erros.geral}</T></View>
         ) : null}
-        {modoDemonstracao ? <T tam={12} style={{ marginTop: 12, lineHeight: 17, opacity: 0.8 }}>Modo demonstração: a senha não é guardada no aparelho. Com o servidor ligado, a troca vale de verdade.</T> : null}
         <Botao titulo="Salvar nova senha" carregando={enviando} aoPressionar={salvar} style={{ marginTop: 16 }} />
       </Folha>
     </View>

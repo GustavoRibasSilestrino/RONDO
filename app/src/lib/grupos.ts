@@ -1,6 +1,5 @@
 /* Grupos da comunidade: junta os de demonstração (dados.ts) com os que a pessoa criou, e guarda as cores e categorias. */
 import type { NomeIcone } from '../componentes/Icone';
-import { CLUBES, RANKING_BASE } from '../dados';
 import type { CategoriaGrupo, Estado } from '../tipos';
 
 /* capas: pares de cor (topo, fundo), todos na família do roxo do app */
@@ -40,19 +39,15 @@ export type GrupoVista = {
 };
 
 export function listarGrupos(estado: Estado): GrupoVista[] {
-  const demo: GrupoVista[] = CLUBES.map((c) => {
-    const meu = !!estado.clubes[c.id];
-    return { id: c.id, nome: c.nome, descricao: c.descricao, categoria: c.categoria, privado: false, cor: c.cor, dono: 'RONDO', membros: c.membros + (meu ? 1 : 0), meta: c.meta, progresso: c.progresso, meu, proprio: false };
-  });
   const meus: GrupoVista[] = estado.grupos.map((g) => ({
     id: g.id, nome: g.nome, descricao: g.descricao, categoria: g.categoria, privado: g.privado, cor: g.cor, dono: g.dono,
     membros: 1, meta: g.meta, codigo: g.codigo, meu: !!estado.clubes[g.id], proprio: true,
   }));
-  return [...meus, ...demo];
+  return meus;
 }
 
-/* nomes para o grupo de rostinhos: nos de demonstração, gente do ranking; nos criados, só você */
-export const membrosAmostra = (g: GrupoVista): string[] => (g.proprio ? ['Você'] : RANKING_BASE.slice(0, 4).map((r) => r.nome));
+/* os rostinhos do clube: por enquanto, só você (os outros membros vão chegar pela API) */
+export const membrosAmostra = (_g: GrupoVista): string[] => ['Você'];
 
 /* código de convite: 6 letras e números, sem 0/O/1/I para não confundir */
 export function novoCodigo(): string {

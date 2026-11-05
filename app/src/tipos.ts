@@ -118,8 +118,9 @@ export type Estado = {
   notificacoes: Notificacao[];
   stories: Story[];                            // todos os seus stories (os de mais de 24 h só aparecem no arquivo)
   storiesVistos: Record<string, boolean>;      // stories de outras pessoas que você já viu, por id
-  xpExtra: number;                             // XP somado ao da atividade; só a conta de teste usa
-  pro: boolean;                                // plano PRO liberado; só a conta de teste usa
+  ultimoEmail: string;                         // o e-mail da última conta que entrou neste aparelho: outra conta começa com os dados limpos
+  xpExtra: number;                             // XP somado ao da atividade; só o dono da conta usa (vem da API)
+  pro: boolean;                                // plano PRO ativo, vindo da API
   tema: 'normal' | 'ultra';                      // a aparência escolhida; o Ultra só vale a partir do nível 15
   nivelAvisado: number | null;                 // o último nível que a pessoa já viu comemorado; null até a primeira leitura
   profissionais: Record<string, boolean>;      // profissionais para quem a pessoa enviou um pedido de contato, por id
