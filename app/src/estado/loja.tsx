@@ -3,7 +3,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import { ErroHttp } from '../api/cliente';
+import { ErroHttp, registrarSessaoVencida } from '../api/cliente';
 import { esquecerToken, lerToken } from '../api/sessao';
 import { resumoSocial } from '../api/social';
 import { CHAVES_SINCRONIZADAS, baixarDados, enviarDados } from '../api/sincronia';
@@ -75,6 +75,8 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
     recente.current = { ...recente.current, usuario: null };
     setEstado(recente.current);
   }, []);
+
+  useEffect(() => { registrarSessaoVencida(() => { void sessaoVenceu(); }); return () => registrarSessaoVencida(null); }, [sessaoVenceu]);
 
   const sincronizar = useCallback(async () => {
     if (ocupado.current || !recente.current.usuario) return;

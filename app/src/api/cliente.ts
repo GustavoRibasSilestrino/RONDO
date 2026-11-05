@@ -14,6 +14,10 @@ export class ErroHttp extends Error {
   }
 }
 
+/* quem cuida da sessão (a loja) se registra aqui: qualquer chamada que volte 401 com token derruba a sessão vencida */
+let aoVencer: (() => void) | null = null;
+export const registrarSessaoVencida = (f: (() => void) | null) => { aoVencer = f; };
+
 export async function chamar<T>(metodo: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', caminho: string, corpo?: unknown): Promise<T> {
   if (!URL_API) throw new ErroHttp(0, 'O servidor do RONDO não está configurado neste aparelho.');
   const token = await lerToken();
@@ -27,6 +31,7 @@ export async function chamar<T>(metodo: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELE
   } catch {
     throw new ErroHttp(0, 'Sem conexão. Tente de novo em instantes.');
   }
+  if (resposta.status === 401 && token) aoVencer?.();
   if (!resposta.ok) {
     let mensagem = 'Não foi possível concluir agora. Tente de novo.';
     try {
