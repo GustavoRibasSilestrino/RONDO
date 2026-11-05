@@ -5,6 +5,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
+import { Selo } from '../componentes/Selos';
 import { Botao, Cartao, T } from '../componentes/Ui';
 import { useLoja } from '../estado/loja';
 import { adicionar } from '../lib/notificacoes';
@@ -89,7 +90,7 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                           <T tam={16} peso="500" linhas={1} style={{ flexShrink: 1 }}>{p.nome}</T>
-                          <Icone nome="verificado" tamanho={18} cor={cores.destaque} />
+                          <Selo tipo="profissional" tamanho={20} />
                         </View>
                         <T tam={12.5} style={{ marginTop: 2 }}>{p.registro} · verificado pela RONDO</T>
                       </View>

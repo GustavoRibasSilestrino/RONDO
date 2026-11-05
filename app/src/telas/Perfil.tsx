@@ -5,6 +5,7 @@ import { Image, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDime
 import { CampoFlutuante } from '../componentes/CampoFlutuante';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
+import { Selo, tipoDeSelo } from '../componentes/Selos';
 import { Medalha3D } from '../componentes/Medalha3D';
 import { AnelStory } from '../componentes/stories/AnelStory';
 import { CriarStory } from '../componentes/stories/CriarStory';
@@ -148,7 +149,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
         <T tam={17} peso="500" linhas={1}>{nome}</T>
-        {estado.usuario?.verificado ? <View accessibilityLabel="Conta verificada"><Icone nome="verificado" tamanho={18} cor={cores.destaque} /></View> : null}
+        {tipoDeSelo(estado.usuario?.selo) ? <Selo tipo={tipoDeSelo(estado.usuario?.selo)!} /> : null}
       </View>
       <T tam={13} style={{ marginTop: 2 }}>Nível {nivel.nivel}{patente ? ` · ${patente.nome}` : ''}</T>
       {exibidos.length ? (
