@@ -1,4 +1,6 @@
 /* Tipos do que o app guarda no aparelho. Datas são "AAAA-MM-DD"; momentos são milissegundos (Date.now()). */
+import type { Rotina } from './dados';
+
 export type Sexo = 'm' | 'f';
 
 /* `arroba` é o nome de usuário (sem o @) e `foto` é o id da foto de perfil (guardada em lib/midia.ts); sem eles, vale o nome e a inicial. */
@@ -101,6 +103,7 @@ export type Estado = {
   perfil: Perfil;
   treinos: Treino[];
   treinoAtual: TreinoAtual | null;
+  rotinasProprias: Rotina[];                   // treinos que a pessoa criou ou enviou; somam-se aos fixos de dados.ts
   refeicoes: Record<string, Refeicao[]>;
   agua: Record<string, number>;
   checkins: Record<string, boolean>;

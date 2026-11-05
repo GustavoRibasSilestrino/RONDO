@@ -2,13 +2,19 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { CalendarioMes } from '../componentes/CalendarioMes';
+import { CorpoMusculos } from '../componentes/CorpoMusculos';
+import { EditorTreino, type Rascunho } from '../componentes/EditorTreino';
+import { NovoTreino } from '../componentes/NovoTreino';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { GraficoLinha } from '../componentes/Grafico';
 import { Icone } from '../componentes/Icone';
 import { Botao, Chip, T } from '../componentes/Ui';
-import { ROTINAS, exercicioPorId } from '../dados';
+import type { Rotina } from '../dados';
 import { useLoja } from '../estado/loja';
 import { diaAtivo, epley, estagnado, inicioDaSemana, melhor1RM, proximaCarga, ultimaVez, volumeDe } from '../lib/calc';
+import type { TreinoLido } from '../lib/importar';
+import { inferirMusculos } from '../lib/musculos';
+import { exercicioDe, musculosDe, rotinaDe, todasRotinas } from '../lib/rotinas';
 import { diaDaSemana, fmt, haQuanto, iso, mmss, num, somarDias } from '../lib/datas';
 import { cores, estilos, larguraMax } from '../tema';
 import { TodosTreinos } from './TodosTreinos';
@@ -34,12 +40,16 @@ function Lista() {
   const { estado, commit } = useLoja();
   const { width } = useWindowDimensions();
   const [calendario, setCalendario] = useState(false);
+  const avisar = useAviso();
   const [todos, setTodos] = useState(false);
+  const [novo, setNovo] = useState(false);                          // a folha 'Adicionar treino'
+  const [editor, setEditor] = useState<{ inicial: Rascunho | null } | null>(null);   // o editor aberto (treino novo, de arquivo ou existente)
+  const rotinas = todasRotinas(estado);
   const [serie, setSerie] = useState<'constancia' | 'evolucao'>('constancia');
 
   const iniciar = (rotinaId: string) =>
     commit((e) => {
-      const rotina = ROTINAS.find((r) => r.id === rotinaId);
+      const rotina = rotinaDe(e, rotinaId);
       if (!rotina) return;
       e.treinoAtual = {
         rotina: rotina.id,
@@ -55,10 +65,32 @@ function Lista() {
       };
     });
 
+  /* criar, editar e excluir os treinos próprios */
+  const abrirCriar = () => { setNovo(false); setTodos(false); setEditor({ inicial: null }); };
+  const abrirArquivo = (lido: TreinoLido, nomeDoArquivo: string) => {
+    setNovo(false);
+    setTodos(false);
+    setEditor({ inicial: { id: '', nome: lido.nome ?? nomeDoArquivo, exercicios: lido.exercicios, musculos: inferirMusculos(lido.exercicios.map((x) => x.nome)) } });
+  };
+  const abrirEditar = (r: Rotina) => { setTodos(false); setEditor({ inicial: { id: r.id, nome: r.nome, exercicios: r.exercicios, musculos: r.musculos ?? [] } }); };
+  const salvarTreino = (r: Rotina) => {
+    commit((e) => {
+      const i = e.rotinasProprias.findIndex((x) => x.id === r.id);
+      if (i >= 0) e.rotinasProprias[i] = r; else e.rotinasProprias.push(r);
+    });
+    setEditor(null);
+    avisar('Treino salvo.');
+  };
+  const excluirTreino = (id: string) => {
+    commit((e) => { e.rotinasProprias = e.rotinasProprias.filter((x) => x.id !== id); });
+    setEditor(null);
+    avisar('Treino excluído.');
+  };
+
   const ultimaData = (id: string): string | null => [...estado.treinos].reverse().find((t) => t.rotina === id)?.data ?? null;
 
   /* a rotina sugerida é a que está há mais tempo sem treinar (ou nunca foi feita) */
-  const sugerida = [...ROTINAS].sort((a, b) => (ultimaData(a.id) ?? '').localeCompare(ultimaData(b.id) ?? ''))[0];
+  const sugerida = [...rotinas].sort((a, b) => (ultimaData(a.id) ?? '').localeCompare(ultimaData(b.id) ?? ''))[0];
 
   /* a semana: segunda a domingo, com os dias em que houve treino */
   const hoje = new Date();
@@ -84,12 +116,15 @@ function Lista() {
   const mediaAtivos = semanas.reduce((t, w) => t + w.ativos, 0) / 8;
   const dif = atualSemana.volume - anteriorSemana.volume;
 
-  const totalSeries = (r: (typeof ROTINAS)[number]) => r.exercicios.reduce((t, x) => t + x.series, 0);
+  const totalSeries = (r: Rotina) => r.exercicios.reduce((t, x) => t + x.series, 0);
 
   return (
     <Tela>
       <View style={{ justifyContent: 'center' }}>
         <T tam={15} peso="400" centro>Treino</T>
+        <Pressable accessibilityRole="button" accessibilityLabel="Adicionar treino" onPress={() => setNovo(true)} hitSlop={8} style={st.botaoMais}>
+          <Icone nome="mais" tamanho={20} cor="#ffffff" />
+        </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Abrir o calendário de constância" onPress={() => setCalendario(true)} hitSlop={8} style={st.botaoCalendario}>
           <Icone nome="calendario" tamanho={20} cor="#ffffff" />
         </Pressable>
@@ -140,18 +175,23 @@ function Lista() {
       {/* o treino sugerido, em destaque */}
       <View style={st.hero}>
         <View style={st.selo}><T tam={10.5} peso="500" style={{ letterSpacing: 1 }}>SUGERIDO PARA HOJE</T></View>
-        <T tam={28} peso="500" style={{ marginTop: 12, letterSpacing: -0.5 }}>{sugerida.nome}</T>
-        <View style={st.metas}>
-          <View style={st.meta}><Icone nome="relogio" tamanho={15} cor="#ffffff" /><T tam={12.5}>{sugerida.minutos} min</T></View>
-          <View style={st.meta}><Icone nome="treino" tamanho={15} cor="#ffffff" /><T tam={12.5}>{sugerida.exercicios.length} exercícios</T></View>
-          <View style={st.meta}><Icone nome="ok" tamanho={15} cor="#ffffff" /><T tam={12.5}>{totalSeries(sugerida)} séries</T></View>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14, marginTop: 12 }}>
+          <View style={{ flex: 1 }}>
+            <T tam={28} peso="500" style={{ letterSpacing: -0.5 }}>{sugerida.nome}</T>
+            <View style={st.metas}>
+              <View style={st.meta}><Icone nome="relogio" tamanho={15} cor="#ffffff" /><T tam={12.5}>{sugerida.minutos} min</T></View>
+              <View style={st.meta}><Icone nome="treino" tamanho={15} cor="#ffffff" /><T tam={12.5}>{sugerida.exercicios.length} exercícios</T></View>
+              <View style={st.meta}><Icone nome="ok" tamanho={15} cor="#ffffff" /><T tam={12.5}>{totalSeries(sugerida)} séries</T></View>
+            </View>
+          </View>
+          <CorpoMusculos grupos={musculosDe(sugerida)} largura={64} />
         </View>
         <View style={{ marginTop: 16, gap: 10 }}>
           {sugerida.exercicios.map((x, k) => (
             <View key={x.id} style={st.linhaEx}>
               <View style={st.numero}><T tam={12} peso="500">{k + 1}</T></View>
               <T tam={14.5} style={{ flex: 1 }} linhas={1}>{x.nome}</T>
-              <T tam={13} style={{ opacity: 0.75 }}>{x.series} × {x.faixa[0]}-{x.faixa[1]}</T>
+              <T tam={13} style={{ opacity: 0.85 }}>{x.series} × {x.faixa[0] === x.faixa[1] ? x.faixa[0] : `${x.faixa[0]}-${x.faixa[1]}`}{x.inicial > 0 ? <T tam={13} peso="500" cor={cores.destaque2}>{`  ·  ${num(x.inicial)} kg`}</T> : null}</T>
             </View>
           ))}
         </View>
@@ -160,7 +200,9 @@ function Lista() {
         <Botao tipo="fantasma" icone="menu" titulo="Ver todos os treinos" aoPressionar={() => setTodos(true)} style={{ marginTop: 10 }} />
       </View>
 
-      <TodosTreinos aberto={todos} aoFechar={() => setTodos(false)} aoIniciar={iniciar} ultimaData={ultimaData} />
+      <TodosTreinos aberto={todos} rotinas={rotinas} aoFechar={() => setTodos(false)} aoIniciar={iniciar} aoAdicionar={() => setNovo(true)} aoEditar={abrirEditar} ultimaData={ultimaData} />
+      <NovoTreino aberta={novo} aoFechar={() => setNovo(false)} aoCriar={abrirCriar} aoArquivo={abrirArquivo} />
+      <EditorTreino aberto={!!editor} inicial={editor?.inicial ?? null} aoFechar={() => setEditor(null)} aoSalvar={salvarTreino} aoExcluir={excluirTreino} />
       <Folha aberta={calendario} aoFechar={() => setCalendario(false)} titulo="Constância">
         <CalendarioMes />
       </Folha>
@@ -200,7 +242,7 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
 
   if (!ta) return null;   // o pai troca para a lista; o resumo é mostrado por ele
 
-  const rotina = ROTINAS.find((r) => r.id === ta.rotina);
+  const rotina = rotinaDe(estado, ta.rotina);
   const restante = ta.descansoAte ? Math.max(0, Math.ceil((ta.descansoAte - agora) / 1000)) : 0;
   const hoje = new Date();
   const totalSeries = ta.exercicios.reduce((t, ex) => t + ex.series.length, 0);
@@ -233,7 +275,7 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
 
   const finalizar = () => {
     const feitos = ta.exercicios
-      .map((ex) => ({ id: ex.id, nome: exercicioPorId(ex.id)?.nome ?? ex.id, series: ex.series.filter((s) => s.ok).map(({ kg, reps }) => ({ kg, reps })) }))
+      .map((ex) => ({ id: ex.id, nome: exercicioDe(estado, ex.id)?.nome ?? ex.id, series: ex.series.filter((s) => s.ok).map(({ kg, reps }) => ({ kg, reps })) }))
       .filter((ex) => ex.series.length > 0);
     if (feitos.length === 0) { avisar('Marque pelo menos uma série como feita.'); return; }
 
@@ -270,6 +312,7 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
           <T tam={22} peso="500" linhas={1} style={{ letterSpacing: -0.3 }}>{rotina?.nome}</T>
           <View style={st.tempo}><Icone nome="relogio" tamanho={14} cor="#ffffff" /><T tam={13} peso="500">{mmss((agora - ta.inicio) / 1000)}</T></View>
         </View>
+        <CorpoMusculos grupos={rotina ? musculosDe(rotina) : []} largura={40} />
         <Botao pequeno titulo="Finalizar" icone="ok" aoPressionar={finalizar} />
       </View>
 
@@ -300,7 +343,7 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
       ) : null}
 
       {ta.exercicios.map((exAtual, i) => {
-        const def = exercicioPorId(exAtual.id);
+        const def = exercicioDe(estado, exAtual.id);
         if (!def) return null;
         const ult = ultimaVez(estado, def.id);
         const prox = proximaCarga(ult, def.faixa);
@@ -421,6 +464,7 @@ const st = estilos(() => StyleSheet.create({
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
   linhaEx: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   numero: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  botaoMais: { position: 'absolute', left: 0, top: -9, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   botaoCalendario: { position: 'absolute', right: 0, top: -9, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
   grafico: { marginTop: 14, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
   alternar: { flexDirection: 'row', padding: 4, borderRadius: 999, backgroundColor: cores.cartao2 },

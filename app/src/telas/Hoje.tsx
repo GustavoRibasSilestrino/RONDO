@@ -5,7 +5,7 @@ import { Copos } from '../componentes/Copos';
 import { Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
 import { Anel, Barra, Botao, Cartao, Chip, T } from '../componentes/Ui';
-import { ROTINAS } from '../dados';
+import { rotinaDe, todasRotinas } from '../lib/rotinas';
 import { useLoja } from '../estado/loja';
 import { comparar, diaDaComparacao, macrosMeta, metaKcal, statsSemana, streakAtual, totaisDia } from '../lib/calc';
 import { diaExtenso, fmt, iso, nomeDoDia, num } from '../lib/datas';
@@ -31,9 +31,10 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
   const metas = macrosMeta(estado.perfil, meta);
   const tot = totaisDia(estado, d);
 
+  const rotinas = todasRotinas(estado);
   const ultima = estado.treinos[estado.treinos.length - 1];
-  const idxUltima = ultima ? ROTINAS.findIndex((r) => r.id === ultima.rotina) : -1;
-  const sugerida = ROTINAS[(idxUltima + 1) % ROTINAS.length];
+  const idxUltima = ultima ? rotinas.findIndex((r) => r.id === ultima.rotina) : -1;
+  const sugerida = rotinas[(idxUltima + 1) % rotinas.length];
   const treinouHoje = estado.treinos.some((t) => t.data === d);
   const agua = estado.agua[d] ?? 0;
   const checkin = !!estado.checkins[d];
@@ -87,7 +88,7 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
         {estado.treinoAtual ? (
           <>
             <T tam={24} peso="300">Treino em andamento</T>
-            <T tam={13} cor={cores.texto2} style={{ marginTop: 2 }}>{ROTINAS.find((r) => r.id === estado.treinoAtual?.rotina)?.nome}</T>
+            <T tam={13} cor={cores.texto2} style={{ marginTop: 2 }}>{estado.treinoAtual ? rotinaDe(estado, estado.treinoAtual.rotina)?.nome : undefined}</T>
             <Botao titulo="Continuar treino" icone="treino" aoPressionar={() => ir('treino')} style={{ marginTop: 14 }} />
           </>
         ) : (
