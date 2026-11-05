@@ -9,7 +9,7 @@ export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPression
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   return (
-    <View pointerEvents="box-none" style={[st.faixa, { bottom: insets.bottom + 10 + 60 + 14 }]}>
+    <View pointerEvents="box-none" style={[st.faixa, { bottom: insets.bottom + 6 + 62 + 12 }]}>
       <View pointerEvents="box-none" style={{ width: Math.min(width, larguraMax), alignItems: 'flex-end', paddingRight: 20 }}>
         <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={aoPressionar} style={({ pressed }) => [st.mais, pressed && { transform: [{ scale: 0.94 }] }]}>
           <Icone nome="mais" tamanho={28} cor="#ffffff" espessura={2} />

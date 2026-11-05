@@ -15,6 +15,7 @@ import type { Midia } from '../tipos';
 import { RecadoDoDia } from '../componentes/RecadoDoDia';
 import { BarraStories } from '../componentes/stories/BarraStories';
 import { CartaoPost } from './comunidade/CartaoPost';
+import { BuscaUsuarios } from './comunidade/BuscaUsuarios';
 import { PerfilPessoa } from './comunidade/PerfilPessoa';
 import { Compositor } from './comunidade/Compositor';
 import { CriarGrupo } from './comunidade/CriarGrupo';
@@ -36,6 +37,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
   const [compor, setCompor] = useState<{ aberto: boolean; grupo: string | null }>({ aberto: false, grupo: null });
   const [criando, setCriando] = useState(false);
   const [menuMais, setMenuMais] = useState(false);   // o menu do botão +
+  const [buscando, setBuscando] = useState(false);   // a busca de pessoas, aberta pela lupa
   const [perfilAberto, setPerfilAberto] = useState<string | null>(null);   // o perfil de quem publicou, aberto ao tocar na foto
   const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
 
@@ -82,8 +84,13 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
           <GrupoTela id={grupoAberto} aoVoltar={voltarDoGrupo} aoCompor={abrirCompositor} aoAbrirMidia={abrirMidia} />
         ) : modo === 'home' ? (
           <>
-            <T tam={15} peso="400" centro>Feed</T>
-            <View style={{ marginTop: 14 }}><BarraStories /></View>
+            <View style={st.tituloFeed}>
+              <T tam={15} peso="400" centro>Feed</T>
+              <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={() => setBuscando(true)} style={st.lupa}>
+                <Icone nome="busca" tamanho={22} cor="#ffffff" />
+              </Pressable>
+            </View>
+            <View style={{ marginTop: 10 }}><BarraStories /></View>
             <View style={{ marginTop: 14 }}><RecadoDoDia aoAbrir={() => ir('recado')} /></View>
             <View style={{ gap: 14, marginTop: 16 }}>
               <View style={st.filtros}>
@@ -129,6 +136,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
 
         <Compositor aberto={compor.aberto} aoFechar={() => setCompor((c) => ({ ...c, aberto: false }))} grupoInicial={compor.grupo} />
         <CriarGrupo aberto={criando} aoFechar={() => setCriando(false)} aoCriar={(id) => { setCriando(false); setAba('grupos'); setGrupoAberto(id); }} />
+        <BuscaUsuarios aberto={buscando} aoFechar={() => setBuscando(false)} aoAbrirPerfil={(n) => setPerfilAberto(n)} />
         <PerfilPessoa nome={perfilAberto} aoFechar={() => setPerfilAberto(null)} aoAbrirMidia={abrirMidia} />
         <VisorMidia itens={visor?.itens ?? []} inicio={visor ? visor.indice : null} aoFechar={() => setVisor(null)} />
       </Tela>
@@ -160,6 +168,8 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
 }
 
 const st = estilos(() => StyleSheet.create({
+  tituloFeed: { height: 44, justifyContent: 'center', marginTop: -6 },
+  lupa: { position: 'absolute', right: -6, top: 0, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   filtros: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   filtro: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
   opcao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
