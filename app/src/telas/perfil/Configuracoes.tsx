@@ -14,6 +14,7 @@ import { medalhasDe } from '../../lib/medalhas';
 import { progressoNivel, TITULOS, xpTotal } from '../../lib/nivel';
 import { cores, estilos, larguraMax } from '../../tema';
 import { SITE } from '../Login';
+import { ContaSeguranca } from './ContaSeguranca';
 import { SeusDados } from './SeusDados';
 
 type Secao = 'dados' | 'aparencia' | 'titulos' | 'beneficios' | 'atalhos' | 'conta';
@@ -24,7 +25,7 @@ const ITENS: { id: Secao; titulo: string; sub: string; icone: NomeIcone }[] = [
   { id: 'titulos', titulo: 'Títulos', sub: 'Os que aparecem no seu perfil', icone: 'medalha' },
   { id: 'beneficios', titulo: 'Benefícios por nível', sub: 'O que cada nível libera', icone: 'estrela' },
   { id: 'atalhos', titulo: 'Atalhos', sub: 'Hoje, Evolução, Coleções e Recados', icone: 'menu' },
-  { id: 'conta', titulo: 'Conta', sub: 'Sair, apagar e o site', icone: 'sair' },
+  { id: 'conta', titulo: 'Conta e segurança', sub: 'Senha, e-mail, sair e apagar', icone: 'cadeado' },
 ];
 
 type Props = { aberto: boolean; aoFechar: () => void; ir: (tela: string) => void };
@@ -173,6 +174,7 @@ export function Configuracoes({ aberto, aoFechar, ir }: Props) {
 
             {secao === 'conta' ? (
               <View style={{ gap: 12 }}>
+                <ContaSeguranca />
                 <Botao tipo="fantasma" icone="sair" titulo="Sair da conta" aoPressionar={() => { sair(); void esquecerToken(); commit((e) => { e.usuario = null; }); }} />
                 <Pressable accessibilityRole="link" onPress={() => Linking.openURL(SITE)} style={{ alignSelf: 'flex-start', paddingVertical: 8 }}>
                   <T tam={13} peso="500">Assinatura, termos e privacidade no site →</T>
