@@ -81,7 +81,7 @@ export function Constancia() {
     if (!tipOn || !t || !b || !bd) return;
     const half = t.offsetWidth / 2;
     t.style.left = `${Math.min(bd.clientWidth - half - 8, Math.max(half + 8, b.offsetLeft + b.offsetWidth / 2))}px`;
-    t.style.top = `${b.offsetTop - (tipHold ? b.offsetHeight * 0.5 : 0) - 8}px`;   // com o quadrado ampliado, a dica sobe junto
+    t.style.top = `${b.offsetTop - (tipHold ? b.offsetHeight * 0.15 : 0) - 8}px`;   // com o quadrado ampliado, a dica sobe junto
   }, [tipI, tipOn, tipHold, states]);
 
   /* ---------- clique: cresce, volta, e a onda passa ---------- */
@@ -101,7 +101,7 @@ export function Constancia() {
       if (j === i) { restart(b, "c-pop", "cellPop"); return; }
       const dist = Math.hypot(Math.floor(j / ROWS) - wi, (j % ROWS) - di);
       if (dist > 3.3) return;
-      b.style.setProperty("--rs", (1 + 0.22 / dist).toFixed(3));   // quanto mais perto, mais cresce
+      b.style.setProperty("--rs", (1 + 0.08 / dist).toFixed(3));   // quanto mais perto, mais cresce (de leve)
       b.style.setProperty("--rd", `${Math.round(dist * 60)}ms`);   // e mais cedo
       restart(b, "c-wave", "cellWave");
     });

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { setGoMoment } from "../lib/bus";
-import { clamp, reduceMotion, STACK_QUERY, vars } from "../lib/util";
+import { reduceMotion, vars } from "../lib/util";
 import { Spot, Title } from "./ui";
 
 /* ---------- os momentos do dia ---------- */
@@ -144,102 +144,115 @@ const MOMENTS: Moment[] = [
   { id: "m-sono", time: "23:10", name: "sono", title: "Sono", text: "Horas dormidas registradas à mão e comparadas com a sua semana anterior.", ui: <Sono /> },
   { id: "m-streak", time: "23:59", name: "streak", title: "Streak", text: "O dia fecha e a sequência continua. Um dia de folga por semana não zera nada.", ui: <Streak /> },
 ];
-const MINS = MOMENTS.map((m) => { const [h, mm] = m.time.split(":").map(Number); return h * 60 + mm; });
+/* ---------- um dia inteiro: abas com os horários e um momento por vez ----------
+   Nada prende a rolagem da página: as abas (ou o deslizar, no celular) trocam o momento. */
+const SETA = { ant: "M15 6l-6 6 6 6", prox: "M9 6l6 6-6 6" };
 
-/* ---------- a linha do tempo anda na horizontal conforme você rola ---------- */
 export function Day() {
-  const pin = useRef<HTMLDivElement>(null), track = useRef<HTMLDivElement>(null), clock = useRef<HTMLTimeElement>(null), bar = useRef<HTMLElement>(null);
+  const [atual, setAtual] = useState(0);
+  const track = useRef<HTMLDivElement>(null), abas = useRef<HTMLDivElement>(null);
+  const botoes = useRef<(HTMLButtonElement | null)[]>([]);
+  const atualRef = useRef(0);
+  atualRef.current = atual;
 
+  /* mostra o momento i: rola o palco de lado (só ele; a página fica onde está) */
+  const ir = (i: number, suave = true) => {
+    const t = track.current;
+    const n = Math.max(0, Math.min(MOMENTS.length - 1, i));
+    setAtual(n);
+    t?.scrollTo({ left: n * t.clientWidth, behavior: suave && !reduceMotion ? "smooth" : "auto" });
+  };
+
+  /* deslizou o palco com o dedo: a aba acompanha */
   useEffect(() => {
-    const pinEl = pin.current!, trackEl = track.current!, clockEl = clock.current!, barEl = bar.current!;
-    const moments = [...trackEl.querySelectorAll<HTMLElement>(".moment")];
-    const stacked = matchMedia(STACK_QUERY);
-    /* as medidas ficam guardadas e só mudam quando algo muda de tamanho: a cada quadro só se lê o scrollY,
-       sem medir a página (medir depois de escrever estilos força o navegador a refazer o layout no meio do quadro) */
-    let dist = 0, pinTop = 0, total = 0, vh = innerHeight, lastClock = "", lastP = -1, act = -1;
-    const measure = () => {
-      vh = innerHeight;
-      dist = Math.max(0, trackEl.offsetWidth - (trackEl.parentElement?.clientWidth ?? 0));
-      pinTop = pinEl.getBoundingClientRect().top + scrollY;
-      total = pinEl.offsetHeight - vh;
-      lastP = -1;
-      update();
+    const t = track.current!;
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const i = Math.round(t.scrollLeft / Math.max(1, t.clientWidth));
+        if (i !== atualRef.current) setAtual(i);
+      });
     };
-    const ro = new ResizeObserver(measure);
-    ro.observe(trackEl);
-    ro.observe(document.body);   // o que está acima do dia pode mudar de altura (fontes, imagens)
-    addEventListener("resize", measure);
-    document.fonts?.ready.then(measure);
+    // girar o aparelho ou mudar o tamanho da janela: o palco continua no mesmo momento
+    const ro = new ResizeObserver(() => { t.scrollLeft = atualRef.current * t.clientWidth; });
+    ro.observe(t);
+    t.addEventListener("scroll", onScroll, { passive: true });
+    return () => { t.removeEventListener("scroll", onScroll); ro.disconnect(); cancelAnimationFrame(raf); };
+  }, []);
 
-    function update() {
-      if (stacked.matches) { if (trackEl.style.transform) trackEl.style.transform = ""; return; }
-      const top = pinTop - scrollY;
-      if (top + total + vh < -60 || top > vh + 60) return;   // fora da tela: nada a fazer
-      const p = total > 0 ? clamp(-top / total, 0, 1) : 0;
-      if (Math.abs(p - lastP) < 0.00005) return;            // não andou: não escreve nada
-      lastP = p;
-      trackEl.style.transform = `translate3d(${(-p * dist).toFixed(1)}px,0,0)`;
-      barEl.style.transform = `scaleX(${p.toFixed(4)})`;
-      const f = p * (moments.length - 1), i0 = Math.floor(f), i1 = Math.min(i0 + 1, moments.length - 1);
-      const m = Math.round(MINS[i0] + (MINS[i1] - MINS[i0]) * (f - i0));
-      const text = `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-      if (text !== lastClock) { lastClock = text; clockEl.textContent = text; clockEl.dateTime = text; }
-      const now = Math.round(f);
-      if (now !== act) { act = now; moments.forEach((el, i) => el.classList.toggle("on", i === act)); }
+  /* a aba escolhida fica à vista na faixa de abas (rola só a faixa, nunca a página) */
+  useEffect(() => {
+    const faixa = abas.current, b = botoes.current[atual];
+    if (!faixa || !b) return;
+    const esq = b.offsetLeft - faixa.offsetLeft, dir = esq + b.offsetWidth;
+    if (esq < faixa.scrollLeft + 16 || dir > faixa.scrollLeft + faixa.clientWidth - 16) {
+      faixa.scrollTo({ left: esq - (faixa.clientWidth - b.offsetWidth) / 2, behavior: reduceMotion ? "auto" : "smooth" });
     }
-    measure();
+  }, [atual]);
 
-    /* vai direto a um momento do dia (usado pelo menu) */
+  /* vai direto a um momento do dia (usado pelo menu) */
+  useEffect(() => {
     setGoMoment((name) => {
       const i = MOMENTS.findIndex((m) => m.name === name);
       if (i < 0) return;
-      const behavior = reduceMotion ? "auto" : "smooth";
-      if (stacked.matches) { moments[i].scrollIntoView({ behavior, block: "start" }); return; }
-      const total = pinEl.offsetHeight - innerHeight, top = pinEl.getBoundingClientRect().top + scrollY;
-      scrollTo({ top: top + (i / (moments.length - 1)) * total, behavior });
+      document.getElementById("recursos")?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+      ir(i, false);
     });
-
-    /* a linha do tempo só depende da rolagem: atualiza uma vez por quadro enquanto a página rola */
-    let raf = 0;
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; update(); }); };
-    addEventListener("scroll", onScroll, { passive: true });
-    stacked.addEventListener("change", measure);
-    return () => {
-      removeEventListener("resize", measure); removeEventListener("scroll", onScroll);
-      stacked.removeEventListener("change", measure); cancelAnimationFrame(raf);
-      ro.disconnect(); setGoMoment(null);
-    };
+    return () => setGoMoment(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /* teclado nas abas: setas andam, Home e End vão às pontas */
+  const onKey = (e: React.KeyboardEvent) => {
+    const passo = ({ ArrowRight: 1, ArrowLeft: -1 } as Record<string, number>)[e.key];
+    const alvo = passo !== undefined ? atual + passo : e.key === "Home" ? 0 : e.key === "End" ? MOMENTS.length - 1 : -1;
+    if (alvo < 0 || alvo >= MOMENTS.length) return;
+    e.preventDefault();
+    ir(alvo);
+    botoes.current[alvo]?.focus();
+  };
+
+  const m = MOMENTS[atual];
   return (
-    <section className="day" id="recursos" aria-label="Um dia inteiro no RONDO" style={vars({ "--n": MOMENTS.length })}>
-      <div className="day-pin" ref={pin}>
-        <div className="day-sticky">
-          <div className="wrap day-head">
-            <Title parts="Um dia inteiro contra o seu ontem." />
-            <time className="day-clock" ref={clock} dateTime="06:40">06:40</time>
-          </div>
-
-          <div className="day-viewport">
-            <div className="day-track" ref={track}>
-              {MOMENTS.map((m) => (
-                <article className="moment" id={m.id} key={m.id} data-time={m.time} data-name={m.name}>
-                  <div className="m-text"><h3>{m.title}</h3><p>{m.text}</p></div>
-                  {m.ui}
-                </article>
-              ))}
-            </div>
-          </div>
-
-          <div className="wrap day-foot">
-            <div className="day-bar">
-              <i className="fill" ref={bar} />
-              {MOMENTS.map((m, i) => <i key={m.id} className="tick" style={{ left: `${(i / (MOMENTS.length - 1)) * 100}%` }} />)}
-            </div>
-          </div>
+    <section className="day" id="recursos" aria-label="Um dia inteiro no RONDO">
+      <div className="wrap">
+        <div className="day-head">
+          <Title parts="Um dia inteiro contra o seu ontem." />
+          <time className="day-clock" dateTime={m.time} aria-live="polite">{m.time}</time>
         </div>
-        {/* pontos de encaixe da rolagem, um por momento (só valem no celular; ver styles/responsive.css) */}
-        {MOMENTS.map((m, i) => <i key={m.id} className="day-snap" aria-hidden="true" style={vars({ "--k": i / (MOMENTS.length - 1) })} />)}
+
+        <div className="day-tabs" ref={abas} role="tablist" aria-label="Horários do dia" onKeyDown={onKey}>
+          {MOMENTS.map((x, i) => (
+            <button
+              key={x.id} ref={(el) => { botoes.current[i] = el; }} type="button" role="tab" id={`aba-${x.name}`}
+              className="day-tab" aria-selected={i === atual} aria-controls={x.id} tabIndex={i === atual ? 0 : -1}
+              onClick={() => ir(i)}
+            >
+              <small>{x.time}</small><b>{x.title}</b>
+            </button>
+          ))}
+        </div>
+
+        <div className="day-track" ref={track}>
+          {MOMENTS.map((x, i) => (
+            <article className="moment" id={x.id} key={x.id} role="tabpanel" aria-labelledby={`aba-${x.name}`} data-name={x.name}>
+              <div className="m-text"><h3>{x.title}</h3><p>{x.text}</p></div>
+              {x.ui}
+            </article>
+          ))}
+        </div>
+
+        <div className="day-nav">
+          <button type="button" aria-label="Momento anterior" disabled={atual === 0} onClick={() => ir(atual - 1)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={SETA.ant} /></svg>
+          </button>
+          <span aria-hidden="true">{atual + 1} / {MOMENTS.length}</span>
+          <button type="button" aria-label="Próximo momento" disabled={atual === MOMENTS.length - 1} onClick={() => ir(atual + 1)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={SETA.prox} /></svg>
+          </button>
+        </div>
       </div>
     </section>
   );

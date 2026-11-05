@@ -41,33 +41,68 @@
 .rail-ghost { top: calc(var(--y2, 0) * 100%); border: 1px solid rgba(255, 255, 255, .55); background: var(--bg); }
 @media (max-width: 1200px) { .rail { display: none; } }
 
-/* ===== Um dia inteiro: linha do tempo que anda na horizontal enquanto você rola ===== */
-.day { --n: 7; position: relative; border-top: 1px solid var(--line); }
-.day-pin { height: calc(100vh + (var(--n) - 1) * 90vh); }
-.day-sticky {
-  position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden;
-  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
-  padding: calc(var(--nav-h) + 1.2rem) 0 2rem;
-}
+/* ===== Um dia inteiro: abas com os horários e um momento por vez =====
+   A página rola normalmente (nada fica preso): você escolhe o horário nas abas, ou desliza o momento para o lado no celular. */
+.day { position: relative; border-top: 1px solid var(--line); padding: clamp(4.5rem, 9vw, 7rem) 0 clamp(3rem, 6vw, 5rem); }
 .day-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; }
 .day-head h2 { max-width: 16ch; }
 .day-clock {
-  font-family: var(--font-display); font-weight: 200; font-size: clamp(3.4rem, 9vw, 8rem);
+  font-family: var(--font-display); font-weight: 200; font-size: clamp(3rem, 7vw, 6rem);
   letter-spacing: -.05em; line-height: .86; font-variant-numeric: tabular-nums; color: var(--ink);
 }
-.day-viewport { overflow: hidden; align-self: center; width: 100%; }
+
+/* abas: os horários do dia */
+.day-tabs {
+  position: relative; display: flex; gap: .5rem; margin-top: clamp(1.6rem, 3vw, 2.4rem);
+  overflow-x: auto; scrollbar-width: none; touch-action: pan-x pan-y; overscroll-behavior-x: contain;
+}
+.day-tabs::-webkit-scrollbar { display: none; }
+.day-tab {
+  flex: none; display: grid; gap: .05rem; min-height: 50px; padding: .55rem .95rem; text-align: left;
+  border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, .02); color: var(--ink-2);
+  transition: background .25s, border-color .25s, color .25s;
+}
+.day-tab small { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .08em; color: var(--ink-3); }
+.day-tab b { font-weight: 400; font-size: .92rem; }
+.day-tab:hover { color: var(--ink); border-color: var(--line-2); }
+.day-tab[aria-selected="true"] { background: rgba(139, 92, 246, .16); border-color: rgba(139, 92, 246, .55); color: #fff; }
+.day-tab[aria-selected="true"] small { color: var(--accent-2); }
+
+/* o palco: um momento por vez; no celular, deslize para o lado */
 .day-track {
-  display: flex; gap: clamp(2rem, 6vw, 6rem); width: max-content; will-change: transform;
-  padding-left: calc(max(0px, (100vw - (var(--maxw) + var(--gutter) * 2)) / 2) + var(--gutter));
-  padding-right: var(--gutter);
+  display: flex; margin-top: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  overscroll-behavior-x: contain; touch-action: pan-x pan-y;
 }
+.day-track::-webkit-scrollbar { display: none; }
 .moment {
-  flex: none; width: min(86vw, 980px); display: grid; grid-template-columns: minmax(0, 1fr) 300px;
-  gap: clamp(1.5rem, 4vw, 4rem); align-items: center; opacity: .22; transition: opacity .5s var(--ease);
+  flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always;
+  display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: clamp(1.5rem, 4vw, 4rem); align-items: center;
+  padding-block: clamp(1rem, 2.5vw, 1.8rem);
 }
-.moment.on { opacity: 1; }
 .moment h3 { font-family: var(--font-display); font-weight: 200; font-size: clamp(2.6rem, 5.6vw, 5rem); letter-spacing: -.045em; line-height: 1; }
 .m-text p { color: var(--ink-2); margin-top: 1.2rem; max-width: 36ch; }
+
+/* setas e posição, embaixo */
+.day-nav { display: flex; align-items: center; justify-content: flex-end; gap: .6rem; margin-top: .6rem; }
+.day-nav span { font-family: var(--font-mono); font-size: .75rem; letter-spacing: .08em; color: var(--ink-3); min-width: 3.4rem; text-align: center; }
+.day-nav button {
+  width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%;
+  border: 1px solid var(--line-2); color: var(--ink); transition: background .2s, opacity .2s;
+}
+.day-nav button:hover:not(:disabled) { background: rgba(255, 255, 255, .06); }
+.day-nav button:disabled { opacity: .3; cursor: default; }
+.day-nav svg { width: 18px; height: 18px; }
+
+/* celular: título e relógio em cima, texto em cima do cartão, as abas vão de ponta a ponta */
+@media (max-width: 760px) {
+  .day-clock { font-size: clamp(2.6rem, 14vw, 3.6rem); }
+  .day-tabs { margin-inline: calc(var(--gutter) * -1); padding-inline: var(--gutter); }
+  .moment { grid-template-columns: minmax(0, 1fr); gap: 1.2rem; justify-items: center; }
+  .moment h3 { font-size: clamp(2.2rem, 11vw, 3rem); }
+  .m-text p { margin: .5rem auto 0; font-size: .95rem; }
+  .m-ui { width: min(100%, 360px); padding: 1rem; }
+  .day-nav { justify-content: center; }
+}
 
 .m-ui {
   width: 300px; display: grid; gap: .8rem; padding: 1.1rem; align-content: start;
@@ -82,26 +117,6 @@
 .m-cmp b { display: block; margin-top: .15rem; font-family: var(--font-display); font-weight: 400; font-size: .98rem; letter-spacing: -.01em; color: var(--ink-2); }
 .m-cmp span + span { color: var(--accent-2); }
 .m-cmp span + span b { color: #fff; }
-
-.day-foot { margin-top: 1.4rem; }
-.day-bar { position: relative; height: 1px; background: var(--line-2); }
-.day-bar .fill { position: absolute; inset: 0; background: var(--accent-2); transform-origin: left; transform: scaleX(0); }
-.day-bar .tick { position: absolute; top: -4px; width: 1px; height: 9px; background: var(--line-2); }
-
-/* a mesma consulta vive em lib/util.ts (STACK_QUERY): sem altura para o palco fixo, o dia vira lista */
-@media (max-height: 520px) {
-  .day-pin { height: auto; }
-  .day-sticky { position: static; height: auto; overflow: visible; display: block; padding-block: clamp(4.5rem, 12vw, 6rem) 0; }
-  .day-head { flex-direction: column; align-items: flex-start; margin-bottom: 2.6rem; }
-  .day-clock, .day-foot { display: none; }
-  .day-viewport { overflow: visible; }
-  .day-track { display: grid; width: auto; gap: 3.6rem; transform: none !important; padding-inline: var(--gutter); }
-  .moment { width: 100%; grid-template-columns: minmax(0, 1fr); gap: 1.6rem; opacity: 1; }
-  .moment::before { content: attr(data-time); font-family: var(--font-mono); font-size: .8rem; letter-spacing: .12em; color: var(--accent-2); }
-  .m-ui { width: 100%; max-width: 400px; padding: 1rem; }
-  .moment h3 { font-size: clamp(2.4rem, 12vw, 3.4rem); }
-  .day-track { gap: 3rem; }
-}
 
 /* celular: nenhum texto abaixo de ~11 px (fica aqui no fim para vencer as regras acima na cascata) */
 @media (max-width: 520px) {
