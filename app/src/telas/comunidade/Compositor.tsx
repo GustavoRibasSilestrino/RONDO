@@ -10,7 +10,7 @@ import { T } from '../../componentes/Ui';
 import { useLista } from '../../estado/lista';
 import { useLoja } from '../../estado/loja';
 import { useConta } from '../../lib/beneficios';
-import { escolherMidia, removerMidia } from '../../lib/midia';
+import { enviarMidia, escolherMidia, removerMidia } from '../../lib/midia';
 import { cores, larguraMax, FONTE, estilos } from '../../tema';
 import type { Midia } from '../../tipos';
 import { Avatar } from './Avatar';
@@ -76,7 +76,9 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
     setEnviando(true);
     setErro('');
     try {
-      await publicarPost({ texto: texto.trim(), midia: midia.length ? midia : undefined, clubeId: destino });
+      const enviadas = [];
+      for (const m of midia) enviadas.push(await enviarMidia(m));   // sobe as fotos antes, para os outros verem
+      await publicarPost({ texto: texto.trim(), midia: enviadas.length ? enviadas : undefined, clubeId: destino });
     } catch (e) {
       setErro(e instanceof Error ? e.message : 'Não foi possível publicar agora. Tente de novo.');
       setEnviando(false);

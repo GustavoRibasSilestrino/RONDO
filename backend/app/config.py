@@ -12,6 +12,10 @@ class Config(BaseSettings):
     jwt_segredo: str = "troque-em-producao"
     jwt_expira_minutos: int = 60 * 24 * 7
     origens_permitidas: str = "http://localhost:5173,http://localhost:5180,http://localhost:8081"
+    # fotos e vídeos dos posts: bucket público do Supabase Storage; a chave de serviço só existe no servidor
+    supabase_url: str = ""
+    supabase_service_key: str = ""
+    supabase_bucket: str = "midia"
 
 
 @lru_cache

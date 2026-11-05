@@ -13,6 +13,7 @@ from app.esquemas_social import (
     PostOut, ResumoOut,
 )
 from app.modelos import Clube, Comentario, Curtida, Membro, Notificacao, Post, Seguidor, Usuario
+from app.servicos import midia as servico_midia
 from app.servicos.social import (
     TEXTOS, clube_visivel, condicao_post_visivel, limite_valido, montar_posts, ms, notificar, pagina_de_posts,
     pessoas_out, post_visivel,
@@ -50,10 +51,31 @@ def publicar(dados: PostIn, usuario: Usuario = Depends(usuario_atual), sessao: S
         clube_visivel(sessao, usuario.id, dados.clube_id)
         if not sessao.get(Membro, (dados.clube_id, usuario.id)):
             raise HTTPException(403, "Entre no clube para publicar nele.")
-    post = Post(autor_id=usuario.id, clube_id=dados.clube_id, texto=dados.texto, destaque=dados.destaque or None, midia=dados.midia or None)
+    post = Post(autor_id=usuario.id, clube_id=dados.clube_id, texto=dados.texto, destaque=dados.destaque or None, midia=_midia_valida(dados.midia, usuario.id))
     sessao.add(post)
     sessao.commit()
     return montar_posts(sessao, usuario.id, [post])[0]
+
+
+def _midia_valida(itens: list[dict] | None, uid: int) -> list[dict] | None:
+    """Só guarda os campos conhecidos. Uma URL só vale se for do nosso Storage e da própria pessoa (nada de link externo)."""
+    if not itens:
+        return None
+    saida = []
+    for m in itens:
+        if m.get("tipo") not in ("imagem", "video") or not isinstance(m.get("id"), str) or len(m["id"]) > 40:
+            raise HTTPException(422, "Mídia inválida.")
+        item = {"id": m["id"], "tipo": m["tipo"]}
+        for k in ("largura", "altura", "duracao"):
+            if isinstance(m.get(k), (int, float)) and not isinstance(m.get(k), bool):
+                item[k] = int(m[k])
+        url = m.get("url")
+        if url is not None:
+            if not (servico_midia.configurado() and isinstance(url, str) and url.startswith(f"{servico_midia.prefixo_publico()}{uid}/") and len(url) <= 300):
+                raise HTTPException(422, "Endereço de mídia inválido.")
+            item["url"] = url
+        saida.append(item)
+    return saida
 
 
 @router.delete("/posts/{post_id}", response_model=StatusOut)
@@ -70,6 +92,8 @@ def apagar_posts(sessao: Session, ids: list[int]) -> None:
     """Apaga as publicações e tudo o que pende delas (o SQLite dos testes não aplica o CASCADE sozinho)."""
     if not ids:
         return
+    for m in sessao.scalars(select(Post.midia).where(Post.id.in_(ids))):
+        servico_midia.apagar_arquivos([x["url"] for x in m or [] if x.get("url")])
     sessao.execute(delete(Notificacao).where(Notificacao.post_id.in_(ids)))
     sessao.execute(delete(Comentario).where(Comentario.post_id.in_(ids)))
     sessao.execute(delete(Curtida).where(Curtida.post_id.in_(ids)))

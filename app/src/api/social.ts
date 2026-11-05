@@ -78,3 +78,5 @@ export const entrarPorCodigo = (codigo: string) => chamar<Clube>('POST', '/clube
 export const sairDoClube = (id: number) => chamar<{ status: string }>('POST', `/clubes/${id}/sair`);
 export const apagarClube = (id: number) => chamar<{ status: string }>('DELETE', `/clubes/${id}`);
 export const lerMembros = (id: number) => chamar<Pagina<Pessoa>>('GET', `/clubes/${id}/membros`);
+
+export const pedirUpload = (tipo: 'imagem' | 'video', ext: string) => chamar<{ url_envio: string; url: string }>('POST', '/midia/upload', { tipo, ext });

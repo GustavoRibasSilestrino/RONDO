@@ -48,7 +48,7 @@ export type Refeicao = {
 };
 
 /* Foto ou vídeo de uma publicação. O arquivo em si fica em lib/midia.ts; aqui só a referência e as medidas. */
-export type Midia = { id: string; tipo: 'imagem' | 'video'; largura: number; altura: number; duracao?: number };
+export type Midia = { id: string; tipo: 'imagem' | 'video'; largura: number; altura: number; duracao?: number; url?: string };   // url: o arquivo no servidor, para os outros verem
 
 export type CategoriaGrupo = 'treino' | 'corrida' | 'dieta' | 'constancia' | 'outro';
 
