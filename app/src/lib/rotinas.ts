@@ -11,5 +11,11 @@ export const exercicioDe = (e: ComRotinas, id: string): Exercicio | undefined =>
 export const rotinaDe = (e: ComRotinas, id: string): Rotina | undefined => todasRotinas(e).find((r) => r.id === id);
 export const musculosDe = (r: Rotina): GrupoMuscular[] => r.musculos ?? MUSCULOS_DA_ROTINA[r.id] ?? [];
 
+/* grava um treino próprio: troca o que tem o mesmo id ou acrescenta */
+export function guardarRotina(e: Estado, r: Rotina): void {
+  const i = e.rotinasProprias.findIndex((x) => x.id === r.id);
+  if (i >= 0) e.rotinasProprias[i] = r; else e.rotinasProprias.push(r);
+}
+
 /* tempo estimado de um treino próprio: cerca de 4 min por série (carga, descanso), no mínimo 15 */
 export const minutosDe = (exercicios: Exercicio[]): number => Math.max(15, exercicios.reduce((t, x) => t + x.series, 0) * 4);
