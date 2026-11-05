@@ -71,7 +71,7 @@ export function CartaoPost({ post, nomeGrupo, aoAbrirGrupo, aoAbrirMidia, aoAbri
 
   const curtiu = !!estado.curtidas[post.id];
   const meu = post.autor === 'Você';
-  const base = meu ? 0 : 3 + (post.id.length * 7) % 40;   // os números dos outros são de demonstração; a sua publicação começa do zero
+  const base = 0;   // os cheers vêm só de quem de fato deu cheers; sem a API, só os seus
   const nComentarios = (estado.comentarios[post.id] ?? []).length;
 
   const compartilhar = async () => {

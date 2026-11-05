@@ -34,8 +34,6 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
       adicionar(e, { tipo: 'profissional', texto: `Pedido enviado para ${p.nome}. Você será avisado quando a resposta chegar.` });
     });
     avisar(`Pedido enviado para ${p.nome}.`);
-    /* em demonstração, a resposta chega depois de alguns segundos */
-    setTimeout(() => commit((e) => adicionar(e, { tipo: 'profissional', texto: `${p.nome} respondeu: "Olá! Vamos conversar sobre o seu objetivo?"` })), 8000);
   };
 
   return (
@@ -79,8 +77,8 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
             <View style={{ gap: 12 }}>
               {visiveis.length === 0 ? (
                 <Cartao>
-                  <T tam={15}>Nenhum resultado.</T>
-                  <T tam={13} style={{ marginTop: 6, lineHeight: 19 }}>Tente outra palavra ou limpe o filtro de especialidade.</T>
+                  <T tam={15}>{lista.length ? 'Nenhum resultado.' : 'Ainda não há profissionais verificados.'}</T>
+                  <T tam={13} style={{ marginTop: 6, lineHeight: 19 }}>{lista.length ? 'Tente outra palavra ou limpe o filtro de especialidade.' : `Os ${rotulo.plural.toLowerCase()} aparecem aqui assim que o cadastro deles for conferido pela equipe.`}</T>
                 </Cartao>
               ) : visiveis.map((p) => {
                 const enviado = !!estado.profissionais[p.id];
@@ -117,9 +115,6 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
               })}
             </View>
 
-            <T tam={12} centro style={{ marginTop: 20, lineHeight: 18 }}>
-              Lista de demonstração. Quando a RONDO estiver conectada ao servidor, aparecem só profissionais com o registro ({rotulo.registro}) conferido pela equipe.
-            </T>
           </ScrollView>
         </View>
       </View>

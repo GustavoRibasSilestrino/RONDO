@@ -1,13 +1,10 @@
-/* Entrar com a conta.
-   Com EXPO_PUBLIC_API_URL definida, chama POST {API}/auth/login no backend (FastAPI).
-   Sem ela, roda em modo demonstração: aceita qualquer e-mail válido e senha com 6+ caracteres e nada sai do aparelho.
-   A senha nunca é guardada. */
+/* Entrar com a conta: chama POST {API}/auth/login no backend (FastAPI). A URL vem de EXPO_PUBLIC_API_URL.
+   Não há mais modo de demonstração nem contas de mentira. A senha nunca é guardada. */
 import type { Usuario } from '../tipos';
 import { guardarToken } from './sessao';
 
 declare const process: { env: Record<string, string | undefined> };
 
-export const modoDemonstracao = !process.env.EXPO_PUBLIC_API_URL;
 
 const nomeDoEmail = (email: string): string => {
   const base = email.split('@')[0].replace(/[._-]+/g, ' ').trim();
@@ -37,6 +34,5 @@ export async function entrar(email: string, senha: string): Promise<Usuario> {
     return { email: dados.email ?? email, nome: dados.nome ?? nomeDoEmail(email), papel: dados.papel, verificado: dados.verificado, pro: dados.pro };
   }
 
-  await new Promise((r) => setTimeout(r, 450));   // simula a ida ao servidor
-  return { email, nome: nomeDoEmail(email) };
+  throw new Error('O servidor do RONDO não está configurado neste aparelho.');
 }

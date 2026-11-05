@@ -32,6 +32,7 @@ export const estadoVazio = (): Estado => ({
   profissionais: {},
   stories: [],
   storiesVistos: {},
+  ultimoEmail: '',
   xpExtra: 0,
   pro: false,
   tema: 'normal',
@@ -60,7 +61,9 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
       try {
         const bruto = await AsyncStorage.getItem(CHAVE);
         if (bruto) {
-          const lido: Estado = { ...estadoVazio(), ...JSON.parse(bruto) };
+          const guardado = JSON.parse(bruto) as Partial<Estado>;
+          /* dados de uma versão antiga, com contas e histórico de demonstração: descarta e começa limpo */
+          const lido: Estado = (guardado.semeado || guardado.semeadoSocial) ? estadoVazio() : { ...estadoVazio(), ...guardado };
           recente.current = lido;
           setEstado(lido);
         }

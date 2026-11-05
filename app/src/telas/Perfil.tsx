@@ -10,7 +10,6 @@ import { AnelStory } from '../componentes/stories/AnelStory';
 import { CriarStory } from '../componentes/stories/CriarStory';
 import { VisorStory } from '../componentes/stories/VisorStory';
 import { Barra, Botao, T } from '../componentes/Ui';
-import { modoDemonstracao } from '../api/conta';
 import { useLoja } from '../estado/loja';
 import { limitesDe } from '../lib/beneficios';
 import { fmt } from '../lib/datas';
@@ -19,7 +18,6 @@ import { escolherFoto, removerMidia } from '../lib/midia';
 import { progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
 import { patenteDe } from '../lib/patentes';
 import { meusStories } from '../lib/stories';
-import { semearSocial } from '../semear';
 import { cores, estilos } from '../tema';
 import type { Midia, Post } from '../tipos';
 import { Avatar } from './comunidade/Avatar';
@@ -52,9 +50,6 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const [erroEd, setErroEd] = useState<{ nome?: string; arroba?: string }>({});
   const [lista, setLista] = useState<'seguidores' | 'seguindo' | null>(null);
   const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
-
-  /* conta antiga, de antes dos seguidores: cria os de demonstração uma vez */
-  useEffect(() => { if (modoDemonstracao && !estado.semeadoSocial) commit((e) => semearSocial(e)); }, [estado.semeadoSocial, commit]);
 
   const xp = xpTotal(estado);
   const nivel = progressoNivel(xp);

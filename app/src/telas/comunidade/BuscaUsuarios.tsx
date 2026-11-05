@@ -1,23 +1,18 @@
 /* Procurar pessoas: a lupa do Feed abre esta tela. Busca por nome ou @usuário; ao tocar em alguém, abre o perfil dela.
-   Em modo demonstração a lista é de pessoas fictícias; com a API, a busca vem do servidor. */
+   A busca de pessoas vai usar a API quando ela tiver esse recurso. */
 import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icone } from '../../componentes/Icone';
 import { T } from '../../componentes/Ui';
-import { RANKING_BASE } from '../../dados';
 import { useLoja } from '../../estado/loja';
 import { cores, estilos, FONTE, larguraMax } from '../../tema';
 import { Avatar } from './Avatar';
 import { BotaoSeguir } from './Seguir';
 import { arrobaDe, normalizar } from './util';
 
-/* as pessoas de demonstração que dá para encontrar */
-const PESSOAS = [
-  ...RANKING_BASE.map((r) => r.nome),
-  'Julia Nogueira', 'Pedro Aranha', 'Helena Duarte', 'Bruno Teixeira', 'Mariana Cruz', 'Thiago Barbosa',
-  'Isabela Fontes', 'Fernanda Lopes', 'Lucas Andrade', 'Rodrigo Pinheiro', 'Carla Mendes', 'Diego Martins',
-];
+/* as pessoas que dá para encontrar: por enquanto nenhuma, porque a API ainda não tem a busca de usuários */
+const PESSOAS: string[] = [];
 
 type Props = { aberto: boolean; aoFechar: () => void; aoAbrirPerfil: (nome: string) => void };
 
@@ -72,8 +67,8 @@ export function BuscaUsuarios({ aberto, aoFechar, aoAbrirPerfil }: Props) {
             {lista.length === 0 ? (
               <View style={st.vazio}>
                 <Icone nome="busca" tamanho={28} cor="#ffffff" />
-                <T tam={15} peso="500" style={{ marginTop: 10 }}>Ninguém encontrado</T>
-                <T tam={13} centro style={{ marginTop: 4, lineHeight: 19 }}>Tente outro nome ou o @usuário da pessoa.</T>
+                <T tam={15} peso="500" style={{ marginTop: 10 }}>{q ? 'Ninguém encontrado' : 'A busca de pessoas está chegando'}</T>
+                <T tam={13} centro style={{ marginTop: 4, lineHeight: 19 }}>{q ? 'Tente outro nome ou o @usuário da pessoa.' : 'Assim que o servidor listar as contas, você poderá procurar e seguir pessoas por aqui.'}</T>
               </View>
             ) : (
               <View style={{ gap: 4 }}>
