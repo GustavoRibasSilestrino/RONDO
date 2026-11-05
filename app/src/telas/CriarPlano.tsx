@@ -1,12 +1,18 @@
-/* O + da Dieta e do Treino: criar um plano com a RONDO AI (ainda indisponível, falta ligar a API) ou procurar um profissional
-   verificado dentro do app (nutricionista para a dieta, profissional de educação física para o treino). */
+/* O + da Dieta e do Treino. Dieta: criar com a RONDO AI (ainda indisponível, falta ligar a API) ou procurar um nutricionista verificado.
+   Treino: criar o próprio treino no app, enviar um arquivo (CSV, TXT ou JSON), usar a RONDO AI (indisponível) ou procurar um educador físico verificado. */
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { BotaoMais } from '../componentes/BotaoMais';
-import { Folha } from '../componentes/Estrutura';
+import { EditorTreino, type Rascunho } from '../componentes/EditorTreino';
+import { Folha, useAviso } from '../componentes/Estrutura';
 import { Icone, NomeIcone } from '../componentes/Icone';
 import { AvisoPro, SeloPro } from '../componentes/Pro';
 import { T } from '../componentes/Ui';
+import type { Rotina } from '../dados';
+import { useLoja } from '../estado/loja';
+import { escolherArquivoDeTreino } from '../lib/arquivoTreino';
+import { inferirMusculos } from '../lib/musculos';
+import { guardarRotina } from '../lib/rotinas';
 import { SITE } from './Login';
 import { cores, estilos } from '../tema';
 import { BuscaProfissionais } from './BuscaProfissionais';
@@ -14,8 +20,8 @@ import { BuscaProfissionais } from './BuscaProfissionais';
 type Props = { tipo: 'dieta' | 'treino' };
 
 const TEXTO = {
-  dieta: { titulo: 'Criar dieta', ia: 'Criar com a RONDO AI', iaSub: 'Uma dieta montada para o seu objetivo.', extra: 'Ajuste automático de macros', extraSub: 'A IA reajusta a sua dieta conforme a sua evolução.', profissional: 'Procurar nutricionista', profSub: 'Profissionais verificados, com registro no CRN.', quem: 'nutricionista' as const },
-  treino: { titulo: 'Criar treino', ia: 'Criar com a RONDO AI', iaSub: 'Um treino montado para o seu objetivo.', extra: 'Treino complexo com IA', extraSub: 'Periodização, deload e cargas ajustadas a cada semana.', profissional: 'Procurar educador físico', profSub: 'Profissionais verificados, com registro no CREF.', quem: 'educador' as const },
+  dieta: { titulo: 'Criar dieta', ia: 'Criar com a RONDO AI', iaSub: 'Uma dieta montada para o seu objetivo.', extra: 'Ajuste automático de macros' as string | undefined, extraSub: 'A IA reajusta a sua dieta conforme a sua evolução.' as string | undefined,profissional: 'Procurar nutricionista', profSub: 'Profissionais verificados, com registro no CRN.', quem: 'nutricionista' as const },
+  treino: { titulo: 'Criar treino', ia: 'Criar com a RONDO AI', iaSub: 'Um treino montado para o seu objetivo.', extra: undefined as string | undefined, extraSub: undefined as string | undefined,profissional: 'Procurar educador físico', profSub: 'Profissionais verificados, com registro no CREF.', quem: 'educador' as const },
 };
 
 type OpcaoProps = { icone: NomeIcone; titulo: string; sub: string; pro?: boolean; indisponivel?: boolean; aoPressionar: () => void };
@@ -43,6 +49,24 @@ export function CriarPlano({ tipo }: Props) {
   const [indisponivel, setIndisponivel] = useState(false);
   const [busca, setBusca] = useState(false);
   const [pro, setPro] = useState(false);   // aviso do plano PRO
+  const { commit } = useLoja();
+  const avisar = useAviso();
+  const [editor, setEditor] = useState<{ inicial: Rascunho | null } | null>(null);   // o editor de treino (só no Treino)
+  const [erro, setErro] = useState('');
+  const [lendo, setLendo] = useState(false);
+
+  const criarNoApp = () => { setAberta(false); setErro(''); setEditor({ inicial: null }); };
+  const enviarArquivo = async () => {
+    setErro('');
+    setLendo(true);
+    const r = await escolherArquivoDeTreino();
+    setLendo(false);
+    if (!r) return;
+    if (!r.ok) { setErro(r.erro); return; }
+    setAberta(false);
+    setEditor({ inicial: { id: '', nome: r.treino.nome ?? r.nomeDoArquivo, exercicios: r.treino.exercicios, musculos: inferirMusculos(r.treino.exercicios.map((x) => x.nome)) } });
+  };
+  const salvarTreino = (r: Rotina) => { commit((e) => guardarRotina(e, r)); setEditor(null); avisar('Treino salvo.'); };
 
   return (
     <>
@@ -50,8 +74,15 @@ export function CriarPlano({ tipo }: Props) {
 
       <Folha aberta={aberta} aoFechar={() => setAberta(false)} titulo={t.titulo}>
         <View style={{ gap: 10, paddingBottom: 4 }}>
+          {tipo === 'treino' ? (
+            <>
+              <Opcao icone="lapis" titulo="Criar no app" sub="Dê um nome e adicione os exercícios, com séries, repetições e carga." aoPressionar={criarNoApp} />
+              <Opcao icone="upload" titulo={lendo ? 'Lendo o arquivo…' : 'Enviar um arquivo'} sub="CSV, TXT ou JSON com o seu treino. Você confere tudo antes de salvar." aoPressionar={enviarArquivo} />
+              {erro ? <View accessibilityLiveRegion="polite" accessibilityRole="alert"><T tam={13} cor={cores.erro} style={{ lineHeight: 19 }}>{erro}</T></View> : null}
+            </>
+          ) : null}
           <Opcao icone="ia" titulo={t.ia} sub={t.iaSub} pro indisponivel aoPressionar={() => { setAberta(false); setIndisponivel(true); }} />
-          <Opcao icone="estrela" titulo={t.extra} sub={t.extraSub} pro aoPressionar={() => { setAberta(false); setPro(true); }} />
+          {t.extra ? <Opcao icone="estrela" titulo={t.extra} sub={t.extraSub ?? ''} pro aoPressionar={() => { setAberta(false); setPro(true); }} /> : null}
           <Opcao icone="busca" titulo={t.profissional} sub={t.profSub} aoPressionar={() => { setAberta(false); setBusca(true); }} />
         </View>
       </Folha>
@@ -67,7 +98,8 @@ export function CriarPlano({ tipo }: Props) {
         </View>
       </Folha>
 
-      <AvisoPro aberto={pro} aoFechar={() => setPro(false)} recurso={t.extra} site={SITE} />
+      <AvisoPro aberto={pro} aoFechar={() => setPro(false)} recurso={t.extra ?? ''} site={SITE} />
+      {tipo === 'treino' ? <EditorTreino aberto={!!editor} inicial={editor?.inicial ?? null} aoFechar={() => setEditor(null)} aoSalvar={salvarTreino} /> : null}
       <BuscaProfissionais aberto={busca} aoFechar={() => setBusca(false)} tipo={t.quem} />
     </>
   );

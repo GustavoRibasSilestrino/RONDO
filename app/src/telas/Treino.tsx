@@ -4,7 +4,6 @@ import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { CalendarioMes } from '../componentes/CalendarioMes';
 import { CorpoMusculos } from '../componentes/CorpoMusculos';
 import { EditorTreino, type Rascunho } from '../componentes/EditorTreino';
-import { NovoTreino } from '../componentes/NovoTreino';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { GraficoLinha } from '../componentes/Grafico';
 import { Icone } from '../componentes/Icone';
@@ -12,9 +11,7 @@ import { Botao, Chip, T } from '../componentes/Ui';
 import type { Rotina } from '../dados';
 import { useLoja } from '../estado/loja';
 import { diaAtivo, epley, estagnado, inicioDaSemana, melhor1RM, proximaCarga, ultimaVez, volumeDe } from '../lib/calc';
-import type { TreinoLido } from '../lib/importar';
-import { inferirMusculos } from '../lib/musculos';
-import { exercicioDe, musculosDe, rotinaDe, todasRotinas } from '../lib/rotinas';
+import { exercicioDe, guardarRotina, musculosDe, rotinaDe, todasRotinas } from '../lib/rotinas';
 import { diaDaSemana, fmt, haQuanto, iso, mmss, num, somarDias } from '../lib/datas';
 import { cores, estilos, larguraMax } from '../tema';
 import { TodosTreinos } from './TodosTreinos';
@@ -42,8 +39,7 @@ function Lista() {
   const [calendario, setCalendario] = useState(false);
   const avisar = useAviso();
   const [todos, setTodos] = useState(false);
-  const [novo, setNovo] = useState(false);                          // a folha 'Adicionar treino'
-  const [editor, setEditor] = useState<{ inicial: Rascunho | null } | null>(null);   // o editor aberto (treino novo, de arquivo ou existente)
+  const [editor, setEditor] = useState<{ inicial: Rascunho } | null>(null);   // o editor aberto, para mudar um treino próprio
   const rotinas = todasRotinas(estado);
   const [serie, setSerie] = useState<'constancia' | 'evolucao'>('constancia');
 
@@ -65,19 +61,10 @@ function Lista() {
       };
     });
 
-  /* criar, editar e excluir os treinos próprios */
-  const abrirCriar = () => { setNovo(false); setTodos(false); setEditor({ inicial: null }); };
-  const abrirArquivo = (lido: TreinoLido, nomeDoArquivo: string) => {
-    setNovo(false);
-    setTodos(false);
-    setEditor({ inicial: { id: '', nome: lido.nome ?? nomeDoArquivo, exercicios: lido.exercicios, musculos: inferirMusculos(lido.exercicios.map((x) => x.nome)) } });
-  };
+  /* editar e excluir os treinos próprios (criar e enviar arquivo ficam no + de baixo: telas/CriarPlano.tsx) */
   const abrirEditar = (r: Rotina) => { setTodos(false); setEditor({ inicial: { id: r.id, nome: r.nome, exercicios: r.exercicios, musculos: r.musculos ?? [] } }); };
   const salvarTreino = (r: Rotina) => {
-    commit((e) => {
-      const i = e.rotinasProprias.findIndex((x) => x.id === r.id);
-      if (i >= 0) e.rotinasProprias[i] = r; else e.rotinasProprias.push(r);
-    });
+    commit((e) => guardarRotina(e, r));
     setEditor(null);
     avisar('Treino salvo.');
   };
@@ -122,9 +109,6 @@ function Lista() {
     <Tela>
       <View style={{ justifyContent: 'center' }}>
         <T tam={15} peso="400" centro>Treino</T>
-        <Pressable accessibilityRole="button" accessibilityLabel="Adicionar treino" onPress={() => setNovo(true)} hitSlop={8} style={st.botaoMais}>
-          <Icone nome="mais" tamanho={20} cor="#ffffff" />
-        </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Abrir o calendário de constância" onPress={() => setCalendario(true)} hitSlop={8} style={st.botaoCalendario}>
           <Icone nome="calendario" tamanho={20} cor="#ffffff" />
         </Pressable>
@@ -200,8 +184,7 @@ function Lista() {
         <Botao tipo="fantasma" icone="menu" titulo="Ver todos os treinos" aoPressionar={() => setTodos(true)} style={{ marginTop: 10 }} />
       </View>
 
-      <TodosTreinos aberto={todos} rotinas={rotinas} aoFechar={() => setTodos(false)} aoIniciar={iniciar} aoAdicionar={() => setNovo(true)} aoEditar={abrirEditar} ultimaData={ultimaData} />
-      <NovoTreino aberta={novo} aoFechar={() => setNovo(false)} aoCriar={abrirCriar} aoArquivo={abrirArquivo} />
+      <TodosTreinos aberto={todos} rotinas={rotinas} aoFechar={() => setTodos(false)} aoIniciar={iniciar} aoEditar={abrirEditar} ultimaData={ultimaData} />
       <EditorTreino aberto={!!editor} inicial={editor?.inicial ?? null} aoFechar={() => setEditor(null)} aoSalvar={salvarTreino} aoExcluir={excluirTreino} />
       <Folha aberta={calendario} aoFechar={() => setCalendario(false)} titulo="Constância">
         <CalendarioMes />
@@ -464,7 +447,6 @@ const st = estilos(() => StyleSheet.create({
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
   linhaEx: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   numero: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
-  botaoMais: { position: 'absolute', left: 0, top: -9, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   botaoCalendario: { position: 'absolute', right: 0, top: -9, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
   grafico: { marginTop: 14, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
   alternar: { flexDirection: 'row', padding: 4, borderRadius: 999, backgroundColor: cores.cartao2 },
