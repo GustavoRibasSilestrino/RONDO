@@ -64,7 +64,7 @@ function MobileMenu({ open, current, onClose }: { open: boolean; current: number
         ))}
       </nav>
       <div className="mnav-cta" style={vars({ "--i": LINKS.length })} onClick={(e) => go(e, SECTIONS[SECTIONS.length - 1])}>
-        <Btn href="#entrar">Entrar na lista</Btn>
+        <Btn href="#entrar">Criar conta</Btn>
       </div>
     </div>
   );
@@ -155,7 +155,7 @@ export function Nav() {
               </div>
             ))}
           </nav>
-          <div className="nav-end"><Btn href="#entrar" small>Entrar na lista</Btn></div>
+          <div className="nav-end"><Btn href="#entrar" small>Criar conta</Btn></div>
           <button className="burger" type="button" aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen} aria-controls="mnav"
             onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o); }}>
             <span aria-hidden="true"><i /><i /><i /></span>

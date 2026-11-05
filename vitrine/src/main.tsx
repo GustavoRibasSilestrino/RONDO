@@ -11,6 +11,7 @@ import "./styles/fit.css";
 import "./styles/streak.css";
 import "./styles/mobile.css";
 import "./styles/responsive.css";
+import "./styles/cadastro.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
