@@ -26,6 +26,7 @@ import { CartaoPost } from './comunidade/CartaoPost';
 import { Miniatura, VisorMidia } from './comunidade/Midia';
 import { BotaoSeguir } from './comunidade/Seguir';
 import { Configuracoes } from './perfil/Configuracoes';
+import { EditarTitulos } from './perfil/EditarTitulos';
 
 /* nome de usuário de partida: o nome sem acentos, em minúsculas */
 export const arrobaPadrao = (nome: string): string => (nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '').slice(0, 20) || 'rondo');
@@ -49,6 +50,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const [fotoEd, setFotoEd] = useState<string | null>(null);   // id da foto escolhida (ainda não salva); null = sem foto
   const [fotoNova, setFotoNova] = useState<string | null>(null);   // foto guardada nesta edição, para apagar se a pessoa desistir
   const [erroEd, setErroEd] = useState<{ nome?: string; arroba?: string }>({});
+  const [editandoTitulos, setEditandoTitulos] = useState(false);
   const [lista, setLista] = useState<'seguidores' | 'seguindo' | null>(null);
   const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
 
@@ -152,11 +154,12 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         {tipoDeSelo(estado.usuario?.selo) ? <Selo tipo={tipoDeSelo(estado.usuario?.selo)!} /> : null}
       </View>
       <T tam={13} style={{ marginTop: 2 }}>Nível {nivel.nivel}{patente ? ` · ${patente.nome}` : ''}</T>
-      {exibidos.length ? (
-        <View style={st.titulos}>
-          {exibidos.map((t) => <View key={t.id} style={st.titulo}><T tam={12} peso="500">{t.nome}</T></View>)}
-        </View>
-      ) : null}
+      <View style={st.titulos}>
+        {exibidos.map((t) => <View key={t.id} style={st.titulo}><T tam={12} peso="500">{t.nome}</T></View>)}
+        <Pressable accessibilityRole="button" accessibilityLabel="Editar títulos" onPress={() => setEditandoTitulos(true)} hitSlop={8} style={st.lapis}>
+          <Icone nome="lapis" tamanho={15} cor="#ffffff" />
+        </Pressable>
+      </View>
       <T tam={14} style={{ marginTop: 10, lineHeight: 20, opacity: estado.perfilSocial.bio ? 1 : 0.6 }}>{estado.perfilSocial.bio || 'Conte em uma frase quem você é.'}</T>
 
       {/* abas */}
@@ -254,7 +257,8 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         )}
       </Folha>
 
-      <Configuracoes aberto={config} aoFechar={() => setConfig(false)} ir={ir} />
+      <Configuracoes aberto={config} aoFechar={() => setConfig(false)} />
+      <EditarTitulos aberta={editandoTitulos} aoFechar={() => setEditandoTitulos(false)} />
       <CriarStory aberto={criandoStory} aoFechar={() => setCriandoStory(false)} />
       <VisorStory aberto={verStory} listas={[{ autor: 'Você', itens: stories }]} aoFechar={() => setVerStory(false)} aoExcluir={(s) => excluirStory(s.id)} />
       <VisorMidia itens={visor?.itens ?? []} inicio={visor ? visor.indice : null} aoFechar={() => setVisor(null)} />
@@ -277,7 +281,8 @@ const st = estilos(() => StyleSheet.create({
   cabeca: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   contagens: { flex: 1, minWidth: 0, flexDirection: 'row', justifyContent: 'space-around' },
   contagem: { alignItems: 'center', flex: 1, minWidth: 0, minHeight: 44, justifyContent: 'center' },
-  titulos: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
+  titulos: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginTop: 10 },
+  lapis: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: cores.linha2 },
   titulo: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: `rgba(${cores.tom},0.16)` },
   abas: { flexDirection: 'row', marginTop: 20, borderTopWidth: 1, borderTopColor: cores.linha },
   aba: { flex: 1, height: 48, alignItems: 'center', justifyContent: 'center', borderTopWidth: 2, borderTopColor: 'transparent', marginTop: -1, opacity: 0.55 },

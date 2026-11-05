@@ -45,3 +45,14 @@ export const mmss = (segundos: number): string => {
   const s = Math.max(0, Math.round(segundos));
   return `${dois(Math.floor(s / 60))}:${dois(s % 60)}`;
 };
+
+/* "março de 2026" */
+export const mesAno = (d: Date): string => `${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+
+/* "hoje", "ontem" ou "há 3 dias" */
+export function haQuanto(data: string): string {
+  const dias = Math.round((doIso(iso()).getTime() - doIso(data).getTime()) / 86400000);
+  if (dias <= 0) return 'hoje';
+  if (dias === 1) return 'ontem';
+  return `há ${dias} dias`;
+}

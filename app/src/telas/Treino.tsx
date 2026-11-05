@@ -1,14 +1,17 @@
 /* Treino: escolher a rotina, registrar série a série, descansar, bater recordes e finalizar. */
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { CalendarioMes } from '../componentes/CalendarioMes';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
+import { GraficoLinha } from '../componentes/Grafico';
 import { Icone } from '../componentes/Icone';
 import { Botao, Chip, T } from '../componentes/Ui';
 import { ROTINAS, exercicioPorId } from '../dados';
 import { useLoja } from '../estado/loja';
-import { epley, estagnado, melhor1RM, proximaCarga, ultimaVez, volumeDe } from '../lib/calc';
-import { diaDaSemana, doIso, fmt, iso, mmss, num, somarDias } from '../lib/datas';
-import { cores, estilos } from '../tema';
+import { diaAtivo, epley, estagnado, inicioDaSemana, melhor1RM, proximaCarga, ultimaVez, volumeDe } from '../lib/calc';
+import { diaDaSemana, fmt, haQuanto, iso, mmss, num, somarDias } from '../lib/datas';
+import { cores, estilos, larguraMax } from '../tema';
+import { TodosTreinos } from './TodosTreinos';
 
 const DESCANSO_MS = 90_000;
 const SEMANA = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
@@ -26,17 +29,13 @@ export function Treino() {
   );
 }
 
-/* "hoje", "ontem" ou "há 3 dias" */
-function haQuanto(data: string): string {
-  const dias = Math.round((doIso(iso()).getTime() - doIso(data).getTime()) / 86400000);
-  if (dias <= 0) return 'hoje';
-  if (dias === 1) return 'ontem';
-  return `há ${dias} dias`;
-}
-
 /* ---------- escolher a rotina ---------- */
 function Lista() {
   const { estado, commit } = useLoja();
+  const { width } = useWindowDimensions();
+  const [calendario, setCalendario] = useState(false);
+  const [todos, setTodos] = useState(false);
+  const [serie, setSerie] = useState<'constancia' | 'evolucao'>('constancia');
 
   const iniciar = (rotinaId: string) =>
     commit((e) => {
@@ -60,7 +59,6 @@ function Lista() {
 
   /* a rotina sugerida é a que está há mais tempo sem treinar (ou nunca foi feita) */
   const sugerida = [...ROTINAS].sort((a, b) => (ultimaData(a.id) ?? '').localeCompare(ultimaData(b.id) ?? ''))[0];
-  const outras = ROTINAS.filter((r) => r.id !== sugerida.id);
 
   /* a semana: segunda a domingo, com os dias em que houve treino */
   const hoje = new Date();
@@ -68,11 +66,34 @@ function Lista() {
   const dias = Array.from({ length: 7 }, (_, k) => { const d = somarDias(segunda, k); return { letra: SEMANA[k], treinou: estado.treinos.some((t) => t.data === iso(d)), hoje: iso(d) === iso(hoje) }; });
   const naSemana = dias.filter((d) => d.treinou).length;
 
+  /* as últimas 8 semanas: dias ativos (constância) e toneladas levantadas (evolução) */
+  const larg = Math.min(width, larguraMax) - 40 - 34;
+  const semanaIni = inicioDaSemana(hoje);
+  const semanas = Array.from({ length: 8 }, (_, k) => {
+    const ini = somarDias(semanaIni, -7 * (7 - k));
+    let ativos = 0, volume = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = iso(somarDias(ini, i));
+      if (diaAtivo(estado, d)) ativos++;
+      for (const t of estado.treinos) if (t.data === d) volume += t.exercicios.reduce((a, e) => a + volumeDe(e.series), 0);
+    }
+    return { x: k, ativos, volume: volume / 1000 };
+  });
+  const pontos = semanas.map((w) => ({ x: w.x, y: serie === 'constancia' ? w.ativos : w.volume }));
+  const atualSemana = semanas[7], anteriorSemana = semanas[6];
+  const mediaAtivos = semanas.reduce((t, w) => t + w.ativos, 0) / 8;
+  const dif = atualSemana.volume - anteriorSemana.volume;
+
   const totalSeries = (r: (typeof ROTINAS)[number]) => r.exercicios.reduce((t, x) => t + x.series, 0);
 
   return (
     <Tela>
-      <T tam={15} peso="400" centro>Treino</T>
+      <View style={{ justifyContent: 'center' }}>
+        <T tam={15} peso="400" centro>Treino</T>
+        <Pressable accessibilityRole="button" accessibilityLabel="Abrir o calendário de constância" onPress={() => setCalendario(true)} hitSlop={8} style={st.botaoCalendario}>
+          <Icone nome="calendario" tamanho={20} cor="#ffffff" />
+        </Pressable>
+      </View>
 
       {/* a semana */}
       <View style={st.semana}>
@@ -90,6 +111,30 @@ function Lista() {
             </View>
           ))}
         </View>
+      </View>
+
+      {/* gráfico de constância e evolução */}
+      <View style={st.grafico}>
+        <View style={st.alternar}>
+          {([['constancia', 'Constância'], ['evolucao', 'Evolução']] as const).map(([id, rotulo]) => {
+            const ativa = serie === id;
+            return (
+              <Pressable key={id} accessibilityRole="button" accessibilityState={{ selected: ativa }} onPress={() => setSerie(id)} style={[st.opcao, ativa && st.opcaoAtiva]}>
+                <T tam={13} peso={ativa ? '500' : '300'}>{rotulo}</T>
+              </Pressable>
+            );
+          })}
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 14 }}>
+          <T tam={32} peso="200">{serie === 'constancia' ? atualSemana.ativos : fmt(atualSemana.volume, 1)}</T>
+          <T tam={13}>{serie === 'constancia' ? (atualSemana.ativos === 1 ? 'dia ativo nesta semana' : 'dias ativos nesta semana') : 't levantadas nesta semana'}</T>
+        </View>
+        <View style={{ marginTop: 6 }}>
+          <GraficoLinha pontos={pontos} largura={larg} altura={120} formato={(v) => (serie === 'constancia' ? `${Math.round(v)} ${Math.round(v) === 1 ? 'dia' : 'dias'}` : `${fmt(v, 1)} t`)} />
+        </View>
+        <T tam={11.5} style={{ marginTop: 4, opacity: 0.75 }}>
+          {serie === 'constancia' ? `Últimas 8 semanas · média de ${fmt(mediaAtivos, 1)} dias por semana.` : `Últimas 8 semanas · ${dif >= 0 ? '+' : '−'}${fmt(Math.abs(dif), 1)} t em relação à semana passada.`}
+        </T>
       </View>
 
       {/* o treino sugerido, em destaque */}
@@ -112,25 +157,13 @@ function Lista() {
         </View>
         <T tam={12.5} style={{ marginTop: 14, opacity: 0.75 }}>{ultimaData(sugerida.id) ? `Última vez: ${haQuanto(ultimaData(sugerida.id)!)}` : 'Ainda não feito'}. O app abre com a sua última carga e sugere a próxima.</T>
         <Botao titulo="Começar treino" icone="treino" aoPressionar={() => iniciar(sugerida.id)} style={{ marginTop: 16 }} />
+        <Botao tipo="fantasma" icone="menu" titulo="Ver todos os treinos" aoPressionar={() => setTodos(true)} style={{ marginTop: 10 }} />
       </View>
 
-      {/* as outras rotinas */}
-      <T tam={13} peso="500" style={{ marginTop: 24, marginBottom: 12 }}>Outras rotinas</T>
-      <View style={{ gap: 10 }}>
-        {outras.map((r) => {
-          const data = ultimaData(r.id);
-          return (
-            <Pressable key={r.id} accessibilityRole="button" accessibilityLabel={`Começar ${r.nome}`} onPress={() => iniciar(r.id)} style={({ pressed }) => [st.rotina, pressed && { opacity: 0.85 }]}>
-              <View style={st.iconeRotina}><Icone nome="treino" tamanho={22} cor="#ffffff" /></View>
-              <View style={{ flex: 1 }}>
-                <T tam={16.5} peso="500" linhas={1}>{r.nome}</T>
-                <T tam={12.5} style={{ marginTop: 2, opacity: 0.8 }} linhas={1}>{r.exercicios.length} exercícios · {r.minutos} min · {data ? haQuanto(data) : 'ainda não feito'}</T>
-              </View>
-              <View style={st.play}><Icone nome="tocar" tamanho={16} cor="#ffffff" /></View>
-            </Pressable>
-          );
-        })}
-      </View>
+      <TodosTreinos aberto={todos} aoFechar={() => setTodos(false)} aoIniciar={iniciar} ultimaData={ultimaData} />
+      <Folha aberta={calendario} aoFechar={() => setCalendario(false)} titulo="Constância">
+        <CalendarioMes />
+      </Folha>
     </Tela>
   );
 }
@@ -388,9 +421,11 @@ const st = estilos(() => StyleSheet.create({
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
   linhaEx: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   numero: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
-  rotina: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 72 },
-  iconeRotina: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
-  play: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  botaoCalendario: { position: 'absolute', right: 0, top: -9, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
+  grafico: { marginTop: 14, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
+  alternar: { flexDirection: 'row', padding: 4, borderRadius: 999, backgroundColor: cores.cartao2 },
+  opcao: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 38, borderRadius: 999 },
+  opcaoAtiva: { backgroundColor: cores.destaqueForte },
 
   /* sessão */
   tempo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
