@@ -79,4 +79,11 @@ export const sairDoClube = (id: number) => chamar<{ status: string }>('POST', `/
 export const apagarClube = (id: number) => chamar<{ status: string }>('DELETE', `/clubes/${id}`);
 export const lerMembros = (id: number) => chamar<Pagina<Pessoa>>('GET', `/clubes/${id}/membros`);
 
+/* stories: 24 horas no ar, os seus e os de quem você segue */
+export type StorySocial = { id: number; texto: string | null; fundo: number; legenda: string | null; midia: Midia | null; quando: number };
+export type StoriesDaPessoa = { autor: Pessoa; itens: StorySocial[] };   // itens do mais antigo para o mais novo; você vem primeiro
+export const lerStories = () => chamar<{ pessoas: StoriesDaPessoa[] }>('GET', '/social/stories');
+export const publicarStory = (d: { texto?: string; fundo?: number; legenda?: string; midia?: Midia }) => chamar<StorySocial>('POST', '/social/stories', d);
+export const apagarStory = (id: number) => chamar<{ status: string }>('DELETE', `/social/stories/${id}`);
+
 export const pedirUpload = (tipo: 'imagem' | 'video', ext: string) => chamar<{ url_envio: string; url: string }>('POST', '/midia/upload', { tipo, ext });

@@ -18,19 +18,23 @@ router = APIRouter(prefix="/me", tags=["me"])
 CHAVES = {
     "perfil", "treinos", "treinoAtual", "rotinasProprias", "refeicoes", "agua", "checkins", "pesos",
     "perfilSocial",
-    "recados", "notificacoes", "profissionais", "stories", "storiesVistos", "tema", "nivelAvisado", "medalhasAvisadas",
+    "recados", "notificacoes", "profissionais", "storiesVistos", "tema", "nivelAvisado", "medalhasAvisadas",
 }
+# chaves que o app já mandou e não manda mais: são ignoradas em silêncio, para um app antigo não ter a sincronia
+# inteira recusada. Os stories agora ficam na tabela própria (rotas /social/stories).
+LEGADAS = {"stories"}
 MAX_BYTES = 2_000_000   # por chave
 
 
 @router.get("/dados", response_model=DadosOut)
 def baixar_dados(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
     linhas = sessao.scalars(select(DadoUsuario).where(DadoUsuario.usuario_id == usuario.id)).all()
-    return DadosOut(itens={x.chave: x.valor for x in linhas})
+    return DadosOut(itens={x.chave: x.valor for x in linhas if x.chave in CHAVES})
 
 
 @router.put("/dados", response_model=DadosOut)
 def enviar_dados(dados: DadosIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    dados.itens = {k: v for k, v in dados.itens.items() if k not in LEGADAS}
     desconhecidas = sorted(set(dados.itens) - CHAVES)
     if desconhecidas:
         raise HTTPException(422, f"Chaves não aceitas: {', '.join(desconhecidas)}.")

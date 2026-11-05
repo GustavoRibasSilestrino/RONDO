@@ -1,10 +1,10 @@
-/* A faixa de stories no alto do Feed: o seu (com o + para criar) e os de quem você acompanha. */
+/* A faixa de stories no alto do Feed: o seu (com o + para criar) e os de quem você segue, que vêm do servidor. */
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { apagarStory } from '../../api/social';
 import { useLoja } from '../../estado/loja';
-import { removerMidia } from '../../lib/midia';
-import { meusStories, StoryVista } from '../../lib/stories';
-import { cores, estilos } from '../../tema';
+import { haStoryNovo, StoryVista, useStories } from '../../lib/stories';
+import { estilos } from '../../tema';
 import { Avatar } from '../../telas/comunidade/Avatar';
 import { useAviso } from '../Estrutura';
 import { T } from '../Ui';
@@ -15,22 +15,28 @@ import { ListaStory, VisorStory } from './VisorStory';
 export function BarraStories() {
   const { estado, commit } = useLoja();
   const avisar = useAviso();
+  const { meus, outros, recarregar } = useStories();
   const [criando, setCriando] = useState(false);
   const [visor, setVisor] = useState<{ listas: ListaStory[]; inicio: number } | null>(null);
 
-  const meus = meusStories(estado);
+  /* quem ainda tem story não visto vem antes; dentro de cada grupo, a ordem do servidor (mais recente primeiro) */
+  const pessoas = [...outros].sort((a, b) => Number(haStoryNovo(b.itens, estado.storiesVistos)) - Number(haStoryNovo(a.itens, estado.storiesVistos)));
+  const listasDosOutros: ListaStory[] = pessoas.map((p) => ({ autor: p.autor, itens: p.itens }));
 
   const abrirMeus = () => {
     if (meus.length === 0) { setCriando(true); return; }
     setVisor({ listas: [{ autor: 'Você', itens: meus }], inicio: 0 });
   };
 
-  const excluir = (s: StoryVista) => {
-    const original = estado.stories.find((x) => x.id === s.id);
-    commit((e) => { e.stories = e.stories.filter((x) => x.id !== s.id); });
-    if (original?.midia) removerMidia([original.midia.id]);
-    avisar('Story excluído.');
-    // a lista do visor é recalculada a cada toque; sem stories, ele fecha
+  const excluir = async (s: StoryVista) => {
+    try {
+      await apagarStory(Number(s.id));
+      avisar('Story excluído.');
+      await recarregar();
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'Não foi possível excluir agora.');
+      return;
+    }
     const restantes = meus.filter((x) => x.id !== s.id);
     setVisor(restantes.length ? { listas: [{ autor: 'Você', itens: restantes }], inicio: 0 } : null);
   };
@@ -44,9 +50,20 @@ export function BarraStories() {
           </AnelStory>
           <T tam={12} linhas={1} centro style={st.nome}>Seu story</T>
         </View>
+        {pessoas.map((p, k) => {
+          const novo = haStoryNovo(p.itens, estado.storiesVistos);
+          return (
+            <View key={p.pessoa.id} style={st.item}>
+              <AnelStory tamanho={58} estado={novo ? 'novo' : 'visto'} aoPressionar={() => setVisor({ listas: listasDosOutros, inicio: k })} rotulo={`Ver o story de ${p.autor}`}>
+                <Avatar nome={p.autor} tamanho={58} />
+              </AnelStory>
+              <T tam={12} linhas={1} centro style={st.nome}>{p.autor.split(' ')[0]}</T>
+            </View>
+          );
+        })}
       </ScrollView>
 
-      <CriarStory aberto={criando} aoFechar={() => setCriando(false)} />
+      <CriarStory aberto={criando} aoFechar={() => setCriando(false)} aoPublicar={() => { recarregar().catch(() => {}); }} />
       <VisorStory
         aberto={visor !== null}
         listas={visor?.listas ?? []}

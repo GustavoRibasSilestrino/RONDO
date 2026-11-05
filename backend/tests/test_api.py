@@ -92,6 +92,14 @@ def test_dados_so_aceitam_chaves_conhecidas(cliente):
     assert cliente.get("/me/dados", headers=ana).json()["itens"] == {}
 
 
+def test_stories_saiu_da_sincronia(cliente):
+    ana = _conta(cliente)
+    # um app antigo ainda manda "stories": é ignorado, e o resto da sincronia continua valendo
+    r = cliente.put("/me/dados", json={"itens": {"stories": [{"id": "s1"}], "agua": {"2026-11-05": 3}}}, headers=ana)
+    assert r.status_code == 200
+    assert cliente.get("/me/dados", headers=ana).json()["itens"] == {"agua": {"2026-11-05": 3}}
+
+
 def test_perfil_e_arroba_unica(cliente):
     ana, bia = _conta(cliente), _conta(cliente, "bia@x.com", "Bia")
     r = cliente.patch("/me/perfil", json={"nome": "Ana Souza", "arroba": "@Ana.Souza", "bio": "Treino de manhã"}, headers=ana)
