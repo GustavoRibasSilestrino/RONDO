@@ -10,6 +10,7 @@ import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
 import { Icone } from '../componentes/Icone';
 import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
+import { useLayoutLargo } from '../lib/largura';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { EstadoOrbe } from '../lib/orbe';
 import { Dita, FALAS, Opcao, Passo, Respostas, emailValido, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar, primeiroNome, trechosDe } from '../lib/rondinRoteiro';
@@ -23,8 +24,27 @@ export type Modo = 'entrar' | 'cadastro';
 type Fala = string | Dita;
 type AoEntrar = (usuario: Usuario, extra?: Partial<Estado>) => void;
 
+/* ---------- uma palavra da legenda: aparece esmaecendo, sem pulo ----------
+   No navegador a transição é de CSS (o próprio navegador anima, sem refazer o React a cada quadro); no aparelho, Animated com o driver nativo.
+   Memorizada: só a palavra que mudou é redesenhada, não a frase inteira. */
+const DURACAO_FADE = 420;
+const Palavra = React.memo(function Palavra({ texto, visivel, destaque, reduzido }: { texto: string; visivel: boolean; destaque: boolean; reduzido: boolean }) {
+  const op = useRef(new Animated.Value(visivel ? 1 : 0)).current;
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+    if (reduzido) { op.setValue(visivel ? 1 : 0); return; }
+    Animated.timing(op, { toValue: visivel ? 1 : 0, duration: DURACAO_FADE, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+  }, [visivel, reduzido, op]);
+  const cor = destaque ? cores.destaque2 : cores.texto;
+  if (Platform.OS === 'web') {
+    const transicao = reduzido ? null : ({ transition: `opacity ${DURACAO_FADE}ms ease-out, color ${DURACAO_FADE}ms ease-out`, willChange: 'opacity' } as object);
+    return <T tam={22} peso="300" cor={cor} style={[{ opacity: visivel ? 1 : 0, lineHeight: 31 }, transicao]}>{texto}</T>;
+  }
+  return <Animated.View style={{ opacity: op }}><T tam={22} peso="300" cor={cor} style={{ lineHeight: 31 }}>{texto}</T></Animated.View>;
+});
+
 /* ---------- a legenda: as palavras surgem no ritmo da fala; a última fica em destaque ---------- */
-function Legenda({ texto, chave, taxa, duracaoMs, indiceVoz, completa, aoCompletar }: { texto: string; chave: number; taxa: number; duracaoMs: number; indiceVoz: number; completa: boolean; aoCompletar: () => void }) {
+function Legenda({ largo, texto, chave, taxa, duracaoMs, indiceVoz, completa, aoCompletar }: { largo: boolean; texto: string; chave: number; taxa: number; duracaoMs: number; indiceVoz: number; completa: boolean; aoCompletar: () => void }) {
   const palavras = useMemo(() => texto.split(/\s+/).filter(Boolean), [texto]);
   const inicios = useMemo(() => { let i = 0; return palavras.map((p) => { const o = texto.indexOf(p, i); i = o + p.length; return o; }); }, [palavras, texto]);
   const [n, setN] = useState(0);
@@ -60,11 +80,9 @@ function Legenda({ texto, chave, taxa, duracaoMs, indiceVoz, completa, aoComplet
   }, [n, palavras.length, chave]);
 
   return (
-    <View accessible accessibilityLabel={texto} accessibilityLiveRegion="polite" style={st.legenda}>
+    <View accessible accessibilityLabel={texto} accessibilityLiveRegion="polite" style={[st.legenda, largo && { minHeight: 70 }]}>
       {palavras.map((p, i) => (
-        <T key={`${chave}-${i}`} tam={22} peso="300" cor={i === n - 1 ? cores.destaque2 : cores.texto} style={{ opacity: i < n ? 1 : 0, lineHeight: 31 }}>
-          {p}{i < palavras.length - 1 ? ' ' : ''}
-        </T>
+        <Palavra key={`${chave}-${i}`} texto={`${p}${i < palavras.length - 1 ? ' ' : ''}`} visivel={i < n} destaque={i === n - 1} reduzido={reduzido} />
       ))}
     </View>
   );
@@ -107,6 +125,9 @@ function Pilula({ opcao, marcada, aoPressionar, grande }: { opcao: Opcao; marcad
 export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoEntrar; aoVoltar: () => void }) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  /* computador: tudo cresce junto com a janela (letras, orbe, opções, campos). 1 = o tamanho do celular */
+  const { largo } = useLayoutLargo();
+  const k = largo ? Math.min(1.8, Math.max(1, Math.min(width / 800, height / 760))) : 1;
 
   const [resp, setResp] = useState<Respostas>({});
   const respRef = useRef<Respostas>({});
@@ -286,7 +307,9 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 
   /* ---------- tamanhos ---------- */
   const campoAberto = fase === 'pergunta' && (passo.tipo === 'campo' || passo.tipo === 'entrar');
-  const orbe = Math.round(Math.min(campoAberto ? 150 : 250, width * (campoAberto ? 0.4 : 0.62), height * 0.3));
+  /* com o zoom, a janela "cabe" menos unidades: as contas usam a janela já dividida por k */
+  const opcoesAbertas = largo && fase === 'pergunta' && (passo.tipo === 'sotaque' || passo.tipo === 'opcoes' || passo.tipo === 'multi');   // sobra pouca altura: o orbe encolhe para as opções caberem
+  const orbe = Math.round(Math.min(campoAberto ? 150 : opcoesAbertas ? 170 : 250, (width / k) * (campoAberto ? 0.4 : 0.62), (height / k) * (largo ? 0.36 : 0.3)));
 
   return (
     <View style={{ flex: 1, backgroundColor: '#000000' }}>
@@ -295,7 +318,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
           style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1, alignItems: 'center', paddingTop: insets.top + 12, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
         >
-          <View style={st.coluna}>
+          <View style={[st.coluna, largo ? { maxWidth: 560 } : null, k > 1 ? ({ zoom: k } as object) : null]}>
             {/* topo: voltar e o progresso */}
             <View style={st.topo}>
               <Pressable accessibilityRole="button" accessibilityLabel={indice <= 0 ? 'Voltar para o início' : 'Voltar uma pergunta'} onPress={voltar} hitSlop={8} style={st.botaoTopo}>
@@ -315,7 +338,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
               <T tam={13} peso="500" cor={cores.destaque2} style={{ letterSpacing: 3, marginTop: -6 }}>RONDIN</T>
             </View>
 
-            <Legenda texto={fala} chave={chave} taxa={sotaque.taxa} duracaoMs={duracaoMs} indiceVoz={indiceVoz} completa={completa} aoCompletar={aoCompletarLegenda} />
+            <Legenda largo={largo} texto={fala} chave={chave} taxa={sotaque.taxa} duracaoMs={duracaoMs} indiceVoz={indiceVoz} completa={completa} aoCompletar={aoCompletarLegenda} />
             {fase === 'falando' && !completa ? (
               <Pressable accessibilityRole="button" accessibilityLabel="Pular a fala" onPress={pular} style={{ alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 14 }}>
                 <T tam={12.5} cor={cores.texto3}>Pular fala</T>
@@ -330,7 +353,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                     {SOTAQUES.map((s) => (
                       <Pressable
                         key={s.id} accessibilityRole="button" accessibilityLabel={`${s.nome}, ${s.nota}`} onPress={() => escolherSotaque(s)}
-                        style={({ pressed }) => [st.cartaoSotaque, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
+                        style={({ pressed }) => [st.cartaoSotaque, largo && st.cartaoSotaqueLargo, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
                       >
                         <Icone nome={s.mudo ? 'comentario' : 'tocar'} tamanho={16} cor={cores.destaque2} />
                         <View style={{ flex: 1 }}>
@@ -461,6 +484,7 @@ const st = estilos(() => StyleSheet.create({
     flexGrow: 1, flexBasis: '47%', minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 14,
     borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao,
   },
+  cartaoSotaqueLargo: { flexBasis: '30%', minWidth: 150 },   // computador: 3 por linha, e as 9 opções cabem na tela
   olho: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   banner: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 12,
