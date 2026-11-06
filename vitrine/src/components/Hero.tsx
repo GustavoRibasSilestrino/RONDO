@@ -79,35 +79,44 @@ export function Hero() {
 
   return (
     <section className="hero" id="inicio" ref={heroRef}>
-      <div className="wrap hero-in">
-        <div className="hero-top">
-          <h1 className="display hero-title" aria-label="Vença o você de ontem.">
-            <span className="ln">Vença o</span>
-            <span className="ln">você de</span>
+      <div className="hero-painel hero-in">
+        {/* o relevo: serras em camadas; as de trás ficam atrás da palavra, a da frente cobre o pé dela */}
+        <svg className="hero-relevo costas" viewBox="0 0 1440 420" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path d="M0 250C150 190 300 235 460 180S770 105 910 180 1210 255 1440 160V420H0Z" />
+          <path d="M0 315C200 262 380 328 560 275S900 222 1100 286 1340 296 1440 244V420H0Z" />
+        </svg>
+
+        <p className="hero-marca" aria-hidden="true">RONDO</p>
+
+        <svg className="hero-relevo frente" viewBox="0 0 1440 420" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <path d="M0 362C240 330 420 384 640 348S1040 322 1240 362 1390 350 1440 336V420H0Z" />
+        </svg>
+
+        <div className="hero-centro">
+          <h1 className="hero-title" aria-label="Vença o você de ontem.">
+            <span className="ln">Vença o você de</span>
             <span className="ln trail">ontem.</span>
           </h1>
-          <div className="hero-art">
-            <svg className="track" ref={svgRef} viewBox="0 0 560 330" role="img" aria-label="Pista de corrida: você, na frente, e o seu ontem logo atrás">
-              <path className="ln o" d="M165 1H395A164 164 0 0 1 395 329H165A164 164 0 0 1 165 1Z" />
-              <path className="ln" d="M165 37H395A128 128 0 0 1 395 293H165A128 128 0 0 1 165 37Z" />
-              <path className="ln" d="M165 73H395A92 92 0 0 1 395 257H165A92 92 0 0 1 165 73Z" />
-              <path className="start" d="M165 1V73" />
-              <path id="pathGhost" className="guide" d="M165 19H395A146 146 0 0 1 395 311H165A146 146 0 0 1 165 19Z" />
-              <path id="pathYou" className="guide" d="M165 55H395A110 110 0 0 1 395 275H165A110 110 0 0 1 165 55Z" />
-              <Runner id="trailGhost" cls="ghost" />
-              <Runner id="trailYou" cls="you" />
-            </svg>
-            <Delta />
-            <p className="key" aria-hidden="true"><span><i className="k you" />HOJE</span><span><i className="k ghost" />ONTEM</span></p>
-          </div>
-        </div>
-
-        <div className="hero-bottom">
           <p className="lead">Treino, dieta, constância e comunidade em um só app, e recados de voz para o seu eu do futuro.</p>
           <div className="hero-cta">
             <Btn href="#cadastro">Criar conta grátis <span className="arrow">→</span></Btn>
             <Btn href="#recursos" kind="ghost">Ver o dia inteiro</Btn>
           </div>
+        </div>
+
+        <div className="hero-art">
+          <svg className="track" ref={svgRef} viewBox="0 0 560 330" role="img" aria-label="Pista de corrida: você, na frente, e o seu ontem logo atrás">
+            <path className="ln o" d="M165 1H395A164 164 0 0 1 395 329H165A164 164 0 0 1 165 1Z" />
+            <path className="ln" d="M165 37H395A128 128 0 0 1 395 293H165A128 128 0 0 1 165 37Z" />
+            <path className="ln" d="M165 73H395A92 92 0 0 1 395 257H165A92 92 0 0 1 165 73Z" />
+            <path className="start" d="M165 1V73" />
+            <path id="pathGhost" className="guide" d="M165 19H395A146 146 0 0 1 395 311H165A146 146 0 0 1 165 19Z" />
+            <path id="pathYou" className="guide" d="M165 55H395A110 110 0 0 1 395 275H165A110 110 0 0 1 165 55Z" />
+            <Runner id="trailGhost" cls="ghost" />
+            <Runner id="trailYou" cls="you" />
+          </svg>
+          <Delta />
+          <p className="key" aria-hidden="true"><span><i className="k you" />HOJE</span><span><i className="k ghost" />ONTEM</span></p>
         </div>
       </div>
     </section>
