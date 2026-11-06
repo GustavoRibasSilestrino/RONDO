@@ -106,9 +106,11 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
 
   const salvar0 = useRef<() => void>(() => {});
 
+  const emVoo = useRef(false);   // uma busca do resumo por vez: várias chamadas juntas viram uma só
   const atualizarSocial = useCallback(async (listas = false) => {
     if (listas) setVersaoSocial((v) => v + 1);
-    if (!recente.current.usuario || !(await lerToken())) return;
+    if (emVoo.current || !recente.current.usuario || !(await lerToken())) return;
+    emVoo.current = true;
     try {
       const r = await resumoSocial();
       const social = { id: r.id, posts: r.posts, cheersDados: r.cheers_dados, seguindo: r.seguindo, seguidores: r.seguidores, comentarios: r.comentarios, clubesCriados: r.clubes_criados, naoLidas: r.nao_lidas };
@@ -119,6 +121,8 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
       salvar0.current();
     } catch (e) {
       if (e instanceof ErroHttp && e.status === 401) await sessaoVenceu();
+    } finally {
+      emVoo.current = false;
     }
   }, [sessaoVenceu]);
 
@@ -175,8 +179,17 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
       if (s !== 'active' && timer.current) gravar();
       if (s === 'active') { void sincronizar(); void atualizarSocial(); }   // voltou ao app: sobe o que ficou pendente
     });
-    const ciclo = setInterval(() => { void sincronizar(); void atualizarSocial(); }, 30_000);   // rede que voltou, mudanças que falharam
-    return () => { sub.remove(); clearInterval(ciclo); };
+    /* a cada ~1min30, com folga aleatória (milhares de aparelhos não batem no servidor juntos) e só com o app à vista:
+       sobe o que falhou antes e atualiza os avisos */
+    let ciclo: ReturnType<typeof setTimeout>;
+    const agendar = () => {
+      ciclo = setTimeout(() => {
+        if (AppState.currentState === 'active') { void sincronizar(); void atualizarSocial(); }
+        agendar();
+      }, 90_000 + Math.random() * 30_000);
+    };
+    agendar();
+    return () => { sub.remove(); clearTimeout(ciclo); };
   }, [gravar, sincronizar, atualizarSocial]);
 
   const commit = useCallback((mudar: (e: Estado) => void) => {

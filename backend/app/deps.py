@@ -16,7 +16,12 @@ def usuario_opcional(
     if not cred:
         return None
     uid = ler_token(cred.credentials)
-    return sessao.get(Usuario, uid) if uid else None
+    usuario = sessao.get(Usuario, uid) if uid else None
+    # Devolve a conexão ao pool já: o pedido ainda vai esperar uma thread livre para rodar a rota, e segurar a conexão nesse
+    # intervalo, com centenas de pedidos juntos, esgotava o pool e travava tudo (as threads esperavam conexão e as
+    # conexões esperavam thread). Os dados do usuário continuam disponíveis; a rota abre a transação de novo ao precisar.
+    sessao.commit()
+    return usuario
 
 
 def usuario_atual(usuario: Usuario | None = Depends(usuario_opcional)) -> Usuario:

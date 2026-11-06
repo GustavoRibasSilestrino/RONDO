@@ -36,7 +36,7 @@ class Membro(Base):
 
 class Post(Base):
     __tablename__ = "posts"
-    __table_args__ = (Index("ix_posts_clube_id_id", "clube_id", "id"),)
+    __table_args__ = (Index("ix_posts_clube_id_id", "clube_id", "id"), Index("ix_posts_autor_id_id", "autor_id", "id"))
 
     id: Mapped[int] = mapped_column(primary_key=True)
     autor_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), index=True)
@@ -58,6 +58,7 @@ class Curtida(Base):
 
 class Comentario(Base):
     __tablename__ = "comentarios"
+    __table_args__ = (Index("ix_comentarios_post_id_id", "post_id", "id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     post_id: Mapped[int] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"), index=True)
@@ -77,6 +78,7 @@ class Seguidor(Base):
 
 class Notificacao(Base):
     __tablename__ = "notificacoes"
+    __table_args__ = (Index("ix_notificacoes_usuario_id_id", "usuario_id", "id"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), index=True)   # quem recebe
@@ -91,6 +93,7 @@ class Story(Base):
     """Foto ou texto que fica no ar por 24 horas para quem segue o autor (e para o próprio autor)."""
 
     __tablename__ = "stories"
+    __table_args__ = (Index("ix_stories_autor_id_criado_em", "autor_id", "criado_em"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     autor_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), index=True)
