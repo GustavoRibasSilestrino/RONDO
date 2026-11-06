@@ -17,14 +17,14 @@ from app.config import config
 
 # Os mesmos sotaques de app/scripts/vozes.config.json. Se trocar a voz lá, troque aqui também.
 SOTAQUES: dict[str, dict[str, str]] = {
-    "br": {"modelo": "eleven_multilingual_v2", "voz": "21m00Tcm4TlvDq8ikWAM", "tag": ""},
-    "pt": {"modelo": "eleven_v3", "voz": "21m00Tcm4TlvDq8ikWAM", "tag": "[European Portuguese accent from Lisbon]"},
-    "gringo": {"modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[strong American English accent, speaking Portuguese]"},
-    "espanhol": {"modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[strong Spanish accent, speaking Portuguese]"},
-    "italiano": {"modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[strong Italian accent, speaking Portuguese, animated]"},
-    "frances": {"modelo": "eleven_v3", "voz": "21m00Tcm4TlvDq8ikWAM", "tag": "[strong French accent, speaking Portuguese, elegant]"},
-    "narrador": {"modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[deep dramatic movie trailer narrator voice]"},
-    "robo": {"modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[robotic monotone voice]"},
+    "br": {"modelo": "eleven_multilingual_v2", "voz": "CstacWqMhJQlnfLPxRG4", "tag": ""},
+    "pt": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[European Portuguese accent from Lisbon]"},
+    "gringo": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong American English accent, speaking Portuguese]"},
+    "espanhol": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong Spanish accent, speaking Portuguese]"},
+    "italiano": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong Italian accent, speaking Portuguese, animated]"},
+    "frances": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong French accent, speaking Portuguese, elegant]"},
+    "narrador": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[deep dramatic movie trailer narrator voice]"},
+    "robo": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[robotic monotone voice]"},
 }
 
 TEXTO_VALIDO = re.compile(r"^[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 '.,-]{0,29}$")

@@ -3,13 +3,13 @@
   "formato": "mp3_44100_64",
   "estabilidade": 0.5,
   "sotaques": {
-    "br":       { "modelo": "eleven_multilingual_v2", "voz": "21m00Tcm4TlvDq8ikWAM", "tag": "" },
-    "pt":       { "modelo": "eleven_v3", "voz": "21m00Tcm4TlvDq8ikWAM", "tag": "[European Portuguese accent from Lisbon]" },
-    "gringo":   { "modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[strong American English accent, speaking Portuguese]" },
-    "espanhol": { "modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[strong Spanish accent, speaking Portuguese]" },
-    "italiano": { "modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[strong Italian accent, speaking Portuguese, animated]" },
-    "frances":  { "modelo": "eleven_v3", "voz": "21m00Tcm4TlvDq8ikWAM", "tag": "[strong French accent, speaking Portuguese, elegant]" },
-    "narrador": { "modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[deep dramatic movie trailer narrator voice]" },
-    "robo":     { "modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[robotic monotone voice]" }
+    "br":       { "modelo": "eleven_multilingual_v2", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "" },
+    "pt":       { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[European Portuguese accent from Lisbon]" },
+    "gringo":   { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong American English accent, speaking Portuguese]" },
+    "espanhol": { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong Spanish accent, speaking Portuguese]" },
+    "italiano": { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong Italian accent, speaking Portuguese, animated]" },
+    "frances":  { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong French accent, speaking Portuguese, elegant]" },
+    "narrador": { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[deep dramatic movie trailer narrator voice]" },
+    "robo":     { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[robotic monotone voice]" }
   }
 }
