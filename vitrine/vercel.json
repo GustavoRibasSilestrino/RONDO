@@ -3,5 +3,9 @@
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/((?!assets/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/app", "destination": "https://rondo-app-eight.vercel.app/app" },
+    { "source": "/app/:path*", "destination": "https://rondo-app-eight.vercel.app/app/:path*" },
+    { "source": "/((?!assets/|app$|app/).*)", "destination": "/index.html" }
+  ]
 }

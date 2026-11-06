@@ -12,6 +12,9 @@ import { TrocaTemaProvider, useTrocaTema } from './src/componentes/TrocaTema';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
 import { BotaoVoltar } from './src/componentes/BotaoVoltar';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
+import { MenuLateral } from './src/componentes/MenuLateral';
+import { PainelLateral } from './src/componentes/PainelLateral';
+import { useLayoutLargo } from './src/lib/largura';
 import { PlanoPro } from './src/componentes/PlanoPro';
 import { AvisoProvider, useAviso } from './src/componentes/Estrutura';
 import { Marca } from './src/componentes/Marca';
@@ -58,6 +61,7 @@ function Raiz() {
   useNotificacoes();
   const trocarTema = useTrocaTema();
   const avisar = useAviso();
+  const { largo, comPainel } = useLayoutLargo();   // computador: menu lateral no lugar da barra e do cabeçalho
   /* o tema vale antes de tudo ser desenhado; o Ultra só a partir do nível 15 */
   const tema = estado.usuario && nivelDe(xpTotal(estado)) >= NIVEL_ULTRA ? estado.tema : 'normal';
   aplicarTema(tema);
@@ -102,8 +106,14 @@ function Raiz() {
   }
 
   const naBarra = tela === 'notificacoes' ? '' : DO_PERFIL.includes(tela) ? 'perfil' : tela;
+  const temaBloqueado = nivelDe(xpTotal(estado)) < NIVEL_ULTRA;
+  const aoTrocarTema = () => { if (temaBloqueado) avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); else trocarTema(tema === 'ultra' ? 'normal' : 'ultra'); };
+  const aoAbrirNotificacoes = () => { if (tela === 'notificacoes') { setTela(antes); } else { setAntes(tela); setTela('notificacoes'); } };
+  const escolher = (id: string) => { if (id !== tela) setTela(id); };
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, flexDirection: largo ? 'row' : 'column' }}>
+      {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} aoAbrirPro={() => setPlanoAberto(true)} temaBloqueado={temaBloqueado} aoTrocarTema={aoTrocarTema} /> : null}
+      <View style={{ flex: 1 }}>
       {tema === 'ultra' ? <FundoUltra /> : null}
       {tela === 'home' && <Social modo="home" ir={setTela} />}
       {tela === 'comunidade' && <Social modo="comunidade" ir={setTela} />}
@@ -116,8 +126,10 @@ function Raiz() {
       {tela === 'notificacoes' && <Notificacoes />}
       {tela === 'perfil' && <Perfil ir={setTela} />}
       {DO_PERFIL.includes(tela) ? <BotaoVoltar rotulo="Voltar ao perfil" aoPressionar={() => setTela('perfil')} /> : null}
-      <CabecalhoApp aoAbrirPro={() => setPlanoAberto(true)} mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={nivelDe(xpTotal(estado)) < NIVEL_ULTRA} aoTrocarTema={() => { if (nivelDe(xpTotal(estado)) < NIVEL_ULTRA) avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); else trocarTema(tema === 'ultra' ? 'normal' : 'ultra'); }} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={() => { if (tela === 'notificacoes') { setTela(antes); } else { setAntes(tela); setTela('notificacoes'); } }} />
-      <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />
+      {largo ? null : <CabecalhoApp aoAbrirPro={() => setPlanoAberto(true)} mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={temaBloqueado} aoTrocarTema={aoTrocarTema} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
+      {largo ? null : <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />}
+      </View>
+      {comPainel ? <PainelLateral ir={setTela} /> : null}
       <PlanoPro aberto={planoAberto} aoFechar={() => setPlanoAberto(false)} />
       <AvisoNivel />
     </View>
