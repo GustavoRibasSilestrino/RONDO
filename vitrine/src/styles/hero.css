@@ -22,8 +22,9 @@
 
 /* o corredor: do meio para a direita. O branco da foto some no violeta (multiply); o preto fica */
 .hero-corredor {
-  position: absolute; z-index: 1; right: clamp(-4rem, -1vw, 2rem); top: calc(var(--nav-h) - .5rem); height: min(94%, 880px); aspect-ratio: 1280 / 1240;
-  pointer-events: none; mix-blend-mode: multiply;
+  /* o tamanho acompanha a tela: a altura segue a janela, sem teto em px, e a largura nunca passa de ~58% dela */
+  position: absolute; z-index: 1; right: -1vw; top: calc(var(--nav-h) - .5rem); height: min(90%, 60vw); aspect-ratio: 1280 / 1240;
+  pointer-events: none; mix-blend-mode: multiply; opacity: .55;
 }
 .hero-corredor img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .hero-corredor .vulto { animation: corredor-pulsa 5.5s ease-in-out infinite alternate; }
