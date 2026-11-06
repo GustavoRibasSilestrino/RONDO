@@ -5,19 +5,23 @@ import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
+import { useLayoutLargo } from '../lib/largura';
 import { cores, estilos } from '../tema';
 
 export function Inicio({ aoCriar, aoEntrar }: { aoCriar: () => void; aoEntrar: () => void }) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const orbe = Math.round(Math.min(280, width * 0.7, height * 0.36));
+  /* computador: tudo cresce junto com a janela (orbe, letras e botões). 1 = o tamanho do celular */
+  const { largo } = useLayoutLargo();
+  const k = largo ? Math.min(2, Math.max(1, Math.min(width / 800, height / 620))) : 1;
+  const orbe = Math.round(Math.min(280, (width / k) * 0.7, (height / k) * (largo ? 0.45 : 0.36)));
   return (
     <View style={{ flex: 1, backgroundColor: '#000000' }}>
       <ScrollView
         style={{ flex: 1 }} showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top + 24, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
       >
-        <View style={st.coluna}>
+        <View style={[st.coluna, k > 1 ? ({ zoom: k } as object) : null]}>
           <View style={{ alignItems: 'center' }}>
             <Orbe tamanho={orbe} estado="quieto" />
           </View>
