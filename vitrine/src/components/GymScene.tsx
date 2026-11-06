@@ -59,7 +59,7 @@ export function GymScene() {
         if (!el) return;
         const d = q - i;
         el.style.opacity = String(Math.max(0, 1 - Math.abs(d) * 1.9));
-        el.style.transform = `translate3d(${(-d * 16).toFixed(2)}vw,0,0)`;
+        el.style.transform = "none";
       });
     };
     /* sem WebGL (ou antes de baixar o three.js): só a cor e o nome mudam */

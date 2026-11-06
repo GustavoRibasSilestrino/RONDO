@@ -26,9 +26,9 @@
 @keyframes bump { 40% { transform: scale(1.12); } }
 
 /* ---- os quadrados ---- */
-.streak-board .heat { gap: 6px; }
+.streak-board .heat { gap: 6px; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: repeat(7, auto); grid-auto-flow: column; }
 .streak-board .heat .c {
-  position: relative; aspect-ratio: 1; padding: 0; border: 0; cursor: pointer; touch-action: manipulation;
+  position: relative; display: block; aspect-ratio: 1; padding: 0; border: 0; pointer-events: none;
   border-radius: clamp(2px, 24%, 4px); -webkit-tap-highlight-color: transparent;
   background-color: rgba(255, 255, 255, .055);
   transition: background-color .45s var(--ease), box-shadow .45s var(--ease), transform .3s var(--ease);
@@ -60,9 +60,6 @@
 }
 @keyframes ping { 0% { transform: scale(.9); opacity: .9; } 70%, 100% { transform: scale(1.2); opacity: 0; } }
 
-@media (hover: hover) {
-  .streak-board .heat .c:hover { transform: scale(1.14); z-index: 2; }
-}
 
 /* ---- entrada: os quadrados chegam em diagonal ---- */
 .streak-board .heat.arm .c { opacity: 0; transform: scale(.35); }

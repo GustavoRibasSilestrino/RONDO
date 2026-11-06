@@ -122,7 +122,7 @@
 
 /* ===== Streak interativo ===== */
 .streak-board { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 2rem; }
-.streak-board .heat { grid-template-rows: repeat(7, 1fr); }   /* o visual dos quadrados está em css/streak.css */
+.streak-board .heat { grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: repeat(7, auto); }   /* o visual dos quadrados está em css/streak.css */
 .streak-count { display: flex; align-items: baseline; gap: .7rem; margin-bottom: 1.4rem; }
 .streak-count b { font-family: var(--font-display); font-weight: 300; font-size: 4.5rem; letter-spacing: -.06em; line-height: 1; }
 .legend { display: flex; gap: 1.2rem; margin-top: 1.2rem; font-size: .72rem; color: var(--ink-2); flex-wrap: wrap; }
