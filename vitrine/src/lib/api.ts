@@ -42,3 +42,26 @@ export const cadastrarProfissional = (d: {
   nome: string; email: string; tipo: "CRN" | "CREF"; registro: string; uf: string; aceita_termos: boolean; aceita_privacidade: boolean;
 }) =>
   enviar<{ status: string }>("/profissionais", d);
+
+/* excluir a conta pelo site (sem o app): entra com e-mail e senha e apaga tudo no servidor */
+export async function excluirConta(email: string, senha: string): Promise<void> {
+  let r: Response;
+  try {
+    r = await fetch(`${API}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, senha }) });
+  } catch {
+    throw new ErroApi("Sem conexão. Tente de novo em instantes.");
+  }
+  if (r.status === 401) throw new ErroApi("E-mail ou senha incorretos.");
+  if (!r.ok) throw new ErroApi("Não foi possível entrar agora. Tente de novo.");
+  const { token } = (await r.json()) as { token: string };
+  try {
+    r = await fetch(`${API}/me`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ senha }),
+    });
+  } catch {
+    throw new ErroApi("Sem conexão. Tente de novo em instantes.");
+  }
+  if (!r.ok) throw new ErroApi("Não foi possível excluir agora. Tente de novo ou escreva para o nosso e-mail.");
+}

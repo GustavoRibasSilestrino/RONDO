@@ -3,6 +3,7 @@
    Atualize aqui, suba a versão em backend/app/legal.py e em lib/consentimento.ts, e peça revisão jurídica. */
 import type { ComponentType, ReactNode } from "react";
 import { abrirPreferenciasCookies } from "../lib/consentimento";
+import { ExcluirConta } from "./ExcluirConta";
 import { Mark } from "./ui";
 
 export const CONTATO = "rondooficial.dev@gmail.com";
@@ -11,7 +12,7 @@ const ATUALIZADO = "5 de novembro de 2026";
 
 const Email = () => <a href={`mailto:${CONTATO}`}>{CONTATO}</a>;
 
-function Pagina({ titulo, children }: { titulo: string; children: ReactNode }) {
+export function Pagina({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <>
       <header className="legal-topo">
@@ -30,6 +31,7 @@ function Pagina({ titulo, children }: { titulo: string; children: ReactNode }) {
           <nav className="footer-links legal-links" aria-label="Documentos">
             <a href="/termos">Termos de Uso</a><a href="/privacidade">Política de Privacidade</a><a href="/reembolso">Cancelamento e reembolso</a>
             <a href="/suboperadores">Suboperadores</a><a href="/licencas">Licenças e créditos</a><a href="/direitos-autorais">Direitos autorais</a>
+            <a href="/excluir-conta">Excluir conta</a>
             <button type="button" className="link-botao" onClick={() => abrirPreferenciasCookies()}>Preferências de cookies</button>
           </nav>
           <p className="disclaimer">Responsável: {RESPONSAVEL} · Contato: <Email /></p>
@@ -135,7 +137,7 @@ function Privacidade() {
       <p>Você pode, a qualquer momento:</p>
       <ul>
         <li><b>Ver e baixar</b> uma cópia de tudo o que o servidor guarda sobre você: no app, em Configurações.</li>
-        <li><b>Apagar a conta</b> e todos os dados dela: no app, em Configurações (pede a senha para confirmar).</li>
+        <li><b>Apagar a conta</b> e todos os dados dela: no app, em Configurações, ou no site, em <a href="/excluir-conta">Excluir conta</a> (pede a senha para confirmar).</li>
         <li><b>Corrigir</b> nome, @ e bio no próprio app.</li>
         <li><b>Revogar consentimentos</b>, como o de e-mails de novidades. Revogar o consentimento dos dados de saúde equivale a apagar a conta, porque o app não funciona sem eles.</li>
         <li>Pedir informações sobre o uso e o compartilhamento dos seus dados, e a portabilidade.</li>
@@ -392,4 +394,5 @@ export const PAGINAS_LEGAIS: Record<string, { titulo: string; Comp: ComponentTyp
   "/suboperadores": { titulo: "Suboperadores", Comp: Suboperadores },
   "/licencas": { titulo: "Licenças e créditos", Comp: Licencas },
   "/direitos-autorais": { titulo: "Direitos autorais", Comp: DireitosAutorais },
+  "/excluir-conta": { titulo: "Excluir conta", Comp: ExcluirConta },
 };
