@@ -1,4 +1,4 @@
-/* O plano PRO: o que ele inclui e o botão para assinar ou aumentar o plano. A assinatura é feita no site. */
+/* O plano PRO: o que vai incluir. Os planos pagos ainda não estão à venda: nada aqui promete o que não existe. */
 import React from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import { useLoja } from '../estado/loja';
@@ -9,10 +9,10 @@ import { Icone, NomeIcone } from './Icone';
 import { Botao, T } from './Ui';
 
 const INCLUI: { icone: NomeIcone; titulo: string; sub: string }[] = [
-  { icone: 'ia', titulo: 'Treino e dieta com a IA', sub: 'Planos montados para o seu objetivo, e treino complexo com periodização.' },
-  { icone: 'grupo', titulo: 'Clube em destaque', sub: 'O seu clube aparece no topo da busca.' },
-  { icone: 'evolucao', titulo: 'Ajuste automático de macros', sub: 'A dieta se reajusta conforme a sua evolução.' },
-  { icone: 'verificado', titulo: 'Profissionais verificados', sub: 'Mais contatos com nutricionistas e profissionais de educação física.' },
+  { icone: 'recado', titulo: 'Recados para o futuro sem limite', sub: 'No grátis, um recado por dia e um esperando por vez.' },
+  { icone: 'grupo', titulo: 'Clube em destaque (em breve)', sub: 'O seu clube vai aparecer no topo da busca.' },
+  { icone: 'ia', titulo: 'Treino e dieta com IA (em breve)', sub: 'Ainda não existe. Quando chegar, o que a IA gerar vai aparecer identificado.' },
+  { icone: 'verificado', titulo: 'Profissionais com registro conferido (em breve)', sub: 'O cadastro de profissionais está aberto; o contato pelo app ainda não.' },
 ];
 
 export function PlanoPro({ aberto, aoFechar }: { aberto: boolean; aoFechar: () => void }) {
@@ -40,8 +40,11 @@ export function PlanoPro({ aberto, aoFechar }: { aberto: boolean; aoFechar: () =
       </View>
 
       <View style={{ gap: 10, marginTop: 18 }}>
-        <Botao icone="estrela" titulo={ativo ? 'Aumentar o meu plano' : 'Assinar o PRO'} aoPressionar={abrirSite} />
-        <T tam={12} centro style={{ opacity: 0.75, lineHeight: 17 }}>A assinatura e a troca de plano são feitas no site da RONDO.</T>
+        <Botao icone="estrela" titulo="Ver os planos no site" aoPressionar={abrirSite} />
+        <T tam={12} centro style={{ opacity: 0.85, lineHeight: 17 }}>
+          {ativo ? 'O seu plano PRO está ativo.' : 'Os planos pagos ainda não estão à venda: nada é cobrado hoje.'} Quando abrirem: R$ 14,90 por mês,
+          renovação automática avisada antes, cancelamento a qualquer momento e reembolso em até 7 dias.
+        </T>
       </View>
     </Folha>
   );

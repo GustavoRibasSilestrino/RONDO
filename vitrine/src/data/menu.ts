@@ -24,7 +24,7 @@ export const MENU: MenuEntry[] = [
     ] },
     { t: "Memória", d: "Sua evolução contada pela sua voz.", items: [
       { t: "Seu ano em áudio", d: "Retrospectiva para compartilhar nos stories.", href: "#recado" },
-      { t: "Privacidade", d: "Criptografado e privado por padrão.", href: "#recado" },
+      { t: "Privacidade", d: "Os áudios ficam só no seu aparelho.", href: "#recado" },
     ] },
   ] },
   { key: "ferramentas", href: "#ferramentas", trigger: "Ferramentas", label: "Ferramentas", cols: [
@@ -40,31 +40,31 @@ export const MENU: MenuEntry[] = [
   { key: "clube", href: "#clube", trigger: "Clube PRO", label: "Clube PRO", cols: [
     { t: "Competição", d: "Constância vira conquista.", items: [
       { t: "Ranking semanal", d: "Mede constância, nunca aparência.", href: "#clube" },
-      { t: "Prêmios mensais", d: "Marcas parceiras para assinantes PRO.", href: "#clube" },
+      { t: "Prêmios mensais", d: "Em breve, para assinantes PRO.", href: "#clube" },
     ] },
     { t: "Juntos", d: "Metas coletivas e comunidade.", items: [
       { t: "Clubes e desafios", d: "O clube soma treinos rumo à meta do mês.", href: "#clube" },
-      { t: "Antitrapaça", d: "Limites diários, foto obrigatória e denúncia.", href: "#clube" },
+      { t: "Antitrapaça", d: "Regras previstas para o ranking com prêmio.", href: "#clube" },
     ] },
   ] },
   { key: "profissionais", href: "#profissionais", trigger: "Profissionais", label: "Profissionais", cols: [
     { t: "Quem acompanha", d: "Cada um prescreve só o que a profissão permite.", items: [
-      { t: "Nutricionistas (CRN)", d: "Cardápio, metas e painel de alunos.", href: "#profissionais" },
-      { t: "Educadores físicos (CREF)", d: "Treino, recordes e alertas de estagnação.", href: "#profissionais" },
+      { t: "Nutricionistas (CRN)", d: "Cardápio, metas e painel de alunos (em breve).", href: "#profissionais" },
+      { t: "Educadores físicos (CREF)", d: "Treino, recordes e alertas (em breve).", href: "#profissionais" },
     ] },
-    { t: "Confiança", d: "Só aparece na busca quem foi conferido.", items: [
-      { t: "Registro conferido", d: "Selo após consulta pública ao conselho.", href: "#profissionais" },
+    { t: "Confiança", d: "Cadastro aberto; a busca no app vem em breve.", items: [
+      { t: "Registro conferido", d: "Conferência manual na consulta pública do conselho.", href: "#profissionais" },
       { t: "Como funciona", d: "Cadastro, conferência, selo e painel.", href: "#profissionais" },
     ] },
   ] },
   { key: "planos", href: "#planos", trigger: "Planos", label: "Planos", cols: [
     { t: "Para você", d: "Grátis para começar, PRO para ir além.", items: [
       { t: "Grátis", d: "Treino, dieta, água, streak e feed.", href: "#planos" },
-      { t: "PRO · R$ 14,90", d: "Ranking com prêmios e recados ilimitados.", href: "#planos" },
+      { t: "PRO · R$ 14,90 (em breve)", d: "Recados ilimitados; ranking com prêmios depois.", href: "#planos" },
     ] },
     { t: "Profissionais", d: "Para quem acompanha alunos pelo app.", items: [
-      { t: "Profissional · R$ 59", d: "Perfil verificado, até 25 alunos e painel.", href: "#planos" },
-      { t: "Profissional+ · R$ 99", d: "Alunos ilimitados e rascunhos por IA.", href: "#planos" },
+      { t: "Profissional · R$ 59 (em breve)", d: "Perfil conferido, até 25 alunos e painel.", href: "#planos" },
+      { t: "Profissional+ · R$ 99 (em breve)", d: "Alunos ilimitados.", href: "#planos" },
     ] },
   ] },
 ];

@@ -253,6 +253,7 @@ export function Day() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={SETA.prox} /></svg>
           </button>
         </div>
+        <p className="illustr">Telas ilustrativas do app, com nomes e números fictícios.</p>
       </div>
     </section>
   );

@@ -1,9 +1,11 @@
-/* Configurações do perfil, em uma tela só com um menu: Seus dados, Benefícios por nível e Conta.
+/* Configurações do perfil, em uma tela só com um menu: Seus dados, Benefícios por nível, Privacidade e Conta.
    Tudo o que deixaria o perfil carregado mora aqui. */
 import React, { useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { apagarContaNoServidor } from '../../api/privacidade';
 import { esquecerToken } from '../../api/sessao';
+import { CampoFlutuante } from '../../componentes/CampoFlutuante';
 import { Folha, useAviso } from '../../componentes/Estrutura';
 import { Icone, NomeIcone } from '../../componentes/Icone';
 import { Botao, T } from '../../componentes/Ui';
@@ -13,13 +15,15 @@ import { progressoNivel, xpTotal } from '../../lib/nivel';
 import { cores, estilos, larguraMax } from '../../tema';
 import { SITE } from '../Login';
 import { ContaSeguranca } from './ContaSeguranca';
+import { Privacidade } from './Privacidade';
 import { SeusDados } from './SeusDados';
 
-type Secao = 'dados' | 'beneficios' | 'conta';
+type Secao = 'dados' | 'beneficios' | 'privacidade' | 'conta';
 
 const ITENS: { id: Secao; titulo: string; sub: string; icone: NomeIcone }[] = [
   { id: 'dados', titulo: 'Seus dados', sub: 'Medidas, atividade e objetivo', icone: 'perfil' },
   { id: 'beneficios', titulo: 'Benefícios por nível', sub: 'O que cada nível libera', icone: 'estrela' },
+  { id: 'privacidade', titulo: 'Privacidade e dados', sub: 'E-mails, baixar seus dados e documentos', icone: 'olho' },
   { id: 'conta', titulo: 'Conta e segurança', sub: 'Senha, e-mail, sair e apagar', icone: 'cadeado' },
 ];
 
@@ -31,6 +35,25 @@ export function Configuracoes({ aberto, aoFechar }: Props) {
   const avisar = useAviso();
   const [secao, setSecao] = useState<Secao | null>(null);
   const [apagando, setApagando] = useState(false);
+  const [senhaApagar, setSenhaApagar] = useState('');
+  const [erroApagar, setErroApagar] = useState<string | undefined>();
+  const [apagandoAgora, setApagandoAgora] = useState(false);
+
+  /* apagar de verdade: primeiro no servidor (pede a senha), depois neste aparelho */
+  const apagarConta = async () => {
+    if (!senhaApagar) { setErroApagar('Digite a sua senha para confirmar.'); return; }
+    setApagandoAgora(true); setErroApagar(undefined);
+    try {
+      await apagarContaNoServidor(senhaApagar);
+    } catch (e) {
+      setErroApagar(e instanceof Error ? e.message : 'Não foi possível apagar agora. Tente de novo.');
+      setApagandoAgora(false);
+      return;
+    }
+    setApagandoAgora(false); setApagando(false); setSenhaApagar('');
+    sair(); await esquecerToken(); await limpar();
+    avisar('Conta apagada, com todos os dados do servidor e deste aparelho.');
+  };
 
   const nivel = progressoNivel(xpTotal(estado)).nivel;
   const titulo = secao ? ITENS.find((i) => i.id === secao)!.titulo : 'Configurações';
@@ -81,25 +104,33 @@ export function Configuracoes({ aberto, aoFechar }: Props) {
               </View>
             ) : null}
 
+            {secao === 'privacidade' ? <Privacidade /> : null}
+
             {secao === 'conta' ? (
               <View style={{ gap: 12 }}>
                 <ContaSeguranca />
                 <Botao tipo="fantasma" icone="sair" titulo="Sair da conta" aoPressionar={() => { sair(); void esquecerToken(); commit((e) => { e.usuario = null; }); }} />
                 <Pressable accessibilityRole="link" onPress={() => Linking.openURL(SITE)} style={{ alignSelf: 'flex-start', paddingVertical: 8 }}>
-                  <T tam={13} peso="500">Assinatura, termos e privacidade no site →</T>
+                  <T tam={13} peso="500">Abrir o site do RONDO →</T>
                 </Pressable>
-                <Botao tipo="perigo" icone="lixo" titulo="Apagar conta" aoPressionar={() => setApagando(true)} />
+                <Botao tipo="perigo" icone="lixo" titulo="Apagar conta" aoPressionar={() => { setSenhaApagar(''); setErroApagar(undefined); setApagando(true); }} />
               </View>
             ) : null}
           </ScrollView>
         </View>
       </View>
 
-      <Folha aberta={apagando} aoFechar={() => setApagando(false)} titulo="Apagar conta?">
-        <T tam={14} style={{ lineHeight: 21 }}>Isso apaga a sua conta e todos os seus dados deste aparelho: treinos, dieta, publicações, stories, medalhas e recados. Não dá para desfazer.</T>
+      <Folha aberta={apagando} aoFechar={() => { if (!apagandoAgora) setApagando(false); }} titulo="Apagar conta?">
+        <T tam={14} style={{ lineHeight: 21 }}>
+          Isso apaga a sua conta e todos os seus dados no servidor e neste aparelho: treinos, dieta, publicações, comentários,
+          stories, clubes que você criou, medalhas e recados. Não dá para desfazer. Se quiser uma cópia antes, use Baixar meus
+          dados, em Privacidade e dados.
+        </T>
+        <View style={{ height: 16 }} />
+        <CampoFlutuante rotulo="Sua senha" icone="cadeado" value={senhaApagar} onChangeText={setSenhaApagar} secureTextEntry autoCapitalize="none" autoCorrect={false} erro={erroApagar} returnKeyType="done" onSubmitEditing={apagarConta} />
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
-          <Botao tipo="discreto" titulo="Cancelar" aoPressionar={() => setApagando(false)} style={{ flex: 1 }} />
-          <Botao tipo="perigo" icone="lixo" titulo="Apagar" aoPressionar={async () => { setApagando(false); sair(); await esquecerToken(); await limpar(); avisar('Conta apagada.'); }} style={{ flex: 1 }} />
+          <Botao tipo="discreto" titulo="Cancelar" desabilitado={apagandoAgora} aoPressionar={() => setApagando(false)} style={{ flex: 1 }} />
+          <Botao tipo="perigo" icone="lixo" titulo="Apagar tudo" carregando={apagandoAgora} aoPressionar={apagarConta} style={{ flex: 1 }} />
         </View>
       </Folha>
     </Modal>

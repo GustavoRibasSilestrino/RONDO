@@ -15,6 +15,7 @@ from app.esquemas_social import (
     PostOut, ResumoOut,
 )
 from app.modelos import Clube, Comentario, Curtida, Membro, Notificacao, Post, Seguidor, Story, Usuario
+from app.servicos import conta as servico_conta
 from app.servicos import midia as servico_midia
 from app.servicos.social import (
     TEXTOS, clube_visivel, condicao_post_visivel, limite_valido, montar_posts, ms, notificar, pagina_de_posts,
@@ -187,6 +188,7 @@ def listar_notificacoes(
     usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_sessao),
 ):
+    servico_conta.limpar_vencidos(sessao)   # retenção: avisos com mais de 180 dias saem do banco
     limite = limite_valido(limite)
     consulta = select(Notificacao).where(Notificacao.usuario_id == usuario.id)
     if antes:
@@ -260,6 +262,7 @@ def publicar_story(dados: StoryIn, usuario: Usuario = Depends(usuario_atual), se
 @router.get("/stories", response_model=StoriesOut)
 def stories_no_ar(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
     """Os seus e os de quem você segue, dos últimos 24 horas. Quem você não segue não aparece."""
+    servico_conta.limpar_vencidos(sessao)   # retenção: os de mais de 24 horas saem do banco
     desde = datetime.now(timezone.utc) - DURACAO_STORY
     sigo = select(Seguidor.seguido_id).where(Seguidor.seguidor_id == usuario.id)
     linhas = list(sessao.scalars(

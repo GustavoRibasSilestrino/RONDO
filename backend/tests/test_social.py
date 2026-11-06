@@ -17,7 +17,7 @@ def cliente():
 
 
 def conta(cliente, email, nome):
-    r = cliente.post("/auth/cadastro", json={"nome": nome, "email": email, "senha": "segredo1"}).json()
+    r = cliente.post("/auth/cadastro", json={"nome": nome, "email": email, "senha": "segredo1", "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True}).json()
     h = {"Authorization": f"Bearer {r['token']}"}
     return h, cliente.get("/auth/eu", headers=h).json()["email"]
 

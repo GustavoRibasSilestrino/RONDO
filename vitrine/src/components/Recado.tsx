@@ -82,23 +82,22 @@ export function Recado() {
       <div className="wrap">
         <Reveal className="section-head">
           <Title parts={["Fale com quem você ", { t: "vai ser.", cls: "grad" }]} />
-          <p className="lead">No primeiro dia, grave um áudio sobre por que você está começando. O RONDO guarda e entrega para você daqui a 90 dias. Ouvir a própria voz do passado é o jeito mais honesto de competir com quem você foi.</p>
+          <p className="lead">No primeiro dia, grave um áudio sobre por que você está começando. O app guarda no seu aparelho e entrega para você daqui a 90 dias. Ouvir a própria voz do passado é o jeito mais honesto de competir com quem você foi.</p>
         </Reveal>
         <div className="recado-grid">
           <Recorder />
           <div className="recado-side">
             <Reveal as="article" className="mini">
               <h3>Nada de página em branco.</h3>
-              <p>Uma notificação no horário que você escolher traz uma pergunta simples. Você responde falando, como num áudio de WhatsApp, e a transcrição e os temas ficam guardados.</p>
+              <p>Todo dia o app traz uma pergunta simples. Você responde falando, como num áudio de WhatsApp.</p>
             </Reveal>
             <Reveal as="article" className="mini">
               <h3>Retrospectiva para compartilhar.</h3>
-              <p>No fim do ano: trechos marcantes, o que mais preocupou, o que mudou e do que você se orgulhou. O card vai para os stories sem expor o conteúdo dos áudios.</p>
-              <div className="themes">{["treino", "sono", "trabalho", "família", "constância"].map((t) => <span key={t}>{t}</span>)}</div>
+              <p>O app resume o seu ano: quantos recados, quanto tempo de voz e a pergunta que você mais respondeu. O card vai para os stories só com os números, nunca com o conteúdo dos áudios.</p>
             </Reveal>
             <Reveal as="article" className="mini priv">
               <h3>Seu áudio é só seu.</h3>
-              <p>Armazenamento criptografado, nada público por padrão e opção de apagar tudo a qualquer momento. É um diário, não um serviço de terapia.</p>
+              <p>Os áudios ficam só no seu aparelho: não vão para o nosso servidor. Nada é público e você apaga tudo quando quiser. É um diário, não um serviço de terapia.</p>
             </Reveal>
           </div>
         </div>

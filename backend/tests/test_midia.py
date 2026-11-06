@@ -38,7 +38,7 @@ def cliente(monkeypatch):
 
 
 def conta(c, email, nome):
-    r = c.post("/auth/cadastro", json={"nome": nome, "email": email, "senha": "segredo1"}).json()
+    r = c.post("/auth/cadastro", json={"nome": nome, "email": email, "senha": "segredo1", "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True}).json()
     return {"Authorization": f"Bearer {r['token']}"}
 
 

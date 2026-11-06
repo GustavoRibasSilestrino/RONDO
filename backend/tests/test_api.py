@@ -21,16 +21,16 @@ def test_saude(cliente):
 
 
 def test_cadastro_login_e_eu(cliente):
-    r = cliente.post("/auth/cadastro", json={"nome": "Ana", "email": "Ana@x.com", "senha": "segredo1"})
+    r = cliente.post("/auth/cadastro", json={"nome": "Ana", "email": "Ana@x.com", "senha": "segredo1", "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True})
     assert r.status_code == 201
-    assert cliente.post("/auth/cadastro", json={"nome": "Ana", "email": "ana@x.com", "senha": "segredo1"}).status_code == 409
+    assert cliente.post("/auth/cadastro", json={"nome": "Ana", "email": "ana@x.com", "senha": "segredo1", "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True}).status_code == 409
 
     assert cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "errada!"}).status_code == 401
-    r = cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "segredo1"})
+    r = cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "segredo1", "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True})
     assert r.status_code == 200
     token = r.json()["token"]
     eu = cliente.get("/auth/eu", headers={"Authorization": f"Bearer {token}"})
-    assert eu.json() == {"email": "ana@x.com", "nome": "Ana", "papel": "usuario", "verificado": False, "pro": False, "selo": None, "arroba": None, "bio": ""}
+    assert eu.json() == {"email": "ana@x.com", "nome": "Ana", "papel": "usuario", "verificado": False, "pro": False, "selo": None, "arroba": None, "bio": "", "marketing": False}
     assert cliente.get("/auth/eu").status_code == 401
 
 
@@ -40,7 +40,7 @@ def test_papel_do_dono_vem_do_banco_e_nao_do_cadastro(cliente):
     from app.banco import Sessao
     from app.modelos import Usuario
 
-    corpo = {"nome": "Dono", "email": "dono@x.com", "senha": "segredo1", "papel": "dono", "verificado": True, "pro": True, "selo": "dono"}
+    corpo = {"nome": "Dono", "email": "dono@x.com", "senha": "segredo1", "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True, "papel": "dono", "verificado": True, "pro": True, "selo": "dono"}
     r = cliente.post("/auth/cadastro", json=corpo).json()
     assert (r["papel"], r["verificado"], r["pro"], r["selo"]) == ("usuario", False, False, None)   # o cadastro ignora esses campos
 
@@ -48,12 +48,14 @@ def test_papel_do_dono_vem_do_banco_e_nao_do_cadastro(cliente):
         u = s.scalar(select(Usuario).where(Usuario.email == "dono@x.com"))
         u.papel, u.verificado, u.pro, u.selo = "dono", True, True, "dono"
         s.commit()
-    r = cliente.post("/auth/login", json={"email": "dono@x.com", "senha": "segredo1"}).json()
+    r = cliente.post("/auth/login", json={"email": "dono@x.com", "senha": "segredo1", "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True}).json()
     assert (r["papel"], r["verificado"], r["pro"], r["selo"]) == ("dono", True, True, "dono")
 
 
 def test_profissional(cliente):
     corpo = {"nome": "Bia", "email": "bia@x.com", "tipo": "CRN", "registro": "1234", "uf": "sp"}
+    assert cliente.post("/profissionais", json=corpo).status_code == 422   # sem aceitar os termos e a privacidade
+    corpo |= {"aceita_termos": True, "aceita_privacidade": True}
     assert cliente.post("/profissionais", json=corpo).json() == {"status": "pendente"}
     assert cliente.post("/profissionais", json=corpo).status_code == 409
     assert cliente.post("/profissionais", json={**corpo, "tipo": "XYZ"}).status_code == 422
@@ -65,7 +67,7 @@ def test_assinatura(cliente):
 
 
 def _conta(cliente, email="ana@x.com", nome="Ana"):
-    r = cliente.post("/auth/cadastro", json={"nome": nome, "email": email, "senha": "segredo1"}).json()
+    r = cliente.post("/auth/cadastro", json={"nome": nome, "email": email, "senha": "segredo1", "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True}).json()
     return {"Authorization": f"Bearer {r['token']}"}
 
 
@@ -115,5 +117,5 @@ def test_trocar_senha(cliente):
     assert cliente.post("/auth/senha", json={"atual": "errada!", "nova": "novasenha1"}, headers=ana).status_code == 401
     assert cliente.post("/auth/senha", json={"atual": "segredo1", "nova": "segredo1"}, headers=ana).status_code == 422
     assert cliente.post("/auth/senha", json={"atual": "segredo1", "nova": "novasenha1"}, headers=ana).status_code == 200
-    assert cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "segredo1"}).status_code == 401
+    assert cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "segredo1", "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True}).status_code == 401
     assert cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "novasenha1"}).status_code == 200
