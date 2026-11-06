@@ -16,8 +16,8 @@
 /* a palavra, grande e quase apagada, atrás do corredor */
 .hero-marca {
   position: absolute; z-index: -1; left: 0; right: 0; bottom: 6%; text-align: center; pointer-events: none; user-select: none;
-  font-family: "Poppins", var(--font-display); font-weight: 800; line-height: .8; letter-spacing: -.04em; color: rgba(255, 255, 255, .1);
-  font-size: clamp(7rem, 26vw, 26rem);
+  font-family: "Poppins", var(--font-display); font-weight: 800; line-height: .8; letter-spacing: -.045em; color: rgba(255, 255, 255, .1);
+  font-size: 28.2vw;   /* de margem a margem em qualquer largura */
 }
 
 /* o corredor: do meio para a direita. O branco da foto some no violeta (multiply); o preto fica */
