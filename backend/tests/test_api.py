@@ -129,3 +129,42 @@ def test_perfil_do_rondin_fica_salvo_na_conta(cliente):
     itens = cliente.get("/me/dados", headers=ana).json()["itens"]
     assert itens["perfilFit"] == fit and itens["perfil"]["altura"] == 178
     assert cliente.get("/me/exportar", headers=ana).json()["dados_do_app"]["perfilFit"] == fit
+
+
+# ---------- voz do RONDIN (nome e números) ----------
+
+def test_voz_do_rondin_gera_guarda_e_serve(cliente, monkeypatch):
+    from app.servicos import voz
+
+    chamadas = []
+    monkeypatch.setattr(voz, "gerar_mp3", lambda texto, sotaque: chamadas.append((texto, sotaque)) or b"mp3-falso")
+    voz._cache.clear()
+    r = cliente.post("/rondin/voz", json={"texto": "Ana", "sotaque": "br"})
+    assert r.status_code == 200
+    url = r.json()["url"]
+    assert "Ana" not in url   # o nome não vai na URL
+    a = cliente.get(url)
+    assert a.status_code == 200 and a.content == b"mp3-falso" and a.headers["content-type"] == "audio/mpeg"
+    cliente.post("/rondin/voz", json={"texto": "Ana", "sotaque": "br"})
+    assert chamadas == [("Ana", "br")]   # o segundo pedido vem do cache
+
+
+def test_voz_do_rondin_recusa_texto_e_sotaque_invalidos(cliente):
+    for corpo in (
+        {"texto": "", "sotaque": "br"}, {"texto": "x" * 31, "sotaque": "br"},
+        {"texto": "<script>", "sotaque": "br"}, {"texto": "Ana", "sotaque": "klingon"},
+    ):
+        assert cliente.post("/rondin/voz", json=corpo).status_code == 422
+    assert cliente.get("/rondin/voz/naoexiste.mp3").status_code == 404
+
+
+def test_voz_do_rondin_sem_chave_responde_503_e_tem_limite(cliente, monkeypatch):
+    from app.servicos import voz
+
+    voz._cache.clear()
+    voz._pedidos.clear()
+    monkeypatch.setattr(voz.config(), "elevenlabs_api_key", "")
+    assert cliente.post("/rondin/voz", json={"texto": "Bia", "sotaque": "br"}).status_code == 503
+    assert all(voz.dentro_do_limite("1.2.3.4", agora=100.0) for _ in range(voz.LIMITE_POR_MINUTO))
+    assert voz.dentro_do_limite("1.2.3.4", agora=101.0) is False
+    assert voz.dentro_do_limite("1.2.3.4", agora=200.0) is True   # passou o minuto

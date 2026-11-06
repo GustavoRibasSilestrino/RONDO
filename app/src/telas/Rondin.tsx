@@ -15,13 +15,15 @@ import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { EstadoOrbe } from '../lib/orbe';
-import { FALAS, Opcao, Passo, Respostas, emailValido, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar } from '../lib/rondinRoteiro';
+import { Dita, FALAS, Opcao, Passo, Respostas, emailValido, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar, primeiroNome, trechosDe } from '../lib/rondinRoteiro';
 import { SOTAQUES, Sotaque, falar, parar, sotaquePadrao } from '../lib/rondinVoz';
 import { cores, estilos } from '../tema';
 import type { Estado, Usuario } from '../tipos';
 import { SITE } from './Login';
 
 export type Modo = 'entrar' | 'cadastro';
+/* o que ele diz: um texto, ou um modelo com lugares para o nome e os números ("Prazer, {nome}!") */
+type Fala = string | Dita;
 type AoEntrar = (usuario: Usuario, extra?: Partial<Estado>) => void;
 
 /* ---------- a legenda: as palavras surgem no ritmo da fala; a última fica em destaque ---------- */
@@ -140,7 +142,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   const [completa, setCompleta] = useState(false);
   const [erro, setErro] = useState('');
   const [falhou, setFalhou] = useState(false);
-  const prefixo = useRef('');
+  const prefixo = useRef<Fala | null>(null);
   const ctrl = useRef<{ id: number; voz: boolean; leg: boolean; depois: (() => void) | null; graca: number }>({ id: 0, voz: false, leg: false, depois: null, graca: 3500 });
 
   /* campos da pergunta atual */
@@ -166,8 +168,12 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   }, []);
   /* `graca`: quanto esperar pela voz depois que a legenda termina. Nas perguntas é pouco: as respostas já aparecem e a voz
      termina falando; nas outras falas (apresentação, amostra do sotaque) espera a voz acabar para não cortar. */
-  const dizer = useCallback((trechos: string[], depois: () => void, com: Sotaque = sotaqueRef.current, graca = 3500) => {
-    const t = trechos.join(' ');
+  const dizer = useCallback((partes: Fala[], depois: () => void, com: Sotaque = sotaqueRef.current, graca = 3500) => {
+    /* a legenda mostra o texto inteiro; o áudio vai em trechos (as partes fixas são mp3 pronto, o nome e os números vêm do servidor) */
+    const nome = primeiroNome(respRef.current);
+    const itens = partes.map((p) => (typeof p === 'string' ? trechosDe(p, { nome }) : trechosDe(p.modelo, { nome, ...p.valores })));
+    const t = itens.map((i) => i.exibir).join(' ');
+    const trechos = itens.flatMap((i) => i.audio);
     const id = ctrl.current.id + 1;
     ctrl.current = { id, voz: false, leg: false, depois, graca };
     setFala(t); setChave(id); setIndiceVoz(-1); setDuracaoMs(0); setCompleta(false); setFase('falando');
@@ -198,9 +204,9 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   useEffect(() => {
     const p = (modo === 'cadastro' ? passosCadastro(respRef.current) : passosEntrar()).find((x) => x.id === idAtual);
     if (!p) return;
-    const trechos = [prefixo.current, p.fala(respRef.current)].filter(Boolean);
-    prefixo.current = '';
-    dizer(trechos, () => {
+    const partes: Fala[] = [...(prefixo.current ? [prefixo.current] : []), p.fala(respRef.current)];
+    prefixo.current = null;
+    dizer(partes, () => {
       if (p.tipo === 'fala') avancar();
       else if (p.tipo === 'criar') void criarConta();
       else setFase('pergunta');
@@ -217,7 +223,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
     respRef.current = { ...respRef.current, [id]: valor };
     setResp(respRef.current);
   };
-  const responder = (valor: string | string[], comentario?: string) => {
+  const responder = (valor: string | string[], comentario?: Fala) => {
     guardar(passo.id, valor);
     if (comentario) prefixo.current = comentario;
     avancar();
@@ -282,7 +288,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
     try {
       const usuario = await entrar(email.trim(), senha);
       setFase('trabalhando');
-      dizer([FALAS.deVolta], () => aoEntrar(usuario));
+      dizer([{ modelo: FALAS.deVolta, valores: { nome: usuario.nome.trim().split(/\s+/)[0] || 'campeão' } }], () => aoEntrar(usuario));
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Não foi possível entrar. Tente de novo.';
       setErro(msg); setEnviando(false);

@@ -16,6 +16,8 @@ class Config(BaseSettings):
     supabase_url: str = ""
     supabase_service_key: str = ""
     supabase_bucket: str = "midia"
+    # voz do RONDIN para nomes e números (ElevenLabs); sem a chave, o app usa a voz do aparelho nesses trechos
+    elevenlabs_api_key: str = ""
 
 
 @lru_cache

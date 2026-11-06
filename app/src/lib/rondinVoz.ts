@@ -5,7 +5,9 @@
 import { createAudioPlayer, AudioPlayer } from 'expo-audio';
 import * as Speech from 'expo-speech';
 import { Platform } from 'react-native';
+import { URL_API } from '../api/cliente';
 import { hashFala } from './hashFala';
+import type { Trecho } from './rondinRoteiro';
 import type { Sotaque } from './rondinSotaques';
 
 export * from './rondinSotaques';
@@ -23,6 +25,35 @@ function carregarManifesto(): Promise<Manifesto | null> {
       .then((m) => { if (!m) manifesto = null; return m; });   // falhou: tenta de novo na próxima fala
   }
   return manifesto;
+}
+
+/* ---------- trechos que mudam de pessoa para pessoa (nome, quilos): o servidor gera o áudio na hora ----------
+   Se o servidor demorar (ele dorme no plano grátis) ou falhar, o trecho é pulado e a conversa segue. */
+const PRAZO_DINAMICO_MS = 3500;
+const urlsDinamicas = new Map<string, string>();
+async function buscarDinamico(texto: string, sotaque: string): Promise<string | null> {
+  if (!URL_API) return null;
+  const falado = texto.replace(/(\d),(\d)/g, '$1 vírgula $2');   // "4,5" se fala "quatro vírgula cinco"
+  const chave = `${sotaque}|${falado}`;
+  const guardada = urlsDinamicas.get(chave);
+  if (guardada) return guardada;
+  const controle = new AbortController();
+  const prazo = setTimeout(() => controle.abort(), PRAZO_DINAMICO_MS);
+  try {
+    const r = await fetch(`${URL_API}/rondin/voz`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: controle.signal,
+      body: JSON.stringify({ texto: falado, sotaque }),
+    });
+    if (!r.ok) return null;
+    const { url } = (await r.json()) as { url?: string };
+    if (!url) return null;
+    urlsDinamicas.set(chave, `${URL_API}${url}`);
+    return urlsDinamicas.get(chave) ?? null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(prazo);
+  }
 }
 
 /* ---------- voz do aparelho (plano B) ---------- */
@@ -114,33 +145,46 @@ function tocarArquivo(url: string): Promise<boolean> {
   });
 }
 
-/* Fala os trechos em ordem (a legenda mostra todos juntos). Para cada um usa o áudio pronto, se houver, ou a voz do aparelho.
-   `aoFim` roda quando acabou (na hora, no modo só texto). `aoDuracao` avisa a duração total quando todos os trechos têm áudio,
-   para a legenda andar no ritmo real. `aoPalavra` avisa o avanço da voz do aparelho no texto, quando ela informa. */
+/* Fala os trechos em ordem (a legenda mostra o texto inteiro). Trecho fixo: mp3 pronto, ou a voz do aparelho se faltar. Trecho
+   dinâmico (nome, quilos): áudio do servidor; se não vier no prazo, é pulado (ou, se a frase toda está sem áudio pronto, sai na
+   voz do aparelho junto com o resto). `aoFim` roda quando acabou (na hora, no modo só texto). `aoDuracao` avisa a duração total
+   quando todos os trechos têm áudio pronto, para a legenda andar no ritmo real. `aoPalavra` avisa o avanço da voz do aparelho. */
 export function falar(
-  trechos: string[], sotaque: Sotaque, aoFim: () => void,
+  itens: (string | Trecho)[], sotaque: Sotaque, aoFim: () => void,
   aoPalavra?: (indice: number) => void, aoDuracao?: (ms: number) => void,
 ): void {
   parar();
   const minha = rodada;
   const fim = () => { if (rodada === minha) aoFim(); };
   if (sotaque.mudo) { fim(); return; }
+  const trechos: Trecho[] = itens.map((x) => (typeof x === 'string' ? { texto: x, dinamico: false } : x));
+  /* os pedidos ao servidor saem já, enquanto os primeiros trechos tocam */
+  const dinamicos = trechos.map((x) => (x.dinamico ? buscarDinamico(x.texto, sotaque.id) : null));
   void (async () => {
     const m = await carregarManifesto();
     if (rodada !== minha) return;
-    const duracoes = trechos.map((t) => m?.[sotaque.id]?.[hashFala(t)]);
-    if (duracoes.every((d) => d !== undefined)) aoDuracao?.(duracoes.reduce<number>((a, d) => a + (d as number), 0) * 1000);
+    const duracoes = trechos.map((x) => (x.dinamico ? undefined : m?.[sotaque.id]?.[hashFala(x.texto)]));
+    const fixosComAudio = trechos.every((x, i) => x.dinamico || duracoes[i] !== undefined);
+    if (fixosComAudio && !trechos.some((x) => x.dinamico)) aoDuracao?.(duracoes.reduce<number>((a, d) => a + (d as number), 0) * 1000);
     let deslocamento = 0;
     for (let i = 0; i < trechos.length; i += 1) {
       if (rodada !== minha) return;
-      const texto = trechos[i];
-      const tocou = duracoes[i] !== undefined && (await tocarArquivo(`${BASE_AUDIO}/${sotaque.id}/${hashFala(texto)}.mp3`));
+      const x = trechos[i];
+      let tocou = false;
+      if (x.dinamico) {
+        const url = await dinamicos[i];
+        if (rodada !== minha) return;
+        tocou = !!url && (await tocarArquivo(url));
+        if (!tocou && fixosComAudio) { deslocamento += x.texto.length + 1; continue; }   // o resto está em áudio bom: pula só este trecho
+      } else {
+        tocou = duracoes[i] !== undefined && (await tocarArquivo(`${BASE_AUDIO}/${sotaque.id}/${hashFala(x.texto)}.mp3`));
+      }
       if (rodada !== minha) return;
       if (!tocou) {
         const base = deslocamento;
-        await falarComAparelho(texto, sotaque, minha, aoPalavra ? (c) => aoPalavra(base + c) : undefined);
+        await falarComAparelho(x.texto, sotaque, minha, aoPalavra ? (c) => aoPalavra(base + c) : undefined);
       }
-      deslocamento += texto.length + 1;
+      deslocamento += x.texto.length + 1;
     }
     fim();
   })();
