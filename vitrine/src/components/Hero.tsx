@@ -79,46 +79,67 @@ export function Hero() {
 
   return (
     <section className="hero" id="inicio" ref={heroRef}>
-      <div className="hero-painel hero-in">
-        {/* o relevo: serras em camadas; as de trás ficam atrás da palavra, a da frente cobre o pé dela */}
-        <svg className="hero-relevo costas" viewBox="0 0 1440 420" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-          <path d="M0 250C150 190 300 235 460 180S770 105 910 180 1210 255 1440 160V420H0Z" />
-          <path d="M0 315C200 262 380 328 560 275S900 222 1100 286 1340 296 1440 244V420H0Z" />
-        </svg>
+      <div className="hero-grao" aria-hidden="true" />
+      <p className="hero-marca" aria-hidden="true">RONDO</p>
 
-        <p className="hero-marca" aria-hidden="true">RONDO</p>
+      {/* o corredor em movimento: um vulto borrado e, logo atrás, o eco dele, o seu ontem */}
+      <svg className="hero-corredor" viewBox="0 0 760 760" aria-hidden="true" focusable="false">
+        <defs>
+          <filter id="borra-forte" x="-40%" y="-20%" width="180%" height="140%"><feGaussianBlur stdDeviation="34 3" /></filter>
+          <filter id="borra-media" x="-30%" y="-20%" width="160%" height="140%"><feGaussianBlur stdDeviation="14 2" /></filter>
+          <filter id="borra-leve" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.2 0.8" /></filter>
+          <g id="vulto" fill="none" stroke="#070212" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="452" cy="128" r="40" fill="#070212" stroke="none" />
+            <path d="M432 186 L352 372" strokeWidth="78" />
+            <path d="M420 208 L336 270 L282 352" strokeWidth="34" />
+            <path d="M438 214 L518 276 L580 214" strokeWidth="34" />
+            <path d="M352 372 L282 500 L168 566" strokeWidth="56" />
+            <path d="M168 566 L112 650" strokeWidth="38" />
+            <path d="M352 372 L478 438 L492 580" strokeWidth="60" />
+            <path d="M492 580 L560 634" strokeWidth="38" />
+          </g>
+        </defs>
+        <g className="eco" transform="translate(-150 6)" opacity=".4" filter="url(#borra-forte)"><use href="#vulto" /></g>
+        <g className="eco" transform="translate(-72 3)" opacity=".5" filter="url(#borra-media)"><use href="#vulto" /></g>
+        <g opacity=".42" filter="url(#borra-media)"><use href="#vulto" /></g>
+        <g opacity=".92" filter="url(#borra-leve)"><use href="#vulto" /></g>
+      </svg>
 
-        <svg className="hero-relevo frente" viewBox="0 0 1440 420" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-          <path d="M0 362C240 330 420 384 640 348S1040 322 1240 362 1390 350 1440 336V420H0Z" />
-        </svg>
-
-        <div className="hero-centro">
+      <div className="wrap hero-in hero-grade">
+        <div className="hero-texto">
           <h1 className="hero-title" aria-label="Vença o você de ontem.">
-            <span className="ln">Vença o você de</span>
-            <span className="ln trail">ontem.</span>
+            <span className="ln">Vença o você</span>
+            <span className="ln trail">de ontem.</span>
           </h1>
           <p className="lead">Treino, dieta, constância e comunidade em um só app, e recados de voz para o seu eu do futuro.</p>
           <div className="hero-cta">
             <Btn href="#cadastro">Criar conta grátis <span className="arrow">→</span></Btn>
-            <Btn href="#recursos" kind="ghost">Ver o dia inteiro</Btn>
+            <Btn href="#recursos" kind="ghost">Ver o app</Btn>
           </div>
         </div>
 
-        <div className="hero-art">
-          <svg className="track" ref={svgRef} viewBox="0 0 560 330" role="img" aria-label="Pista de corrida: você, na frente, e o seu ontem logo atrás">
-            <path className="ln o" d="M165 1H395A164 164 0 0 1 395 329H165A164 164 0 0 1 165 1Z" />
-            <path className="ln" d="M165 37H395A128 128 0 0 1 395 293H165A128 128 0 0 1 165 37Z" />
-            <path className="ln" d="M165 73H395A92 92 0 0 1 395 257H165A92 92 0 0 1 165 73Z" />
-            <path className="start" d="M165 1V73" />
-            <path id="pathGhost" className="guide" d="M165 19H395A146 146 0 0 1 395 311H165A146 146 0 0 1 165 19Z" />
-            <path id="pathYou" className="guide" d="M165 55H395A110 110 0 0 1 395 275H165A110 110 0 0 1 165 55Z" />
-            <Runner id="trailGhost" cls="ghost" />
-            <Runner id="trailYou" cls="you" />
-          </svg>
-          <Delta />
-          <p className="key" aria-hidden="true"><span><i className="k you" />HOJE</span><span><i className="k ghost" />ONTEM</span></p>
+        {/* você contra o seu ontem, pequeno, no canto */}
+        <div className="hero-pista">
+          <div className="hero-art">
+            <svg className="track" ref={svgRef} viewBox="0 0 560 330" role="img" aria-label="Pista de corrida: você, na frente, e o seu ontem logo atrás">
+              <path className="ln o" d="M165 1H395A164 164 0 0 1 395 329H165A164 164 0 0 1 165 1Z" />
+              <path className="ln" d="M165 37H395A128 128 0 0 1 395 293H165A128 128 0 0 1 165 37Z" />
+              <path className="ln" d="M165 73H395A92 92 0 0 1 395 257H165A92 92 0 0 1 165 73Z" />
+              <path className="start" d="M165 1V73" />
+              <path id="pathGhost" className="guide" d="M165 19H395A146 146 0 0 1 395 311H165A146 146 0 0 1 165 19Z" />
+              <path id="pathYou" className="guide" d="M165 55H395A110 110 0 0 1 395 275H165A110 110 0 0 1 165 55Z" />
+              <Runner id="trailGhost" cls="ghost" />
+              <Runner id="trailYou" cls="you" />
+            </svg>
+            <Delta />
+            <p className="key" aria-hidden="true"><span><i className="k you" />HOJE</span><span><i className="k ghost" />ONTEM</span></p>
+          </div>
         </div>
       </div>
+
+      <a className="hero-rola" href="#recursos" aria-label="Rolar para ver mais">
+        <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v13M6 13l6 6 6-6" /></svg></span>
+      </a>
     </section>
   );
 }
