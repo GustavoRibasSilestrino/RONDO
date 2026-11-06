@@ -98,7 +98,8 @@ export function PainelLateral({ ir }: { ir: (tela: string) => void }) {
 }
 
 const st = estilos(() => StyleSheet.create({
-  painel: { width: LARGURA_PAINEL, height: '100%', borderLeftWidth: 1, borderLeftColor: cores.linha },
+  /* largura fixa: sem flexGrow/flexShrink o ScrollView do react-native-web crescia e a coluna tomava metade da tela */
+  painel: { width: LARGURA_PAINEL, flexGrow: 0, flexShrink: 0, height: '100%', borderLeftWidth: 1, borderLeftColor: cores.linha },
   conteudo: { padding: 20, paddingTop: 28, gap: 14 },
   topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   linhaNumero: { flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 4 },
