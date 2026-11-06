@@ -10,7 +10,6 @@ import Svg, { Defs, Path, Pattern, Rect } from 'react-native-svg';
 import { cadastrar, entrar } from '../api/conta';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
 import { Icone } from '../componentes/Icone';
-import { Marca } from '../componentes/Marca';
 import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
 import { useMovimentoReduzido } from '../lib/movimento';
@@ -317,12 +316,12 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
           contentContainerStyle={{ flexGrow: 1, alignItems: 'center', paddingTop: insets.top + 12, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
         >
           <View style={st.coluna}>
-            {/* topo: voltar, a marca e o progresso */}
+            {/* topo: voltar e o progresso */}
             <View style={st.topo}>
               <Pressable accessibilityRole="button" accessibilityLabel={indice <= 0 ? 'Voltar para o início' : 'Voltar uma pergunta'} onPress={voltar} hitSlop={8} style={st.botaoTopo}>
                 <Icone nome="voltar" tamanho={22} cor="#ffffff" />
               </Pressable>
-              <Marca altura={22} />
+              <View style={{ flex: 1 }} />
               <View style={st.botaoTopo} />
             </View>
             {modo === 'cadastro' ? (
