@@ -119,3 +119,13 @@ def test_trocar_senha(cliente):
     assert cliente.post("/auth/senha", json={"atual": "segredo1", "nova": "novasenha1"}, headers=ana).status_code == 200
     assert cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "segredo1", "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True}).status_code == 401
     assert cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "novasenha1"}).status_code == 200
+
+
+def test_perfil_do_rondin_fica_salvo_na_conta(cliente):
+    ana = _conta(cliente)
+    fit = {"sotaque": "pt", "objetivo": "massa", "altura": 178, "peso": 78.5, "pesoMeta": 82, "diasSemana": 4, "foco": ["peito", "costas"]}
+    r = cliente.put("/me/dados", json={"itens": {"perfilFit": fit, "perfil": {"sexo": "m", "idade": 30, "peso": 78.5, "altura": 178, "atividade": 1.55, "objetivo": 1.1}}}, headers=ana)
+    assert r.status_code == 200
+    itens = cliente.get("/me/dados", headers=ana).json()["itens"]
+    assert itens["perfilFit"] == fit and itens["perfil"]["altura"] == 178
+    assert cliente.get("/me/exportar", headers=ana).json()["dados_do_app"]["perfilFit"] == fit

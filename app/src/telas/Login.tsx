@@ -13,21 +13,36 @@ import { Marca } from '../componentes/Marca';
 import { PistaMarca } from '../componentes/PistaMarca';
 import { Botao, T } from '../componentes/Ui';
 import { Cadastro } from './Cadastro';
+import { Inicio } from './Inicio';
+import { Rondin } from './Rondin';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { cores, estilos } from '../tema';
-import type { Usuario } from '../tipos';
+import type { Estado, Usuario } from '../tipos';
 
 export const SITE = 'https://userondo.vercel.app';
 
 const emailValido = (v: string): boolean => /^\S+@\S+\.\S+$/.test(v.trim());
 
-export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
-  const [criando, setCriando] = useState(false);
-  if (criando) return <Cadastro aoEntrar={aoEntrar} aoVoltar={() => setCriando(false)} />;
-  return <Entrar aoEntrar={aoEntrar} aoCriar={() => setCriando(true)} />;
+/* Começa pelo RONDIN: duas opções (criar conta ou entrar) e a conversa. Os formulários de sempre continuam
+   disponíveis ("Prefiro preencher sem o RONDIN"), para quem não quer voz nem animação. */
+type TelaLogin = 'inicio' | 'rondin-cadastro' | 'rondin-entrar' | 'classico-entrar' | 'classico-cadastro';
+
+export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario, extra?: Partial<Estado>) => void }) {
+  const [tela, setTela] = useState<TelaLogin>('inicio');
+  if (tela === 'rondin-cadastro' || tela === 'rondin-entrar') {
+    return (
+      <Rondin
+        key={tela} modo={tela === 'rondin-cadastro' ? 'cadastro' : 'entrar'} aoEntrar={aoEntrar}
+        aoVoltar={() => setTela('inicio')} aoClassico={() => setTela(tela === 'rondin-cadastro' ? 'classico-cadastro' : 'classico-entrar')}
+      />
+    );
+  }
+  if (tela === 'classico-cadastro') return <Cadastro aoEntrar={aoEntrar} aoVoltar={() => setTela('classico-entrar')} />;
+  if (tela === 'classico-entrar') return <Entrar aoEntrar={aoEntrar} aoCriar={() => setTela('classico-cadastro')} aoRondin={() => setTela('inicio')} />;
+  return <Inicio aoCriar={() => setTela('rondin-cadastro')} aoEntrar={() => setTela('rondin-entrar')} aoClassico={() => setTela('classico-entrar')} />;
 }
 
-function Entrar({ aoEntrar, aoCriar }: { aoEntrar: (usuario: Usuario) => void; aoCriar: () => void }) {
+function Entrar({ aoEntrar, aoCriar, aoRondin }: { aoEntrar: (usuario: Usuario) => void; aoCriar: () => void; aoRondin: () => void }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [verSenha, setVerSenha] = useState(false);
