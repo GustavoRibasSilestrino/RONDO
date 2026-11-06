@@ -82,16 +82,21 @@
 .moment h3 { font-family: var(--font-display); font-weight: 200; font-size: clamp(2.6rem, 5.6vw, 5rem); letter-spacing: -.045em; line-height: 1; }
 .m-text p { color: var(--ink-2); margin-top: 1.2rem; max-width: 36ch; }
 
-/* setas e posição, embaixo */
-.day-nav { display: flex; align-items: center; justify-content: flex-end; gap: .6rem; margin-top: .6rem; }
-.day-nav span { font-family: var(--font-mono); font-size: .75rem; letter-spacing: .08em; color: var(--ink-3); min-width: 3.4rem; text-align: center; }
-.day-nav button {
-  width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%;
-  border: 1px solid var(--line-2); color: var(--ink); transition: background .2s, opacity .2s;
+/* setas grandes nas laterais do palco, na altura do meio */
+.day-stage { position: relative; padding-inline: 76px; }
+.day-seta {
+  position: absolute; top: 50%; z-index: 2; translate: 0 -50%;
+  width: 60px; height: 60px; display: grid; place-items: center; border-radius: 50%;
+  border: 1px solid rgba(167, 139, 250, .35); color: #fff;
+  background: radial-gradient(120% 120% at 30% 20%, rgba(139, 92, 246, .35), rgba(13, 11, 20, .92) 70%);
+  box-shadow: 0 14px 30px -14px rgba(106, 0, 212, .8), inset 0 1px 0 rgba(255, 255, 255, .12);
+  transition: transform .2s var(--ease), opacity .2s, border-color .2s;
 }
-.day-nav button:hover:not(:disabled) { background: rgba(255, 255, 255, .06); }
-.day-nav button:disabled { opacity: .3; cursor: default; }
-.day-nav svg { width: 18px; height: 18px; }
+.day-seta.ant { left: 0; }
+.day-seta.prox { right: 0; }
+.day-seta svg { width: 26px; height: 26px; }
+.day-seta:hover:not(:disabled) { transform: scale(1.06); border-color: rgba(196, 168, 255, .7); }
+.day-seta:disabled { opacity: .25; cursor: default; }
 
 /* celular: título e relógio em cima, texto em cima do cartão, as abas vão de ponta a ponta */
 @media (max-width: 760px) {
@@ -101,7 +106,12 @@
   .moment h3 { font-size: clamp(2.2rem, 11vw, 3rem); }
   .m-text p { margin: .5rem auto 0; font-size: .95rem; }
   .m-ui { width: min(100%, 360px); padding: 1rem; }
-  .day-nav { justify-content: center; }
+  /* celular: o palco ocupa a largura toda e as setas ficam por cima das bordas */
+  .day-stage { padding-inline: 0; }
+  .day-seta { width: 46px; height: 46px; top: 38%; }
+  .day-seta.ant { left: -6px; }
+  .day-seta.prox { right: -6px; }
+  .day-seta svg { width: 22px; height: 22px; }
 }
 
 .m-ui {
