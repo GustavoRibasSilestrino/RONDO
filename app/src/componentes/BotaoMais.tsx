@@ -13,7 +13,7 @@ export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPression
   const { largo } = useLayoutLargo();   // no computador não há barra embaixo
   return (
     <View pointerEvents="box-none" style={[st.faixa, { bottom: insets.bottom + (largo ? 28 : 6 + 62 + 12) }]}>
-      <View pointerEvents="box-none" style={{ width: Math.min(width, larguraMax), alignItems: 'flex-end', paddingRight: 20 }}>
+      <View pointerEvents="box-none" style={{ width: largo ? '100%' : Math.min(width, larguraMax), alignItems: 'flex-end', paddingRight: 20 }}>
         <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={aoPressionar} style={({ pressed }) => [st.mais, pressed && { transform: [{ scale: 0.94 }] }]}>
           {temaAtual() === 'normal' ? <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={[StyleSheet.absoluteFill, { borderRadius: 29 }]} /> : null}
           <View pointerEvents="none" style={{ zIndex: 1 }}><Icone nome="mais" tamanho={28} cor="#ffffff" espessura={2} /></View>
