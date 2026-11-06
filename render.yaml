@@ -8,7 +8,7 @@ services:
     plan: free
     region: oregon            # mesma região do banco no Supabase (us-west-2)
     buildCommand: pip install -r requirements.txt
-    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*" --timeout-keep-alive 30
     healthCheckPath: /saude
     envVars:
       - key: PYTHON_VERSION
@@ -17,6 +17,8 @@ services:
         sync: false
       - key: JWT_SEGREDO
         sync: false
+      # DATABASE_URL: use a string do POOLER do Supabase em modo transação (porta 6543), que divide poucas conexões entre muita gente.
+      # Ajustes opcionais (valores padrão no código): DB_POOL_TAMANHO=5, DB_POOL_EXTRA=5, LIMITE_REQ_MINUTO=600, LIMITE_AUTH_MINUTO=20
       - key: AZURE_SPEECH_KEY   # voz do RONDIN para nomes e números; preencha no painel
         sync: false
       - key: AZURE_SPEECH_REGION   # ex.: brazilsouth ou eastus (a região do recurso Speech)

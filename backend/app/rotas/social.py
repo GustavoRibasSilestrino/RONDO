@@ -221,23 +221,27 @@ def limpar_notificacoes(usuario: Usuario = Depends(usuario_atual), sessao: Sessi
 
 # ---------- resumo: o que alimenta nível e medalhas ----------
 
-def _contar(sessao: Session, consulta) -> int:
-    return sessao.scalar(select(func.count()).select_from(consulta.subquery())) or 0
+def _total(consulta):
+    """Uma contagem como subconsulta: todas as contagens do resumo saem numa ida só ao banco."""
+    return select(func.count()).select_from(consulta.subquery()).scalar_subquery()
 
 
 @router.get("/resumo", response_model=ResumoOut)
 def resumo(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    """É chamado com frequência pelo app: 2 consultas no total (as contagens juntas e a lista de clubes)."""
     uid = usuario.id
+    c = sessao.execute(select(
+        _total(select(Post.id).where(Post.autor_id == uid)),
+        _total(select(Curtida.post_id).where(Curtida.usuario_id == uid)),
+        _total(select(Seguidor.seguido_id).where(Seguidor.seguidor_id == uid)),
+        _total(select(Seguidor.seguidor_id).where(Seguidor.seguido_id == uid)),
+        _total(select(Comentario.id).where(Comentario.autor_id == uid)),
+        _total(select(Clube.id).where(Clube.dono_id == uid)),
+        _total(select(Notificacao.id).where(Notificacao.usuario_id == uid, Notificacao.lida.is_(False))),
+    )).one()
     return ResumoOut(
-        id=uid,
-        posts=_contar(sessao, select(Post.id).where(Post.autor_id == uid)),
-        cheers_dados=_contar(sessao, select(Curtida.post_id).where(Curtida.usuario_id == uid)),
-        seguindo=_contar(sessao, select(Seguidor.seguido_id).where(Seguidor.seguidor_id == uid)),
-        seguidores=_contar(sessao, select(Seguidor.seguidor_id).where(Seguidor.seguido_id == uid)),
-        comentarios=_contar(sessao, select(Comentario.id).where(Comentario.autor_id == uid)),
-        clubes_criados=_contar(sessao, select(Clube.id).where(Clube.dono_id == uid)),
-        clubes=list(sessao.scalars(select(Membro.clube_id).where(Membro.usuario_id == uid))),
-        nao_lidas=_contar(sessao, select(Notificacao.id).where(Notificacao.usuario_id == uid, Notificacao.lida.is_(False))),
+        id=uid, posts=c[0], cheers_dados=c[1], seguindo=c[2], seguidores=c[3], comentarios=c[4], clubes_criados=c[5],
+        clubes=list(sessao.scalars(select(Membro.clube_id).where(Membro.usuario_id == uid))), nao_lidas=c[6],
     )
 
 
