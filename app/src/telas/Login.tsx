@@ -1,4 +1,4 @@
-/* Entrar com a conta: é só isso que a pessoa faz antes de usar o app. A assinatura é feita no site.
+/* Entrar com a conta, ou criar uma (telas/Cadastro.tsx), antes de usar o app.
    A tela entra em cascata (marca, pista, título, campos, botão), valida campo a campo, treme e vibra quando algo falha,
    e respeita "reduzir movimento". */
 import * as Haptics from 'expo-haptics';
@@ -12,6 +12,7 @@ import { Icone } from '../componentes/Icone';
 import { Marca } from '../componentes/Marca';
 import { PistaMarca } from '../componentes/PistaMarca';
 import { Botao, T } from '../componentes/Ui';
+import { Cadastro } from './Cadastro';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { cores, estilos } from '../tema';
 import type { Usuario } from '../tipos';
@@ -21,6 +22,12 @@ export const SITE = 'https://userondo.vercel.app';
 const emailValido = (v: string): boolean => /^\S+@\S+\.\S+$/.test(v.trim());
 
 export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
+  const [criando, setCriando] = useState(false);
+  if (criando) return <Cadastro aoEntrar={aoEntrar} aoVoltar={() => setCriando(false)} />;
+  return <Entrar aoEntrar={aoEntrar} aoCriar={() => setCriando(true)} />;
+}
+
+function Entrar({ aoEntrar, aoCriar }: { aoEntrar: (usuario: Usuario) => void; aoCriar: () => void }) {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [verSenha, setVerSenha] = useState(false);
@@ -176,15 +183,15 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
           <Animated.View style={[st.rodape, surgir(7)]}>
             <View style={st.fio} />
             <T tam={13.5} cor={cores.texto2} centro style={{ lineHeight: 20 }}>
-              Ainda não tem conta? Crie a sua de graça no site.
+              Ainda não tem conta? É grátis.
             </T>
             <Pressable
-              accessibilityRole="link"
-              accessibilityLabel="Abrir o site do RONDO"
-              onPress={() => Linking.openURL(SITE)}
+              accessibilityRole="button"
+              accessibilityLabel="Criar conta"
+              onPress={aoCriar}
               style={({ pressed }) => [st.pilula, { opacity: pressed ? 0.7 : 1 }]}
             >
-              <T tam={13.5} peso="500" cor={cores.destaque2}>Abrir o site do RONDO</T>
+              <T tam={13.5} peso="500" cor={cores.destaque2}>Criar conta</T>
               <Icone nome="setaDireita" tamanho={16} cor={cores.destaque2} />
             </Pressable>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 16 }}>
