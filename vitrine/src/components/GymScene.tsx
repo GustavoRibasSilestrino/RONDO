@@ -20,6 +20,9 @@ const mix = (a: string, b: string, t: number) => {
   const A = hex(a), B = hex(b);
   return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",")})`;
 };
+/* o fundo da página é a cor de cada cena bem escurecida */
+const escuro = (c: string, t: number) => "#" + hex(c).map((v) => Math.round(v * (1 - t)).toString(16).padStart(2, "0")).join("");
+const ESCURAS = CENAS.map((c) => escuro(c.cor, 0.62));
 const smooth = (t: number) => { const x = Math.min(1, Math.max(0, t)); return x * x * (3 - 2 * x); };
 const ease = (t: number) => { const x = Math.min(1, Math.max(0, t)); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
 
@@ -27,6 +30,9 @@ export function GymScene() {
   const wrap = useRef<HTMLElement>(null);
   const host = useRef<HTMLDivElement>(null);
   const palavras = useRef<(HTMLSpanElement | null)[]>([]);
+  const etiquetas = useRef<(HTMLLIElement | null)[]>([]);
+  const indice = useRef<HTMLSpanElement>(null);
+  const trilha = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const secao = wrap.current, alvo = host.current;
@@ -44,6 +50,11 @@ export function GymScene() {
       const f = smooth(q - i0);
       const c = mix(CENAS[i0].cor, CENAS[i0 + 1].cor, f);
       secao.style.setProperty("--cena", c);
+      secao.style.setProperty("--cena-escura", mix(ESCURAS[i0], ESCURAS[i0 + 1], f));
+      const ativa = Math.min(CENAS.length - 1, Math.max(0, Math.round(q)));
+      if (indice.current) indice.current.textContent = String(ativa + 1).padStart(2, "0");
+      if (trilha.current) trilha.current.style.transform = `scaleX(${(q / (CENAS.length - 1)).toFixed(4)})`;
+      etiquetas.current.forEach((el, i) => el?.classList.toggle("on", i === ativa));
       palavras.current.forEach((el, i) => {
         if (!el) return;
         const d = q - i;
@@ -77,17 +88,38 @@ export function GymScene() {
 
   return (
     <section ref={wrap} className="gym" id="aparelhos" aria-labelledby="gym-titulo">
+      {/* textura de spray: ruído que desmancha a borda das letras grandes */}
+      <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: "absolute" }}>
+        <filter id="gym-spray" x="-5%" y="-5%" width="110%" height="110%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="4" result="ruido" />
+          <feDisplacementMap in="SourceGraphic" in2="ruido" scale="9" xChannelSelector="R" yChannelSelector="G" />
+          <feGaussianBlur stdDeviation="0.8" />
+        </filter>
+      </svg>
       <div className="gym-stage">
         <div className="gym-words" aria-hidden="true">
-          {CENAS.map((c, i) => <span key={c.nome} ref={(el) => { palavras.current[i] = el; }} className="gym-word">{c.nome}</span>)}
+          {CENAS.map((c, i) => <span key={c.nome} ref={(el) => { palavras.current[i] = el; }} className="gym-word"><span>{c.nome}</span></span>)}
         </div>
         <div className="gym-canvas" ref={host} aria-hidden="true" />
-        <div className="gym-copy wrap">
-          <h2 id="gym-titulo" className="gym-title">Cada aparelho, com a carga de ontem.</h2>
-          <ul className="gym-lista">
-            {CENAS.map((c) => <li key={c.nome}><b>{c.nome}</b> {c.linha}</li>)}
-          </ul>
-          <Btn href="#cadastro">Criar conta grátis</Btn>
+        <div className="gym-grain" aria-hidden="true" />
+
+        <ul className="gym-etiquetas" aria-hidden="true">
+          {CENAS.map((c, i) => <li key={c.nome} ref={(el) => { etiquetas.current[i] = el; }} className={i === 0 ? "on" : ""}>[ {c.nome} ]</li>)}
+        </ul>
+        <p className="gym-serie" aria-hidden="true">[ Série: aparelhos 04 ]</p>
+
+        <div className="gym-base">
+          <h2 id="gym-titulo" className="gym-title"><span>Carga de ontem.</span><span>Passo de hoje.</span><span>Recorde de amanhã.</span></h2>
+          <div className="gym-meio">
+            <a className="gym-hex" href="#cadastro" aria-label="Criar conta grátis">
+              <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30" /><path d="M38 62 L64 36 M44 36 H64 V56" /></svg>
+            </a>
+            <div><b>Criar conta grátis</b><small>Cada aparelho abre com a carga de ontem e sugere a de hoje.</small></div>
+          </div>
+          <div className="gym-fim" aria-hidden="true">
+            <span className="gym-pager"><span ref={indice}>01</span><i><em ref={trilha} /></i><span>04</span></span>
+            <span className="gym-barras" />
+          </div>
         </div>
       </div>
     </section>
