@@ -29,7 +29,7 @@
 .streak-board .heat { gap: 6px; }
 .streak-board .heat .c {
   position: relative; aspect-ratio: 1; padding: 0; border: 0; cursor: pointer; touch-action: manipulation;
-  border-radius: clamp(5px, 24%, 12px); -webkit-tap-highlight-color: transparent;
+  border-radius: clamp(2px, 24%, 4px); -webkit-tap-highlight-color: transparent;
   background-color: rgba(255, 255, 255, .055);
   transition: background-color .45s var(--ease), box-shadow .45s var(--ease), transform .3s var(--ease);
 }
@@ -84,7 +84,7 @@
 /* ---- dica flutuante ---- */
 .heat-tip {
   position: absolute; z-index: 10; pointer-events: none; white-space: nowrap;
-  padding: .5rem .85rem; border-radius: 999px; font-size: .8rem; color: var(--ink);
+  padding: .5rem .85rem; border-radius: 4px; font-size: .8rem; color: var(--ink);
   background: rgba(20, 14, 36, .94); border: 1px solid rgba(167, 139, 250, .45);
   box-shadow: 0 14px 28px -12px rgba(0, 0, 0, .9);
   opacity: 0; transform: translate(-50%, -100%) translateY(6px); transition: opacity .2s, transform .3s var(--ease);
