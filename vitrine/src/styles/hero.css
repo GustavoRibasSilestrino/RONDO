@@ -1,5 +1,5 @@
-/* ===== Topo: tela inteira de um violeta saturado que escurece até o preto embaixo, um corredor em movimento (vulto borrado
-   e o eco dele, o seu ontem), o título e os botões à esquerda. Letra Poppins, cantos quase retos. ===== */
+/* ===== Topo: tela inteira de um violeta saturado que escurece até o preto embaixo, o RONDO gigante ao fundo,
+   o título e os botões à esquerda. Letra Poppins, cantos quase retos. ===== */
 .hero {
   position: relative; isolation: isolate; overflow: hidden; display: block; min-height: 100vh; min-height: 100svh;
   padding: calc(var(--nav-h) + clamp(1rem, 5vh, 3rem)) 0 clamp(4.5rem, 10vh, 6.5rem);
@@ -13,27 +13,12 @@
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.4 -.35'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 
-/* a palavra, grande e quase apagada, atrás do corredor */
+/* a palavra, grande e quase apagada, ao fundo */
 .hero-marca {
   position: absolute; z-index: -1; left: 0; right: 0; bottom: 6%; text-align: center; pointer-events: none; user-select: none;
   font-family: "Poppins", var(--font-display); font-weight: 800; line-height: .8; letter-spacing: -.045em; color: rgba(255, 255, 255, .1);
   font-size: 28.2vw;   /* de margem a margem em qualquer largura */
 }
-
-/* o corredor: do meio para a direita. O branco da foto some no violeta (multiply); o preto fica */
-.hero-corredor {
-  /* o tamanho acompanha a tela: a altura segue a janela, sem teto em px, e a largura nunca passa de ~58% dela */
-  position: absolute; z-index: 1; right: -1vw; top: calc(var(--nav-h) - .5rem); height: min(90%, 60vw); aspect-ratio: 1280 / 1240;
-  pointer-events: none; mix-blend-mode: multiply; opacity: .55;
-}
-.hero-corredor img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.hero-corredor .vulto { animation: corredor-pulsa 5.5s ease-in-out infinite alternate; }
-.hero-corredor .eco { opacity: .32; filter: blur(5px); }
-.hero-corredor .e1 { transform: translateX(-9%); animation: eco-corre 5.5s ease-in-out infinite alternate; }
-.hero-corredor .e2 { transform: translateX(-18%); opacity: .18; filter: blur(10px); animation: eco-corre2 5.5s ease-in-out infinite alternate; }
-@keyframes corredor-pulsa { from { transform: translateX(0); } to { transform: translateX(-1.6%); } }
-@keyframes eco-corre { from { transform: translateX(-9%); } to { transform: translateX(-12%); } }
-@keyframes eco-corre2 { from { transform: translateX(-18%); } to { transform: translateX(-23%); } }
 
 .hero-grade { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; min-height: calc(100svh - var(--nav-h) - 8rem); grid-template-rows: none; }
 .hero-texto { max-width: 36rem; }
@@ -48,7 +33,6 @@
 
 @media (max-width: 960px) {
   .hero { padding: calc(var(--nav-h) + clamp(1.4rem, 6vh, 2.6rem)) 0 clamp(3rem, 8vh, 4.5rem); }
-  .hero-corredor { right: -26%; top: calc(var(--nav-h) + 4%); height: 62%; opacity: .55; }
   .hero-grade { align-items: start; min-height: 0; }
   .hero-texto { max-width: 22rem; margin-inline: auto; text-align: center; }
   .hero-title { font-size: clamp(26px, 8.4vw, 46px); line-height: 1.08; letter-spacing: -.03em; }
@@ -56,7 +40,4 @@
   .hero-cta { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .6rem; margin-top: 1.4rem; max-width: none; }
   .hero-cta .btn { flex: 1 1 auto; min-width: 0; min-height: 44px; padding: .7rem 1.1rem; font-size: clamp(13px, 3.6vw, 15px); }
   .hero-marca { font-size: 28.2vw; letter-spacing: -.045em; bottom: 6%; }   /* a palavra ocupa a largura toda, de margem a margem */
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-corredor .vulto, .hero-corredor .eco { animation: none; }
 }
