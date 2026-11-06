@@ -3,7 +3,6 @@
    (objetivo, corpo, rotina, alimentação, sono...) e no fim e-mail, senha e aceite. Quem já tem conta ouve "que ótimo" e vê
    os campos de entrada. As respostas são ids estáveis; os rótulos são só o que aparece. */
 import type { Estado, PerfilFit } from '../tipos';
-import { SOTAQUES } from './rondinVoz';
 
 export type Opcao = { id: string; rotulo: string; nota?: string; comentario?: string };
 export type Respostas = Record<string, string | string[]>;
@@ -52,6 +51,20 @@ const faixa = (v: string, min: number, max: number, o: string): string | undefin
   return Number.isFinite(n) && n >= min && n <= max ? undefined : o;
 };
 
+/* ---------- falas que não dependem da pessoa ----------
+   Nenhuma fala leva o nome ou números: assim todas existem como áudio pronto (scripts/gerar-vozes.mjs). */
+export const COMENTARIO_PESO = {
+  manter: 'Você quer manter o peso. Ótimo, vamos proteger isso.',
+  ganhar: 'Ganhar peso do jeito certo é questão de treino e comida. A gente chega lá com constância.',
+  perder: 'Com calma e constância, a gente chega lá. Sem pressa e sem milagre.',
+};
+export const FALAS = {
+  deVolta: 'Bem-vindo de volta! Que bom te ver.',
+  contaCriada: 'Pronto! Sua conta está criada e o seu perfil está salvo. Bem-vindo ao RONDO.',
+  emailJaTem: 'Esse e-mail já tem uma conta. Use outro, ou volte e entre com ele.',
+  falhaCriar: 'Não consegui criar a conta agora.',
+};
+
 /* ---------- as opções ---------- */
 const OBJETIVOS: Opcao[] = [
   { id: 'gordura', rotulo: 'Perder gordura', comentario: 'Perder gordura é comigo. Treino e comida andam juntos.' },
@@ -66,7 +79,6 @@ const opc = (...pares: [string, string][]): Opcao[] => pares.map(([id, rotulo]) 
 
 /* ---------- o cadastro ---------- */
 export function passosCadastro(r: Respostas): Passo[] {
-  const nome = primeiroNome(r);
   const p: Passo[] = [
     { id: 'apresentacao', tipo: 'fala', fala: () => 'Oi! Eu sou o RONDIN, o agente do RONDO. Vou te ajudar a criar a sua conta e montar o seu perfil de treino.' },
     { id: 'sotaque', tipo: 'sotaque', fala: () => 'Antes de começar: com qual sotaque você quer que eu fale?' },
@@ -74,7 +86,7 @@ export function passosCadastro(r: Respostas): Passo[] {
       id: 'nome', tipo: 'campo', campo: 'texto', rotulo: 'Seu nome', fala: () => 'Como eu posso te chamar?',
       validar: (v) => (v.trim().length < 2 ? 'Digite o seu nome.' : undefined),
     },
-    { id: 'objetivo', tipo: 'opcoes', fala: () => `Prazer, ${nome}! Qual é o seu grande objetivo agora?`, opcoes: OBJETIVOS },
+    { id: 'objetivo', tipo: 'opcoes', fala: () => 'Prazer em te conhecer! Qual é o seu grande objetivo agora?', opcoes: OBJETIVOS },
     {
       id: 'sexo', tipo: 'opcoes', fala: () => 'Para calcular as suas calorias direitinho, qual destas opções combina com você?',
       opcoes: [{ id: 'm', rotulo: 'Masculino' }, { id: 'f', rotulo: 'Feminino' }, { id: 'nd', rotulo: 'Prefiro não dizer', comentario: 'Tudo bem. Vou usar uma média nas contas.' }],
@@ -116,9 +128,7 @@ export function passosCadastro(r: Respostas): Passo[] {
       validar: (v) => faixa(v, 30, 300, 'Digite o peso em quilos, entre 30 e 300.'),
       comentario: (v, rr) => {
         const dif = numero(v) - numero(String(rr.peso ?? 0));
-        const q = Math.abs(Math.round(dif * 10) / 10).toString().replace('.', ' vírgula ');
-        if (Math.abs(dif) < 0.5) return 'Você quer manter o peso. Ótimo, vamos proteger isso.';
-        return `São ${q} quilos para ${dif > 0 ? 'ganhar' : 'perder'}. Com calma e constância, a gente chega lá.`;
+        return Math.abs(dif) < 0.5 ? COMENTARIO_PESO.manter : dif > 0 ? COMENTARIO_PESO.ganhar : COMENTARIO_PESO.perder;
       },
     },
     {
@@ -183,7 +193,7 @@ export function passosCadastro(r: Respostas): Passo[] {
         .map((o) => ({ ...o, comentario: 'Combinado. É essa frase que a gente vai buscar.' })),
     },
     {
-      id: 'email', tipo: 'campo', campo: 'email', rotulo: 'E-mail', fala: () => `Beleza, ${nome}! Falta pouco. Agora a conta: qual é o seu e-mail?`,
+      id: 'email', tipo: 'campo', campo: 'email', rotulo: 'E-mail', fala: () => 'Beleza, falta pouco! Agora a conta: qual é o seu e-mail?',
       validar: (v) => (!emailValido(v) ? 'Digite um e-mail válido.' : undefined),
     },
     {
@@ -197,7 +207,7 @@ export function passosCadastro(r: Respostas): Passo[] {
       barra: (id) => (id === 'aceito' ? undefined : 'Claro, leia com calma pelos links aqui embaixo. Quando terminar, é só tocar em aceito.'),
     },
     { id: 'marketing', tipo: 'opcoes', fala: () => 'Posso te mandar novidades do RONDO por e-mail? É opcional.', opcoes: [{ id: 'sim', rotulo: 'Pode mandar' }, { id: 'nao', rotulo: 'Prefiro que não' }] },
-    { id: 'criar', tipo: 'criar', fala: () => `Perfeito, ${nome}! Estou montando a sua conta e o seu perfil agora.` },
+    { id: 'criar', tipo: 'criar', fala: () => 'Perfeito! Estou montando a sua conta e o seu perfil agora.' },
   );
   return p;
 }
@@ -244,4 +254,23 @@ export function montarPerfil(r: Respostas, sotaque: string, hoje: Date = new Dat
   };
 }
 
-export const rotuloSotaque = (id: string): string => SOTAQUES.find((s) => s.id === id)?.nome ?? '';
+
+/* Todas as frases que o RONDIN pode dizer (sem as amostras de sotaque, que são de cada voz). O gerador de vozes usa esta
+   lista; o que não estiver aqui cai na voz do aparelho (ex.: mensagens de erro vindas do servidor). */
+export function listarFalas(): string[] {
+  const achadas = new Set<string>();
+  const add = (v: string | undefined) => { if (v) achadas.add(v); };
+  const listas = [passosCadastro({}), passosCadastro({ nascimento: '01/01/2012' }), passosEntrar()];
+  for (const lista of listas) {
+    for (const p of lista) {
+      add(p.fala({}));
+      if (p.tipo === 'opcoes') { p.opcoes.forEach((o) => { add(o.comentario); add(p.barra?.(o.id)); }); }
+      if (p.tipo === 'multi') p.opcoes.forEach((o) => add(o.comentario));
+      if (p.tipo === 'campo') for (const teste of ['', 'x', '0', '1', '999', 'a@', '31/02/2020']) add(p.validar(teste, {}));
+    }
+  }
+  Object.values(COMENTARIO_PESO).forEach(add);
+  Object.values(FALAS).forEach(add);
+  add('Digite um e-mail válido.'); add('A senha tem pelo menos 6 caracteres.');
+  return [...achadas];
+}

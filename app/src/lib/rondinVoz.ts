@@ -1,36 +1,31 @@
-/* A voz do RONDIN. Usa a voz do próprio aparelho (expo-speech: no navegador, a síntese do Chrome/Safari/Edge).
-   O "sotaque" é a escolha de qual voz lê o texto em português: o de Portugal usa a voz pt-PT; o gringo, o espanhol, o
-   italiano e o francês usam a voz desses idiomas lendo português, que é o que dá o sotaque. Se o aparelho não tiver a
-   voz pedida, ele fala com a padrão em vez de ficar mudo. Sem voz nenhuma, o RONDIN segue só com a legenda. */
+/* A voz do RONDIN. Cada frase tem dois caminhos:
+   1. áudio pronto (mp3 gerado no ElevenLabs por scripts/gerar-vozes.mjs, em public/vozes/<sotaque>/<frase>.mp3), que é a voz boa;
+   2. a voz do aparelho (expo-speech), quando a frase não tem áudio (ex.: mensagem de erro do servidor) ou o áudio não carrega.
+   O arquivo vozes/manifest.json diz quais frases têm áudio e quanto duram. Sem nenhum dos dois, o RONDIN segue só com a legenda. */
+import { createAudioPlayer, AudioPlayer } from 'expo-audio';
 import * as Speech from 'expo-speech';
+import { Platform } from 'react-native';
+import { hashFala } from './hashFala';
+import type { Sotaque } from './rondinSotaques';
 
-export type Sotaque = {
-  id: string;
-  nome: string;
-  nota: string;            // a linha miúda embaixo do nome
-  lang: string;            // idioma da voz que vai ler
-  tom: number;             // 0.5 a 2
-  taxa: number;            // 0.5 a 2 (1 = normal)
-  amostra: string;         // o que ele diz logo depois de ser escolhido
-  mudo?: boolean;          // só legenda, sem som
-};
+export * from './rondinSotaques';
 
-export const SOTAQUES: Sotaque[] = [
-  { id: 'br', nome: 'Brasileiro', nota: 'do jeitão de casa', lang: 'pt-BR', tom: 1, taxa: 1, amostra: 'Fechado! Vou falar do jeitão brasileiro mesmo.' },
-  { id: 'pt', nome: 'Português de Portugal', nota: 'à moda de Lisboa', lang: 'pt-PT', tom: 1, taxa: 1, amostra: 'Pronto, ficou combinado! Falo à moda de Lisboa, pá.' },
-  { id: 'gringo', nome: 'Gringo', nota: 'americano arriscando português', lang: 'en-US', tom: 1, taxa: 0.95, amostra: 'Okay! Eu vou falar português com sotaque de Nova York. Muito bom, né?' },
-  { id: 'espanhol', nome: 'Portunhol', nota: 'com muito gusto', lang: 'es-ES', tom: 1, taxa: 1, amostra: 'Vamos! Fechado, falo portunhol y listo.' },
-  { id: 'italiano', nome: 'Italiano', nota: 'mamma mia, que treino!', lang: 'it-IT', tom: 1.05, taxa: 1, amostra: 'Perfetto! Vou falar com sotaque de Roma, bellissimo!' },
-  { id: 'frances', nome: 'Francês', nota: 'très chique', lang: 'fr-FR', tom: 1, taxa: 1, amostra: 'Voilà! Falo com sotaque de Paris, très bien.' },
-  { id: 'narrador', nome: 'Narrador de cinema', nota: 'voz grave e dramática', lang: 'pt-BR', tom: 0.45, taxa: 0.82, amostra: 'Nesta jornada, um herói decidiu mudar de vida. Era você.' },
-  { id: 'robo', nome: 'Robô', nota: 'bip, bop, treino', lang: 'pt-BR', tom: 0.2, taxa: 0.8, amostra: 'Bip bop. Modo robô ativado. Pronto para treinar.' },
-  { id: 'mudo', nome: 'Só texto', nota: 'sem som, só a legenda', lang: 'pt-BR', tom: 1, taxa: 1, amostra: 'Combinado, sigo só com a legenda.', mudo: true },
-];
+/* onde ficam os áudios: no navegador, no mesmo site do app; no celular, no endereço público do site */
+const BASE_AUDIO = Platform.OS === 'web' ? '/app/vozes' : 'https://userondo.vercel.app/app/vozes';
 
-export const sotaquePadrao = (): Sotaque => SOTAQUES[0];
-export const achaSotaque = (id: string | undefined): Sotaque => SOTAQUES.find((s) => s.id === id) ?? SOTAQUES[0];
+type Manifesto = Record<string, Record<string, number>>;   // sotaque -> frase (hash) -> duração em segundos
+let manifesto: Promise<Manifesto | null> | null = null;
+function carregarManifesto(): Promise<Manifesto | null> {
+  if (!manifesto) {
+    manifesto = fetch(`${BASE_AUDIO}/manifest.json`)
+      .then((r) => (r.ok ? (r.json() as Promise<Manifesto>) : null))
+      .catch(() => null)
+      .then((m) => { if (!m) manifesto = null; return m; });   // falhou: tenta de novo na próxima fala
+  }
+  return manifesto;
+}
 
-/* as vozes do aparelho, lidas uma vez (no navegador elas chegam depois do carregamento da página) */
+/* ---------- voz do aparelho (plano B) ---------- */
 let vozes: Speech.Voice[] | null = null;
 let lendoVozes: Promise<Speech.Voice[]> | null = null;
 async function listarVozes(): Promise<Speech.Voice[]> {
@@ -63,30 +58,90 @@ async function escolherVoz(lang: string): Promise<string | undefined> {
 }
 
 let rodada = 0;   // cada fala nova invalida a anterior: um "acabou" atrasado não dispara o passo errado
+let encerrarAtual: (() => void) | null = null;   // solta a espera da frase que está tocando
 
 export function parar(): void {
   rodada += 1;
+  encerrarAtual?.();
   try { void Speech.stop(); } catch { /* nada falando */ }
 }
 
-/* Fala o texto. `aoFim` roda quando a voz termina, ou na hora se não há voz (modo só texto ou aparelho sem síntese).
-   `aoPalavra` avisa o avanço da voz no texto (índice do caractere), quando o aparelho informa. */
-export function falar(texto: string, sotaque: Sotaque, aoFim: () => void, aoPalavra?: (indice: number) => void): void {
+function falarComAparelho(texto: string, sotaque: Sotaque, minha: number, aoPalavra?: (i: number) => void): Promise<void> {
+  return new Promise((resolve) => {
+    encerrarAtual = resolve;
+    void (async () => {
+      try {
+        const voice = await escolherVoz(sotaque.lang);
+        if (rodada !== minha) { resolve(); return; }
+        Speech.speak(texto, {
+          language: sotaque.lang, pitch: sotaque.tom, rate: sotaque.taxa, voice,
+          onDone: () => resolve(), onStopped: () => resolve(), onError: () => resolve(),
+          onBoundary: ((e: { charIndex?: number }) => { if (rodada === minha && typeof e.charIndex === 'number') aoPalavra?.(e.charIndex); }) as never,
+        });
+      } catch {
+        resolve();
+      }
+    })();
+  });
+}
+
+/* toca o mp3; devolve false se não deu para tocar (o chamador usa a voz do aparelho) */
+function tocarArquivo(url: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    let jogador: AudioPlayer | null = null;
+    let pronto = false;
+    const acabar = (ok: boolean) => {
+      if (pronto) return;
+      pronto = true;
+      clearTimeout(espera);
+      try { jogador?.remove(); } catch { /* já solto */ }
+      if (encerrarAtual === sair) encerrarAtual = null;
+      resolve(ok);
+    };
+    const sair = () => acabar(true);   // parar(): não toca a voz do aparelho por cima
+    const espera = setTimeout(() => acabar(false), 8000);   // não começou a tocar: desiste e usa a voz do aparelho
+    try {
+      jogador = createAudioPlayer({ uri: url });
+      encerrarAtual = sair;
+      jogador.addListener('playbackStatusUpdate', (s) => {
+        if (s.playing) clearTimeout(espera);
+        if (s.didJustFinish) acabar(true);
+      });
+      jogador.play();
+    } catch {
+      acabar(false);
+    }
+  });
+}
+
+/* Fala os trechos em ordem (a legenda mostra todos juntos). Para cada um usa o áudio pronto, se houver, ou a voz do aparelho.
+   `aoFim` roda quando acabou (na hora, no modo só texto). `aoDuracao` avisa a duração total quando todos os trechos têm áudio,
+   para a legenda andar no ritmo real. `aoPalavra` avisa o avanço da voz do aparelho no texto, quando ela informa. */
+export function falar(
+  trechos: string[], sotaque: Sotaque, aoFim: () => void,
+  aoPalavra?: (indice: number) => void, aoDuracao?: (ms: number) => void,
+): void {
   parar();
   const minha = rodada;
   const fim = () => { if (rodada === minha) aoFim(); };
   if (sotaque.mudo) { fim(); return; }
   void (async () => {
-    try {
-      const voice = await escolherVoz(sotaque.lang);
+    const m = await carregarManifesto();
+    if (rodada !== minha) return;
+    const duracoes = trechos.map((t) => m?.[sotaque.id]?.[hashFala(t)]);
+    if (duracoes.every((d) => d !== undefined)) aoDuracao?.(duracoes.reduce<number>((a, d) => a + (d as number), 0) * 1000);
+    let deslocamento = 0;
+    for (let i = 0; i < trechos.length; i += 1) {
       if (rodada !== minha) return;
-      Speech.speak(texto, {
-        language: sotaque.lang, pitch: sotaque.tom, rate: sotaque.taxa, voice,
-        onDone: fim, onStopped: () => undefined, onError: fim,
-        onBoundary: ((e: { charIndex?: number }) => { if (rodada === minha && typeof e.charIndex === 'number') aoPalavra?.(e.charIndex); }) as never,
-      });
-    } catch {
-      fim();
+      const texto = trechos[i];
+      const tocou = duracoes[i] !== undefined && (await tocarArquivo(`${BASE_AUDIO}/${sotaque.id}/${hashFala(texto)}.mp3`));
+      if (rodada !== minha) return;
+      if (!tocou) {
+        const base = deslocamento;
+        await falarComAparelho(texto, sotaque, minha, aoPalavra ? (c) => aoPalavra(base + c) : undefined);
+      }
+      deslocamento += texto.length + 1;
     }
+    fim();
   })();
 }

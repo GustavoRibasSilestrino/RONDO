@@ -35,7 +35,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "export:web": "expo export --platform web"
+    "export:web": "expo export --platform web",
+    "vozes": "node --experimental-strip-types --no-warnings scripts/gerar-vozes.mjs"
   },
   "private": true
 }

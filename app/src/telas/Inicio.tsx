@@ -1,15 +1,15 @@
 /* A primeira tela de quem não está logado: o orbe do RONDIN e as duas opções, entrar ou criar conta. Qualquer uma das
-   duas abre a conversa com o RONDIN (telas/Rondin.tsx). Quem prefere formulário comum tem o link embaixo. */
+   duas abre a conversa com o RONDIN (telas/Rondin.tsx). */
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Marca } from '../componentes/Marca';
 import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
 import { cores, estilos } from '../tema';
 
-export function Inicio({ aoCriar, aoEntrar, aoClassico }: { aoCriar: () => void; aoEntrar: () => void; aoClassico: () => void }) {
+export function Inicio({ aoCriar, aoEntrar }: { aoCriar: () => void; aoEntrar: () => void }) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const orbe = Math.round(Math.min(280, width * 0.7, height * 0.36));
@@ -34,9 +34,6 @@ export function Inicio({ aoCriar, aoEntrar, aoClassico }: { aoCriar: () => void;
             <Botao orbita titulo="Criar conta" icone="ia" aoPressionar={aoCriar} />
             <Botao tipo="fantasma" titulo="Já tenho conta" aoPressionar={aoEntrar} />
           </View>
-          <Pressable accessibilityRole="button" onPress={aoClassico} style={{ alignSelf: 'center', paddingVertical: 16, paddingHorizontal: 12 }}>
-            <T tam={13} cor={cores.texto3} style={{ textDecorationLine: 'underline' }}>Prefiro preencher sem o RONDIN</T>
-          </Pressable>
         </View>
       </ScrollView>
     </View>
