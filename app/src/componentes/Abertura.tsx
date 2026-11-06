@@ -2,8 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, View } from 'react-native';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { Marca } from './Marca';
-import { cores, estilos } from '../tema';
+import { estilos } from '../tema';
 import { T } from './Ui';
 
 export function Abertura() {
@@ -30,7 +29,6 @@ export function Abertura() {
           transform: [{ translateY: marca.interpolate({ inputRange: [0, 1], outputRange: [10, 0] }) }, { scale: marca.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }],
         }}
       >
-        <Marca altura={44} />
         <View>
           <T tam={30} peso="200" style={{ letterSpacing: 10 }}>RONDO</T>
         </View>
@@ -40,5 +38,5 @@ export function Abertura() {
 }
 
 const st = estilos(() => StyleSheet.create({
-  tela: { backgroundColor: cores.fundo, alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+  tela: { backgroundColor: '#000000', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
 }));
