@@ -49,12 +49,12 @@
   .hero { padding: calc(var(--nav-h) + clamp(1.4rem, 6vh, 2.6rem)) 0 clamp(3rem, 8vh, 4.5rem); }
   .hero-corredor { right: -26%; top: calc(var(--nav-h) + 4%); height: 62%; opacity: .55; }
   .hero-grade { align-items: start; min-height: 0; }
-  .hero-texto { max-width: 22rem; }
+  .hero-texto { max-width: 22rem; margin-inline: auto; text-align: center; }
   .hero-title { font-size: clamp(26px, 8.4vw, 46px); line-height: 1.08; letter-spacing: -.03em; }
-  .hero-texto .lead { margin-top: .9rem; max-width: 28ch; font-size: clamp(13px, 3.5vw, 16px); line-height: 1.6; }
-  .hero-cta { flex-direction: row; flex-wrap: wrap; gap: .6rem; margin-top: 1.4rem; max-width: none; }
+  .hero-texto .lead { margin-top: .9rem; margin-inline: auto; max-width: 28ch; font-size: clamp(13px, 3.5vw, 16px); line-height: 1.6; }
+  .hero-cta { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .6rem; margin-top: 1.4rem; max-width: none; }
   .hero-cta .btn { flex: 1 1 auto; min-width: 0; min-height: 44px; padding: .7rem 1.1rem; font-size: clamp(13px, 3.6vw, 15px); }
-  .hero-marca { font-size: clamp(3.4rem, 23.5vw, 12rem); bottom: 6%; }
+  .hero-marca { font-size: 28.2vw; letter-spacing: -.045em; bottom: 6%; }   /* a palavra ocupa a largura toda, de margem a margem */
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-corredor .vulto, .hero-corredor .eco { animation: none; }
