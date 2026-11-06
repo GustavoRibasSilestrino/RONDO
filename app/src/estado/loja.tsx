@@ -18,6 +18,7 @@ export const estadoVazio = (): Estado => ({
   v: 1,
   usuario: null,
   perfil: perfilPadrao(),
+  perfilFit: null,
   treinos: [],
   treinoAtual: null,
   rotinasProprias: [],

@@ -88,7 +88,7 @@ function Raiz() {
   if (!estado.usuario) {
     return (
       <Login
-        aoEntrar={(usuario) => {
+        aoEntrar={(usuario, extra) => {
           commit((e) => {
             /* outra conta no mesmo aparelho: começa limpa, para não herdar os treinos e as publicações da conta anterior */
             if (e.ultimoEmail && e.ultimoEmail !== usuario.email) Object.assign(e, estadoVazio());
@@ -96,6 +96,7 @@ function Raiz() {
             e.ultimoEmail = usuario.email;
             /* o plano e o nível vêm da API: o dono tem nível máximo e PRO; os outros, o que a conta tiver */
             e.pro = usuario.papel === 'dono' || !!usuario.pro;
+            if (extra) Object.assign(e, extra);   // o perfil que o RONDIN montou no cadastro: sobe para o servidor na sincronia
             e.xpExtra = usuario.papel === 'dono' ? Math.max(0, 10500 - xpTotal({ ...e, xpExtra: 0 })) : 0;
           });
           void puxarDoServidor();   // traz os treinos, a dieta e o resto desta conta que estão no servidor

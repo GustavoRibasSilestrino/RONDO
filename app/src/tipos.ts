@@ -15,6 +15,33 @@ export type Perfil = {
   objetivo: number;  // multiplicador da meta: 0.85 perder, 1 manter, 1.1 ganhar
 };
 
+/* O que o RONDIN pergunta no cadastro e o app guarda no perfil da conta (chave "perfilFit" no servidor).
+   Os textos são ids estáveis (ver lib/rondinRoteiro.ts), não frases, para poder mudar o texto sem perder dados. */
+export type PerfilFit = {
+  sotaque: string;          // o sotaque que a pessoa escolheu para o RONDIN
+  objetivo: string;
+  sexo: 'm' | 'f' | 'nd';
+  altura: number;           // cm
+  peso: number;             // kg
+  pesoMeta: number;         // kg
+  experiencia: string;
+  diasSemana: number;
+  local: string;
+  duracao: number;          // minutos por treino
+  horario: string;
+  foco: string[];
+  lesoes: string[];
+  dia: string;              // movimento fora do treino
+  dieta: string;
+  sono: string;
+  agua: string;
+  trilha: string;
+  motivacao: string;        // o jeito que a pessoa quer ser motivada
+  inimigo: string;
+  meta90: string;           // o que quer ouvir das pessoas em 90 dias
+  criadoEm: string;         // ISO
+};
+
 export type Serie = { kg: number; reps: number };
 export type ExercicioFeito = { id: string; nome: string; series: Serie[] };
 
@@ -77,6 +104,7 @@ export type Estado = {
   v: 1;
   usuario: Usuario | null;
   perfil: Perfil;
+  perfilFit: PerfilFit | null;                 // as respostas do RONDIN no cadastro (objetivo, rotina, sotaque...); null em contas antigas
   treinos: Treino[];
   treinoAtual: TreinoAtual | null;
   rotinasProprias: Rotina[];                   // treinos que a pessoa criou ou enviou; somam-se aos fixos de dados.ts
