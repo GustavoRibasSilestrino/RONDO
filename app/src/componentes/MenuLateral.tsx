@@ -8,7 +8,6 @@ import { LARGURA_MENU, LARGURA_MENU_FECHADO } from '../lib/largura';
 import { cores, DEGRADE, estilos, FIM_DIAGONAL, INICIO_DIAGONAL, temaAtual } from '../tema';
 import type { ItemAba } from './BarraAbas';
 import { Icone, NomeIcone } from './Icone';
-import { Marca } from './Marca';
 import { T } from './Ui';
 
 type Props = {
@@ -100,7 +99,6 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
         </Pressable>
         {recolhido ? null : (
           <View style={st.marca}>
-            <Marca altura={20} />
             <T tam={16} peso="500" style={{ letterSpacing: 5 }}>RONDO</T>
           </View>
         )}
