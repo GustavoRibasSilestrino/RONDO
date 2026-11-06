@@ -15,7 +15,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 def _login_out(u: Usuario) -> LoginOut:
     return LoginOut(
         email=u.email, nome=u.nome, papel=u.papel, verificado=u.verificado, pro=u.pro, selo=u.selo,
-        arroba=u.arroba, bio=u.bio, marketing=u.marketing, token=criar_token(u.id),
+        arroba=u.arroba, bio=u.bio, foto=u.foto, marketing=u.marketing, token=criar_token(u.id),
     )
 
 

@@ -17,7 +17,7 @@ import { useLoja } from '../estado/loja';
 import { limitesDe } from '../lib/beneficios';
 import { fmt } from '../lib/datas';
 import { medalhasDe } from '../lib/medalhas';
-import { escolherFoto, removerMidia } from '../lib/midia';
+import { enviarMidia, escolherFoto, removerMidia } from '../lib/midia';
 import { progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
 import { patenteDe } from '../lib/patentes';
 import { useStories } from '../lib/stories';
@@ -102,9 +102,15 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
     if (!/^[a-z0-9._]{3,20}$/.test(a)) erros.arroba = 'Use de 3 a 20 letras minúsculas, números, ponto ou _.';
     setErroEd(erros);
     if (erros.nome || erros.arroba) return;
-    /* o servidor guarda o nome, o @ e a bio; se o @ já for de outra pessoa, avisa aqui e não muda nada */
+    /* o servidor guarda o nome, o @, a bio e a foto; se o @ já for de outra pessoa, avisa aqui e não muda nada.
+       Uma foto nova sobe para o Storage primeiro; no perfil fica o endereço dela, para voltar em qualquer aparelho. */
+    let fotoFinal: string | null = fotoEd;
     try {
-      await salvarPerfilNoServidor({ nome: n, arroba: a, bio: bio.trim() });
+      if (fotoEd && !fotoEd.startsWith('http')) {   // foto nova, ou uma antiga que só existia neste aparelho: sobe agora
+        fotoFinal = (await enviarMidia({ id: fotoEd, tipo: 'imagem', largura: 0, altura: 0 })).url ?? null;
+        if (!fotoFinal) throw new Error('Não foi possível enviar a foto agora. Tente de novo.');
+      }
+      await salvarPerfilNoServidor({ nome: n, arroba: a, bio: bio.trim(), foto: fotoFinal });
     } catch (e) {
       if (e instanceof ErroHttp && e.status === 409) { setErroEd({ arroba: e.message }); return; }
       avisar(e instanceof Error ? e.message : 'Não foi possível salvar o perfil agora.');
@@ -113,9 +119,12 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
     const antiga = estado.usuario?.foto;
     commit((e) => {
       e.perfilSocial.bio = bio.trim();
-      if (e.usuario) { e.usuario.nome = n; e.usuario.arroba = a; e.usuario.foto = fotoEd ?? undefined; }
+      if (e.usuario) { e.usuario.nome = n; e.usuario.arroba = a; e.usuario.foto = fotoFinal ?? undefined; }
     });
-    if (antiga && antiga !== fotoEd) removerMidia([antiga]);
+    /* o que subiu (ou foi descartado) não precisa mais do arquivo no aparelho; a foto passa a ser o endereço do servidor */
+    const locais = [...new Set([fotoNova, fotoEd].filter((x): x is string => !!x && !x.startsWith('http')))];
+    if (locais.length) removerMidia(locais);
+    if (antiga && antiga !== fotoFinal && !antiga.startsWith('http')) removerMidia([antiga]);   // foto antiga só no aparelho; a do servidor o servidor apaga
     setFotoNova(null);
     setEditando(false);
     avisar('Perfil atualizado.');

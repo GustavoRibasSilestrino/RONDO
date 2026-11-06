@@ -20,6 +20,8 @@ class Usuario(Base):
     selo: Mapped[str | None] = mapped_column(String(12), nullable=True)
     arroba: Mapped[str | None] = mapped_column(String(30), unique=True, index=True, nullable=True)   # nome de usuário, sem o @
     bio: Mapped[str] = mapped_column(String(300), default="", server_default="")
+    # a foto de perfil: o endereço público no Storage (a pasta do próprio usuário); nulo = sem foto
+    foto: Mapped[str | None] = mapped_column(String(300), nullable=True)
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     # só para saber se é menor de idade (precisa de responsável); contas antigas ficam sem
     nascimento: Mapped[date | None] = mapped_column(Date, nullable=True)

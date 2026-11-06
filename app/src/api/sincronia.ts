@@ -16,7 +16,7 @@ export const baixarDados = async (): Promise<Record<string, unknown>> =>
 
 export const enviarDados = (itens: Record<string, unknown>) => chamar<{ itens: Record<string, unknown> }>('PUT', '/me/dados', { itens });
 
-export const salvarPerfilNoServidor = (dados: { nome?: string; arroba?: string; bio?: string }) =>
+export const salvarPerfilNoServidor = (dados: { nome?: string; arroba?: string; bio?: string; foto?: string | null }) =>
   chamar<{ nome: string; arroba: string | null; bio: string }>('PATCH', '/me/perfil', dados);
 
 export const trocarSenhaNoServidor = (atual: string, nova: string) => chamar<{ status: string }>('POST', '/auth/senha', { atual, nova });

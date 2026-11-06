@@ -12,7 +12,7 @@ const TONS = ['#4c1d95', '#5b21b6', '#6d28d9', '#4338ca', '#6b21a8', '#3730a3'];
 
 /* a foto, pelo id guardado no aparelho */
 export function FotoRedonda({ id, tamanho }: { id: string; tamanho: number }) {
-  const uri = useUriMidia(id);
+  const uri = useUriMidia(id, id.startsWith('http') ? id : undefined);   // foto de perfil guardada no servidor: o próprio endereço; senão, o arquivo do aparelho
   if (!uri) return null;
   return <Image source={{ uri }} accessibilityIgnoresInvertColors style={{ position: 'absolute', width: tamanho, height: tamanho, borderRadius: tamanho / 2 }} resizeMode="cover" />;
 }

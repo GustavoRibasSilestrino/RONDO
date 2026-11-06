@@ -30,7 +30,7 @@ def test_cadastro_login_e_eu(cliente):
     assert r.status_code == 200
     token = r.json()["token"]
     eu = cliente.get("/auth/eu", headers={"Authorization": f"Bearer {token}"})
-    assert eu.json() == {"email": "ana@x.com", "nome": "Ana", "papel": "usuario", "verificado": False, "pro": False, "selo": None, "arroba": None, "bio": "", "marketing": False}
+    assert eu.json() == {"email": "ana@x.com", "nome": "Ana", "papel": "usuario", "verificado": False, "pro": False, "selo": None, "arroba": None, "bio": "", "foto": None, "marketing": False}
     assert cliente.get("/auth/eu").status_code == 401
 
 
@@ -176,3 +176,50 @@ def test_voz_do_rondin_monta_ssml_com_voz_e_ajuste(cliente):
     ssml = voz.montar_ssml("Ana & Cia", "br")
     assert 'xml:lang="pt-BR"' in ssml and 'name="pt-BR-AntonioNeural"' in ssml and "Ana &amp; Cia" in ssml and "prosody" not in ssml
     assert 'pitch="-28%"' in voz.montar_ssml("Ana", "narrador")
+
+
+# ---------- foto de perfil ----------
+
+def test_foto_de_perfil_fica_salva_e_volta_no_login(cliente, monkeypatch):
+    from app.servicos import midia
+
+    monkeypatch.setattr(midia.config(), "supabase_url", "https://x.supabase.co")
+    monkeypatch.setattr(midia.config(), "supabase_bucket", "midia")
+    apagadas: list = []
+    monkeypatch.setattr(midia, "apagar_arquivos", lambda urls: apagadas.extend(urls))
+    ana = _conta(cliente)
+    eu = cliente.get("/auth/eu", headers=ana).json()
+    assert eu["foto"] is None
+    # descobre o id da conta pelo caminho que o servidor aceita
+    prefixo = midia.prefixo_publico()
+    from sqlalchemy import select
+
+    from app.banco import Sessao
+    from app.modelos import Usuario
+
+    with Sessao() as s:
+        uid = s.scalar(select(Usuario.id).where(Usuario.email == "ana@x.com"))
+    foto = f"{prefixo}{uid}/abc123.jpg"
+    r = cliente.patch("/me/perfil", json={"foto": foto}, headers=ana)
+    assert r.status_code == 200 and r.json()["foto"] == foto
+    login = cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "segredo1"}).json()
+    assert login["foto"] == foto   # volta no login, em qualquer aparelho
+    # mudar só o nome não mexe na foto
+    assert cliente.patch("/me/perfil", json={"nome": "Ana Maria"}, headers=ana).json()["foto"] == foto
+    # trocar apaga a antiga do Storage; remover (null) apaga a nova
+    nova = f"{prefixo}{uid}/def456.jpg"
+    assert cliente.patch("/me/perfil", json={"foto": nova}, headers=ana).json()["foto"] == nova
+    assert cliente.patch("/me/perfil", json={"foto": None}, headers=ana).json()["foto"] is None
+    assert apagadas == [foto, nova]
+
+
+def test_foto_de_perfil_recusa_endereco_de_fora_e_de_outra_pessoa(cliente, monkeypatch):
+    from app.servicos import midia
+
+    monkeypatch.setattr(midia.config(), "supabase_url", "https://x.supabase.co")
+    monkeypatch.setattr(midia.config(), "supabase_bucket", "midia")
+    ana = _conta(cliente)
+    prefixo = midia.prefixo_publico()
+    for foto in ("https://evil.example.com/x.jpg", f"{prefixo}99999/x.jpg", "javascript:alert(1)"):
+        assert cliente.patch("/me/perfil", json={"foto": foto}, headers=ana).status_code == 422
+    assert cliente.get("/auth/eu", headers=ana).json()["foto"] is None
