@@ -14,6 +14,7 @@ from app.legal import VERSAO_PRIVACIDADE
 from app.modelos import Consentimento, DadoUsuario, Usuario
 from app.seguranca import conferir_senha
 from app.servicos import conta as servico_conta
+from app.servicos import midia as servico_midia
 
 router = APIRouter(prefix="/me", tags=["me"])
 
@@ -67,11 +68,20 @@ def mudar_perfil(dados: PerfilIn, usuario: Usuario = Depends(usuario_atual), ses
         usuario.arroba = dados.arroba or None
     if dados.bio is not None:
         usuario.bio = dados.bio.strip()
+    foto_antiga = usuario.foto
+    if "foto" in dados.model_fields_set:
+        nova = (dados.foto or "").strip() or None
+        # só aceita arquivo da pasta do próprio usuário no Storage (não um endereço qualquer)
+        if nova and not nova.startswith(f"{servico_midia.prefixo_publico()}{usuario.id}/"):
+            raise HTTPException(422, "Foto inválida.")
+        usuario.foto = nova
     try:
         sessao.commit()
     except IntegrityError:
         sessao.rollback()
         raise HTTPException(409, "Esse @ já está em uso.")
+    if foto_antiga and foto_antiga != usuario.foto:
+        servico_midia.apagar_arquivos([foto_antiga])   # a foto trocada ou removida não fica sobrando no Storage
     return usuario
 
 

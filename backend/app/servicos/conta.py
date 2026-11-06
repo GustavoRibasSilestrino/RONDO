@@ -23,7 +23,7 @@ def exportar(sessao: Session, u: Usuario) -> dict:
     return {
         "gerado_em": datetime.now(timezone.utc).isoformat(),
         "conta": {
-            "email": u.email, "nome": u.nome, "arroba": u.arroba, "bio": u.bio, "nascimento": _data(u.nascimento),
+            "email": u.email, "nome": u.nome, "arroba": u.arroba, "bio": u.bio, "foto": u.foto, "nascimento": _data(u.nascimento),
             "papel": u.papel, "pro": u.pro, "selo": u.selo, "marketing": u.marketing, "criado_em": _data(u.criado_em),
         },
         "dados_do_app": {d.chave: d.valor for d in todos(DadoUsuario, DadoUsuario.usuario_id == uid)},
@@ -70,6 +70,8 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
     for m in sessao.scalars(select(Story.midia).where(Story.autor_id == uid)):
         if m and m.get("url"):
             servico_midia.apagar_arquivos([m["url"]])
+    if u.foto:
+        servico_midia.apagar_arquivos([u.foto])
     sessao.execute(delete(Story).where(Story.autor_id == uid))
     sessao.execute(delete(Comentario).where(Comentario.autor_id == uid))
     sessao.execute(delete(Curtida).where(Curtida.usuario_id == uid))

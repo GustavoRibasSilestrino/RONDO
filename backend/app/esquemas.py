@@ -69,6 +69,7 @@ class UsuarioOut(BaseModel):
     selo: str | None = None
     arroba: str | None = None
     bio: str = ""
+    foto: str | None = None
     marketing: bool = False
     model_config = {"from_attributes": True}
 
@@ -121,6 +122,8 @@ class PerfilIn(BaseModel):
     nome: str | None = Field(default=None, min_length=2, max_length=120)
     arroba: str | None = Field(default=None, max_length=30)   # vazio apaga; sem o @
     bio: str | None = Field(default=None, max_length=300)
+    # só vale se vier no corpo: null apaga a foto; sem o campo, a foto não muda (quem confere o endereço é a rota)
+    foto: str | None = Field(default=None, max_length=300)
 
     @field_validator("arroba")
     @classmethod
