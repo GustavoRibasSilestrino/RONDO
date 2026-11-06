@@ -7,28 +7,12 @@ export function Hero() {
       <div className="hero-grao" aria-hidden="true" />
       <p className="hero-marca" aria-hidden="true">RONDO</p>
 
-      {/* o corredor em movimento: um vulto borrado e, logo atrás, o eco dele, o seu ontem */}
-      <svg className="hero-corredor" viewBox="0 0 760 760" aria-hidden="true" focusable="false">
-        <defs>
-          <filter id="borra-forte" x="-40%" y="-20%" width="180%" height="140%"><feGaussianBlur stdDeviation="34 3" /></filter>
-          <filter id="borra-media" x="-30%" y="-20%" width="160%" height="140%"><feGaussianBlur stdDeviation="14 2" /></filter>
-          <filter id="borra-leve" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.2 0.8" /></filter>
-          <g id="vulto" fill="none" stroke="#070212" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="452" cy="128" r="40" fill="#070212" stroke="none" />
-            <path d="M432 186 L352 372" strokeWidth="78" />
-            <path d="M420 208 L336 270 L282 352" strokeWidth="34" />
-            <path d="M438 214 L518 276 L580 214" strokeWidth="34" />
-            <path d="M352 372 L282 500 L168 566" strokeWidth="56" />
-            <path d="M168 566 L112 650" strokeWidth="38" />
-            <path d="M352 372 L478 438 L492 580" strokeWidth="60" />
-            <path d="M492 580 L560 634" strokeWidth="38" />
-          </g>
-        </defs>
-        <g className="eco" transform="translate(-150 6)" opacity=".4" filter="url(#borra-forte)"><use href="#vulto" /></g>
-        <g className="eco" transform="translate(-72 3)" opacity=".5" filter="url(#borra-media)"><use href="#vulto" /></g>
-        <g opacity=".42" filter="url(#borra-media)"><use href="#vulto" /></g>
-        <g opacity=".92" filter="url(#borra-leve)"><use href="#vulto" /></g>
-      </svg>
+      {/* o corredor: a foto em preto sobre branco, que o violeta atravessa; atrás dele, o eco dele, o seu ontem */}
+      <div className="hero-corredor" aria-hidden="true">
+        <img className="eco e2" src="/corredor.webp" alt="" width="1280" height="1240" decoding="async" />
+        <img className="eco e1" src="/corredor.webp" alt="" width="1280" height="1240" decoding="async" />
+        <img className="vulto" src="/corredor.webp" alt="" width="1280" height="1240" fetchPriority="high" />
+      </div>
 
       <div className="wrap hero-in hero-grade">
         <div className="hero-texto">
