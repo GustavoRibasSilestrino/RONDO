@@ -40,33 +40,51 @@ export function GymScene() {
     let vivo = true;
     let limpar = () => {};
 
+    /* posição da seção guardada: ler getBoundingClientRect a cada quadro forçava o navegador a refazer o layout.
+       Só é medida de novo quando algo muda de tamanho. */
+    let topo = 0, altura = 1;
+    const medir = () => { const r = secao.getBoundingClientRect(); topo = r.top + window.scrollY; altura = r.height; };
+    medir();
+    const roSecao = new ResizeObserver(medir);
+    roSecao.observe(secao);
+    roSecao.observe(document.body);   // o que está acima da seção mudou de altura (fontes, imagens): o topo dela mudou
     const progresso = () => {
-      const r = secao.getBoundingClientRect();
-      const total = Math.max(1, r.height - window.innerHeight);
-      return Math.min(1, Math.max(0, -r.top / total));
+      const total = Math.max(1, altura - window.innerHeight);
+      return Math.min(1, Math.max(0, (window.scrollY - topo) / total));
     };
+
+    /* só mexe na página quando algo muda de verdade: a cena chama isto a cada quadro, mesmo parada,
+       e cada escrita repetida custava estilo e layout de novo */
+    let ultimoQ = NaN, ultimaAtiva = -1;
+    const opacidades: string[] = [];
     const pintar = (q: number) => {
+      if (q === ultimoQ) return;
+      ultimoQ = q;
       const i0 = Math.min(CENAS.length - 2, Math.max(0, Math.floor(q)));
       const f = smooth(q - i0);
       const c = mix(CENAS[i0].cor, CENAS[i0 + 1].cor, f);
       secao.style.setProperty("--cena", c);
       secao.style.setProperty("--cena-escura", mix(ESCURAS[i0], ESCURAS[i0 + 1], f));
       const ativa = Math.min(CENAS.length - 1, Math.max(0, Math.round(q)));
-      if (indice.current) indice.current.textContent = String(ativa + 1).padStart(2, "0");
+      if (ativa !== ultimaAtiva) {
+        ultimaAtiva = ativa;
+        if (indice.current) indice.current.textContent = String(ativa + 1).padStart(2, "0");
+        etiquetas.current.forEach((el, i) => el?.classList.toggle("on", i === ativa));
+      }
       if (trilha.current) trilha.current.style.transform = `scaleX(${(q / (CENAS.length - 1)).toFixed(4)})`;
-      etiquetas.current.forEach((el, i) => el?.classList.toggle("on", i === ativa));
       palavras.current.forEach((el, i) => {
         if (!el) return;
-        const d = q - i;
-        el.style.opacity = String(Math.max(0, 1 - Math.abs(d) * 1.9));
-        el.style.transform = "none";
+        const o = String(Math.max(0, 1 - Math.abs(q - i) * 1.9));
+        if (opacidades[i] === o) return;
+        opacidades[i] = o;
+        el.style.opacity = o;
       });
     };
     /* sem WebGL (ou antes de baixar o three.js): só a cor e o nome mudam */
     const aoRolar = () => pintar(progresso() * (CENAS.length - 1));
     aoRolar();
     window.addEventListener("scroll", aoRolar, { passive: true });
-    limpar = () => window.removeEventListener("scroll", aoRolar);
+    limpar = () => { window.removeEventListener("scroll", aoRolar); roSecao.disconnect(); };
 
     const io = new IntersectionObserver(async ([e]) => {
       if (!e.isIntersecting || !vivo) return;

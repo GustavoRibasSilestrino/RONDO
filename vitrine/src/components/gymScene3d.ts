@@ -10,10 +10,17 @@ import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment
 
 type Cena = { nome: string; cor: string; luz: string };
 
-const aco = () => new MeshStandardMaterial({ color: 0xc9ccd6, metalness: 1, roughness: 0.24 });
-const ferro = () => new MeshStandardMaterial({ color: 0x3a3a48, metalness: 0.9, roughness: 0.3 });
-const borracha = () => new MeshStandardMaterial({ color: 0x1a1a20, metalness: 0.15, roughness: 0.6 });
-const couro = () => new MeshStandardMaterial({ color: 0x2a2536, metalness: 0.1, roughness: 0.42 });
+/* um material de cada tipo, compartilhado por todas as peças: o mesmo visual com menos trocas de estado na placa de vídeo */
+const MATERIAIS = {
+  aco: new MeshStandardMaterial({ color: 0xc9ccd6, metalness: 1, roughness: 0.24 }),
+  ferro: new MeshStandardMaterial({ color: 0x3a3a48, metalness: 0.9, roughness: 0.3 }),
+  borracha: new MeshStandardMaterial({ color: 0x1a1a20, metalness: 0.15, roughness: 0.6 }),
+  couro: new MeshStandardMaterial({ color: 0x2a2536, metalness: 0.1, roughness: 0.42 }),
+};
+const aco = () => MATERIAIS.aco;
+const ferro = () => MATERIAIS.ferro;
+const borracha = () => MATERIAIS.borracha;
+const couro = () => MATERIAIS.couro;
 
 const malha = (g: BufferGeometry, m: MeshStandardMaterial, pos: [number, number, number] = [0, 0, 0]) => {
   const o = new Mesh(g, m);
@@ -172,9 +179,8 @@ export function iniciar(
     modelos.forEach((m) => m.traverse((o) => {
       const mesh = o as Mesh;
       if (mesh.geometry) mesh.geometry.dispose();
-      const mat = mesh.material as MeshStandardMaterial | undefined;
-      if (mat) mat.dispose();
     }));
+    Object.values(MATERIAIS).forEach((mat) => mat.dispose());   // o three.js recria o que precisar se a cena voltar
     pmrem.dispose();
     renderer.dispose();
     renderer.domElement.remove();
