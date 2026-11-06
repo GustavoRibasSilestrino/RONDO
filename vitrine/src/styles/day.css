@@ -59,7 +59,7 @@
 .day-tabs::-webkit-scrollbar { display: none; }
 .day-tab {
   flex: none; display: grid; gap: .05rem; min-height: 50px; padding: .55rem .95rem; text-align: left;
-  border-radius: 10px; border: 1px solid var(--line); background: rgba(255, 255, 255, .02); color: var(--ink-2);
+  border-radius: 3px; border: 1px solid var(--line); background: rgba(255, 255, 255, .02); color: var(--ink-2);
   transition: background .25s, border-color .25s, color .25s;
 }
 .day-tab small { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .08em; color: var(--ink-3); }

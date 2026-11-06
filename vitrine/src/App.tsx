@@ -3,6 +3,7 @@ import { CadastroModal } from "./components/CadastroModal";
 import { Compare } from "./components/Compare";
 import { Constancia } from "./components/Constancia";
 import { Day } from "./components/Day";
+import { GymScene } from "./components/GymScene";
 import { Hero } from "./components/Hero";
 import { Nav } from "./components/Nav";
 import { Recado } from "./components/Recado";
@@ -19,6 +20,7 @@ export default function App() {
       <Nav />
       <main id="conteudo">
         <Hero />
+        <GymScene />
         <Day />
         <Compare />
         <Recado />

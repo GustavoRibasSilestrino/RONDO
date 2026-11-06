@@ -67,8 +67,8 @@
 }
 .ring b { position: absolute; inset: 11px; z-index: 1; border-radius: 50%; background: #07050c; display: grid; place-content: center; text-align: center; font-family: var(--font-display); font-weight: 300; font-size: 1.4rem; letter-spacing: -.04em; line-height: 1.1; }
 .ring b small { display: block; font-family: var(--font-body); font-size: .62rem; font-weight: 400; letter-spacing: 0; }
-.bar { height: 6px; background: rgba(255, 255, 255, .08); border-radius: 99px; overflow: hidden; margin-top: .35rem; }
-.bar i { display: block; height: 100%; background: var(--violet); border-radius: 99px; }
+.bar { height: 6px; background: rgba(255, 255, 255, .08); border-radius: 4px; overflow: hidden; margin-top: .35rem; }
+.bar i { display: block; height: 100%; background: var(--violet); border-radius: 4px; }
 .bar.e i { background: var(--accent); } .bar.g i { background: var(--good); }
 .macros { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; font-size: .7rem; }
 .macros b { display: block; font-size: .9rem; }
@@ -93,7 +93,7 @@
 .route { background: var(--card); border-radius: var(--r-md); padding: .5rem; }
 .route svg { width: 100%; height: auto; }
 .bars { display: flex; align-items: flex-end; gap: .45rem; height: 130px; }
-.bars i { flex: 1; border-radius: 8px 8px 4px 4px; background: linear-gradient(180deg, var(--violet), var(--violet-d)); }
+.bars i { flex: 1; border-radius: 3px 3px 4px 4px; background: linear-gradient(180deg, var(--violet), var(--violet-d)); }
 .bars i.low { background: linear-gradient(180deg, var(--accent), #3b1480); }
 .days { display: flex; gap: .45rem; font-size: .62rem; color: var(--ink-3); font-family: var(--font-mono); }
 .days span { flex: 1; text-align: center; }
@@ -191,7 +191,7 @@
 .faq details p { margin: -.3rem 0 0; padding-bottom: 1.45rem; color: var(--ink-2); max-width: 62ch; }
 
 /* ===== Formulário final ===== */
-.signup { display: flex; gap: .6rem; max-width: 480px; margin-inline: auto; padding: .4rem; border-radius: 12px; background: rgba(0, 0, 0, .35); border: 1px solid var(--line-2); }
+.signup { display: flex; gap: .6rem; max-width: 480px; margin-inline: auto; padding: .4rem; border-radius: 3px; background: rgba(0, 0, 0, .35); border: 1px solid var(--line-2); }
 .signup input { flex: 1; background: none; border: 0; outline: none; padding: 0 1.1rem; min-width: 0; }
 .signup input::placeholder { color: #9a90c0; }
 .signup-ok { margin-top: 1rem; color: var(--good); font-size: .9rem; min-height: 1.4em; }
@@ -210,7 +210,7 @@
 .link:hover { color: var(--ink); border-color: var(--accent); }
 
 .wave { display: flex; align-items: center; gap: 3px; height: 90px; }
-.wave i { flex: 1; height: var(--h); min-height: 6px; border-radius: 99px; background: linear-gradient(180deg, var(--accent-2), var(--violet)); opacity: .35; transition: opacity .3s; }
+.wave i { flex: 1; height: var(--h); min-height: 6px; border-radius: 4px; background: linear-gradient(180deg, var(--accent-2), var(--violet)); opacity: .35; transition: opacity .3s; }
 .wave.big { height: 120px; }
 .recorder.on .wave i { opacity: 1; animation: pulseBar .9s ease-in-out infinite alternate; animation-delay: var(--d); }
 #miniWave { height: 70px; }
@@ -221,7 +221,7 @@
 .mic span { width: 22px; height: 22px; border-radius: 50%; background: #fff; transition: border-radius .3s, scale .3s; }
 .mic.lg { width: 84px; height: 84px; margin: 0; }
 .mic.lg span { width: 28px; height: 28px; }
-.recorder.on .mic span { border-radius: 8px; scale: .8; }
+.recorder.on .mic span { border-radius: 3px; scale: .8; }
 .recorder.on .mic::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; border: 2px solid var(--accent-2); animation: ping 1.4s ease-out infinite; }
 @keyframes ping { from { opacity: .9; scale: .9; } to { opacity: 0; scale: 1.35; } }
 .rec-ctrl { display: flex; align-items: center; gap: 1.4rem; }
