@@ -42,7 +42,7 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
   return (
     <Tela>
       <View style={{ alignItems: 'center', gap: 2 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,154,92,0.12)', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 4, marginBottom: 14 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,154,92,0.12)', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 99, marginBottom: 14 }}>
           <Icone nome="chama" tamanho={16} cor={cores.alerta} />
           <T tam={15} peso="500" cor={cores.alerta}>{streak} {streak === 1 ? 'dia' : 'dias'}</T>
         </View>

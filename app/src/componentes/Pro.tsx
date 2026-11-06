@@ -49,6 +49,6 @@ export function AvisoPro({ aberto, aoFechar, recurso, site }: Props) {
 }
 
 const st = estilos(() => StyleSheet.create({
-  selo: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 3, paddingHorizontal: 8, borderRadius: 4, backgroundColor: cores.destaqueForte },
-  grande: { width: 64, height: 64, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  selo: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 3, paddingHorizontal: 8, borderRadius: 999, backgroundColor: cores.destaqueForte },
+  grande: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
 }));

@@ -51,7 +51,7 @@ export function PlanoPro({ aberto, aoFechar }: { aberto: boolean; aoFechar: () =
 }
 
 const st = estilos(() => StyleSheet.create({
-  grande: { width: 68, height: 68, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
-  linha: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
-  icone: { width: 38, height: 38, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  grande: { width: 68, height: 68, borderRadius: 34, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  linha: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  icone: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
 }));

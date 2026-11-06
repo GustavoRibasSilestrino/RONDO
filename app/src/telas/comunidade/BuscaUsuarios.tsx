@@ -109,7 +109,7 @@ const st = estilos(() => StyleSheet.create({
   coluna: { flex: 1, width: '100%', maxWidth: larguraMax },
   topo: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingRight: 16, paddingLeft: 8, height: 56 },
   voltar: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  busca: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 14, paddingRight: 6, height: 46, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  busca: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10, paddingLeft: 14, paddingRight: 6, height: 46, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   campo: { flex: 1, height: 46, color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   linha: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
   pessoa: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48 },

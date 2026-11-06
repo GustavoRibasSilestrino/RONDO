@@ -134,7 +134,7 @@ export function Colecoes() {
 }
 
 const st = estilos(() => StyleSheet.create({
-  missao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', minHeight: 44 },
+  missao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', minHeight: 44 },
   feita: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6, paddingHorizontal: 10, minHeight: 44 },
   cabeca: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 },
   grade: { flexDirection: 'row', flexWrap: 'wrap', rowGap: 14 },

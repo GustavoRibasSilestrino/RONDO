@@ -97,16 +97,15 @@ export function estilos<T extends object>(fabrica: () => T): T {
   });
 }
 
-/* cantos quase retos: o app é quadrado, de papel e régua, não de bolhas */
-export const raio = { p: 2, m: 3, g: 4, pilula: 3 } as const;
+export const raio = { p: 8, m: 14, g: 22, pilula: 999 } as const;
 
 /* degradês do tema normal: o roxo da marca indo para o violeta claro, sempre na diagonal (do canto de cima à esquerda) */
 export const DEGRADE = {
-  roxo: ['#6a00d4', '#6a00d4', '#6a00d4'] as const,          // botão principal, aba ativa, seleção (branco por cima: 4,9:1 ou mais)
-  barra: ['#8a45f5', '#8a45f5'] as const,                       // progresso
-  brilhoCartao: ['rgba(0,0,0,0)', 'rgba(0,0,0,0)'] as const,
-  brilhoDestaque: ['rgba(0,0,0,0)', 'rgba(0,0,0,0)'] as const,
-  fio: ['rgba(0,0,0,0)', 'rgba(0,0,0,0)', 'rgba(0,0,0,0)'] as const,   // o fio de luz no alto dos cartões
+  roxo: ['#5a0fc4', '#7426ec', '#8a45f5'] as const,          // botão principal, aba ativa, seleção (branco por cima: 4,9:1 ou mais)
+  barra: ['#7b2cf0', '#c4a8ff'] as const,                       // progresso
+  brilhoCartao: ['rgba(255,255,255,0.035)', 'rgba(255,255,255,0)'] as const,
+  brilhoDestaque: ['rgba(139,92,246,0.20)', 'rgba(139,92,246,0.02)'] as const,
+  fio: ['rgba(196,168,255,0)', 'rgba(196,168,255,0.55)', 'rgba(196,168,255,0)'] as const,   // o fio de luz no alto dos cartões
 };
 export const INICIO_DIAGONAL = { x: 0, y: 0 } as const;
 export const FIM_DIAGONAL = { x: 1, y: 1 } as const;
@@ -114,7 +113,7 @@ export const FIM_DIAGONAL = { x: 1, y: 1 } as const;
 export type PesoFonte = '200' | '300' | '400' | '500';
 
 /* largura máxima do conteúdo (na web o app vira uma coluna de celular) */
-export const larguraMax = 520;
+export const larguraMax = 600;
 
 /* a fonte do app é a Poppins, em todo o texto, um degrau mais grossa que o desenho original: um arquivo por peso (carregados em App.tsx) */
 export const FONTE: Record<PesoFonte, string> = {

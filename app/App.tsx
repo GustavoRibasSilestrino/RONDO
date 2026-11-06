@@ -7,6 +7,7 @@ import { BackHandler, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Abertura } from './src/componentes/Abertura';
 import { AvisoNivel } from './src/componentes/AvisoNivel';
+import { FundoBolhas } from './src/componentes/FundoBolhas';
 import { FundoUltra } from './src/componentes/FundoUltra';
 import { TrocaTemaProvider, useTrocaTema } from './src/componentes/TrocaTema';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
@@ -117,7 +118,7 @@ function Raiz() {
     <View style={{ flex: 1, flexDirection: largo ? 'row' : 'column' }}>
       {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} recolhido={menuRecolhido} aoAlternar={alternarMenu} tema={tema} nome={estado.usuario?.nome ?? ""} nivel={nivelDe(xpTotal(estado))} aoAbrirConta={() => setTela("perfil")} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} aoAbrirPro={() => setPlanoAberto(true)} temaBloqueado={temaBloqueado} aoTrocarTema={aoTrocarTema} /> : null}
       <View style={{ flex: 1 }}>
-      {tema === 'ultra' ? <FundoUltra /> : null}
+      {tema === 'ultra' ? <FundoUltra /> : <FundoBolhas />}
       {tela === 'home' && <Social modo="home" ir={setTela} />}
       {tela === 'comunidade' && <Social modo="comunidade" ir={setTela} />}
       {tela === 'treino' && <><Treino />{estado.treinoAtual ? null : <CriarPlano tipo="treino" />}</>}

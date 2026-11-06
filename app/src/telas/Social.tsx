@@ -106,7 +106,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
               {posts.length ? (
                 <>
                   {posts.map((p) => (
-                    <CartaoPost key={p.id} post={p} aoAbrirGrupo={p.clube ? () => setGrupoAberto(p.clube!.id) : undefined} aoAbrirMidia={abrirMidia} aoAbrirPerfil={abrirPerfil} aoApagar={(id) => feed.mudar((l) => l.filter((x) => x.id !== id))} />
+                    <CartaoPost key={p.id} insta post={p} aoAbrirGrupo={p.clube ? () => setGrupoAberto(p.clube!.id) : undefined} aoAbrirMidia={abrirMidia} aoAbrirPerfil={abrirPerfil} aoApagar={(id) => feed.mudar((l) => l.filter((x) => x.id !== id))} />
                   ))}
                   {feed.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais" aoPressionar={feed.maisItens} carregando={feed.carregando} /> : null}
                 </>
@@ -180,8 +180,8 @@ const st = estilos(() => StyleSheet.create({
   tituloFeed: { height: 44, justifyContent: 'center', marginTop: -6 },
   lupa: { position: 'absolute', right: -6, top: 0, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   filtros: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  filtro: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, overflow: 'hidden' },
-  opcao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
-  opcaoIcone: { width: 46, height: 46, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  filtro: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2, overflow: 'hidden' },
+  opcao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
+  opcaoIcone: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   filtroAtivo: { backgroundColor: cores.destaqueForte, borderColor: 'rgba(196,168,255,0.35)' },
 }));

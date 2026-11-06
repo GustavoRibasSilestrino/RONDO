@@ -184,9 +184,9 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia, aoAbrirPerfil 
 
 const st = estilos(() => StyleSheet.create({
   barra: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  circulo: { width: 44, height: 44, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha },
+  circulo: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha },
   titulo: { position: 'absolute', left: 18, right: 18, bottom: 16, gap: 6 },
   chips: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   rostos: { flexDirection: 'row', alignItems: 'center', marginTop: 16 },
-  rosto: { borderRadius: 4, borderWidth: 2, borderColor: 'rgba(5,5,7,0.9)' },
+  rosto: { borderRadius: 20, borderWidth: 2, borderColor: 'rgba(5,5,7,0.9)' },
 }));

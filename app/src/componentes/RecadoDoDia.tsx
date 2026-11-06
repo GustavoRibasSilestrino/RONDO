@@ -21,11 +21,11 @@ export function RecadoDoDia({ aoAbrir }: { aoAbrir: () => void }) {
       accessibilityLabel={feito ? 'Recado de hoje guardado. Abrir recados' : `Pergunta do dia: ${PERGUNTAS[perguntaDoDia()]} Gravar recado`}
       onPress={aoAbrir}
       style={({ pressed }) => ({
-        flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 4,
+        flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 18,
         backgroundColor: cores.cartao, borderWidth: 1, borderColor: cores.linha2, opacity: pressed ? 0.85 : 1,
       })}
     >
-      <View style={{ width: 46, height: 46, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: feito ? cores.cartao2 : cores.destaque }}>
+      <View style={{ width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: feito ? cores.cartao2 : cores.destaque }}>
         <Icone nome={feito ? 'ok' : 'recado'} tamanho={22} cor="#ffffff" />
       </View>
       <View style={{ flex: 1 }}>

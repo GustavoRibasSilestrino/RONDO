@@ -59,7 +59,7 @@ function Ouvir({ uri }: { uri: string }) {
         if (status.didJustFinish || (status.duration > 0 && status.currentTime >= status.duration - 0.1)) player.seekTo(0);
         player.play();
       }}
-      style={{ width: 44, height: 44, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 }}
+      style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 }}
     >
       <Icone nome={status.playing ? 'parar' : 'tocar'} tamanho={18} />
     </Pressable>
@@ -229,7 +229,7 @@ export function Recado() {
             accessibilityLabel={gravando ? 'Parar gravação' : 'Gravar recado'}
             accessibilityState={{ disabled: !!bloqueio && !gravando }}
             onPress={() => (gravando ? parar() : iniciar())}
-            style={{ width: 84, height: 84, borderRadius: 4, alignItems: 'center', justifyContent: 'center', opacity: bloqueio && !gravando ? 0.45 : 1, backgroundColor: gravando ? cores.erro : cores.destaque, borderWidth: 6, borderColor: gravando ? 'rgba(255,107,129,0.3)' : `rgba(${cores.tom},0.3)` }}
+            style={{ width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center', opacity: bloqueio && !gravando ? 0.45 : 1, backgroundColor: gravando ? cores.erro : cores.destaque, borderWidth: 6, borderColor: gravando ? 'rgba(255,107,129,0.3)' : `rgba(${cores.tom},0.3)` }}
           >
             <Icone nome={gravando ? 'parar' : 'recado'} tamanho={30} cor="#ffffff" />
           </Pressable>
@@ -250,7 +250,7 @@ export function Recado() {
                 {PRAZOS_RECADO.map((p) => {
                   const ativo = p.dias === prazo;
                   return (
-                    <Pressable key={p.dias} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setPrazo(p.dias)} style={{ paddingVertical: 9, paddingHorizontal: 16, borderRadius: 3, backgroundColor: ativo ? cores.destaqueForte : 'transparent', borderWidth: 1, borderColor: ativo ? cores.destaqueForte : cores.linha2 }}>
+                    <Pressable key={p.dias} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setPrazo(p.dias)} style={{ paddingVertical: 9, paddingHorizontal: 16, borderRadius: 8, backgroundColor: ativo ? cores.destaqueForte : 'transparent', borderWidth: 1, borderColor: ativo ? cores.destaqueForte : cores.linha2 }}>
                       <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#ffffff' : cores.texto2}>{p.nome}</T>
                     </Pressable>
                   );
@@ -286,7 +286,7 @@ export function Recado() {
                   {liberado ? (
                     <Ouvir uri={r.uri} />
                   ) : (
-                    <View style={{ width: 44, height: 44, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 }}>
+                    <View style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 }}>
                       <Icone nome="cadeado" tamanho={18} cor={cores.texto3} />
                     </View>
                   )}

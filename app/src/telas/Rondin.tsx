@@ -83,8 +83,8 @@ function OrbeRondin({ tamanho, estado }: { tamanho: number; estado: EstadoOrbe }
   const anel = tamanho + 18;
   return (
     <View style={{ width: anel + 40, height: anel + 40, alignItems: 'center', justifyContent: 'center' }}>
-      <Animated.View pointerEvents="none" style={[st.anel, { width: anel, height: anel, borderRadius: 4, borderColor: 'rgba(196,168,255,0.5)', opacity: pulso.interpolate({ inputRange: [0, 1], outputRange: [0.8, 0] }), transform: [{ scale: pulso.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] }) }] }]} />
-      <View pointerEvents="none" style={[st.anel, { width: anel, height: anel, borderRadius: 4 }]} />
+      <Animated.View pointerEvents="none" style={[st.anel, { width: anel, height: anel, borderRadius: anel / 2, borderColor: 'rgba(196,168,255,0.5)', opacity: pulso.interpolate({ inputRange: [0, 1], outputRange: [0.8, 0] }), transform: [{ scale: pulso.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] }) }] }]} />
+      <View pointerEvents="none" style={[st.anel, { width: anel, height: anel, borderRadius: anel / 2 }]} />
       <View style={{ position: 'absolute' }}><Orbe tamanho={tamanho} estado={estado} /></View>
     </View>
   );
@@ -451,7 +451,7 @@ const st = estilos(() => StyleSheet.create({
   legenda: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 18, minHeight: 96, paddingHorizontal: 4 },
   opcoes: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10 },
   pilula: {
-    minHeight: 46, paddingVertical: 11, paddingHorizontal: 18, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2,
+    minHeight: 46, paddingVertical: 11, paddingHorizontal: 18, borderRadius: 24, borderWidth: 1, borderColor: cores.linha2,
     backgroundColor: cores.cartao, alignItems: 'center', justifyContent: 'center',
   },
   pilulaGrande: { width: '100%' },
@@ -459,11 +459,11 @@ const st = estilos(() => StyleSheet.create({
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   cartaoSotaque: {
     flexGrow: 1, flexBasis: '47%', minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 14,
-    borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao,
+    borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao,
   },
   olho: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   banner: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 12,
-    borderRadius: 3, borderWidth: 1, borderColor: 'rgba(255,107,129,0.35)', backgroundColor: 'rgba(255,107,129,0.08)',
+    borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,107,129,0.35)', backgroundColor: 'rgba(255,107,129,0.08)',
   },
 }));
