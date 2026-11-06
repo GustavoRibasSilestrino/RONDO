@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import config
-from app.rotas import assinaturas, auth, clubes, me, midia, pessoas, profissionais, social, treinos
+from app.rotas import assinaturas, auth, clubes, me, midia, pessoas, profissionais, social, treinos, voz
 
 app = FastAPI(title="Rondo API")
 app.add_middleware(
@@ -32,6 +32,7 @@ app.include_router(social.router)
 app.include_router(pessoas.router)
 app.include_router(clubes.router)
 app.include_router(midia.router)
+app.include_router(voz.router)
 
 
 @app.get("/saude")

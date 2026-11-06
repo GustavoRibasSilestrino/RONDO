@@ -17,5 +17,7 @@ services:
         sync: false
       - key: JWT_SEGREDO
         sync: false
+      - key: ELEVENLABS_API_KEY   # voz do RONDIN para nomes e números; preencha no painel
+        sync: false
       - key: ORIGENS_PERMITIDAS
         value: https://yesteryou.vercel.app,https://rondo-app-eight.vercel.app,https://userondo.vercel.app

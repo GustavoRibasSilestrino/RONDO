@@ -8,13 +8,35 @@ export type Opcao = { id: string; rotulo: string; nota?: string; comentario?: st
 export type Respostas = Record<string, string | string[]>;
 export type Campo = 'texto' | 'email' | 'senha' | 'numero' | 'data';
 
+/* Uma fala com lugares para o que muda de pessoa para pessoa: "Prazer, {nome}!". `valores` diz o que entra em cada lugar. */
+export type Valores = Record<string, string>;
+export type Dita = { modelo: string; valores: Valores };
+/* Um pedaço de áudio: as partes fixas existem como mp3 pronto; as dinâmicas (nome, quilos) o servidor gera na hora. */
+export type Trecho = { texto: string; dinamico: boolean };
+
+export function trechosDe(modelo: string, valores: Valores = {}): { exibir: string; audio: Trecho[] } {
+  const exibir = modelo.replace(/\{(\w+)\}/g, (_, k: string) => valores[k] ?? '');
+  const audio: Trecho[] = [];
+  for (const parte of modelo.split(/(\{\w+\})/)) {
+    const m = /^\{(\w+)\}$/.exec(parte);
+    if (m) {
+      const v = (valores[m[1]] ?? '').trim();
+      if (v) audio.push({ texto: v, dinamico: true });
+    } else {
+      const limpo = parte.replace(/^[\s!?.,;:]+/, '').trim();   // a pontuação que sobra depois do nome não é lida
+      if (limpo) audio.push({ texto: limpo, dinamico: false });
+    }
+  }
+  return { exibir, audio };
+}
+
 type Base = { id: string; fala: (r: Respostas) => string };
 export type Passo =
   | (Base & { tipo: 'fala' })
   | (Base & { tipo: 'sotaque' })
   | (Base & { tipo: 'opcoes'; opcoes: Opcao[]; barra?: (id: string) => string | undefined; links?: boolean })
   | (Base & { tipo: 'multi'; opcoes: Opcao[]; exclusiva?: string })
-  | (Base & { tipo: 'campo'; campo: Campo; rotulo: string; sufixo?: string; validar: (v: string, r: Respostas) => string | undefined; comentario?: (v: string, r: Respostas) => string | undefined })
+  | (Base & { tipo: 'campo'; campo: Campo; rotulo: string; sufixo?: string; validar: (v: string, r: Respostas) => string | undefined; comentario?: (v: string, r: Respostas) => Dita | undefined })
   | (Base & { tipo: 'entrar' })     // os campos de e-mail e senha de quem já tem conta
   | (Base & { tipo: 'criar' });     // cria a conta (cadastro)
 
@@ -51,16 +73,17 @@ const faixa = (v: string, min: number, max: number, o: string): string | undefin
   return Number.isFinite(n) && n >= min && n <= max ? undefined : o;
 };
 
-/* ---------- falas que não dependem da pessoa ----------
-   Nenhuma fala leva o nome ou números: assim todas existem como áudio pronto (scripts/gerar-vozes.mjs). */
+/* ---------- falas fixas ----------
+   As partes fixas viram áudio pronto (scripts/gerar-vozes.mjs); {nome} e {n} são gerados na hora pelo servidor. */
 export const COMENTARIO_PESO = {
   manter: 'Você quer manter o peso. Ótimo, vamos proteger isso.',
-  ganhar: 'Ganhar peso do jeito certo é questão de treino e comida. A gente chega lá com constância.',
-  perder: 'Com calma e constância, a gente chega lá. Sem pressa e sem milagre.',
+  pouco: 'É uma diferença pequena. Com constância, a gente chega lá.',
+  ganhar: 'São {n} quilos para ganhar. Ganhar peso do jeito certo é treino e comida, e a gente chega lá com constância.',
+  perder: 'São {n} quilos para perder. Com calma e constância, a gente chega lá, sem pressa e sem milagre.',
 };
 export const FALAS = {
-  deVolta: 'Bem-vindo de volta! Que bom te ver.',
-  contaCriada: 'Pronto! Sua conta está criada e o seu perfil está salvo. Bem-vindo ao RONDO.',
+  deVolta: 'Bem-vindo de volta, {nome}! Que bom te ver.',
+  contaCriada: 'Pronto, {nome}! Sua conta está criada e o seu perfil está salvo. Bem-vindo ao RONDO.',
   emailJaTem: 'Esse e-mail já tem uma conta. Use outro, ou volte e entre com ele.',
   falhaCriar: 'Não consegui criar a conta agora.',
 };
@@ -86,7 +109,7 @@ export function passosCadastro(r: Respostas): Passo[] {
       id: 'nome', tipo: 'campo', campo: 'texto', rotulo: 'Seu nome', fala: () => 'Como eu posso te chamar?',
       validar: (v) => (v.trim().length < 2 ? 'Digite o seu nome.' : undefined),
     },
-    { id: 'objetivo', tipo: 'opcoes', fala: () => 'Prazer em te conhecer! Qual é o seu grande objetivo agora?', opcoes: OBJETIVOS },
+    { id: 'objetivo', tipo: 'opcoes', fala: () => 'Prazer, {nome}! Qual é o seu grande objetivo agora?', opcoes: OBJETIVOS },
     {
       id: 'sexo', tipo: 'opcoes', fala: () => 'Para calcular as suas calorias direitinho, qual destas opções combina com você?',
       opcoes: [{ id: 'm', rotulo: 'Masculino' }, { id: 'f', rotulo: 'Feminino' }, { id: 'nd', rotulo: 'Prefiro não dizer', comentario: 'Tudo bem. Vou usar uma média nas contas.' }],
@@ -126,9 +149,12 @@ export function passosCadastro(r: Respostas): Passo[] {
     {
       id: 'pesoMeta', tipo: 'campo', campo: 'numero', rotulo: 'Peso que você quer', sufixo: 'kg', fala: () => 'E qual peso você sonha em ter?',
       validar: (v) => faixa(v, 30, 300, 'Digite o peso em quilos, entre 30 e 300.'),
-      comentario: (v, rr) => {
+      comentario: (v, rr): Dita => {
         const dif = numero(v) - numero(String(rr.peso ?? 0));
-        return Math.abs(dif) < 0.5 ? COMENTARIO_PESO.manter : dif > 0 ? COMENTARIO_PESO.ganhar : COMENTARIO_PESO.perder;
+        const d = Math.abs(dif);
+        if (d < 0.5) return { modelo: COMENTARIO_PESO.manter, valores: {} };
+        if (d < 2) return { modelo: COMENTARIO_PESO.pouco, valores: {} };
+        return { modelo: dif > 0 ? COMENTARIO_PESO.ganhar : COMENTARIO_PESO.perder, valores: { n: String(Math.round(d * 10) / 10).replace('.', ',') } };
       },
     },
     {
@@ -193,7 +219,7 @@ export function passosCadastro(r: Respostas): Passo[] {
         .map((o) => ({ ...o, comentario: 'Combinado. É essa frase que a gente vai buscar.' })),
     },
     {
-      id: 'email', tipo: 'campo', campo: 'email', rotulo: 'E-mail', fala: () => 'Beleza, falta pouco! Agora a conta: qual é o seu e-mail?',
+      id: 'email', tipo: 'campo', campo: 'email', rotulo: 'E-mail', fala: () => 'Beleza, {nome}! Falta pouco. Agora a conta: qual é o seu e-mail?',
       validar: (v) => (!emailValido(v) ? 'Digite um e-mail válido.' : undefined),
     },
     {
@@ -207,7 +233,7 @@ export function passosCadastro(r: Respostas): Passo[] {
       barra: (id) => (id === 'aceito' ? undefined : 'Claro, leia com calma pelos links aqui embaixo. Quando terminar, é só tocar em aceito.'),
     },
     { id: 'marketing', tipo: 'opcoes', fala: () => 'Posso te mandar novidades do RONDO por e-mail? É opcional.', opcoes: [{ id: 'sim', rotulo: 'Pode mandar' }, { id: 'nao', rotulo: 'Prefiro que não' }] },
-    { id: 'criar', tipo: 'criar', fala: () => 'Perfeito! Estou montando a sua conta e o seu perfil agora.' },
+    { id: 'criar', tipo: 'criar', fala: () => 'Perfeito, {nome}! Estou montando a sua conta e o seu perfil agora.' },
   );
   return p;
 }
@@ -259,7 +285,10 @@ export function montarPerfil(r: Respostas, sotaque: string, hoje: Date = new Dat
    lista; o que não estiver aqui cai na voz do aparelho (ex.: mensagens de erro vindas do servidor). */
 export function listarFalas(): string[] {
   const achadas = new Set<string>();
-  const add = (v: string | undefined) => { if (v) achadas.add(v); };
+  /* só as partes fixas viram áudio pronto; os lugares de nome e número ficam de fora */
+  const add = (modelo: string | undefined) => {
+    if (modelo) trechosDe(modelo, { nome: 'X', n: 'X' }).audio.filter((t) => !t.dinamico).forEach((t) => achadas.add(t.texto));
+  };
   const listas = [passosCadastro({}), passosCadastro({ nascimento: '01/01/2012' }), passosEntrar()];
   for (const lista of listas) {
     for (const p of lista) {
