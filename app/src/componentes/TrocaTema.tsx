@@ -1,4 +1,4 @@
-/* Troca de tema com uma onda: uma faixa de água, em 2D, desce pela tela inteira. Quando ela cobre tudo, o tema muda por baixo;
+/* Troca de tema com uma onda sem cor: uma faixa de água em preto e branco atravessa a tela da direita para a esquerda. Quando ela cobre tudo, o tema muda por baixo;
    ao seguir descendo, ela deixa a tela já com a aparência nova. `useTrocaTema()` devolve a função que dispara a troca. */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
@@ -7,75 +7,76 @@ import { useLoja } from '../estado/loja';
 import { useMovimentoReduzido } from '../lib/movimento';
 import type { TemaId } from '../tema';
 
-const AMPLITUDE = 30;      // altura da crista da onda
-const ONDA = 360;          // comprimento de uma onda, em px
-const DURACAO = 1500;      // a travessia inteira
-
-const COR: Record<TemaId, { base: string; meio: string; crista: string }> = {
-  ultra: { base: '#06143a', meio: '#1450e0', crista: '#9ff3ff' },
-  normal: { base: '#050505', meio: '#3d0b8f', crista: '#a66bff' },
-};
+const AMPLITUDE = 34;     // o quanto a borda da onda balança
+const ONDA = 420;          // altura de uma ondulação, em px
+const DURACAO = 1700;      // a travessia inteira, da direita para a esquerda
 
 const Contexto = createContext<(para: TemaId) => void>(() => {});
 export const useTrocaTema = () => useContext(Contexto);
 
-/* a faixa: borda de cima e de baixo onduladas, cobrindo o dobro da altura da tela */
-function caminho(largura: number, altura: number): string {
-  const passo = 12;
-  let topo = '';
-  let baixo = '';
-  for (let x = 0; x <= largura; x += passo) {
-    const y = AMPLITUDE + AMPLITUDE * Math.sin((2 * Math.PI * x) / ONDA);
-    topo += `${x === 0 ? 'M' : 'L'}${x} ${y.toFixed(1)} `;
+/* a faixa: bordas de cima a baixo, onduladas, e uma segunda linha fina logo atrás da primeira */
+function caminho(largura: number, altura: number, deslocamento = 0, fase = 0): string {
+  const passo = 14;
+  let esq = '';
+  let dir = '';
+  for (let y = 0; y <= altura; y += passo) {
+    const x = deslocamento + AMPLITUDE + AMPLITUDE * Math.sin((2 * Math.PI * y) / ONDA + fase);
+    esq += `${y === 0 ? 'M' : 'L'}${x.toFixed(1)} ${y} `;
   }
-  for (let x = largura; x >= 0; x -= passo) {
-    const y = altura - AMPLITUDE + AMPLITUDE * Math.sin((2 * Math.PI * x) / ONDA + 1.3);
-    baixo += `L${x} ${y.toFixed(1)} `;
+  for (let y = altura; y >= 0; y -= passo) {
+    const x = largura - AMPLITUDE + AMPLITUDE * Math.sin((2 * Math.PI * y) / ONDA + fase + 1.4);
+    dir += `L${x.toFixed(1)} ${y} `;
   }
-  return `${topo}${baixo}Z`;
+  return `${esq}${dir}Z`;
 }
 
-function Onda({ para, aoMeio, aoFim }: { para: TemaId; aoMeio: () => void; aoFim: () => void }) {
+/* sem cor: uma crista clara, um corpo quase preto e a crista clara de novo, como água vista em preto e branco */
+function Onda({ aoMeio, aoFim }: { aoMeio: () => void; aoFim: () => void }) {
   const { width: W, height: H } = useWindowDimensions();
   const nativo = Platform.OS !== 'web';
-  const altura = 2 * H + 4 * AMPLITUDE;                 // a faixa cobre a tela com folga
-  const larguraSvg = W + 2 * ONDA;                       // largura extra para a onda deslizar de lado sem emenda
-  const d = useMemo(() => caminho(larguraSvg, altura), [larguraSvg, altura]);
-  const y = useRef(new Animated.Value(-altura)).current;
-  const x = useRef(new Animated.Value(0)).current;
-  const cor = COR[para];
+  const faixa = 2 * W + 4 * AMPLITUDE;                  // a faixa cobre a tela com folga
+  const alturaSvg = H + 2 * ONDA;                        // altura extra para a onda deslizar de cima a baixo sem emenda
+  const d = useMemo(() => caminho(faixa, alturaSvg), [faixa, alturaSvg]);
+  const x = useRef(new Animated.Value(W + AMPLITUDE)).current;
+  const y = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    const lado = Animated.loop(Animated.timing(x, { toValue: -ONDA, duration: 900, easing: Easing.linear, useNativeDriver: nativo }));
-    lado.start();
-    const meio = -(altura - H) / 2;                      // faixa cobrindo a tela inteira
-    const descendo = Animated.timing(y, { toValue: meio, duration: DURACAO / 2, easing: Easing.in(Easing.cubic), useNativeDriver: nativo });
-    descendo.start(({ finished }) => {
+    const desliza = Animated.loop(Animated.timing(y, { toValue: -ONDA, duration: 1100, easing: Easing.linear, useNativeDriver: nativo }));
+    desliza.start();
+    const meio = -(faixa - W) / 2;                       // faixa cobrindo a tela inteira
+    const entrando = Animated.timing(x, { toValue: meio, duration: DURACAO / 2, easing: Easing.bezier(0.55, 0.05, 0.4, 1), useNativeDriver: nativo });
+    entrando.start(({ finished }) => {
       if (!finished) return;
       aoMeio();
-      Animated.timing(y, { toValue: H + AMPLITUDE, duration: DURACAO / 2, easing: Easing.out(Easing.cubic), useNativeDriver: nativo }).start(({ finished: fim }) => {
+      Animated.timing(x, { toValue: -faixa - AMPLITUDE, duration: DURACAO / 2, easing: Easing.bezier(0.3, 0.1, 0.35, 0.95), useNativeDriver: nativo }).start(({ finished: fim }) => {
         if (fim) aoFim();
       });
     });
-    return () => { lado.stop(); y.stopAnimation(); };
+    return () => { desliza.stop(); x.stopAnimation(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <View style={st.camada} pointerEvents="auto">
-      <Animated.View style={{ position: 'absolute', left: 0, top: 0, width: W, height: altura, overflow: 'hidden', transform: [{ translateY: y }] }}>
-        <Animated.View style={{ width: larguraSvg, height: altura, transform: [{ translateX: x }] }}>
-          <Svg width={larguraSvg} height={altura}>
+      <Animated.View style={{ position: 'absolute', left: 0, top: 0, width: faixa, height: H, overflow: 'hidden', transform: [{ translateX: x }] }}>
+        <Animated.View style={{ width: faixa, height: alturaSvg, transform: [{ translateY: y }] }}>
+          <Svg width={faixa} height={alturaSvg}>
             <Defs>
-              <LinearGradient id="agua" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0" stopColor={cor.crista} />
-                <Stop offset="0.035" stopColor={cor.meio} />
-                <Stop offset="0.5" stopColor={cor.base} />
-                <Stop offset="0.965" stopColor={cor.meio} />
-                <Stop offset="1" stopColor={cor.crista} />
+              <LinearGradient id="agua" x1="0" y1="0" x2="1" y2="0">
+                <Stop offset="0" stopColor="#ffffff" />
+                <Stop offset="0.02" stopColor="#d4d4da" />
+                <Stop offset="0.05" stopColor="#3b3b42" />
+                <Stop offset="0.14" stopColor="#101013" />
+                <Stop offset="0.5" stopColor="#060607" />
+                <Stop offset="0.86" stopColor="#101013" />
+                <Stop offset="0.95" stopColor="#3b3b42" />
+                <Stop offset="0.98" stopColor="#d4d4da" />
+                <Stop offset="1" stopColor="#ffffff" />
               </LinearGradient>
             </Defs>
             <Path d={d} fill="url(#agua)" />
+            {/* a espuma: uma linha clara e fina, um pouco à frente da crista */}
+            <Path d={caminho(faixa, alturaSvg, 26, 0.9)} fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth={1.2} />
           </Svg>
         </Animated.View>
       </Animated.View>
@@ -101,7 +102,6 @@ export function TrocaTemaProvider({ children }: { children: React.ReactNode }) {
       {children}
       {onda ? (
         <Onda
-          para={onda}
           aoMeio={() => commit((e) => { e.tema = onda; })}
           aoFim={() => { setOnda(null); trocando.current = false; }}
         />

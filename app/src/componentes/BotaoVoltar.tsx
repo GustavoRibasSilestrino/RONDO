@@ -25,5 +25,5 @@ export function BotaoVoltar({ rotulo, aoPressionar }: { rotulo: string; aoPressi
 const st = estilos(() => StyleSheet.create({
   faixa: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 15 },
   coluna: { width: '100%', maxWidth: larguraMax, paddingLeft: 12 },
-  botao: { width: 42, height: 42, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
+  botao: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
 }));

@@ -142,8 +142,8 @@ const st = estilos(() => StyleSheet.create({
   coluna: { flex: 1, width: '100%', maxWidth: larguraMax },
   topo: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 52 },
   voltar: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  linha: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
-  icone: { width: 42, height: 42, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
-  linhaBeneficio: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 3, borderWidth: 1, borderColor: cores.linha },
-  nivelBeneficio: { width: 34, height: 34, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  linha: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
+  icone: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  linhaBeneficio: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 14, borderWidth: 1, borderColor: cores.linha },
+  nivelBeneficio: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
 }));

@@ -14,7 +14,7 @@ const TONS = ['#4c1d95', '#5b21b6', '#6d28d9', '#4338ca', '#6b21a8', '#3730a3'];
 export function FotoRedonda({ id, tamanho }: { id: string; tamanho: number }) {
   const uri = useUriMidia(id, id.startsWith('http') ? id : undefined);   // foto de perfil guardada no servidor: o próprio endereço; senão, o arquivo do aparelho
   if (!uri) return null;
-  return <Image source={{ uri }} accessibilityIgnoresInvertColors style={{ position: 'absolute', width: tamanho, height: tamanho, borderRadius: 4 }} resizeMode="cover" />;
+  return <Image source={{ uri }} accessibilityIgnoresInvertColors style={{ position: 'absolute', width: tamanho, height: tamanho, borderRadius: tamanho / 2 }} resizeMode="cover" />;
 }
 
 export function Avatar({ nome, voce, tamanho = 38, foto, semFoto }: { nome: string; voce?: boolean; tamanho?: number; foto?: string; semFoto?: boolean }) {
@@ -26,7 +26,7 @@ export function Avatar({ nome, voce, tamanho = 38, foto, semFoto }: { nome: stri
     <View
       accessibilityElementsHidden
       importantForAccessibility="no"
-      style={{ width: tamanho, height: tamanho, borderRadius: 4, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: voce ? cores.violeta : tom }}
+      style={{ width: tamanho, height: tamanho, borderRadius: tamanho / 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: voce ? cores.violeta : tom }}
     >
       {voce && temaAtual() === 'normal' ? <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
       <T tam={Math.round(tamanho * 0.37)} peso="500" cor="#ffffff">{inicial}</T>

@@ -1,10 +1,11 @@
 /* Menu lateral do computador: o hambúrguer no alto abre e fecha o menu (aberto: ícones com nomes; fechado: só uma régua de ícones).
    Embaixo ficam as notificações, o plano PRO, a aparência (Normal ou Ultra) e a sua conta. Quadrado, de fios finos, sem brilho. */
 import React, { useEffect, useRef, useState } from 'react';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { LARGURA_MENU, LARGURA_MENU_FECHADO } from '../lib/largura';
-import { cores, estilos } from '../tema';
+import { cores, DEGRADE, estilos, FIM_DIAGONAL, INICIO_DIAGONAL, temaAtual } from '../tema';
 import type { ItemAba } from './BarraAbas';
 import { Icone, NomeIcone } from './Icone';
 import { Marca } from './Marca';
@@ -34,6 +35,7 @@ function Item({ icone, rotulo, recolhido, ativo, selo, papel = 'tab', aoPression
         onHoverOut={() => setSobre(false)}
         style={({ pressed }) => [st.item, recolhido && st.itemFechado, ativo && st.itemAtivo, !ativo && (sobre || pressed) && st.itemSobre]}
       >
+        {ativo && temaAtual() === 'normal' ? <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
         <View pointerEvents="none" style={st.icone}>
           <Icone nome={icone} tamanho={21} cor={ativo ? '#ffffff' : sobre ? cores.texto : cores.texto2} />
           {recolhido && selo ? <View style={st.ponto} /> : null}
@@ -138,21 +140,21 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
 const st = estilos(() => StyleSheet.create({
   menu: { height: '100%', paddingHorizontal: 12, paddingTop: 14, paddingBottom: 14, borderRightWidth: 1, borderRightColor: cores.linha2, backgroundColor: cores.fundo2, zIndex: 10 },
   topo: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 44 },
-  hamburguer: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 3 },
+  hamburguer: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
   marca: { flexDirection: 'row', alignItems: 'center', gap: 10, marginLeft: 4 },
-  item: { flexDirection: 'row', alignItems: 'center', gap: 14, height: 44, paddingHorizontal: 10, borderRadius: 3 },
+  item: { flexDirection: 'row', alignItems: 'center', gap: 14, height: 46, paddingHorizontal: 10, borderRadius: 14, overflow: 'hidden' },
   itemFechado: { justifyContent: 'center', paddingHorizontal: 0 },
   itemSobre: { backgroundColor: cores.cartao2 },
   itemAtivo: { backgroundColor: cores.destaqueForte },
   icone: { width: 24, alignItems: 'center', justifyContent: 'center' },
-  ponto: { position: 'absolute', top: -2, right: 0, width: 8, height: 8, borderRadius: 2, backgroundColor: cores.destaque2 },
-  selo: { minWidth: 20, height: 20, borderRadius: 3, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
-  dica: { position: 'absolute', left: 64, top: 8, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 3, backgroundColor: cores.painel, borderWidth: 1, borderColor: cores.linha2, zIndex: 20, minWidth: 90 },
+  ponto: { position: 'absolute', top: -2, right: 0, width: 8, height: 8, borderRadius: 4, backgroundColor: cores.destaque2 },
+  selo: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  dica: { position: 'absolute', left: 64, top: 8, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10, backgroundColor: cores.painel, borderWidth: 1, borderColor: cores.linha2, zIndex: 20, minWidth: 90 },
   rodape: { gap: 2, paddingTop: 12, borderTopWidth: 1, borderTopColor: cores.linha },
   aparencia: { paddingVertical: 10, paddingHorizontal: 2 },
-  chave: { flexDirection: 'row', borderWidth: 1, borderColor: cores.linha2, borderRadius: 3, padding: 2, gap: 2 },
-  lado: { flex: 1, height: 34, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 2 },
+  chave: { flexDirection: 'row', borderWidth: 1, borderColor: cores.linha2, borderRadius: 14, padding: 3, gap: 3 },
+  lado: { flex: 1, height: 34, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 11 },
   ladoAtivo: { backgroundColor: cores.destaqueForte },
-  conta: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 52, paddingHorizontal: 8, borderRadius: 3, marginTop: 6, borderTopWidth: 1, borderTopColor: cores.linha },
-  inicial: { width: 32, height: 32, borderRadius: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  conta: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 56, paddingHorizontal: 8, borderRadius: 14, marginTop: 6, borderTopWidth: 1, borderTopColor: cores.linha },
+  inicial: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
 }));

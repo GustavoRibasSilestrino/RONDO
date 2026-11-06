@@ -24,6 +24,7 @@ type Props = {
   aoAbrirMidia: (itens: Midia[], indice: number) => void;
   aoAbrirPerfil?: (autor: Pessoa) => void;
   aoApagar?: (id: number) => void;           // avisa a tela que a publicação saiu do servidor
+  insta?: boolean;                           // estilo Instagram web: sem cartão, cabeçalho, foto grande, ações e legenda
   timeline?: boolean;                        // estilo X (Twitter): sem cartão, com avatar à esquerda e linha entre as publicações   // tocar na foto ou no nome de quem publicou abre o perfil dessa pessoa
 };
 
@@ -63,7 +64,7 @@ function PuloCheers({ disparo }: { disparo: number }) {
   );
 }
 
-export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, aoApagar, timeline }: Props) {
+export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, aoApagar, timeline, insta }: Props) {
   const { estado, commit, atualizarSocial } = useLoja();
   const { limites } = useConta();
   const avisar = useAviso();
@@ -184,6 +185,64 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
         </Folha>
     </>
   );
+
+  /* no estilo do Instagram web: cabeçalho com foto redonda, a mídia em largura total, as ações e a legenda */
+  if (insta) {
+    const nomeMostrado = meu ? estado.usuario?.nome ?? post.autor.nome : post.autor.nome;
+    return (
+      <View style={st.insta}>
+        <View style={st.instaTopo}>
+          <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor.nome}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)} style={st.instaAutor}>
+            <Avatar nome={post.autor.nome} voce={meu} tamanho={38} />
+            <View style={{ flexShrink: 1 }}>
+              <View style={st.linhaTweet}>
+                <T tam={14} peso="500" linhas={1} style={{ flexShrink: 1 }}>{nomeMostrado}</T>
+                <T tam={13} cor={cores.texto3}>· {quando(post.quando)}</T>
+              </View>
+              {nomeGrupo ? (
+                <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o clube ${nomeGrupo}`} onPress={aoAbrirGrupo} hitSlop={6}>
+                  <T tam={12} peso="500" cor={cores.destaque2}>{nomeGrupo}</T>
+                </Pressable>
+              ) : null}
+            </View>
+          </Pressable>
+          {meu ? (
+            <Pressable accessibilityRole="button" accessibilityLabel="Mais opções da publicação" onPress={() => setApagando(true)} hitSlop={8} style={st.botaoIcone}>
+              <Icone nome="pontos" tamanho={20} cor={cores.texto2} />
+            </Pressable>
+          ) : (
+            <BotaoSeguir pessoa={post.autor} />
+          )}
+        </View>
+
+        {midia.length ? (
+          <View style={st.instaMidia}>
+            <MidiaGrade itens={midia} aoAbrir={(i) => aoAbrirMidia(midia, i)} />
+          </View>
+        ) : null}
+
+        {acoes}
+
+        {post.texto ? (
+          <T tam={14.5} style={{ lineHeight: 21 }}>
+            <T tam={14.5} peso="500">{nomeMostrado} </T>
+            {post.texto}
+          </T>
+        ) : null}
+        {post.destaque ? (
+          <View style={st.destaque}>
+            <T tam={18} peso="300" cor={cores.destaque2}>{post.destaque}</T>
+          </View>
+        ) : null}
+        {nComentarios > 0 ? (
+          <Pressable accessibilityRole="button" onPress={() => setComentando(true)} style={{ marginTop: 6 }}>
+            <T tam={13.5} cor={cores.texto3}>Ver {nComentarios === 1 ? 'o comentário' : `os ${nComentarios} comentários`}</T>
+          </Pressable>
+        ) : null}
+        {folhas}
+      </View>
+    );
+  }
 
   /* no estilo do X (Twitter): sem cartão, foto à esquerda e o conteúdo à direita, com uma linha separando cada publicação */
   if (timeline) {
@@ -374,14 +433,18 @@ const st = estilos(() => StyleSheet.create({
   cabeca: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
   botaoIcone: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  destaque: { marginTop: 12, backgroundColor: cores.fundo2, borderRadius: 3, padding: 12 },
+  destaque: { marginTop: 12, backgroundColor: cores.fundo2, borderRadius: 12, padding: 12 },
   acoes: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, marginHorizontal: -6 },
   acao: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, paddingHorizontal: 8 },
-  pulo: { position: 'absolute', left: 8, bottom: 34, paddingVertical: 3, paddingHorizontal: 10, borderRadius: 4, backgroundColor: cores.destaqueForte },
+  pulo: { position: 'absolute', left: 8, bottom: 34, paddingVertical: 3, paddingHorizontal: 10, borderRadius: 999, backgroundColor: cores.destaqueForte },
+  insta: { paddingBottom: 18, marginBottom: 6, borderBottomWidth: 1, borderBottomColor: cores.linha, gap: 6 },
+  instaTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  instaAutor: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
+  instaMidia: { marginTop: 6, borderRadius: 14, overflow: 'hidden' },
   tweet: { flexDirection: 'row', gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: cores.linha },
   linhaTweet: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  cheersDado: { backgroundColor: `rgba(${cores.tom},0.14)`, borderRadius: 4, paddingHorizontal: 14 },
+  cheersDado: { backgroundColor: `rgba(${cores.tom},0.14)`, borderRadius: 22, paddingHorizontal: 14 },
   linhaComentario: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  campoComentario: { flex: 1, height: 46, paddingHorizontal: 16, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
-  enviar: { width: 46, height: 46, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  campoComentario: { flex: 1, height: 46, paddingHorizontal: 16, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
+  enviar: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
 }));
