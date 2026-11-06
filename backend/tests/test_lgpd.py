@@ -129,3 +129,10 @@ def test_retencao_apaga_stories_e_avisos_vencidos(cliente):
         limpar_vencidos(s, forcar=True)
         assert [x.texto for x in s.query(Story).all()] == ["novo"]
         assert s.query(Notificacao).count() == 1
+
+
+def test_erro_de_validacao_nao_devolve_a_senha(cliente):
+    r = cliente.post("/auth/cadastro", json=_corpo(aceita_termos=False))
+    assert r.status_code == 422
+    assert "segredo1" not in r.text and "ana@x.com" not in r.text and "1995-04-10" not in r.text
+    assert "aceite os Termos de Uso" in r.json()["detail"][0]["msg"]

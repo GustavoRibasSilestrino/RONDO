@@ -1,5 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.config import config
 from app.rotas import assinaturas, auth, clubes, me, midia, pessoas, profissionais, social, treinos
@@ -11,6 +14,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def erro_de_validacao(_: Request, exc: RequestValidationError):
+    """Mantém a mensagem de cada erro, mas nunca devolve o que foi enviado (senha, e-mail, data de nascimento)."""
+    erros = [{"loc": e.get("loc"), "msg": e.get("msg"), "type": e.get("type")} for e in exc.errors()]
+    return JSONResponse(status_code=422, content={"detail": jsonable_encoder(erros)})
+
+
 app.include_router(auth.router)
 app.include_router(me.router)
 app.include_router(profissionais.router)
