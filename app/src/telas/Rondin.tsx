@@ -321,9 +321,11 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
           <View style={[st.coluna, largo ? { maxWidth: 560 } : null, k > 1 ? ({ zoom: k } as object) : null]}>
             {/* topo: voltar e o progresso */}
             <View style={st.topo}>
-              <Pressable accessibilityRole="button" accessibilityLabel={indice <= 0 ? 'Voltar para o início' : 'Voltar uma pergunta'} onPress={voltar} hitSlop={8} style={st.botaoTopo}>
-                <Icone nome="voltar" tamanho={22} cor="#ffffff" />
-              </Pressable>
+              {largo ? <View style={st.botaoTopo} /> : (
+                <Pressable accessibilityRole="button" accessibilityLabel={indice <= 0 ? 'Voltar para o início' : 'Voltar uma pergunta'} onPress={voltar} hitSlop={8} style={st.botaoTopo}>
+                  <Icone nome="voltar" tamanho={22} cor="#ffffff" />
+                </Pressable>
+              )}
               <View style={{ flex: 1 }} />
               <View style={st.botaoTopo} />
             </View>
@@ -460,6 +462,15 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      {/* computador: a seta fica no canto esquerdo da tela, grande */}
+      {largo ? (
+        <Pressable
+          accessibilityRole="button" accessibilityLabel={indice <= 0 ? 'Voltar para o início' : 'Voltar uma pergunta'} onPress={voltar} hitSlop={8}
+          style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.setaCanto, { top: insets.top + 24 }, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}
+        >
+          <Icone nome="voltar" tamanho={34} cor="#ffffff" />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -467,6 +478,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 const st = estilos(() => StyleSheet.create({
   coluna: { width: '100%', maxWidth: 440, alignSelf: 'center' },
   topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 44 },
+  setaCanto: { position: 'absolute', left: 28, width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' },
   botaoTopo: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   trilho: { height: 3, borderRadius: 2, backgroundColor: cores.linha, overflow: 'hidden', marginTop: 4 },
   trilhoCheio: { height: 3, borderRadius: 2, backgroundColor: cores.destaque },
