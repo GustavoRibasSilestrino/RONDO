@@ -22,7 +22,7 @@
 
 .hero-grade { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; min-height: calc(100svh - var(--nav-h) - 8rem); grid-template-rows: none; }
 .hero-texto { max-width: 36rem; }
-.hero-title { font-size: clamp(2.6rem, 5.8vw, 5.2rem); line-height: 1.18; color: #fff; }
+.hero-title { font-size: clamp(2rem, 4vw, 3.6rem); line-height: 1.2; color: #fff; }
 .hero-title .ln { display: block; }
 .hero-title .trail { color: rgba(255, 255, 255, .72); text-shadow: none; }
 .hero-texto .lead { margin-top: clamp(1rem, 2.4vh, 1.5rem); max-width: 38ch; font-size: clamp(.92rem, 1.1vw, 1.02rem); font-weight: 300; color: rgba(255, 255, 255, .86); line-height: 1.65; }
@@ -35,7 +35,7 @@
   .hero { padding: calc(var(--nav-h) + clamp(1.4rem, 6vh, 2.6rem)) 0 clamp(3rem, 8vh, 4.5rem); }
   .hero-grade { align-items: start; min-height: 0; }
   .hero-texto { max-width: 22rem; margin-inline: auto; text-align: center; }
-  .hero-title { font-size: clamp(28px, 9vw, 50px); line-height: 1.18; }
+  .hero-title { font-size: clamp(22px, 7vw, 40px); line-height: 1.2; }
   .hero-texto .lead { margin-top: .9rem; margin-inline: auto; max-width: 28ch; font-size: clamp(13px, 3.5vw, 16px); line-height: 1.6; }
   .hero-cta { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .6rem; margin-top: 1.4rem; max-width: none; }
   .hero-cta .btn { flex: 1 1 auto; min-width: 0; min-height: 44px; padding: .7rem 1.1rem; font-size: clamp(13px, 3.6vw, 15px); }

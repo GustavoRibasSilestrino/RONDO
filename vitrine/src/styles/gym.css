@@ -30,7 +30,7 @@
 .gym-word {
   grid-area: 1 / 1; opacity: 0; will-change: transform, opacity; white-space: nowrap; text-align: center;
   text-transform: uppercase; line-height: .86;
-  font-size: clamp(5rem, 16.5vw, 21rem); color: rgba(255, 255, 255, .88);
+  font-size: clamp(3rem, 10.5vw, 14rem); color: rgba(255, 255, 255, .88);
 }
 .gym-word > span { display: block; filter: url(#gym-spray); }
 .gym-canvas { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
@@ -55,7 +55,7 @@
 }
 .gym-title {
   display: grid; text-transform: uppercase;
-  font-size: clamp(1.9rem, 4.2vw, 3.6rem); line-height: .96; letter-spacing: 0; color: #fff;
+  font-size: clamp(1.3rem, 2.5vw, 2.3rem); line-height: 1.1; color: #fff;
 }
 .gym-title span { display: block; }
 .gym-meio { display: flex; align-items: center; gap: 1.1rem; }
@@ -78,12 +78,12 @@
 @media (max-width: 820px) {
   .gym { height: 420vh; --corte: 26px; }
   .gym-base { grid-template-columns: 1fr; gap: 1rem; }
-  .gym-title { font-size: clamp(1.7rem, 8vw, 2.4rem); }
+  .gym-title { font-size: clamp(1.1rem, 5.2vw, 1.5rem); }
   .gym-meio small { display: none; }
   .gym-hex { width: 56px; height: 56px; }
   .gym-fim { display: none; }
   .gym-etiquetas { display: none; }
-  .gym-word { font-size: clamp(4.5rem, 27vw, 10rem); }
+  .gym-word { font-size: clamp(2.2rem, 14vw, 6rem); }
 }
 @media (prefers-reduced-motion: reduce) {
   .gym-hex { transition: none; }

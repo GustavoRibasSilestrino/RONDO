@@ -17,7 +17,7 @@
 
   --font-display: "Poppins", "Inter", system-ui, sans-serif;
   --font-body: "Poppins", "Inter", system-ui, sans-serif;
-  --font-titulo: "Anton", "Poppins", system-ui, sans-serif;   /* títulos; todo o resto do texto é Poppins */
+  --font-titulo: "Space Mono", ui-monospace, monospace;   /* títulos; todo o resto do texto é Poppins */
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   /* cantos quase retos: uma linguagem de instrumento, não de app "fofo" */
@@ -75,16 +75,17 @@ body::before {
 /* ===== Tipografia: fontes finas ===== */
 h1, h2, h3, h4, h5, h6 { font-weight: 400; }
 b, strong { font-weight: 500; }
-/* títulos: Anton tem um peso só (400); pedir outro faria o navegador engrossar a letra, então fica travado */
+/* títulos: Space Mono (monoespaçada, só tem os pesos 400 e 700; o resto do texto é Poppins). As letras são largas,
+   então os tamanhos abaixo são menores que os de uma fonte comum. */
 .display, .hero-title, .gym-title, .gym-word, .moment h3, .legal h1, .legal h2, .modal h2 {
-  font-family: var(--font-titulo); font-weight: 400; font-synthesis: none; letter-spacing: .005em;
+  font-family: var(--font-titulo); font-weight: 700; font-synthesis: none; letter-spacing: -.03em;
 }
-.display { line-height: 1.08; }
-h1.display { font-size: clamp(3.2rem, 9vw, 8.4rem); line-height: 1.02; }
-h2.display { font-size: clamp(2rem, 4.2vw, 3.7rem); }
+.display { line-height: 1.18; }
+h1.display { font-size: clamp(2.4rem, 6vw, 5.2rem); line-height: 1.1; }
+h2.display { font-size: clamp(1.6rem, 3.2vw, 2.8rem); }
 @media (max-width: 520px) {
-  h1.display { font-size: clamp(2.6rem, 13.6vw, 3.8rem); }   /* acompanha a largura do celular */
-  h2.display { font-size: clamp(1.8rem, 8.2vw, 2.3rem); }
+  h1.display { font-size: clamp(2rem, 9vw, 2.8rem); }   /* acompanha a largura do celular */
+  h2.display { font-size: clamp(1.45rem, 6.4vw, 1.9rem); }
 }
 .mono { font-family: var(--font-mono); }
 .lead { color: var(--ink-2); font-size: clamp(1rem, 1.35vw, 1.15rem); font-weight: 300; max-width: 52ch; }
