@@ -17,7 +17,7 @@ import { PainelLateral } from './src/componentes/PainelLateral';
 import { useLayoutLargo } from './src/lib/largura';
 import { PlanoPro } from './src/componentes/PlanoPro';
 import { AvisoProvider, useAviso } from './src/componentes/Estrutura';
-import { Marca } from './src/componentes/Marca';
+import { T } from './src/componentes/Ui';
 import { estadoVazio, LojaProvider, useLoja } from './src/estado/loja';
 import { naoLidas, useNotificacoes } from './src/lib/notificacoes';
 import { Colecoes } from './src/telas/Colecoes';
@@ -80,7 +80,7 @@ function Raiz() {
   if (!pronto) {
     return (
       <View style={st.centro}>
-        <Marca altura={34} />
+        <T tam={30} peso="200" style={{ letterSpacing: 10 }}>RONDO</T>
       </View>
     );
   }
@@ -157,5 +157,5 @@ export default function App() {
 
 const st = estilos(() => StyleSheet.create({
   raiz: { flex: 1, backgroundColor: cores.fundo },
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.fundo },
+  centro: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' },
 }));

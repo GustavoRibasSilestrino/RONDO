@@ -2,11 +2,9 @@
    fala cada pergunta em voz alta (a legenda vai surgindo palavra por palavra embaixo do orbe) e mostra as opções ou o
    campo para responder. No cadastro, as respostas viram o perfil da conta (altura, peso, objetivo, rotina...) e são
    salvas no servidor junto com ela. O roteiro está em lib/rondinRoteiro.ts e a voz em lib/rondinVoz.ts. */
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Defs, Path, Pattern, Rect } from 'react-native-svg';
 import { cadastrar, entrar } from '../api/conta';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
 import { Icone } from '../componentes/Icone';
@@ -68,23 +66,6 @@ function Legenda({ texto, chave, taxa, duracaoMs, indiceVoz, completa, aoComplet
           {p}{i < palavras.length - 1 ? ' ' : ''}
         </T>
       ))}
-    </View>
-  );
-}
-
-/* ---------- o fundo: grade fina e um clarão roxo no alto ---------- */
-function Fundo() {
-  return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <Svg width="100%" height="100%">
-        <Defs>
-          <Pattern id="grade" width={36} height={36} patternUnits="userSpaceOnUse">
-            <Path d="M36 0H0V36" fill="none" stroke="rgba(167,139,250,0.07)" strokeWidth={1} />
-          </Pattern>
-        </Defs>
-        <Rect width="100%" height="100%" fill="url(#grade)" />
-      </Svg>
-      <LinearGradient colors={['rgba(106,0,212,0.34)', 'rgba(106,0,212,0)']} style={{ position: 'absolute', left: 0, right: 0, top: 0, height: 420 }} />
     </View>
   );
 }
@@ -308,8 +289,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   const orbe = Math.round(Math.min(campoAberto ? 150 : 250, width * (campoAberto ? 0.4 : 0.62), height * 0.3));
 
   return (
-    <View style={{ flex: 1, backgroundColor: cores.fundo }}>
-      <Fundo />
+    <View style={{ flex: 1, backgroundColor: '#000000' }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
