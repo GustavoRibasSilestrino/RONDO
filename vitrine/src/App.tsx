@@ -16,7 +16,7 @@ export default function App() {
     <>
       <Backdrop />
       <Nav />
-      <main>
+      <main id="conteudo">
         <Hero />
         <Day />
         <Compare />

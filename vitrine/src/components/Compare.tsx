@@ -39,7 +39,7 @@ export function Compare() {
       <div className="wrap">
         <Reveal className="section-head">
           <Title parts="Seu ontem, lado a lado com o seu hoje." />
-          <p className="lead">O card Você vs. ontem compara a sua semana com a anterior: treinos, volume, refeições, água e sono. É o que você compartilha nos stories. Arraste para ver.</p>
+          <p className="lead">O card Você vs. ontem compara a sua semana com a anterior: treinos, volume, refeições, água e sono. É o que você compartilha nos stories. Arraste para ver (números ilustrativos).</p>
         </Reveal>
         <Reveal className="cmp" style={vars({ "--pos": `${pos}%` })} aria-label="Comparação entre ontem e hoje">
             <div className="cmp-layer cmp-ontem" aria-hidden="true" ref={box}>

@@ -29,9 +29,9 @@ export async function entrar(email: string, senha: string): Promise<Usuario> {
     }
     if (resposta.status === 401 || resposta.status === 403) throw new Error('E-mail ou senha incorretos.');
     if (!resposta.ok) throw new Error('Não foi possível entrar agora. Tente de novo.');
-    const dados = (await resposta.json()) as { email?: string; nome?: string; token?: string; papel?: string; verificado?: boolean; pro?: boolean; selo?: string | null };
+    const dados = (await resposta.json()) as { email?: string; nome?: string; token?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null };
     if (dados.token) await guardarToken(dados.token);
-    return { email: dados.email ?? email, nome: dados.nome ?? nomeDoEmail(email), papel: dados.papel, verificado: dados.verificado, pro: dados.pro, selo: dados.selo };
+    return { email: dados.email ?? email, nome: dados.nome ?? nomeDoEmail(email), papel: dados.papel, verificado: dados.verificado, pro: dados.pro, marketing: dados.marketing, selo: dados.selo };
   }
 
   throw new Error('O servidor do RONDO não está configurado neste aparelho.');

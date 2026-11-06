@@ -176,7 +176,7 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
           <Animated.View style={[st.rodape, surgir(7)]}>
             <View style={st.fio} />
             <T tam={13.5} cor={cores.texto2} centro style={{ lineHeight: 20 }}>
-              Ainda não tem conta? A assinatura é feita no site.
+              Ainda não tem conta? Crie a sua de graça no site.
             </T>
             <Pressable
               accessibilityRole="link"
@@ -187,6 +187,13 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario) => void }) {
               <T tam={13.5} peso="500" cor={cores.destaque2}>Abrir o site do RONDO</T>
               <Icone nome="setaDireita" tamanho={16} cor={cores.destaque2} />
             </Pressable>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 16 }}>
+              {[['Termos de Uso', '/termos'], ['Política de Privacidade', '/privacidade']].map(([t, c]) => (
+                <Pressable key={c} accessibilityRole="link" accessibilityLabel={`${t}, abre no navegador`} onPress={() => Linking.openURL(`${SITE}${c}`)} style={{ paddingVertical: 8 }}>
+                  <T tam={12.5} cor={cores.texto2} style={{ textDecorationLine: 'underline' }}>{t}</T>
+                </Pressable>
+              ))}
+            </View>
           </Animated.View>
         </View>
       </Tela>

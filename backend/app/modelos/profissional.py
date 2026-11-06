@@ -19,3 +19,5 @@ class Profissional(Base):
     # pendente -> verificado | recusado (conferência manual na consulta pública do conselho)
     status: Mapped[str] = mapped_column(String(12), default="pendente")
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    # o registro do aceite dos Termos de Uso e da Política de Privacidade (versão vista no cadastro)
+    termos_versao: Mapped[str | None] = mapped_column(String(20), nullable=True)

@@ -9,8 +9,11 @@ from sqlalchemy.orm import Session
 
 from app.banco import obter_sessao
 from app.deps import usuario_atual
-from app.esquemas import DadosIn, DadosOut, PerfilIn, UsuarioOut
-from app.modelos import DadoUsuario, Usuario
+from app.esquemas import ApagarContaIn, DadosIn, DadosOut, MarketingIn, PerfilIn, StatusOut, UsuarioOut
+from app.legal import VERSAO_PRIVACIDADE
+from app.modelos import Consentimento, DadoUsuario, Usuario
+from app.seguranca import conferir_senha
+from app.servicos import conta as servico_conta
 
 router = APIRouter(prefix="/me", tags=["me"])
 
@@ -69,4 +72,30 @@ def mudar_perfil(dados: PerfilIn, usuario: Usuario = Depends(usuario_atual), ses
     except IntegrityError:
         sessao.rollback()
         raise HTTPException(409, "Esse @ já está em uso.")
+    return usuario
+
+
+# ---------- direitos do titular (LGPD, art. 18) ----------
+
+@router.get("/exportar")
+def exportar(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    """Uma cópia de tudo o que o servidor guarda da pessoa, para baixar."""
+    return servico_conta.exportar(sessao, usuario)
+
+
+@router.delete("", response_model=StatusOut)
+def apagar_conta(dados: ApagarContaIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    """Apaga a conta e todos os dados dela no servidor. Pede a senha para confirmar."""
+    if not conferir_senha(dados.senha, usuario.senha_hash):
+        raise HTTPException(401, "Senha incorreta.")
+    servico_conta.apagar_conta(sessao, usuario)
+    return StatusOut(status="ok")
+
+
+@router.patch("/marketing", response_model=UsuarioOut)
+def mudar_marketing(dados: MarketingIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    """Receber ou não e-mails de novidades. Cada mudança fica registrada."""
+    usuario.marketing = dados.marketing
+    sessao.add(Consentimento(usuario_id=usuario.id, tipo="marketing", versao=VERSAO_PRIVACIDADE, aceito=dados.marketing, origem="app"))
+    sessao.commit()
     return usuario

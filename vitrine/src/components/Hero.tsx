@@ -103,7 +103,7 @@ export function Hero() {
         </div>
 
         <div className="hero-bottom">
-          <p className="lead">Treino, dieta, constância e comunidade em um só app, com profissionais verificados e recados de voz para o seu eu do futuro.</p>
+          <p className="lead">Treino, dieta, constância e comunidade em um só app, e recados de voz para o seu eu do futuro.</p>
           <div className="hero-cta">
             <Btn href="#entrar">Quero entrar primeiro <span className="arrow">→</span></Btn>
             <Btn href="#recursos" kind="ghost">Ver o dia inteiro</Btn>

@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from app.banco import obter_sessao
 from app.deps import usuario_atual
 from app.esquemas import CadastroIn, LoginIn, LoginOut, SenhaIn, StatusOut, UsuarioOut
-from app.modelos import Usuario
+from app.legal import VERSAO_PRIVACIDADE, VERSAO_TERMOS
+from app.modelos import Consentimento, Usuario
 from app.seguranca import conferir_senha, criar_token, gerar_hash
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -14,7 +15,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 def _login_out(u: Usuario) -> LoginOut:
     return LoginOut(
         email=u.email, nome=u.nome, papel=u.papel, verificado=u.verificado, pro=u.pro, selo=u.selo,
-        arroba=u.arroba, bio=u.bio, token=criar_token(u.id),
+        arroba=u.arroba, bio=u.bio, marketing=u.marketing, token=criar_token(u.id),
     )
 
 
@@ -23,8 +24,25 @@ def cadastro(dados: CadastroIn, sessao: Session = Depends(obter_sessao)):
     email = dados.email.lower()
     if sessao.scalar(select(Usuario).where(Usuario.email == email)):
         raise HTTPException(409, "Este e-mail já tem conta.")
-    usuario = Usuario(email=email, nome=dados.nome.strip(), senha_hash=gerar_hash(dados.senha))
+    usuario = Usuario(
+        email=email, nome=dados.nome.strip(), senha_hash=gerar_hash(dados.senha),
+        nascimento=dados.nascimento, marketing=dados.marketing,
+    )
     sessao.add(usuario)
+    sessao.flush()
+    # o registro do aceite: o que a pessoa aceitou, em qual versão, quando e por onde
+    origem = dados.origem
+    sessao.add_all([
+        Consentimento(usuario_id=usuario.id, tipo="termos", versao=VERSAO_TERMOS, aceito=True, origem=origem),
+        Consentimento(usuario_id=usuario.id, tipo="privacidade", versao=VERSAO_PRIVACIDADE, aceito=True, origem=origem),
+        Consentimento(usuario_id=usuario.id, tipo="marketing", versao=VERSAO_PRIVACIDADE, aceito=dados.marketing, origem=origem),
+    ])
+    if dados.responsavel:
+        r = dados.responsavel
+        sessao.add(Consentimento(
+            usuario_id=usuario.id, tipo="responsavel", versao=VERSAO_PRIVACIDADE, aceito=True, origem=origem,
+            detalhe={"nome": r.nome.strip(), "email": r.email.lower()},
+        ))
     sessao.commit()
     return _login_out(usuario)
 
