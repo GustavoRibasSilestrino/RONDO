@@ -10,7 +10,7 @@ export function Hero() {
       <div className="wrap hero-in hero-grade">
         <div className="hero-texto">
           <h1 className="hero-title" aria-label="Vença o você de ontem.">
-            <span className="ln">Vença o você</span>
+            <span className="ln"><span className="v-mao">V</span>ença o você</span>
             <span className="ln trail">de ontem.</span>
           </h1>
           <p className="lead">Treino, dieta, constância e comunidade em um só app, e recados de voz para o seu eu do futuro.</p>

@@ -24,8 +24,10 @@
 .hero-texto { max-width: 36rem; }
 .hero-title { font-size: clamp(2rem, 4vw, 3.6rem); line-height: 1.2; color: #fff; }
 .hero-title .ln { display: block; }
+/* só o V da primeira palavra, em letra de mão (pincel); o resto do título segue na fonte dos títulos */
+.hero-title .v-mao { font-family: "Reenie Beanie", cursive; font-weight: 400; font-size: 2.3em; line-height: 0; margin-right: .03em; display: inline-block; transform: translateY(.04em); }
 .hero-title .trail { color: rgba(255, 255, 255, .72); text-shadow: none; }
-.hero-texto .lead { margin-top: clamp(1rem, 2.4vh, 1.5rem); max-width: 38ch; font-size: clamp(.92rem, 1.1vw, 1.02rem); font-weight: 300; color: rgba(255, 255, 255, .86); line-height: 1.65; }
+.hero-texto .lead { font-family: "Inter", system-ui, sans-serif; margin-top: clamp(1rem, 2.4vh, 1.5rem); max-width: 38ch; font-size: clamp(.92rem, 1.1vw, 1.02rem); font-weight: 300; color: rgba(255, 255, 255, .86); line-height: 1.65; }
 .hero-cta { display: flex; gap: .8rem; flex-wrap: wrap; margin-top: clamp(1.6rem, 4vh, 2.4rem); }
 .hero-cta .btn { padding: 1rem 1.9rem; border-radius: 4px; font-family: "Poppins", var(--font-body); font-size: 1rem; font-weight: 400; }
 .hero-cta .btn-primary { background: transparent; border: 1px solid rgba(255, 255, 255, .7); box-shadow: none; color: #fff; }
