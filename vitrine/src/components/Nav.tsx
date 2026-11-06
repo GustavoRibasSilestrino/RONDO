@@ -63,8 +63,8 @@ function MobileMenu({ open, current, onClose }: { open: boolean; current: number
           </a>
         ))}
       </nav>
-      <div className="mnav-cta" style={vars({ "--i": LINKS.length })} onClick={(e) => go(e, SECTIONS[SECTIONS.length - 1])}>
-        <Btn href="#entrar">Criar conta</Btn>
+      <div className="mnav-cta" style={vars({ "--i": LINKS.length })} onClick={() => { document.body.style.overflow = ""; onClose(); }}>
+        <Btn href="#cadastro">Criar conta</Btn>
       </div>
     </div>
   );
@@ -155,7 +155,7 @@ export function Nav() {
               </div>
             ))}
           </nav>
-          <div className="nav-end"><Btn href="#entrar" small>Criar conta</Btn></div>
+          <div className="nav-end"><Btn href="#cadastro" small>Criar conta</Btn></div>
           <button className="burger" type="button" aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen} aria-controls="mnav"
             onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o); }}>
             <span aria-hidden="true"><i /><i /><i /></span>

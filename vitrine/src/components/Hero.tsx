@@ -105,7 +105,7 @@ export function Hero() {
         <div className="hero-bottom">
           <p className="lead">Treino, dieta, constância e comunidade em um só app, e recados de voz para o seu eu do futuro.</p>
           <div className="hero-cta">
-            <Btn href="#entrar">Quero entrar primeiro <span className="arrow">→</span></Btn>
+            <Btn href="#cadastro">Criar conta grátis <span className="arrow">→</span></Btn>
             <Btn href="#recursos" kind="ghost">Ver o dia inteiro</Btn>
           </div>
         </div>

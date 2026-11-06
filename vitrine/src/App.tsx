@@ -1,4 +1,5 @@
 import { Backdrop } from "./components/Backdrop";
+import { CadastroModal } from "./components/CadastroModal";
 import { Compare } from "./components/Compare";
 import { Constancia } from "./components/Constancia";
 import { Day } from "./components/Day";
@@ -30,6 +31,7 @@ export default function App() {
         <Entrar />
       </main>
       <Footer />
+      <CadastroModal />
     </>
   );
 }
