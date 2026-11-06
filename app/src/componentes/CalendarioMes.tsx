@@ -66,11 +66,11 @@ export function CalendarioMes() {
 
 const st = estilos(() => StyleSheet.create({
   topo: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  seta: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  seta: { width: 40, height: 40, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
   linha: { flexDirection: 'row' },
   grade: { flexDirection: 'row', flexWrap: 'wrap' },
   celula: { width: '14.2857%', alignItems: 'center', justifyContent: 'center', paddingVertical: 3 },
-  dia: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'transparent' },
+  dia: { width: 38, height: 38, borderRadius: 4, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'transparent' },
   diaFeito: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
   diaHoje: { borderColor: cores.destaque },
   resumo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: cores.linha },

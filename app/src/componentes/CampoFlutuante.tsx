@@ -89,11 +89,11 @@ export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuant
 const st = estilos(() => StyleSheet.create({
   caixa: {
     height: 60, flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 6,
-    borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)',
+    borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)',
   },
   caixaAlta: { height: undefined, minHeight: 112, alignItems: 'stretch' },
-  caixaFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.07)`, boxShadow: `0 0 0 4px rgba(${cores.tom},0.18)` },
-  caixaErro: { borderColor: cores.erro, boxShadow: '0 0 0 4px rgba(255,107,129,0.14)' },
+  caixaFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.07)`, boxShadow: `0 0 0 1px ${cores.destaque}` },
+  caixaErro: { borderColor: cores.erro, boxShadow: '0 0 0 1px #ff6b81' },
   icone: { marginRight: 12 },
   meio: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
   rotulo: { position: 'absolute', left: 0, top: 20, fontSize: 16, fontFamily: FONTE['300'], transformOrigin: 'left center' },

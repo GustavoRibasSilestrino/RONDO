@@ -67,7 +67,7 @@ const st = estilos(() => StyleSheet.create({
   coluna: { flex: 1, width: '100%', maxWidth: larguraMax },
   topo: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 52 },
   botao: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  rotina: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 88 },
-  editar: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
-  play: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  rotina: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 88 },
+  editar: { width: 36, height: 36, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  play: { width: 40, height: 40, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
 }));

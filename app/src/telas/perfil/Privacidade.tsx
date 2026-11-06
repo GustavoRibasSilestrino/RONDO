@@ -98,6 +98,6 @@ export function Privacidade() {
 }
 
 const st = estilos(() => StyleSheet.create({
-  linha: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  linha: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   doc: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: cores.linha },
 }));

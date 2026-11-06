@@ -78,8 +78,8 @@ export function ContaSeguranca() {
 }
 
 const st = estilos(() => StyleSheet.create({
-  linha: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
-  icone: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
-  selo: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
+  linha: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
+  icone: { width: 42, height: 42, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  selo: { paddingVertical: 4, paddingHorizontal: 10, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2 },
   aviso: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
 }));

@@ -46,6 +46,6 @@ export function EditarTitulos({ aberta, aoFechar }: { aberta: boolean; aoFechar:
 
 const st = estilos(() => StyleSheet.create({
   colecao: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
+  chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2 },
   chipAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
 }));

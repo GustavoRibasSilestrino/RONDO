@@ -116,12 +116,12 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
 }
 
 const st = estilos(() => StyleSheet.create({
-  destaque: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 18, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  destaque: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 18, padding: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   previa: { position: 'absolute', left: 16, right: 16, bottom: 14, gap: 2 },
   pilulas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  pilula: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
+  pilula: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 9, paddingHorizontal: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2 },
   pilulaAtiva: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
   cores: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
-  amostra: { width: 44, height: 44, borderRadius: 22, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
+  amostra: { width: 44, height: 44, borderRadius: 4, overflow: 'hidden', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent' },
   amostraAtiva: { borderColor: '#ffffff' },
 }));

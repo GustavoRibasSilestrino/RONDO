@@ -100,9 +100,9 @@ export function AvisoNivel() {
 
 const st = estilos(() => StyleSheet.create({
   fundo: { ...StyleSheet.absoluteFill, zIndex: 2500, backgroundColor: 'rgba(0,0,0,0.78)', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  cartao: { width: '100%', maxWidth: Math.min(larguraMax, 400), alignItems: 'center', padding: 24, borderRadius: 28, backgroundColor: cores.painel, borderWidth: 1, borderColor: cores.linha2 },
+  cartao: { width: '100%', maxWidth: Math.min(larguraMax, 400), alignItems: 'center', padding: 24, borderRadius: 4, backgroundColor: cores.painel, borderWidth: 1, borderColor: cores.linha2 },
   palco: { width: 170, height: 160, alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
-  anel: { position: 'absolute', width: 130, height: 130, borderRadius: 65, borderWidth: 2, borderColor: cores.destaque },
-  selo: { width: 112, height: 112, borderRadius: 56, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
-  beneficio: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
+  anel: { position: 'absolute', width: 130, height: 130, borderRadius: 4, borderWidth: 2, borderColor: cores.destaque },
+  selo: { width: 112, height: 112, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  beneficio: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
 }));

@@ -103,11 +103,11 @@ export function SeusDados() {
 }
 
 const st = estilos(() => StyleSheet.create({
-  meta: { padding: 18, borderRadius: 22, borderWidth: 1, borderColor: cores.destaqueForte, backgroundColor: cores.cartao },
-  macro: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 14, backgroundColor: cores.cartao2 },
-  opcao: { minHeight: 56, alignItems: 'center', justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 8, borderRadius: 16, borderWidth: 1.5, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  meta: { padding: 18, borderRadius: 4, borderWidth: 1, borderColor: cores.destaqueForte, backgroundColor: cores.cartao },
+  macro: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 3, backgroundColor: cores.cartao2 },
+  opcao: { minHeight: 56, alignItems: 'center', justifyContent: 'center', paddingVertical: 12, paddingHorizontal: 8, borderRadius: 4, borderWidth: 1.5, borderColor: cores.linha2, backgroundColor: cores.cartao },
   opcaoAtiva: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.16)` },
-  check: { position: 'absolute', top: 6, right: 6, width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
-  medida: { flex: 1, alignItems: 'center', padding: 12, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
-  passo: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  check: { position: 'absolute', top: 6, right: 6, width: 18, height: 18, borderRadius: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  medida: { flex: 1, alignItems: 'center', padding: 12, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  passo: { width: 40, height: 40, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
 }));

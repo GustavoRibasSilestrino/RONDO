@@ -418,7 +418,7 @@ function ConteudoResumo({ r, aoFechar }: { r: Resumo; aoFechar: () => void }) {
           { nome: 'SÉRIES', valor: String(r.series) },
           { nome: 'TEMPO', valor: `${r.minutos} min` },
         ].map((m) => (
-          <View key={m.nome} style={{ flex: 1, backgroundColor: cores.fundo2, borderRadius: 8, padding: 12 }}>
+          <View key={m.nome} style={{ flex: 1, backgroundColor: cores.fundo2, borderRadius: 3, padding: 12 }}>
             <T tam={10} mono cor={cores.texto3}>{m.nome}</T>
             <T tam={22} peso="300">{m.valor}</T>
           </View>
@@ -438,43 +438,43 @@ function ConteudoResumo({ r, aoFechar }: { r: Resumo; aoFechar: () => void }) {
 
 const st = estilos(() => StyleSheet.create({
   /* lista */
-  semana: { marginTop: 18, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
+  semana: { marginTop: 18, padding: 16, borderRadius: 4, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
   dias: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 14 },
-  dia: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: cores.linha2 },
+  dia: { width: 34, height: 34, borderRadius: 4, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: cores.linha2 },
   diaFeito: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
   diaHoje: { borderColor: cores.destaque },
-  hero: { marginTop: 14, padding: 20, borderRadius: 28, borderWidth: 1.5, borderColor: cores.destaqueForte, backgroundColor: cores.cartao },
-  selo: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.destaqueForte },
+  hero: { marginTop: 14, padding: 20, borderRadius: 4, borderWidth: 1.5, borderColor: cores.destaqueForte, backgroundColor: cores.cartao },
+  selo: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 4, backgroundColor: cores.destaqueForte },
   metas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
+  meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 4, backgroundColor: cores.cartao2 },
   linhaEx: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  numero: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
-  botaoCalendario: { position: 'absolute', right: 0, top: -9, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
-  grafico: { marginTop: 14, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
-  alternar: { flexDirection: 'row', padding: 4, borderRadius: 999, backgroundColor: cores.cartao2 },
-  opcao: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 38, borderRadius: 999 },
+  numero: { width: 26, height: 26, borderRadius: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  botaoCalendario: { position: 'absolute', right: 0, top: -9, width: 40, height: 40, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
+  grafico: { marginTop: 14, padding: 16, borderRadius: 4, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
+  alternar: { flexDirection: 'row', padding: 4, borderRadius: 4, backgroundColor: cores.cartao2 },
+  opcao: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 38, borderRadius: 4 },
   opcaoAtiva: { backgroundColor: cores.destaqueForte },
 
   /* sessão */
   tempo: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 },
-  progresso: { marginTop: 16, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
+  progresso: { marginTop: 16, padding: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
   trilho: { height: 8, borderRadius: 4, backgroundColor: cores.cartao2, marginTop: 10, overflow: 'hidden' },
   enche: { height: 8, borderRadius: 4, backgroundColor: cores.destaqueForte },
-  descanso: { marginTop: 14, flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingLeft: 16, paddingRight: 12, borderRadius: 20, backgroundColor: cores.destaqueForte, overflow: 'hidden' },
-  pular: { paddingVertical: 9, paddingHorizontal: 18, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.2)' },
+  descanso: { marginTop: 14, flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingLeft: 16, paddingRight: 12, borderRadius: 4, backgroundColor: cores.destaqueForte, overflow: 'hidden' },
+  pular: { paddingVertical: 9, paddingHorizontal: 18, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.2)' },
   descansoTrilho: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 4, backgroundColor: 'rgba(255,255,255,0.18)' },
   descansoEnche: { height: 4, backgroundColor: '#ffffff' },
-  exercicio: { marginTop: 16, padding: 16, borderRadius: 24, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  exercicio: { marginTop: 16, padding: 16, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   exercicioFeito: { borderColor: `${cores.bom}66` },
-  indice: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
-  dica: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 14, backgroundColor: cores.cartao2 },
+  indice: { width: 34, height: 34, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  dica: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 3, backgroundColor: cores.cartao2 },
   cabecalho: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16, marginBottom: 8 },
-  serie: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 6, borderRadius: 18, borderWidth: 1, borderColor: 'transparent' },
+  serie: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 6, borderRadius: 4, borderWidth: 1, borderColor: 'transparent' },
   serieFeita: { backgroundColor: `${cores.bom}1a`, borderColor: `${cores.bom}55` },
   numeroSerie: { width: 30, alignItems: 'center' },
-  contador: { flex: 1, flexDirection: 'row', alignItems: 'center', height: 52, borderRadius: 14, backgroundColor: cores.cartao2, paddingHorizontal: 4 },
+  contador: { flex: 1, flexDirection: 'row', alignItems: 'center', height: 52, borderRadius: 3, backgroundColor: cores.cartao2, paddingHorizontal: 4 },
   contadorFeito: { opacity: 0.85 },
   botaoContador: { width: 32, height: 40, alignItems: 'center', justifyContent: 'center' },
-  marcar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: cores.linha2, backgroundColor: cores.cartao },
-  adicionar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12, minHeight: 46, borderRadius: 14, borderWidth: 1, borderStyle: 'dashed', borderColor: cores.linha2 },
+  marcar: { width: 44, height: 44, borderRadius: 4, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  adicionar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 12, minHeight: 46, borderRadius: 3, borderWidth: 1, borderStyle: 'dashed', borderColor: cores.linha2 },
 }));

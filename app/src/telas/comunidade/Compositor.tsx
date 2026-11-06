@@ -151,7 +151,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.miniaturas} keyboardShouldPersistTaps="handled">
                   {midia.map((m) => (
                     <View key={m.id} style={st.tile}>
-                      <Miniatura m={m} style={{ width: 132, height: 132, borderRadius: 16 }} />
+                      <Miniatura m={m} style={{ width: 132, height: 132, borderRadius: 4 }} />
                       <Pressable accessibilityRole="button" accessibilityLabel="Remover da publicação" onPress={() => tirar(m)} hitSlop={8} style={st.x}>
                         <Icone nome="fechar" tamanho={14} cor="#ffffff" />
                       </Pressable>
@@ -219,19 +219,19 @@ const st = estilos(() => StyleSheet.create({
   tela: { flex: 1, backgroundColor: cores.fundo, alignItems: 'center' },
   coluna: { flex: 1, width: '100%', maxWidth: larguraMax },
   barra: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 10 },
-  circulo: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha },
-  publicar: { height: 40, paddingHorizontal: 20, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  circulo: { width: 44, height: 44, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha },
+  publicar: { height: 40, paddingHorizontal: 20, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   corpo: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 },
   autor: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   destinos: { gap: 8, paddingVertical: 16 },
-  destino: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
+  destino: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2 },
   destinoAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
   texto: { minHeight: 150, color: cores.texto, fontSize: 21, fontFamily: FONTE['200'], lineHeight: 30, textAlignVertical: 'top', paddingVertical: 4, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   miniaturas: { gap: 10, paddingTop: 16, paddingBottom: 8 },
   tile: { width: 132, height: 132 },
-  x: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#17122a', borderWidth: 1, borderColor: cores.linha2 },
-  mais: { width: 132, height: 132, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(196,168,255,0.4)', backgroundColor: `rgba(${cores.tom},0.06)` },
-  erro: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 12, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,107,129,0.35)', backgroundColor: 'rgba(255,107,129,0.08)' },
+  x: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: '#17122a', borderWidth: 1, borderColor: cores.linha2 },
+  mais: { width: 132, height: 132, borderRadius: 4, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(196,168,255,0.4)', backgroundColor: `rgba(${cores.tom},0.06)` },
+  erro: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 12, padding: 12, borderRadius: 3, borderWidth: 1, borderColor: 'rgba(255,107,129,0.35)', backgroundColor: 'rgba(255,107,129,0.08)' },
   ferramentas: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: cores.linha, backgroundColor: 'rgba(5,5,7,0.96)' },
-  ferramenta: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(${cores.tom},0.12)` },
+  ferramenta: { width: 48, height: 48, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(${cores.tom},0.12)` },
 }));

@@ -140,14 +140,14 @@ export function VisorMidia({ itens, inicio, aoFechar }: { itens: Midia[]; inicio
 }
 
 const st = estilos(() => StyleSheet.create({
-  tile: { borderRadius: 12, overflow: 'hidden', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha },
+  tile: { borderRadius: 3, overflow: 'hidden', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha },
   linha: { flexDirection: 'row', gap: 4 },
   centro: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
-  play: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(${cores.tom},0.85)` },
+  play: { width: 48, height: 48, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(${cores.tom},0.85)` },
   duracao: { position: 'absolute', right: 8, bottom: 8, paddingVertical: 3, paddingHorizontal: 7, borderRadius: 6, backgroundColor: 'rgba(0,0,0,0.6)' },
   extra: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(5,5,7,0.6)' },
   visor: { flex: 1, backgroundColor: 'rgba(3,2,8,0.97)' },
   topo: { position: 'absolute', left: 20, right: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  fechar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
-  seta: { position: 'absolute', top: '50%', marginTop: -22, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
+  fechar: { width: 44, height: 44, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
+  seta: { position: 'absolute', top: '50%', marginTop: -22, width: 44, height: 44, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
 }));

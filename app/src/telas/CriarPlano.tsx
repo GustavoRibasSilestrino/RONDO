@@ -89,7 +89,7 @@ export function CriarPlano({ tipo }: Props) {
 
       <Folha aberta={indisponivel} aoFechar={() => setIndisponivel(false)} titulo="RONDO AI indisponível">
         <View style={{ alignItems: 'center', gap: 12, paddingBottom: 6 }}>
-          <View style={[st.icone, { width: 64, height: 64, borderRadius: 32 }]}><Icone nome="ia" tamanho={30} cor="#ffffff" /></View>
+          <View style={[st.icone, { width: 64, height: 64, borderRadius: 4 }]}><Icone nome="ia" tamanho={30} cor="#ffffff" /></View>
           <T tam={15} centro style={{ lineHeight: 22 }}>A RONDO AI ainda está indisponível. Ainda não adicionamos a API dela ao app. Quando chegar, ela será um recurso do plano PRO.</T>
           <T tam={13} centro style={{ lineHeight: 19 }}>Enquanto isso, você pode procurar um profissional verificado aqui mesmo.</T>
           <Pressable accessibilityRole="button" onPress={() => { setIndisponivel(false); setBusca(true); }} style={st.botaoProf}>
@@ -106,8 +106,8 @@ export function CriarPlano({ tipo }: Props) {
 }
 
 const st = estilos(() => StyleSheet.create({
-  opcao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
-  icone: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
-  selo: { paddingVertical: 3, paddingHorizontal: 8, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
-  botaoProf: { alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', minHeight: 50, borderRadius: 14, backgroundColor: cores.destaqueForte, marginTop: 6 },
+  opcao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
+  icone: { width: 46, height: 46, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  selo: { paddingVertical: 3, paddingHorizontal: 8, borderRadius: 4, borderWidth: 1, borderColor: cores.linha2 },
+  botaoProf: { alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center', minHeight: 50, borderRadius: 3, backgroundColor: cores.destaqueForte, marginTop: 6 },
 }));

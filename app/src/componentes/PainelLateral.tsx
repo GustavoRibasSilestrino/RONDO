@@ -31,7 +31,7 @@ export function PainelLateral({ ir }: { ir: (tela: string) => void }) {
   return (
     <ScrollView style={st.painel} contentContainerStyle={st.conteudo} showsVerticalScrollIndicator={false}>
       <Cartao>
-        <T tam={13} cor={cores.texto3} style={st.rotulo}>SUA SEMANA</T>
+        <T tam={16} peso="400" style={st.rotulo}>Sua semana</T>
         <View style={st.dias} accessibilityLabel={`Dias com registro nesta semana: ${dias.filter((d) => d.ativo).length} de 7`}>
           {dias.map((d) => (
             <View key={d.k} style={st.dia} accessibilityLabel={`${NOME_DIA[d.k]}${d.ativo ? ", com registro" : ""}`}>
@@ -60,7 +60,7 @@ export function PainelLateral({ ir }: { ir: (tela: string) => void }) {
       </Cartao>
 
       <Cartao>
-        <T tam={13} cor={cores.texto3} style={st.rotulo}>PRÓXIMOS TREINOS</T>
+        <T tam={16} peso="400" style={st.rotulo}>Próximos treinos</T>
         <View style={{ gap: 6 }}>
           {proximos.map((r, i) => {
             const data = ultimaData(r.id);
@@ -90,15 +90,15 @@ export function PainelLateral({ ir }: { ir: (tela: string) => void }) {
 const st = estilos(() => StyleSheet.create({
   painel: { width: LARGURA_PAINEL, height: '100%', borderLeftWidth: 1, borderLeftColor: cores.linha },
   conteudo: { padding: 20, paddingTop: 28, gap: 14 },
-  rotulo: { letterSpacing: 1.4, marginBottom: 14 },
+  rotulo: { marginBottom: 14 },
   dias: { flexDirection: 'row', justifyContent: 'space-between' },
   dia: { alignItems: 'center', gap: 6 },
-  bolinha: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: cores.linha2 },
+  bolinha: { width: 28, height: 28, borderRadius: 3, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: cores.linha2 },
   bolinhaAtiva: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
   bolinhaHoje: { borderColor: cores.destaque2 },
   numeros: { flexDirection: 'row', marginTop: 18, paddingTop: 14, borderTopWidth: 1, borderTopColor: cores.linha },
   numero: { flex: 1, gap: 2 },
   linha: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  chama: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
-  treino: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9, paddingHorizontal: 8, borderRadius: 12 },
+  chama: { width: 46, height: 46, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  treino: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9, paddingHorizontal: 8, borderRadius: 3 },
 }));

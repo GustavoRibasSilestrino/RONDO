@@ -49,6 +49,6 @@ export function BotaoSeguir({ pessoa }: { pessoa: Pick<Pessoa, 'id' | 'nome' | '
 }
 
 const st = estilos(() => StyleSheet.create({
-  pilula: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 7, paddingHorizontal: 14, borderRadius: 999, backgroundColor: cores.destaqueForte, borderWidth: 1, borderColor: cores.destaqueForte },
+  pilula: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 7, paddingHorizontal: 14, borderRadius: 4, backgroundColor: cores.destaqueForte, borderWidth: 1, borderColor: cores.destaqueForte },
   seguindo: { backgroundColor: 'transparent', borderColor: 'rgba(196,168,255,0.4)' },
 }));
