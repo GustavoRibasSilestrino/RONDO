@@ -1,0 +1,15 @@
+{
+  "_ajuda": "Troque os ids de voz pelas vozes que você escolheu no ElevenLabs (rode: npm run vozes -- --listar). 'tag' é uma instrução de estilo que o modelo eleven_v3 entende, dita antes da frase e não falada.",
+  "formato": "mp3_44100_64",
+  "estabilidade": 0.5,
+  "sotaques": {
+    "br":       { "modelo": "eleven_multilingual_v2", "voz": "21m00Tcm4TlvDq8ikWAM", "tag": "" },
+    "pt":       { "modelo": "eleven_v3", "voz": "21m00Tcm4TlvDq8ikWAM", "tag": "[European Portuguese accent from Lisbon]" },
+    "gringo":   { "modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[strong American English accent, speaking Portuguese]" },
+    "espanhol": { "modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[strong Spanish accent, speaking Portuguese]" },
+    "italiano": { "modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[strong Italian accent, speaking Portuguese, animated]" },
+    "frances":  { "modelo": "eleven_v3", "voz": "21m00Tcm4TlvDq8ikWAM", "tag": "[strong French accent, speaking Portuguese, elegant]" },
+    "narrador": { "modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[deep dramatic movie trailer narrator voice]" },
+    "robo":     { "modelo": "eleven_v3", "voz": "pNInz6obpgDQGcFmaJgB", "tag": "[robotic monotone voice]" }
+  }
+}

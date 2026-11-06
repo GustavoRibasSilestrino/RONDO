@@ -15,7 +15,7 @@ import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { EstadoOrbe } from '../lib/orbe';
-import { Opcao, Passo, Respostas, emailValido, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar, primeiroNome } from '../lib/rondinRoteiro';
+import { FALAS, Opcao, Passo, Respostas, emailValido, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar } from '../lib/rondinRoteiro';
 import { SOTAQUES, Sotaque, falar, parar, sotaquePadrao } from '../lib/rondinVoz';
 import { cores, estilos } from '../tema';
 import type { Estado, Usuario } from '../tipos';
@@ -25,7 +25,7 @@ export type Modo = 'entrar' | 'cadastro';
 type AoEntrar = (usuario: Usuario, extra?: Partial<Estado>) => void;
 
 /* ---------- a legenda: as palavras surgem no ritmo da fala; a última fica em destaque ---------- */
-function Legenda({ texto, chave, taxa, indiceVoz, completa, aoCompletar }: { texto: string; chave: number; taxa: number; indiceVoz: number; completa: boolean; aoCompletar: () => void }) {
+function Legenda({ texto, chave, taxa, duracaoMs, indiceVoz, completa, aoCompletar }: { texto: string; chave: number; taxa: number; duracaoMs: number; indiceVoz: number; completa: boolean; aoCompletar: () => void }) {
   const palavras = useMemo(() => texto.split(/\s+/).filter(Boolean), [texto]);
   const inicios = useMemo(() => { let i = 0; return palavras.map((p) => { const o = texto.indexOf(p, i); i = o + p.length; return o; }); }, [palavras, texto]);
   const [n, setN] = useState(0);
@@ -40,10 +40,14 @@ function Legenda({ texto, chave, taxa, indiceVoz, completa, aoCompletar }: { tex
   useEffect(() => {   // o relógio: uma palavra por vez, mais devagar se a palavra for longa
     if (completa || reduzido) { setN(palavras.length); return undefined; }
     if (n >= palavras.length) return undefined;
-    const espera = (n === 0 ? 120 : 150 + 38 * palavras[n - 1].length) / Math.max(0.6, taxa);
+    const total = palavras.reduce((a, p) => a + p.length + 1, 0);
+    /* com o áudio pronto, o tempo de cada palavra vem da duração real; sem ele, uma estimativa */
+    const espera = duracaoMs > 0
+      ? (n === 0 ? 100 : (duracaoMs * 0.96 * (palavras[n - 1].length + 1)) / total)
+      : (n === 0 ? 120 : 150 + 38 * palavras[n - 1].length) / Math.max(0.6, taxa);
     const id = setTimeout(() => setN((v) => v + 1), espera);
     return () => clearTimeout(id);
-  }, [n, palavras, taxa, completa, reduzido]);
+  }, [n, palavras, taxa, duracaoMs, completa, reduzido]);
 
   useEffect(() => {   // a voz avisou onde está: a legenda não fica atrás dela
     if (indiceVoz < 0) return;
@@ -118,7 +122,7 @@ function Pilula({ opcao, marcada, aoPressionar, grande }: { opcao: Opcao; marcad
   );
 }
 
-export function Rondin({ modo, aoEntrar, aoVoltar, aoClassico }: { modo: Modo; aoEntrar: AoEntrar; aoVoltar: () => void; aoClassico: () => void }) {
+export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoEntrar; aoVoltar: () => void }) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
@@ -132,6 +136,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoClassico }: { modo: Modo; a
   const [fala, setFala] = useState('');
   const [chave, setChave] = useState(0);
   const [indiceVoz, setIndiceVoz] = useState(-1);
+  const [duracaoMs, setDuracaoMs] = useState(0);
   const [completa, setCompleta] = useState(false);
   const [erro, setErro] = useState('');
   const [falhou, setFalhou] = useState(false);
@@ -161,11 +166,12 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoClassico }: { modo: Modo; a
   }, []);
   /* `graca`: quanto esperar pela voz depois que a legenda termina. Nas perguntas é pouco: as respostas já aparecem e a voz
      termina falando; nas outras falas (apresentação, amostra do sotaque) espera a voz acabar para não cortar. */
-  const dizer = useCallback((t: string, depois: () => void, com: Sotaque = sotaqueRef.current, graca = 3500) => {
+  const dizer = useCallback((trechos: string[], depois: () => void, com: Sotaque = sotaqueRef.current, graca = 3500) => {
+    const t = trechos.join(' ');
     const id = ctrl.current.id + 1;
     ctrl.current = { id, voz: false, leg: false, depois, graca };
-    setFala(t); setChave(id); setIndiceVoz(-1); setCompleta(false); setFase('falando');
-    falar(t, com, () => { if (ctrl.current.id === id) { ctrl.current.voz = true; checar(id); } }, (i) => { if (ctrl.current.id === id) setIndiceVoz(i); });
+    setFala(t); setChave(id); setIndiceVoz(-1); setDuracaoMs(0); setCompleta(false); setFase('falando');
+    falar(trechos, com, () => { if (ctrl.current.id === id) { ctrl.current.voz = true; checar(id); } }, (i) => { if (ctrl.current.id === id) setIndiceVoz(i); }, (ms) => { if (ctrl.current.id === id) setDuracaoMs(ms); });
   }, [checar]);
   const aoCompletarLegenda = useCallback(() => {
     const id = ctrl.current.id;
@@ -192,9 +198,9 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoClassico }: { modo: Modo; a
   useEffect(() => {
     const p = (modo === 'cadastro' ? passosCadastro(respRef.current) : passosEntrar()).find((x) => x.id === idAtual);
     if (!p) return;
-    const t = `${prefixo.current}${prefixo.current ? ' ' : ''}${p.fala(respRef.current)}`;
+    const trechos = [prefixo.current, p.fala(respRef.current)].filter(Boolean);
     prefixo.current = '';
-    dizer(t, () => {
+    dizer(trechos, () => {
       if (p.tipo === 'fala') avancar();
       else if (p.tipo === 'criar') void criarConta();
       else setFase('pergunta');
@@ -222,14 +228,14 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoClassico }: { modo: Modo; a
     setSotaque(s);
     guardar('sotaque', s.id);
     setFase('trabalhando');
-    dizer(s.amostra, avancar, s);   // a amostra já sai no sotaque escolhido
+    dizer([s.amostra], avancar, s);   // a amostra já sai no sotaque escolhido
   };
 
   const escolher = (p: Extract<Passo, { tipo: 'opcoes' }>, o: Opcao) => {
     const barrado = p.barra?.(o.id);
     if (barrado) {   // ele explica e a pessoa escolhe de novo
       setFase('trabalhando');
-      dizer(barrado, () => setFase('pergunta'), sotaqueRef.current, 500);
+      dizer([barrado], () => setFase('pergunta'), sotaqueRef.current, 500);
       return;
     }
     responder(o.id, o.comentario);
@@ -238,14 +244,13 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoClassico }: { modo: Modo; a
   const enviarCampo = (p: Extract<Passo, { tipo: 'campo' }>) => {
     const valor = p.campo === 'senha' ? texto : texto.trim();
     const problema = p.validar(valor, respRef.current);
-    if (problema) { setErro(problema); setFase('trabalhando'); dizer(problema, () => { setFase('pergunta'); setTimeout(() => campoRef.current?.focus(), 50); }, sotaqueRef.current, 500); return; }
+    if (problema) { setErro(problema); setFase('trabalhando'); dizer([problema], () => { setFase('pergunta'); setTimeout(() => campoRef.current?.focus(), 50); }, sotaqueRef.current, 500); return; }
     responder(valor, p.comentario?.(valor, respRef.current));
   };
 
   /* ---------- criar a conta com tudo o que foi respondido ---------- */
   const criarConta = async () => {
     const r = respRef.current;
-    const nome = primeiroNome(r);
     setFase('trabalhando'); setFalhou(false);
     try {
       const menor = typeof r.respNome === 'string';
@@ -255,15 +260,15 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoClassico }: { modo: Modo; a
         responsavel: menor ? { nome: String(r.respNome), email: String(r.respEmail), autoriza: true } : null,
       });
       const perfil = montarPerfil(r, sotaqueRef.current.id);
-      dizer(`Pronto, ${nome}! Sua conta está criada e o seu perfil está salvo. Bem-vindo ao RONDO.`, () => aoEntrar(usuario, perfil));
+      dizer([FALAS.contaCriada], () => aoEntrar(usuario, perfil));
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Não foi possível criar a conta agora.';
       if (/e-mail já tem conta/i.test(msg)) {
-        prefixo.current = 'Esse e-mail já tem uma conta. Use outro, ou volte e entre com ele.';
+        prefixo.current = FALAS.emailJaTem;
         irPara('email');
       } else {
         setErro(msg); setFalhou(true);
-        dizer(`Não consegui criar a conta. ${msg}`, () => setFase('pergunta'));
+        dizer([FALAS.falhaCriar, msg], () => setFase('pergunta'));
       }
     }
   };
@@ -277,11 +282,11 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoClassico }: { modo: Modo; a
     try {
       const usuario = await entrar(email.trim(), senha);
       setFase('trabalhando');
-      dizer(`Bem-vindo de volta, ${usuario.nome.trim().split(/\s+/)[0] || 'campeão'}!`, () => aoEntrar(usuario));
+      dizer([FALAS.deVolta], () => aoEntrar(usuario));
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Não foi possível entrar. Tente de novo.';
       setErro(msg); setEnviando(false);
-      falar(msg, sotaqueRef.current, () => undefined);   // ele avisa em voz alta, sem esconder os campos
+      falar([msg], sotaqueRef.current, () => undefined);   // ele avisa em voz alta, sem esconder os campos
     }
   };
 
@@ -312,9 +317,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoClassico }: { modo: Modo; a
                 <Icone nome="voltar" tamanho={22} cor="#ffffff" />
               </Pressable>
               <Marca altura={22} />
-              <Pressable accessibilityRole="button" accessibilityLabel="Preencher sem o RONDIN" onPress={() => { parar(); aoClassico(); }} hitSlop={8} style={st.botaoTopo}>
-                <Icone nome="lapis" tamanho={20} cor={cores.texto2} />
-              </Pressable>
+              <View style={st.botaoTopo} />
             </View>
             {modo === 'cadastro' ? (
               <View style={st.trilho} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(progresso * 100) }}>
@@ -327,7 +330,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoClassico }: { modo: Modo; a
               <T tam={13} peso="500" cor={cores.destaque2} style={{ letterSpacing: 3, marginTop: -6 }}>RONDIN</T>
             </View>
 
-            <Legenda texto={fala} chave={chave} taxa={sotaque.taxa} indiceVoz={indiceVoz} completa={completa} aoCompletar={aoCompletarLegenda} />
+            <Legenda texto={fala} chave={chave} taxa={sotaque.taxa} duracaoMs={duracaoMs} indiceVoz={indiceVoz} completa={completa} aoCompletar={aoCompletarLegenda} />
             {fase === 'falando' && !completa ? (
               <Pressable accessibilityRole="button" accessibilityLabel="Pular a fala" onPress={pular} style={{ alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 14 }}>
                 <T tam={12.5} cor={cores.texto3}>Pular fala</T>
