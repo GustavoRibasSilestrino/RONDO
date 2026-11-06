@@ -1,5 +1,5 @@
 /* Identidade visual do app (RONDO). Há dois temas:
-   - Normal: preto profundo, texto branco e um único roxo puro, sem degradês.
+   - Normal: preto com um toque de violeta, texto em três tons (branco, cinza-lilás, cinza) e roxo com degradês só nos destaques.
    - Ultra: um tema à parte, de vidro e aurora azul-ciano sobre um fundo que se move; é liberado no nível 15 da conta.
    `cores` é um objeto único que muda de valores quando o tema troca (aplicarTema); os estilos feitos com `estilos(...)` se
    recalculam com ele, então toda a interface se pinta de novo sem reabrir as telas. */
@@ -19,30 +19,30 @@ export type Paleta = {
 };
 
 const normal: Paleta = {
-  fundo: '#000000',
-  fundo2: '#0a0a0a',
-  cartao: '#0a0a0a',
-  cartao2: '#161616',
-  linha: '#1f1f1f',
-  linha2: '#333333',
-  texto: '#ffffff',
-  texto2: '#ffffff',
-  texto3: '#ffffff',
+  fundo: '#07060b',
+  fundo2: '#0d0b13',
+  cartao: '#100d18',
+  cartao2: '#1a1626',
+  linha: 'rgba(167,139,250,0.13)',
+  linha2: 'rgba(167,139,250,0.26)',
+  texto: '#f4f1fb',
+  texto2: '#c9c2db',   // 10:1 sobre o cartão
+  texto3: '#9e96b8',   // 6:1 sobre o cartão: legendas e ícones apagados
   violeta: '#6a00d4',
   violetaEscuro: '#1d0040',
   destaque: '#8a3dff',
   destaqueForte: '#6a00d4', /* o roxo puro da marca: leva texto branco (9:1) */
-  destaque2: '#ffffff',
+  destaque2: '#c4a8ff', /* lilás para links, números e ícones em destaque (9:1 sobre o cartão) */
   bom: '#3ddc97',
   alerta: '#ff9a5c',
   erro: '#ff6b81',
   branco: '#ffffff',
-  placeholder: 'rgba(255,255,255,0.45)',
+  placeholder: 'rgba(201,194,219,0.55)',
   tom: '139,92,246',
-  painel: '#0a0a0a',
-  aviso: '#161616',
-  barra: 'rgba(12,12,12,0.78)',
-  cabecalho: '#000000',
+  painel: '#100d18',
+  aviso: '#1a1626',
+  barra: 'rgba(16,13,24,0.86)',
+  cabecalho: '#07060b',
 };
 
 const ultra: Paleta = {
@@ -98,6 +98,17 @@ export function estilos<T extends object>(fabrica: () => T): T {
 }
 
 export const raio = { p: 8, m: 14, g: 22, pilula: 999 } as const;
+
+/* degradês do tema normal: o roxo da marca indo para o violeta claro, sempre na diagonal (do canto de cima à esquerda) */
+export const DEGRADE = {
+  roxo: ['#5a0fc4', '#7426ec', '#8a45f5'] as const,          // botão principal, aba ativa, seleção (branco por cima: 4,9:1 ou mais)
+  barra: ['#7b2cf0', '#c4a8ff'] as const,                       // progresso
+  brilhoCartao: ['rgba(255,255,255,0.035)', 'rgba(255,255,255,0)'] as const,
+  brilhoDestaque: ['rgba(139,92,246,0.20)', 'rgba(139,92,246,0.02)'] as const,
+  fio: ['rgba(196,168,255,0)', 'rgba(196,168,255,0.55)', 'rgba(196,168,255,0)'] as const,   // o fio de luz no alto dos cartões
+};
+export const INICIO_DIAGONAL = { x: 0, y: 0 } as const;
+export const FIM_DIAGONAL = { x: 1, y: 1 } as const;
 
 export type PesoFonte = '200' | '300' | '400' | '500';
 

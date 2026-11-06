@@ -1,6 +1,7 @@
 /* Início e Comunidade. O Início é o feed: as publicações de quem você segue e dos clubes (texto, fotos e vídeos).
    A Comunidade tem os clubes (criar, entrar, convidar e publicar dentro) e o ranking semanal de constância.
    O botão + roxo, sobre a barra, cria uma publicação. Feed, clubes e perfis vêm do servidor e são os mesmos para todo mundo. */
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useState } from 'react';
 import { BackHandler, Pressable, Share, StyleSheet, View } from 'react-native';
 import { lerFeed } from '../api/social';
@@ -12,7 +13,7 @@ import { Botao, Cartao, Segmentos, T } from '../componentes/Ui';
 import { useLista } from '../estado/lista';
 import { useLoja } from '../estado/loja';
 import { comparar, statsSemana } from '../lib/calc';
-import { cores, estilos } from '../tema';
+import { cores, DEGRADE, estilos, FIM_DIAGONAL, INICIO_DIAGONAL, temaAtual } from '../tema';
 import type { Midia } from '../tipos';
 import { RecadoDoDia } from '../componentes/RecadoDoDia';
 import { BarraStories } from '../componentes/stories/BarraStories';
@@ -95,7 +96,8 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
                   const ativo = v === filtro;
                   return (
                     <Pressable key={v} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setFiltro(v)} style={[st.filtro, ativo && st.filtroAtivo]}>
-                      <T tam={13} peso={ativo ? '500' : '300'}>{nome}</T>
+                      {ativo && temaAtual() === 'normal' ? <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
+                      <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#ffffff' : cores.texto2}>{nome}</T>
                     </Pressable>
                   );
                 })}
@@ -178,8 +180,8 @@ const st = estilos(() => StyleSheet.create({
   tituloFeed: { height: 44, justifyContent: 'center', marginTop: -6 },
   lupa: { position: 'absolute', right: -6, top: 0, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   filtros: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  filtro: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
+  filtro: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2, overflow: 'hidden' },
   opcao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
   opcaoIcone: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
-  filtroAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
+  filtroAtivo: { backgroundColor: cores.destaqueForte, borderColor: 'rgba(196,168,255,0.35)' },
 }));
