@@ -2,7 +2,7 @@
 import React from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { cores, estilos, larguraMax, temaAtual } from '../tema';
+import { cores, estilos, larguraMax, LETRAS_ULTRA, temaAtual } from '../tema';
 import { useRolada } from '../lib/rolagem';
 import { Icone } from './Icone';
 import { T } from './Ui';
@@ -10,7 +10,6 @@ import { T } from './Ui';
 export const ALTURA_CABECALHO = 56;
 
 /* no tema Ultra, cada letra do nome tem uma cor; no Normal, é branco */
-const LETRAS_ULTRA = ['#5fd4ff', '#6f9bff', '#a07dff', '#d47cf0', '#ff7ad9'];
 function Nome() {
   const ultra = temaAtual() === 'ultra';
   return (

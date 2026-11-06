@@ -4,7 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { Animated, Easing, Platform, StyleSheet, Text, View } from 'react-native';
 import { useLoja } from '../estado/loja';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { FONTE, type TemaId } from '../tema';
+import { FONTE, LETRAS_ULTRA, type TemaId } from '../tema';
 
 const Contexto = createContext<(para: TemaId) => void>(() => {});
 export const useTrocaTema = () => useContext(Contexto);
@@ -14,7 +14,7 @@ const FICA = 700;     // parada no preto: o tema muda por baixo e, no Ultra, a p
 const SAI = 520;      // o preto esmaece e some, já com o tema novo
 
 /* a transição: a tela escurece de leve até o preto, o tema troca por baixo e o preto sai. Ao entrar no Ultra, a palavra ULTRA aparece
-   no escuro. Só opacidade (barata em qualquer aparelho). */
+   no escuro, com as cores das letras do RONDO no tema Ultra. Só opacidade (barata em qualquer aparelho). */
 function Esmaecer({ para, aoMeio, aoFim }: { para: TemaId; aoMeio: () => void; aoFim: () => void }) {
   const nativo = Platform.OS !== 'web';
   const preto = useRef(new Animated.Value(0)).current;
@@ -48,7 +48,9 @@ function Esmaecer({ para, aoMeio, aoFim }: { para: TemaId; aoMeio: () => void; a
       <View style={st.preto} />
       {mostrarPalavra ? (
         <Animated.View style={[st.centro, { opacity: palavra, transform: [{ scale: palavra.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }]} pointerEvents="none">
-          <Text style={st.palavra}>ULTRA</Text>
+          <Text style={st.palavra}>
+            {[...'ULTRA'].map((l, i) => <Text key={i} style={{ color: LETRAS_ULTRA[i], textShadowColor: LETRAS_ULTRA[i], textShadowRadius: 22, textShadowOffset: { width: 0, height: 0 } }}>{l}</Text>)}
+          </Text>
         </Animated.View>
       ) : null}
     </Animated.View>
@@ -86,5 +88,5 @@ const st = StyleSheet.create({
   camada: { ...StyleSheet.absoluteFill, zIndex: 3000 },
   preto: { ...StyleSheet.absoluteFill, backgroundColor: '#000000' },
   centro: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
-  palavra: { color: '#ffffff', fontSize: 40, letterSpacing: 18, paddingLeft: 18, fontFamily: FONTE['200'] },
+  palavra: { fontSize: 44, letterSpacing: 16, paddingLeft: 16, fontFamily: FONTE['400'] },
 });
