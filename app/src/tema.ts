@@ -41,7 +41,7 @@ const normal: Paleta = {
   tom: '139,92,246',
   painel: '#100d18',
   aviso: '#1a1626',
-  barra: 'rgba(16,13,24,0.86)',
+  barra: 'rgba(16,13,24,0.97)',   // quase opaca: dispensa o desfoque, que pesa ao rolar
   cabecalho: '#07060b',
 };
 

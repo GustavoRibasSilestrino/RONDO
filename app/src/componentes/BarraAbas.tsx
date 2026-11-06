@@ -17,8 +17,9 @@ const MARGEM = 6;      // da borda da tela até a barra
 const RECHEIO = 6;     // da borda da barra até as abas
 const ALTURA = 48;     // altura de cada aba: igual à largura do círculo das inativas, para ficarem redondas
 
-/* vidro: no navegador desfoca o que passa por trás; no aparelho, uma película escura translúcida */
-const vidro = Platform.OS === 'web' ? ({ backdropFilter: 'blur(24px) saturate(1.6)', WebkitBackdropFilter: 'blur(24px) saturate(1.6)' } as object) : null;
+/* vidro: só no tema Ultra, no navegador. O desfoque é refeito a cada quadro enquanto a tela rola por baixo e trava
+   celulares mais simples; no tema normal a barra é quase opaca e não precisa dele. */
+const vidro = () => (Platform.OS === 'web' && temaAtual() === 'ultra' ? ({ backdropFilter: 'blur(24px) saturate(1.6)', WebkitBackdropFilter: 'blur(24px) saturate(1.6)' } as object) : null);
 
 function Aba({ item, largura, ativo, aoPressionar, movimentoReduzido }: { item: ItemAba; largura: number; ativo: boolean; aoPressionar: () => void; movimentoReduzido: boolean }) {
   const luz = useRef(new Animated.Value(ativo ? 1 : 0)).current;   // o círculo roxo aparece e some
@@ -56,7 +57,7 @@ export function BarraAbas({ itens, atual, aoEscolher }: Props) {
 
   return (
     <View pointerEvents="box-none" style={[st.doca, { bottom: insets.bottom + 6 }]}>
-      <View style={[st.barra, vidro, { width: barra, paddingHorizontal: RECHEIO + folga / 2 }]}>
+      <View style={[st.barra, vidro(), { width: barra, paddingHorizontal: RECHEIO + folga / 2 }]}>
         {itens.map((it) => {
           const ativo = it.id === atual;
           return (

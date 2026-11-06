@@ -13,9 +13,10 @@ export function Tela({ children, comDoca = true, animada = true }: { children: R
   useEffect(() => { definirRolagem(0); }, []);   // tela nova: começa no topo, então o nome do cabeçalho aparece
   /* a tela entra subindo e aparecendo (animada={false}: a tela coreografa a própria entrada) */
   const entrada = useRef(new Animated.Value(animada ? 0 : 1)).current;
+  const [entrou, setEntrou] = useState(!animada);
   useEffect(() => {
     if (!animada) return;
-    Animated.timing(entrada, { toValue: 1, duration: 520, easing: Easing.out(Easing.exp), useNativeDriver: Platform.OS !== 'web' }).start();
+    Animated.timing(entrada, { toValue: 1, duration: 520, easing: Easing.out(Easing.exp), useNativeDriver: Platform.OS !== 'web' }).start(() => setEntrou(true));
   }, [entrada, animada]);
   return (
     <View style={{ flex: 1 }}>
@@ -28,7 +29,7 @@ export function Tela({ children, comDoca = true, animada = true }: { children: R
         onScroll={(e) => definirRolagem(e.nativeEvent.contentOffset.y)}
       >
         <Animated.View
-          style={{
+          style={entrou ? { width: '100%', maxWidth: larguraMax, paddingHorizontal: 20 } : {
             width: '100%', maxWidth: larguraMax, paddingHorizontal: 20, opacity: entrada,
             transform: [{ translateY: entrada.interpolate({ inputRange: [0, 1], outputRange: [18, 0] }) }],
           }}
