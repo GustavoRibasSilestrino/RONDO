@@ -2,6 +2,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLayoutLargo } from '../lib/largura';
 import { definirRolagem } from '../lib/rolagem';
 import { cores, larguraMax, raio, estilos } from '../tema';
 import { T } from './Ui';
@@ -10,6 +11,7 @@ import { T } from './Ui';
 export function Tela({ children, comDoca = true, animada = true }: { children: React.ReactNode; comDoca?: boolean; animada?: boolean }) {
   /* com a barra de baixo há o cabeçalho do app no alto (56 px); sem ela (entrar), a coluna começa mais perto do topo */
   const insets = useSafeAreaInsets();
+  const { largo } = useLayoutLargo();   // computador: sem cabeçalho em cima nem barra embaixo
   useEffect(() => { definirRolagem(0); }, []);   // tela nova: começa no topo, então o nome do cabeçalho aparece
   /* a tela entra subindo e aparecendo (animada={false}: a tela coreografa a própria entrada) */
   const entrada = useRef(new Animated.Value(animada ? 0 : 1)).current;
@@ -22,7 +24,7 @@ export function Tela({ children, comDoca = true, animada = true }: { children: R
     <View style={{ flex: 1 }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingTop: insets.top + (comDoca ? 56 + 20 : 24), paddingBottom: insets.bottom + (comDoca ? 110 : 40), alignItems: 'center' }}
+        contentContainerStyle={{ paddingTop: insets.top + (largo ? 32 : comDoca ? 56 + 20 : 24), paddingBottom: insets.bottom + (largo ? 56 : comDoca ? 110 : 40), alignItems: 'center' }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={32}

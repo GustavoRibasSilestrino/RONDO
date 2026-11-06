@@ -156,7 +156,7 @@ export function Faq() {
 }
 
 /* ---------- chamada final: usar o app agora (o cadastro fica no botão "Criar conta" do topo) ---------- */
-const APP_WEB = "https://rondo-app-eight.vercel.app";
+const APP_WEB = "/app";   // o app web mora no mesmo endereço do site
 const PASSOS_APP = [
   ["1", "Abra no celular", "O app roda direto no navegador, sem instalar nada."],
   ["2", "Adicione à tela inicial", "No menu do navegador, toque em \"Adicionar à tela inicial\" e ele vira um ícone."],
@@ -175,8 +175,8 @@ export function Entrar() {
           ))}
         </ol>
         <div className="cta-acoes">
-          <a className="btn btn-primary" href={APP_WEB} target="_blank" rel="noopener">Abrir o app <span className="arrow">→</span><span className="sr-only"> (abre em nova aba)</span></a>
-          <a className="btn btn-ghost" href={APP_WEB} target="_blank" rel="noopener">Já tenho conta: entrar<span className="sr-only"> (abre em nova aba)</span></a>
+          <a className="btn btn-primary" href={APP_WEB}>Abrir o app <span className="arrow">→</span></a>
+          <a className="btn btn-ghost" href={APP_WEB}>Já tenho conta: entrar</a>
         </div>
       </Reveal>
     </section>

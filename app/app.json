@@ -116,6 +116,9 @@
       },
       "predictiveBackGestureEnabled": false
     },
+    "experiments": {
+      "baseUrl": "/app"
+    },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"

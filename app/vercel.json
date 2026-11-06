@@ -1,0 +1,7 @@
+{
+  "redirects": [{ "source": "/", "destination": "https://userondo.vercel.app/app", "permanent": false }],
+  "rewrites": [
+    { "source": "/app", "destination": "/index.html" },
+    { "source": "/app/:path*", "destination": "/:path*" }
+  ]
+}
