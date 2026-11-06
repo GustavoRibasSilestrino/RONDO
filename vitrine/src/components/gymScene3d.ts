@@ -44,7 +44,6 @@ function kettlebell(): Group {
   const alca = malha(new TorusGeometry(0.36, 0.085, 22, 56, Math.PI), ferro(), [0, 0.42, 0]);
   g.add(alca);
   for (const x of [-0.36, 0.36]) g.add(malha(new CylinderGeometry(0.085, 0.085, 0.3, 22), ferro(), [x, 0.3, 0]));   // as pernas da alça
-  g.add(malha(new TorusGeometry(0.36, 0.012, 8, 48, Math.PI * 2), aco(), [0, -0.05, 0.6]));               // um fio de metal na frente
   return g;
 }
 
