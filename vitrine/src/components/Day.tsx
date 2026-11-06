@@ -235,21 +235,20 @@ export function Day() {
           ))}
         </div>
 
-        <div className="day-track" ref={track}>
-          {MOMENTS.map((x, i) => (
-            <article className="moment" id={x.id} key={x.id} role="tabpanel" aria-labelledby={`aba-${x.name}`} data-name={x.name}>
-              <div className="m-text"><h3>{x.title}</h3><p>{x.text}</p></div>
-              {x.ui}
-            </article>
-          ))}
-        </div>
-
-        <div className="day-nav">
-          <button type="button" aria-label="Momento anterior" disabled={atual === 0} onClick={() => ir(atual - 1)}>
+        {/* o palco com uma seta de cada lado, na altura do meio */}
+        <div className="day-stage">
+          <button type="button" className="day-seta ant" aria-label="Momento anterior" disabled={atual === 0} onClick={() => ir(atual - 1)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={SETA.ant} /></svg>
           </button>
-          <span aria-hidden="true">{atual + 1} / {MOMENTS.length}</span>
-          <button type="button" aria-label="Próximo momento" disabled={atual === MOMENTS.length - 1} onClick={() => ir(atual + 1)}>
+          <div className="day-track" ref={track}>
+            {MOMENTS.map((x) => (
+              <article className="moment" id={x.id} key={x.id} role="tabpanel" aria-labelledby={`aba-${x.name}`} data-name={x.name}>
+                <div className="m-text"><h3>{x.title}</h3><p>{x.text}</p></div>
+                {x.ui}
+              </article>
+            ))}
+          </div>
+          <button type="button" className="day-seta prox" aria-label="Próximo momento" disabled={atual === MOMENTS.length - 1} onClick={() => ir(atual + 1)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={SETA.prox} /></svg>
           </button>
         </div>
