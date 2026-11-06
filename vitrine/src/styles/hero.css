@@ -22,9 +22,9 @@
 
 .hero-grade { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; min-height: calc(100svh - var(--nav-h) - 8rem); grid-template-rows: none; }
 .hero-texto { max-width: 36rem; }
-.hero-title { font-family: "Poppins", var(--font-display); font-weight: 600; font-size: clamp(2.5rem, 5.4vw, 4.8rem); line-height: 1.05; letter-spacing: -.035em; color: #fff; }
+.hero-title { font-size: clamp(2.6rem, 5.8vw, 5.2rem); line-height: 1.18; color: #fff; }
 .hero-title .ln { display: block; }
-.hero-title .trail { color: #fff; font-weight: 300; text-shadow: none; }
+.hero-title .trail { color: rgba(255, 255, 255, .72); text-shadow: none; }
 .hero-texto .lead { margin-top: clamp(1rem, 2.4vh, 1.5rem); max-width: 38ch; font-size: clamp(.92rem, 1.1vw, 1.02rem); font-weight: 300; color: rgba(255, 255, 255, .86); line-height: 1.65; }
 .hero-cta { display: flex; gap: .8rem; flex-wrap: wrap; margin-top: clamp(1.6rem, 4vh, 2.4rem); }
 .hero-cta .btn { padding: 1rem 1.9rem; border-radius: 4px; font-family: "Poppins", var(--font-body); font-size: 1rem; font-weight: 400; }
@@ -35,7 +35,7 @@
   .hero { padding: calc(var(--nav-h) + clamp(1.4rem, 6vh, 2.6rem)) 0 clamp(3rem, 8vh, 4.5rem); }
   .hero-grade { align-items: start; min-height: 0; }
   .hero-texto { max-width: 22rem; margin-inline: auto; text-align: center; }
-  .hero-title { font-size: clamp(26px, 8.4vw, 46px); line-height: 1.08; letter-spacing: -.03em; }
+  .hero-title { font-size: clamp(28px, 9vw, 50px); line-height: 1.18; }
   .hero-texto .lead { margin-top: .9rem; margin-inline: auto; max-width: 28ch; font-size: clamp(13px, 3.5vw, 16px); line-height: 1.6; }
   .hero-cta { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .6rem; margin-top: 1.4rem; max-width: none; }
   .hero-cta .btn { flex: 1 1 auto; min-width: 0; min-height: 44px; padding: .7rem 1.1rem; font-size: clamp(13px, 3.6vw, 15px); }
