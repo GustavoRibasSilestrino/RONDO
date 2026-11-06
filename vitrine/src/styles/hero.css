@@ -45,12 +45,6 @@
 .hero-cta .btn-primary { background: transparent; border: 1px solid rgba(255, 255, 255, .7); box-shadow: none; color: #fff; }
 .hero-cta .btn-ghost { border-color: transparent; background: rgba(0, 0, 0, .28); }
 
-/* indicador de rolagem */
-.hero-rola { position: absolute; left: 50%; bottom: clamp(1rem, 3vh, 1.8rem); translate: -50% 0; z-index: 4; display: grid; justify-items: center; }
-.hero-rola span { width: 30px; height: 46px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, .55); display: grid; place-items: center; color: #fff; animation: rola 2.2s var(--ease) infinite; }
-.hero-rola svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-@keyframes rola { 0%, 100% { transform: translateY(0); opacity: .9; } 50% { transform: translateY(6px); opacity: 1; } }
-
 @media (max-width: 960px) {
   .hero { padding-bottom: 5rem; }
   .hero-corredor { right: -22%; top: calc(var(--nav-h) + 12%); height: 66%; opacity: .6; }
@@ -61,5 +55,5 @@
   .hero-marca { font-size: clamp(4rem, 24.5vw, 12rem); bottom: 14%; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-corredor .vulto, .hero-corredor .eco, .hero-rola span { animation: none; }
+  .hero-corredor .vulto, .hero-corredor .eco { animation: none; }
 }
