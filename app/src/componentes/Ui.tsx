@@ -275,7 +275,10 @@ export function Titulo({ children, direita }: { children: React.ReactNode; direi
 }
 
 const st = estilos(() => StyleSheet.create({
-  cartao: { backgroundColor: cores.cartao, borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden', boxShadow: '0 24px 44px -30px rgba(0,0,0,0.95)' },
+  cartao: {
+    backgroundColor: cores.cartao, borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden', boxShadow: '0 24px 44px -30px rgba(0,0,0,0.95)',
+    ...(Platform.OS === 'web' ? ({ contentVisibility: 'auto', containIntrinsicSize: 'auto 240px' } as object) : null),
+  },
   cartaoDestaque: { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: cores.cartao, boxShadow: '0 24px 50px -30px rgba(106,0,212,0.55)' },
   fio: { position: 'absolute', top: 0, left: 24, right: 24, height: 1 },
   brilho: {},
