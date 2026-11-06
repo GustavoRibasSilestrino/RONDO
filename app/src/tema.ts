@@ -72,6 +72,9 @@ const ultra: Paleta = {
   cabecalho: 'rgba(8,20,60,0.38)',   // vidro: deixa a aurora aparecer
 };
 
+/* as cores das letras do nome no tema Ultra, do ciano ao rosa: a palavra RONDO no cabeçalho e a palavra ULTRA da transição */
+export const LETRAS_ULTRA = ['#5fd4ff', '#6f9bff', '#a07dff', '#d47cf0', '#ff7ad9'] as const;
+
 export const PALETAS: Record<TemaId, Paleta> = { normal, ultra };
 
 /* o objeto que o app inteiro lê; seus valores mudam quando o tema muda */
