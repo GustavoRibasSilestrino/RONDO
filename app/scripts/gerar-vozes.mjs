@@ -1,16 +1,16 @@
-/* Gera os áudios do RONDIN no ElevenLabs: um mp3 por frase e por sotaque, em public/vozes/<sotaque>/<frase>.mp3, mais o
+/* Gera os áudios do RONDIN no Azure (voz neural): um mp3 por frase e por sotaque, em public/vozes/<sotaque>/<frase>.mp3, mais o
    public/vozes/manifest.json (quais frases têm áudio e quanto duram). O app toca esses arquivos; o que faltar cai na voz do aparelho.
 
    Uso (dentro da pasta app):
-     npm run vozes -- --listar                lista as vozes da sua conta (para escolher os ids em scripts/vozes.config.json)
-     npm run vozes -- --dry                   só conta os caracteres que seriam gerados (não gasta crédito)
-     npm run vozes -- --sotaque br            gera só um sotaque (comece por aqui: cabe no plano grátis)
+     npm run vozes -- --listar                lista as vozes do Azure (para trocar o nome em scripts/vozes.config.json)
+     npm run vozes -- --dry                   só conta os caracteres que seriam gerados
+     npm run vozes -- --sotaque br            gera só um sotaque (comece por aqui)
      npm run vozes                            gera todos os sotaques
      npm run vozes -- --forcar                regenera mesmo o que já existe (use depois de trocar a voz)
-     npm run vozes -- --simular               áudios mudos de teste, sem chamar o ElevenLabs (só para testar o app)
+     npm run vozes -- --simular               áudios mudos de teste, sem chamar o Azure (só para testar o app)
 
-   A chave fica em ELEVENLABS_API_KEY (variável de ambiente ou arquivo app/.env, que o git ignora). Nunca vai para o app.
-   Frases que já existem não são geradas de novo, então dá para rodar quantas vezes quiser. */
+   As credenciais ficam em AZURE_SPEECH_KEY e AZURE_SPEECH_REGION (variáveis de ambiente ou arquivo app/.env, que o git ignora).
+   Nunca vão para o app. Frases que já existem não são geradas de novo, então dá para rodar quantas vezes quiser. */
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -26,62 +26,70 @@ const args = process.argv.slice(2);
 const tem = (a) => args.includes(a);
 const valor = (a) => { const i = args.indexOf(a); return i >= 0 ? args[i + 1] : undefined; };
 
-function chave() {
-  if (process.env.ELEVENLABS_API_KEY) return process.env.ELEVENLABS_API_KEY.trim();
+function ler(nome) {
+  if (process.env[nome]) return process.env[nome].trim();
   const env = join(raiz, '.env');
   if (existsSync(env)) {
-    const linha = readFileSync(env, 'utf8').split(/\r?\n/).find((l) => l.startsWith('ELEVENLABS_API_KEY='));
-    if (linha) return linha.slice('ELEVENLABS_API_KEY='.length).trim().replace(/^["']|["']$/g, '');
+    const linha = readFileSync(env, 'utf8').replace(/^﻿/, '').split(/\r?\n/).find((l) => l.startsWith(`${nome}=`));
+    if (linha) return linha.slice(nome.length + 1).trim().replace(/^["']|["']$/g, '');
   }
   return '';
 }
+const chave = () => ler('AZURE_SPEECH_KEY');
+const regiao = () => ler('AZURE_SPEECH_REGION').toLowerCase();
 
-async function api(caminho, opcoes = {}) {
+const escapar = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+
+async function azure(caminho, opcoes = {}) {
+  const url = `https://${regiao()}.tts.speech.microsoft.com${caminho}`;
   for (let tentativa = 0; tentativa < 4; tentativa += 1) {
-    const r = await fetch(`https://api.elevenlabs.io${caminho}`, { ...opcoes, headers: { 'xi-api-key': chave(), ...(opcoes.headers ?? {}) } });
+    const r = await fetch(url, { ...opcoes, headers: { 'Ocp-Apim-Subscription-Key': chave(), 'User-Agent': 'rondo-vozes', ...(opcoes.headers ?? {}) } });
     if (r.status === 429 || r.status >= 500) { await new Promise((ok) => setTimeout(ok, 1500 * (tentativa + 1))); continue; }
     return r;
   }
-  throw new Error('O ElevenLabs não respondeu depois de várias tentativas.');
+  throw new Error('O Azure não respondeu depois de várias tentativas.');
 }
 
 async function listar() {
-  const r = await api('/v1/voices');
-  if (!r.ok) throw new Error(`Não consegui listar as vozes (${r.status}). Confira a chave.`);
-  const { voices } = await r.json();
-  console.log(`${voices.length} vozes na sua conta:\n`);
-  for (const v of voices) {
-    const l = v.labels ?? {};
-    console.log(`${v.voice_id}  ${v.name}  [${[l.accent, l.gender, l.age, l.descriptive].filter(Boolean).join(', ')}]`);
+  const r = await azure('/cognitiveservices/voices/list');
+  if (!r.ok) throw new Error(`Não consegui listar as vozes (${r.status}). Confira a chave e a região.`);
+  const vozes = await r.json();
+  const idiomas = new Set(['pt-BR', 'pt-PT', 'en-US', 'es-ES', 'it-IT', 'fr-FR']);
+  console.log('Vozes dos idiomas usados pelo RONDIN:\n');
+  for (const v of vozes.filter((x) => idiomas.has(x.Locale)).sort((a, b) => a.Locale.localeCompare(b.Locale) || a.ShortName.localeCompare(b.ShortName))) {
+    console.log(`${v.ShortName.padEnd(36)} ${v.Gender.padEnd(7)} ${v.VoiceType ?? ''}`);
   }
 }
 
-/* o texto que vai para o modelo: a tag de estilo na frente (só o eleven_v3 a entende) */
-const textoDoModelo = (cfg, texto) => (cfg.tag && cfg.modelo === 'eleven_v3' ? `${cfg.tag} ${texto}` : texto);
+/* o SSML que o Azure lê: a voz, o idioma e, se houver, o ajuste de tom e velocidade */
+function ssml(cfg, texto) {
+  const dentro = cfg.tom || cfg.taxa
+    ? `<prosody${cfg.tom ? ` pitch="${cfg.tom}"` : ''}${cfg.taxa ? ` rate="${cfg.taxa}"` : ''}>${escapar(texto)}</prosody>`
+    : escapar(texto);
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${cfg.lang}"><voice name="${cfg.voz}">${dentro}</voice></speak>`;
+}
 
 async function gerarUma(cfg, texto, destino) {
   if (tem('--simular')) {   // áudio mudo com duração proporcional ao texto, só para testar o app
     const seg = Math.max(0.8, texto.length * 0.065).toFixed(2);
-    execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-t', seg, '-b:a', '64k', destino]);
+    execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'anullsrc=r=24000:cl=mono', '-t', seg, '-b:a', `${config.bitrate}`, destino]);
     return;
   }
-  const r = await api(`/v1/text-to-speech/${cfg.voz}?output_format=${config.formato}`, {
+  const r = await azure('/cognitiveservices/v1', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-    body: JSON.stringify({
-      text: textoDoModelo(cfg, texto), model_id: cfg.modelo,
-      voice_settings: { stability: config.estabilidade, similarity_boost: 0.75, style: 0.3, use_speaker_boost: true },
-    }),
+    headers: { 'Content-Type': 'application/ssml+xml', 'X-Microsoft-OutputFormat': config.formato },
+    body: ssml(cfg, texto),
   });
-  if (r.status === 401) throw new Error('Chave recusada pelo ElevenLabs (401). Confira ELEVENLABS_API_KEY.');
-  if (!r.ok) throw new Error(`ElevenLabs respondeu ${r.status}: ${(await r.text()).slice(0, 300)}`);
+  if (r.status === 401 || r.status === 403) throw new Error('Credenciais recusadas pelo Azure. Confira AZURE_SPEECH_KEY e AZURE_SPEECH_REGION.');
+  if (!r.ok) throw new Error(`Azure respondeu ${r.status}: ${(await r.text()).slice(0, 300)}`);
   writeFileSync(destino, Buffer.from(await r.arrayBuffer()));
 }
 
 async function main() {
-  if (tem('--listar')) { if (!chave()) throw new Error('Defina ELEVENLABS_API_KEY (ou app/.env).'); return listar(); }
   const simular = tem('--simular');
-  if (!simular && !tem('--dry') && !chave()) throw new Error('Defina ELEVENLABS_API_KEY (variável de ambiente ou arquivo app/.env).');
+  const dry = tem('--dry');
+  if (!simular && !dry && (!chave() || !regiao())) throw new Error('Defina AZURE_SPEECH_KEY e AZURE_SPEECH_REGION (variáveis de ambiente ou arquivo app/.env).');
+  if (tem('--listar')) { if (!chave() || !regiao()) throw new Error('Defina AZURE_SPEECH_KEY e AZURE_SPEECH_REGION (ou app/.env).'); return listar(); }
 
   const falas = listarFalas();
   const escolhido = valor('--sotaque');
@@ -97,24 +105,24 @@ async function main() {
     const so = SOTAQUES.find((s) => s.id === id);
     if (!so) throw new Error(`O sotaque "${id}" do config não existe em rondinSotaques.ts.`);
     const frases = [...new Set([...falas, so.amostra])];   // a amostra só existe na voz do próprio sotaque
-    mkdirSync(join(pasta, id), { recursive: true });
+    if (!dry) mkdirSync(join(pasta, id), { recursive: true });
     manifesto[id] ??= {};
     for (const texto of frases) {
       const h = hashFala(texto);
       const destino = join(pasta, id, `${h}.mp3`);
       if (existsSync(destino) && manifesto[id][h] && !tem('--forcar')) { pulados += 1; continue; }
       chars += texto.length;
-      if (tem('--dry')) continue;
+      if (dry) continue;
       await gerarUma(cfg, texto, destino);
       const bytes = readFileSync(destino).length;
-      manifesto[id][h] = Math.round((bytes * 8) / 64000 * 100) / 100;   // mp3 de 64 kbps: duração = bytes / 8000
+      manifesto[id][h] = Math.round(((bytes * 8) / config.bitrate) * 100) / 100;   // mp3 de taxa fixa: duração = bytes * 8 / bits por segundo
       feitos += 1;
       process.stdout.write(`\r${id}: ${feitos} gerados`);
       writeFileSync(manifestoCaminho, JSON.stringify(manifesto));   // grava a cada frase: se parar no meio, nada se perde
     }
     process.stdout.write('\n');
   }
-  console.log(tem('--dry')
+  console.log(dry
     ? `Seriam gerados ${chars} caracteres em ${ids.length} sotaque(s). (${pulados} frases já existem.)`
     : `Pronto: ${feitos} áudios novos, ${pulados} já existiam, ${chars} caracteres usados.`);
 }

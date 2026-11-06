@@ -1,15 +1,15 @@
 {
-  "_ajuda": "Troque os ids de voz pelas vozes que você escolheu no ElevenLabs (rode: npm run vozes -- --listar). 'tag' é uma instrução de estilo que o modelo eleven_v3 entende, dita antes da frase e não falada.",
-  "formato": "mp3_44100_64",
-  "estabilidade": 0.5,
+  "_ajuda": "Voz neural do Azure para cada sotaque. 'voz' é o nome da voz; 'lang' é o idioma que ela usa para ler o texto (o sotaque estrangeiro vem de uma voz de outro idioma lendo o português); 'tom' e 'taxa' ajustam a voz (SSML prosody: '-25%', '+10%'). Veja as vozes disponíveis com: npm run vozes -- --listar",
+  "formato": "audio-24khz-48kbitrate-mono-mp3",
+  "bitrate": 48000,
   "sotaques": {
-    "br":       { "modelo": "eleven_multilingual_v2", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "" },
-    "pt":       { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[European Portuguese accent from Lisbon]" },
-    "gringo":   { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong American English accent, speaking Portuguese]" },
-    "espanhol": { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong Spanish accent, speaking Portuguese]" },
-    "italiano": { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong Italian accent, speaking Portuguese, animated]" },
-    "frances":  { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong French accent, speaking Portuguese, elegant]" },
-    "narrador": { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[deep dramatic movie trailer narrator voice]" },
-    "robo":     { "modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[robotic monotone voice]" }
+    "br":       { "voz": "pt-BR-AntonioNeural", "lang": "pt-BR" },
+    "pt":       { "voz": "pt-PT-DuarteNeural", "lang": "pt-PT" },
+    "gringo":   { "voz": "en-US-AndrewNeural", "lang": "en-US" },
+    "espanhol": { "voz": "es-ES-AlvaroNeural", "lang": "es-ES" },
+    "italiano": { "voz": "it-IT-DiegoNeural", "lang": "it-IT" },
+    "frances":  { "voz": "fr-FR-HenriNeural", "lang": "fr-FR" },
+    "narrador": { "voz": "pt-BR-AntonioNeural", "lang": "pt-BR", "tom": "-28%", "taxa": "-12%" },
+    "robo":     { "voz": "pt-BR-AntonioNeural", "lang": "pt-BR", "tom": "-45%", "taxa": "-15%" }
   }
 }

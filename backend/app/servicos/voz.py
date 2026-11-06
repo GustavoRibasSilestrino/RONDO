@@ -1,10 +1,10 @@
 """A voz do RONDIN para o que muda de pessoa para pessoa (o nome, os quilos).
 
 As frases fixas do RONDIN são áudios prontos que o app já traz (app/scripts/gerar-vozes.mjs). Só o trecho dinâmico, curto,
-é gerado aqui, na hora, no ElevenLabs. A chave fica só no servidor. Para ninguém gastar os créditos, o texto é curto e
+é gerado aqui, na hora, no Azure (voz neural). A chave fica só no servidor. Para ninguém gastar a cota, o texto é curto e
 restrito (letras, números e pontuação simples), cada trecho gerado fica guardado e há limite de pedidos por IP.
 
-O cache é em memória (some quando o servidor reinicia; um nome pedido de novo é gerado de novo, o que custa centavos).
+O cache é em memória (some quando o servidor reinicia; um nome pedido de novo é gerado de novo, o que custa quase nada).
 """
 import hashlib
 import re
@@ -12,20 +12,22 @@ import time
 from collections import OrderedDict, deque
 
 import httpx
+from xml.sax.saxutils import escape
 
 from app.config import config
 
 # Os mesmos sotaques de app/scripts/vozes.config.json. Se trocar a voz lá, troque aqui também.
 SOTAQUES: dict[str, dict[str, str]] = {
-    "br": {"modelo": "eleven_multilingual_v2", "voz": "CstacWqMhJQlnfLPxRG4", "tag": ""},
-    "pt": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[European Portuguese accent from Lisbon]"},
-    "gringo": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong American English accent, speaking Portuguese]"},
-    "espanhol": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong Spanish accent, speaking Portuguese]"},
-    "italiano": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong Italian accent, speaking Portuguese, animated]"},
-    "frances": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[strong French accent, speaking Portuguese, elegant]"},
-    "narrador": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[deep dramatic movie trailer narrator voice]"},
-    "robo": {"modelo": "eleven_v3", "voz": "CstacWqMhJQlnfLPxRG4", "tag": "[robotic monotone voice]"},
+    "br": {"voz": "pt-BR-AntonioNeural", "lang": "pt-BR"},
+    "pt": {"voz": "pt-PT-DuarteNeural", "lang": "pt-PT"},
+    "gringo": {"voz": "en-US-AndrewNeural", "lang": "en-US"},
+    "espanhol": {"voz": "es-ES-AlvaroNeural", "lang": "es-ES"},
+    "italiano": {"voz": "it-IT-DiegoNeural", "lang": "it-IT"},
+    "frances": {"voz": "fr-FR-HenriNeural", "lang": "fr-FR"},
+    "narrador": {"voz": "pt-BR-AntonioNeural", "lang": "pt-BR", "tom": "-28%", "taxa": "-12%"},
+    "robo": {"voz": "pt-BR-AntonioNeural", "lang": "pt-BR", "tom": "-45%", "taxa": "-15%"},
 }
+FORMATO_AUDIO = "audio-24khz-48kbitrate-mono-mp3"
 
 TEXTO_VALIDO = re.compile(r"^[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9 '.,-]{0,29}$")
 MAX_CACHE = 2000
@@ -34,7 +36,7 @@ LIMITE_POR_HORA = 120
 
 
 class VozIndisponivel(Exception):
-    """Sem chave configurada ou o ElevenLabs falhou."""
+    """Sem chave configurada ou o Azure falhou."""
 
 
 def identificador(sotaque: str, texto: str) -> str:
@@ -64,7 +66,7 @@ _pedidos: dict[str, deque] = {}
 
 
 def dentro_do_limite(ip: str, agora: float | None = None) -> bool:
-    """Conta só o que vai ao ElevenLabs. Devolve False se o IP passou do limite (e não conta esse pedido)."""
+    """Conta só o que vai ao Azure. Devolve False se o IP passou do limite (e não conta esse pedido)."""
     agora = time.monotonic() if agora is None else agora
     fila = _pedidos.setdefault(ip, deque())
     while fila and agora - fila[0] > 3600:
@@ -79,22 +81,31 @@ def dentro_do_limite(ip: str, agora: float | None = None) -> bool:
     return True
 
 
-# ---------- ElevenLabs ----------
-def gerar_mp3(texto: str, sotaque: str) -> bytes:
-    chave = config().elevenlabs_api_key
-    if not chave:
-        raise VozIndisponivel("Voz não configurada.")
+# ---------- Azure ----------
+def montar_ssml(texto: str, sotaque: str) -> str:
     cfg = SOTAQUES[sotaque]
-    falado = f"{cfg['tag']} {texto}" if cfg["tag"] and cfg["modelo"] == "eleven_v3" else texto
+    limpo = escape(texto, {'"': "&quot;", "'": "&apos;"})
+    if cfg.get("tom") or cfg.get("taxa"):
+        atributos = "".join(f' {nome}="{cfg[chave]}"' for nome, chave in (("pitch", "tom"), ("rate", "taxa")) if cfg.get(chave))
+        limpo = f"<prosody{atributos}>{limpo}</prosody>"
+    return (
+        f'<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="{cfg["lang"]}">'
+        f'<voice name="{cfg["voz"]}">{limpo}</voice></speak>'
+    )
+
+
+def gerar_mp3(texto: str, sotaque: str) -> bytes:
+    chave, regiao = config().azure_speech_key, config().azure_speech_region
+    if not chave or not regiao:
+        raise VozIndisponivel("Voz não configurada.")
     try:
         r = httpx.post(
-            f"https://api.elevenlabs.io/v1/text-to-speech/{cfg['voz']}",
-            params={"output_format": "mp3_44100_64"},
-            headers={"xi-api-key": chave, "Accept": "audio/mpeg"},
-            json={
-                "text": falado, "model_id": cfg["modelo"],
-                "voice_settings": {"stability": 0.5, "similarity_boost": 0.75, "style": 0.3, "use_speaker_boost": True},
+            f"https://{regiao}.tts.speech.microsoft.com/cognitiveservices/v1",
+            headers={
+                "Ocp-Apim-Subscription-Key": chave, "Content-Type": "application/ssml+xml",
+                "X-Microsoft-OutputFormat": FORMATO_AUDIO, "User-Agent": "rondo-api",
             },
+            content=montar_ssml(texto, sotaque).encode("utf-8"),
             timeout=8,
         )
     except httpx.HTTPError as e:

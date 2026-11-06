@@ -163,8 +163,16 @@ def test_voz_do_rondin_sem_chave_responde_503_e_tem_limite(cliente, monkeypatch)
 
     voz._cache.clear()
     voz._pedidos.clear()
-    monkeypatch.setattr(voz.config(), "elevenlabs_api_key", "")
+    monkeypatch.setattr(voz.config(), "azure_speech_key", "")
     assert cliente.post("/rondin/voz", json={"texto": "Bia", "sotaque": "br"}).status_code == 503
     assert all(voz.dentro_do_limite("1.2.3.4", agora=100.0) for _ in range(voz.LIMITE_POR_MINUTO))
     assert voz.dentro_do_limite("1.2.3.4", agora=101.0) is False
     assert voz.dentro_do_limite("1.2.3.4", agora=200.0) is True   # passou o minuto
+
+
+def test_voz_do_rondin_monta_ssml_com_voz_e_ajuste(cliente):
+    from app.servicos import voz
+
+    ssml = voz.montar_ssml("Ana & Cia", "br")
+    assert 'xml:lang="pt-BR"' in ssml and 'name="pt-BR-AntonioNeural"' in ssml and "Ana &amp; Cia" in ssml and "prosody" not in ssml
+    assert 'pitch="-28%"' in voz.montar_ssml("Ana", "narrador")

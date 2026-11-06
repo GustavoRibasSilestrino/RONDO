@@ -4,7 +4,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Marca } from '../componentes/Marca';
 import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
 import { cores, estilos } from '../tema';
@@ -21,8 +20,7 @@ export function Inicio({ aoCriar, aoEntrar }: { aoCriar: () => void; aoEntrar: (
         contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top + 24, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
       >
         <View style={st.coluna}>
-          <View style={{ alignItems: 'center' }}><Marca altura={34} /></View>
-          <View style={{ alignItems: 'center', marginTop: 8 }}>
+          <View style={{ alignItems: 'center' }}>
             <Orbe tamanho={orbe} estado="quieto" />
           </View>
           <T tam={13} peso="500" cor={cores.destaque2} centro style={{ letterSpacing: 3, marginTop: -4 }}>RONDIN</T>
