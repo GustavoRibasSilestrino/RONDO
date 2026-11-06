@@ -25,9 +25,9 @@ export function AnelStory({ tamanho, estado, children, aoPressionar, rotulo, mai
         accessibilityLabel={rotulo}
         disabled={!aoPressionar}
         onPress={aoPressionar}
-        style={[st.anel, { width: total, height: total, borderRadius: total / 2, borderColor: cor, borderWidth: estado === 'nenhum' ? 0 : 2.5 }]}
+        style={[st.anel, { width: total, height: total, borderRadius: 4, borderColor: cor, borderWidth: estado === 'nenhum' ? 0 : 2.5 }]}
       >
-        <View style={{ width: tamanho, height: tamanho, borderRadius: tamanho / 2, overflow: 'hidden' }}>{children}</View>
+        <View style={{ width: tamanho, height: tamanho, borderRadius: 4, overflow: 'hidden' }}>{children}</View>
       </Pressable>
       {mais ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Criar um story" onPress={aoMais} hitSlop={8} style={[st.mais, { right: -2, bottom: -2 }]}>
@@ -40,5 +40,5 @@ export function AnelStory({ tamanho, estado, children, aoPressionar, rotulo, mai
 
 const st = estilos(() => StyleSheet.create({
   anel: { alignItems: 'center', justifyContent: 'center' },
-  mais: { position: 'absolute', width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte, borderWidth: 2.5, borderColor: cores.fundo },
+  mais: { position: 'absolute', width: 26, height: 26, borderRadius: 3, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte, borderWidth: 2.5, borderColor: cores.fundo },
 }));

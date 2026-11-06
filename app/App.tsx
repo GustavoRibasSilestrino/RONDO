@@ -13,6 +13,7 @@ import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
 import { BotaoVoltar } from './src/componentes/BotaoVoltar';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
 import { MenuLateral } from './src/componentes/MenuLateral';
+import { useMenuRecolhido } from './src/lib/largura';
 import { PainelLateral } from './src/componentes/PainelLateral';
 import { useLayoutLargo } from './src/lib/largura';
 import { PlanoPro } from './src/componentes/PlanoPro';
@@ -65,6 +66,7 @@ function Raiz() {
   /* o tema vale antes de tudo ser desenhado; o Ultra só a partir do nível 15 */
   const tema = estado.usuario && nivelDe(xpTotal(estado)) >= NIVEL_ULTRA ? estado.tema : 'normal';
   aplicarTema(tema);
+  const [menuRecolhido, alternarMenu] = useMenuRecolhido();
 
   /* botão voltar do Android: de qualquer tela volta para o início; no início, sai do app */
   useEffect(() => {
@@ -113,7 +115,7 @@ function Raiz() {
   const escolher = (id: string) => { if (id !== tela) setTela(id); };
   return (
     <View style={{ flex: 1, flexDirection: largo ? 'row' : 'column' }}>
-      {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} aoAbrirPro={() => setPlanoAberto(true)} temaBloqueado={temaBloqueado} aoTrocarTema={aoTrocarTema} /> : null}
+      {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} recolhido={menuRecolhido} aoAlternar={alternarMenu} tema={tema} nome={estado.usuario?.nome ?? ""} nivel={nivelDe(xpTotal(estado))} aoAbrirConta={() => setTela("perfil")} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} aoAbrirPro={() => setPlanoAberto(true)} temaBloqueado={temaBloqueado} aoTrocarTema={aoTrocarTema} /> : null}
       <View style={{ flex: 1 }}>
       {tema === 'ultra' ? <FundoUltra /> : null}
       {tela === 'home' && <Social modo="home" ir={setTela} />}

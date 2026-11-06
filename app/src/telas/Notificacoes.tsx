@@ -82,8 +82,8 @@ export function Notificacoes() {
 }
 
 const st = estilos(() => StyleSheet.create({
-  item: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
+  item: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 4, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
   nova: { borderColor: cores.destaqueForte },
-  icone: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  icone: { width: 44, height: 44, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   ponto: { width: 9, height: 9, borderRadius: 5, backgroundColor: cores.destaque },
 }));

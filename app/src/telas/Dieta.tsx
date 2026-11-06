@@ -37,7 +37,7 @@ export function Dieta() {
     <Tela>
       <T tam={15} peso="400" centro>Dieta</T>
       <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: cores.cartao2, borderRadius: 99 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: cores.cartao2, borderRadius: 4 }}>
           <Pressable accessibilityRole="button" accessibilityLabel="Dia anterior" onPress={() => mudarDia(-1)} style={{ padding: 10 }}>
             <Icone nome="seta" tamanho={16} cor={cores.texto2} />
           </Pressable>
@@ -180,7 +180,7 @@ function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeica
                 { nome: 'CARBO', v: `${num(prev.c)} g` },
                 { nome: 'GORD', v: `${num(prev.g)} g` },
               ].map((m) => (
-                <View key={m.nome} style={{ flex: 1, backgroundColor: cores.fundo2, borderRadius: 8, padding: 10 }}>
+                <View key={m.nome} style={{ flex: 1, backgroundColor: cores.fundo2, borderRadius: 3, padding: 10 }}>
                   <T tam={10} mono cor={cores.texto3}>{m.nome}</T>
                   <T tam={17} peso="300">{m.v}</T>
                 </View>
@@ -199,7 +199,7 @@ function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeica
 /* passo de 10 em 10 gramas */
 function Passo10({ valor, aoMudar }: { valor: number; aoMudar: (v: number) => void }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderRadius: 8, borderWidth: 1, borderColor: cores.linha }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderRadius: 3, borderWidth: 1, borderColor: cores.linha }}>
       <Pressable accessibilityRole="button" accessibilityLabel="Menos gramas" onPress={() => aoMudar(Math.max(10, valor - 10))} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
         <Icone nome="menos" tamanho={16} cor={cores.texto2} />
       </Pressable>

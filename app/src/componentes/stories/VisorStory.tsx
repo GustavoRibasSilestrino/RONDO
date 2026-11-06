@@ -125,7 +125,7 @@ const st = estilos(() => StyleSheet.create({
   autor: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 },
   fechar: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   base: { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, gap: 14, alignItems: 'center' },
-  legenda: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.55)' },
+  legenda: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 4, backgroundColor: 'rgba(0,0,0,0.55)' },
   acoes: { flexDirection: 'row', gap: 12 },
-  acao: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 18, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
+  acao: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 18, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
 }));

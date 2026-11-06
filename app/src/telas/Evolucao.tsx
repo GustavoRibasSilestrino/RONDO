@@ -76,7 +76,7 @@ export function Evolucao() {
         {todosExercicios(estado).map((e) => {
           const ativo = e.id === exId;
           return (
-            <Pressable key={e.id} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setExId(e.id)} style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 99, backgroundColor: ativo ? cores.texto : cores.cartao2 }}>
+            <Pressable key={e.id} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setExId(e.id)} style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 4, backgroundColor: ativo ? cores.texto : cores.cartao2 }}>
               <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? cores.fundo : cores.texto2}>{e.nome}</T>
             </Pressable>
           );

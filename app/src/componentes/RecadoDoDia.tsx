@@ -21,15 +21,15 @@ export function RecadoDoDia({ aoAbrir }: { aoAbrir: () => void }) {
       accessibilityLabel={feito ? 'Recado de hoje guardado. Abrir recados' : `Pergunta do dia: ${PERGUNTAS[perguntaDoDia()]} Gravar recado`}
       onPress={aoAbrir}
       style={({ pressed }) => ({
-        flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 18,
+        flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 4,
         backgroundColor: cores.cartao, borderWidth: 1, borderColor: cores.linha2, opacity: pressed ? 0.85 : 1,
       })}
     >
-      <View style={{ width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: feito ? cores.cartao2 : cores.destaque }}>
+      <View style={{ width: 46, height: 46, borderRadius: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: feito ? cores.cartao2 : cores.destaque }}>
         <Icone nome={feito ? 'ok' : 'recado'} tamanho={22} cor="#ffffff" />
       </View>
       <View style={{ flex: 1 }}>
-        <T tam={11} mono cor={cores.texto3}>{chegou ? 'UM RECADO SEU CHEGOU HOJE' : feito ? 'RECADO DE HOJE GUARDADO' : 'PERGUNTA DO DIA'}</T>
+        <T tam={12.5} cor={cores.texto3}>{chegou ? 'Um recado seu chegou hoje' : feito ? 'Recado de hoje guardado' : 'Pergunta do dia'}</T>
         <T tam={15} linhas={2} style={{ marginTop: 3, lineHeight: 20 }}>
           {chegou ? 'Ouça o que você disse para quem você é hoje.' : feito ? 'Amanhã chega uma nova pergunta.' : PERGUNTAS[perguntaDoDia()]}
         </T>

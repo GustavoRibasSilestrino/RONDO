@@ -33,7 +33,7 @@ function Aba({ item, largura, ativo, aoPressionar, movimentoReduzido }: { item: 
     <Pressable accessibilityRole="tab" accessibilityState={{ selected: ativo }} accessibilityLabel={item.rotulo} onPress={aoPressionar} style={[st.aba, { width: largura }]}>
       <Animated.View
         pointerEvents="none"
-        style={{ position: 'absolute', width: ALTURA, height: ALTURA, borderRadius: ALTURA / 2, overflow: 'hidden', backgroundColor: cores.destaqueForte, opacity: luz, transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}
+        style={{ position: 'absolute', width: ALTURA, height: ALTURA, borderRadius: 4, overflow: 'hidden', backgroundColor: cores.destaqueForte, opacity: luz, transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}
       >
         {temaAtual() === 'normal' ? <LinearGradient colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
       </Animated.View>
@@ -83,7 +83,7 @@ export function BarraAbas({ itens, atual, aoEscolher }: Props) {
 const st = estilos(() => StyleSheet.create({
   doca: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   barra: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: ALTURA + 2 * RECHEIO + 2, borderRadius: (ALTURA + 2 * RECHEIO + 2) / 2, overflow: 'hidden',
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: ALTURA + 2 * RECHEIO + 2, borderRadius: 4, overflow: 'hidden',
     backgroundColor: cores.barra, borderWidth: 1, borderColor: cores.linha2,
     shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 22, shadowOffset: { width: 0, height: 10 }, elevation: 12,
   },
