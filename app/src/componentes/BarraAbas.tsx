@@ -1,11 +1,12 @@
 /* Navegação do app: uma barra contínua de vidro escuro no pé da tela, com todas as abas à vista.
    Cada aba é só o ícone, todas do mesmo tamanho; a atual ganha um círculo roxo. */
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { cores, larguraMax, estilos } from '../tema';
+import { cores, DEGRADE, FIM_DIAGONAL, INICIO_DIAGONAL, larguraMax, estilos, temaAtual } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 
 export type ItemAba = { id: string; rotulo: string; icone: NomeIcone };
@@ -31,8 +32,10 @@ function Aba({ item, largura, ativo, aoPressionar, movimentoReduzido }: { item: 
     <Pressable accessibilityRole="tab" accessibilityState={{ selected: ativo }} accessibilityLabel={item.rotulo} onPress={aoPressionar} style={[st.aba, { width: largura }]}>
       <Animated.View
         pointerEvents="none"
-        style={{ position: 'absolute', width: ALTURA, height: ALTURA, borderRadius: ALTURA / 2, backgroundColor: cores.destaqueForte, opacity: luz, transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}
-      />
+        style={{ position: 'absolute', width: ALTURA, height: ALTURA, borderRadius: ALTURA / 2, overflow: 'hidden', backgroundColor: cores.destaqueForte, opacity: luz, transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}
+      >
+        {temaAtual() === 'normal' ? <LinearGradient colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
+      </Animated.View>
       <View pointerEvents="none">
         <Icone nome={item.icone} tamanho={23} cor="#ffffff" />
       </View>

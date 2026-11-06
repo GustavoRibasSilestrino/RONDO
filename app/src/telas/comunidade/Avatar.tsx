@@ -1,11 +1,12 @@
 /* Rostinho redondo com a foto ou a inicial. A cor vem do nome, dentro da família do roxo; "você" é sempre o roxo da marca
    e mostra a sua foto de perfil, quando houver uma. */
+import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Image, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import { T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
 import { useUriMidia } from '../../lib/midia';
-import { cores } from '../../tema';
+import { cores, DEGRADE, FIM_DIAGONAL, INICIO_DIAGONAL, temaAtual } from '../../tema';
 
 const TONS = ['#4c1d95', '#5b21b6', '#6d28d9', '#4338ca', '#6b21a8', '#3730a3'];
 
@@ -27,6 +28,7 @@ export function Avatar({ nome, voce, tamanho = 38, foto, semFoto }: { nome: stri
       importantForAccessibility="no"
       style={{ width: tamanho, height: tamanho, borderRadius: tamanho / 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: voce ? cores.violeta : tom }}
     >
+      {voce && temaAtual() === 'normal' ? <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
       <T tam={Math.round(tamanho * 0.37)} peso="500" cor="#ffffff">{inicial}</T>
       {idFoto ? <FotoRedonda id={idFoto} tamanho={tamanho} /> : null}
     </View>
