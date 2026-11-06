@@ -28,9 +28,6 @@ export function Hero() {
         </div>
       </div>
 
-      <a className="hero-rola" href="#recursos" aria-label="Rolar para ver mais">
-        <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v13M6 13l6 6 6-6" /></svg></span>
-      </a>
     </section>
   );
 }
