@@ -1,11 +1,10 @@
 /* Início e Comunidade. O Início é o feed: as publicações de quem você segue e dos clubes (texto, fotos e vídeos).
    A Comunidade tem os clubes (criar, entrar, convidar e publicar dentro) e o ranking semanal de constância.
    O botão + roxo, sobre a barra, cria uma publicação. Feed, clubes e perfis vêm do servidor e são os mesmos para todo mundo. */
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useCallback, useEffect, useState } from 'react';
 import { BackHandler, Pressable, Share, StyleSheet, View } from 'react-native';
 import { lerFeed } from '../api/social';
-import type { FiltroFeed, Pessoa } from '../api/social';
+import type { Pessoa } from '../api/social';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { BotaoMais } from '../componentes/BotaoMais';
 import { Icone } from '../componentes/Icone';
@@ -13,7 +12,7 @@ import { Botao, Cartao, Segmentos, T } from '../componentes/Ui';
 import { useLista } from '../estado/lista';
 import { useLoja } from '../estado/loja';
 import { comparar, statsSemana } from '../lib/calc';
-import { cores, DEGRADE, estilos, FIM_DIAGONAL, INICIO_DIAGONAL, temaAtual } from '../tema';
+import { cores, estilos } from '../tema';
 import type { Midia } from '../tipos';
 import { RecadoDoDia } from '../componentes/RecadoDoDia';
 import { BarraStories } from '../componentes/stories/BarraStories';
@@ -28,13 +27,11 @@ import { VisorMidia } from './comunidade/Midia';
 import { Ranking } from './comunidade/Ranking';
 
 type Aba = 'grupos' | 'ranking';
-type Filtro = 'todos' | 'seguindo' | 'meus' | 'geral';
 
 export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: string) => void }) {
   const { estado } = useLoja();
   const avisar = useAviso();
   const [aba, setAba] = useState<Aba>('grupos');
-  const [filtro, setFiltro] = useState<Filtro>('todos');
   const [grupoAberto, setGrupoAberto] = useState<number | null>(null);
   const [compor, setCompor] = useState<{ aberto: boolean; grupo: number | null }>({ aberto: false, grupo: null });
   const [criando, setCriando] = useState(false);
@@ -56,8 +53,8 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
   const hoje = new Date();
   /* o servidor decide o que a pessoa pode ver: o geral, os clubes públicos e os clubes em que ela está (privado nunca vaza) */
   const feed = useLista(
-    (cursor) => lerFeed({ filtro: (filtro === 'meus' ? 'clubes' : filtro) as FiltroFeed, antes: cursor }),
-    [filtro],
+    (cursor) => lerFeed({ filtro: 'todos', antes: cursor }),   // um feed só, com tudo: o geral, quem você segue e os seus clubes
+    [],
     modo === 'home' && grupoAberto === null,
   );
   const posts = feed.itens;
@@ -83,32 +80,22 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
         ) : modo === 'home' ? (
           <>
             <View style={st.tituloFeed}>
-              <T tam={15} peso="400" centro>Feed</T>
               <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={() => setBuscando(true)} style={st.lupa}>
                 <Icone nome="busca" tamanho={22} cor="#ffffff" />
               </Pressable>
             </View>
             <View style={{ marginTop: 10 }}><BarraStories /></View>
             <View style={{ marginTop: 14 }}><RecadoDoDia aoAbrir={() => ir('recado')} /></View>
-            <View style={{ gap: 14, marginTop: 16 }}>
-              <View style={st.filtros}>
-                {([['todos', 'Tudo'], ['seguindo', 'Seguindo'], ['meus', 'Clubes'], ['geral', 'Geral']] as [Filtro, string][]).map(([v, nome]) => {
-                  const ativo = v === filtro;
-                  return (
-                    <Pressable key={v} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setFiltro(v)} style={[st.filtro, ativo && st.filtroAtivo]}>
-                      {ativo && temaAtual() === 'normal' ? <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
-                      <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#ffffff' : cores.texto2}>{nome}</T>
-                    </Pressable>
-                  );
-                })}
-              </View>
-
+            <View style={{ marginTop: 16 }}>
               {posts.length ? (
                 <>
-                  {posts.map((p) => (
-                    <CartaoPost key={p.id} insta post={p} aoAbrirGrupo={p.clube ? () => setGrupoAberto(p.clube!.id) : undefined} aoAbrirMidia={abrirMidia} aoAbrirPerfil={abrirPerfil} aoApagar={(id) => feed.mudar((l) => l.filter((x) => x.id !== id))} />
-                  ))}
-                  {feed.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais" aoPressionar={feed.maisItens} carregando={feed.carregando} /> : null}
+                  {/* contínuo, sem caixas: as publicações vão de ponta a ponta da tela, separadas só por uma linha fina */}
+                  <View style={st.lista}>
+                    {posts.map((p) => (
+                      <CartaoPost key={p.id} timeline sangrar post={p} aoAbrirGrupo={p.clube ? () => setGrupoAberto(p.clube!.id) : undefined} aoAbrirMidia={abrirMidia} aoAbrirPerfil={abrirPerfil} aoApagar={(id) => feed.mudar((l) => l.filter((x) => x.id !== id))} />
+                    ))}
+                  </View>
+                  {feed.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais" aoPressionar={feed.maisItens} carregando={feed.carregando} style={{ marginTop: 14 }} /> : null}
                 </>
               ) : feed.erro || feed.carregando ? (
                 <Cartao>
@@ -122,11 +109,9 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
                 </Cartao>
               ) : (
                 <Cartao>
-                  <T tam={16}>{filtro === 'seguindo' ? 'Você ainda não segue ninguém.' : filtro === 'meus' ? 'Nada dos seus clubes ainda.' : 'Nada por aqui ainda.'}</T>
-                  <T tam={13.5} style={{ marginTop: 6, lineHeight: 20 }}>
-                    {filtro === 'seguindo' ? 'Toque em Seguir nas publicações, ou no ranking, para criar as suas conexões. Os cheers e as publicações delas aparecem aqui.' : filtro === 'meus' ? 'Entre em um clube, ou crie o seu, para ver as publicações dele aqui.' : 'Seja a primeira pessoa a compartilhar algo hoje.'}
-                  </T>
-                  <Botao pequeno tipo="fantasma" titulo={filtro === 'seguindo' ? 'Ver o ranking' : filtro === 'meus' ? 'Ver clubes' : 'Criar publicação'} aoPressionar={() => (filtro === 'seguindo' || filtro === 'meus' ? ir('comunidade') : abrirCompositor(null))} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
+                  <T tam={16}>Nada por aqui ainda.</T>
+                  <T tam={13.5} style={{ marginTop: 6, lineHeight: 20 }}>Seja a primeira pessoa a compartilhar algo hoje.</T>
+                  <Botao pequeno tipo="fantasma" titulo="Criar publicação" aoPressionar={() => abrirCompositor(null)} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
                 </Cartao>
               )}
             </View>
@@ -179,9 +164,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
 const st = estilos(() => StyleSheet.create({
   tituloFeed: { height: 44, justifyContent: 'center', marginTop: -6 },
   lupa: { position: 'absolute', right: -6, top: 0, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  filtros: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  filtro: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2, overflow: 'hidden' },
+  lista: { marginHorizontal: -20, borderTopWidth: 1, borderTopColor: cores.linha },
   opcao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
   opcaoIcone: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
-  filtroAtivo: { backgroundColor: cores.destaqueForte, borderColor: 'rgba(196,168,255,0.35)' },
 }));
