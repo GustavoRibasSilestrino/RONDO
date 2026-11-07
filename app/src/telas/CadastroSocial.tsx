@@ -31,6 +31,7 @@ type Props = { tokenSocial: string; nome?: string; email: string; aoVoltar: () =
 
 export function CadastroSocial({ tokenSocial, nome, email, aoVoltar, aoConcluir }: Props) {
   const insets = useSafeAreaInsets();
+  const [nomeEd, setNomeEd] = useState(nome ?? '');   // o nome do Google ou da Apple, que a pessoa pode trocar (precisa ser único)
   const [nascimento, setNascimento] = useState('');
   const [aceita, setAceita] = useState(false);
   const [marketing, setMarketing] = useState(false);
@@ -45,12 +46,13 @@ export function CadastroSocial({ tokenSocial, nome, email, aoVoltar, aoConcluir 
 
   const criar = async () => {
     if (enviando) return;
+    if (nomeEd.trim().length < 2) { setErro('Digite o seu nome.'); return; }
     if (!iso) { setErro('Digite uma data de nascimento que exista, no formato dia, mês e ano.'); return; }
     if (!aceita) { setErro('Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.'); return; }
     if (menor && (respNome.trim().length < 2 || !emailValido(respEmail) || !autoriza)) { setErro('Menores de 18 anos precisam do nome, do e-mail e da autorização de um responsável.'); return; }
     setErro(''); setEnviando(true);
     try {
-      const usuario = await concluirCadastroSocial({ tokenSocial, nascimento: iso, marketing, responsavel: menor ? { nome: respNome.trim(), email: respEmail.trim(), autoriza } : null });
+      const usuario = await concluirCadastroSocial({ tokenSocial, nome: nomeEd.trim(), nascimento: iso, marketing, responsavel: menor ? { nome: respNome.trim(), email: respEmail.trim(), autoriza } : null });
       aoConcluir(usuario);
     } catch (e) {
       setErro(e instanceof Error ? e.message : 'Não foi possível criar a conta agora.');
@@ -68,6 +70,7 @@ export function CadastroSocial({ tokenSocial, nome, email, aoVoltar, aoConcluir 
           <T tam={15} cor={cores.texto2} centro style={{ marginTop: 10, lineHeight: 22 }}>Falta pouco para criar a conta com <T tam={15} peso="500">{email}</T>.</T>
 
           <View style={{ marginTop: 24, gap: 14 }}>
+            <CampoFlutuante rotulo="Seu nome" icone="perfil" value={nomeEd} onChangeText={(v) => { setNomeEd(v); setErro(''); }} autoCapitalize="words" maxLength={120} />
             <CampoFlutuante
               rotulo="Nascimento (DD/MM/AAAA)" icone="calendario" value={nascimento} onChangeText={(v) => { setNascimento(mascararData(v)); setErro(''); }}
               keyboardType="number-pad" maxLength={10} autoComplete="birthdate-full"

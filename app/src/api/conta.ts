@@ -65,6 +65,17 @@ export async function redefinirSenha(email: string, codigo: string, nova: string
   if (!r.ok) throw new Error(await mensagemDe(r, 'Não foi possível trocar a senha agora. Tente de novo.'));
 }
 
+/* O nome já é de outra conta? O servidor compara sem acento e sem maiúscula. Se a pergunta falhar (sem rede), segue: o cadastro confere de novo. */
+export async function nomeEstaLivre(nome: string): Promise<boolean> {
+  try {
+    const r = await enviarJson('/auth/nome-livre', { nome });
+    if (!r.ok) return true;
+    return ((await r.json()) as { livre?: boolean }).livre !== false;
+  } catch {
+    return true;
+  }
+}
+
 /* Criar a conta pelo próprio app: POST {API}/auth/cadastro, com a data de nascimento, o aceite dos documentos e,
    para menores de 18 anos, a autorização do responsável. O servidor registra o aceite e devolve o token: já entra. */
 export type NovaConta = {

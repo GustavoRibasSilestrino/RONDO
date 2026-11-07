@@ -12,11 +12,12 @@ from app.banco import obter_sessao
 from app.deps import usuario_atual
 from app.config import config
 import jwt
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.esquemas import CadastroIn, CadastroSocialIn, EsqueciSenhaIn, LoginIn, LoginOut, RedefinirSenhaIn, SenhaIn, SocialIn, StatusOut, UsuarioOut, conferir_cadastro
 from app.legal import VERSAO_PRIVACIDADE, VERSAO_TERMOS
 from app.modelos import Consentimento, RedefinicaoSenha, Usuario
+from app.servicos import conta as servico_conta
 from app.servicos.email import EmailIndisponivel, enviar
 from app.servicos.login_social import InfoSocial, verificar_apple, verificar_google
 from app.seguranca import conferir_senha, criar_token, gerar_hash, precisa_atualizar
@@ -49,6 +50,8 @@ def cadastro(dados: CadastroIn, sessao: Session = Depends(obter_sessao)):
     email = dados.email.lower()
     if sessao.scalar(select(Usuario).where(Usuario.email == email)):
         raise HTTPException(409, "Este e-mail já tem conta.")
+    if servico_conta.nome_em_uso(sessao, dados.nome):
+        raise HTTPException(409, servico_conta.MSG_NOME_EM_USO)
     usuario = Usuario(
         email=email, nome=dados.nome.strip(), senha_hash=gerar_hash(dados.senha),
         nascimento=dados.nascimento, marketing=dados.marketing,
@@ -70,6 +73,16 @@ def cadastro(dados: CadastroIn, sessao: Session = Depends(obter_sessao)):
         ))
     sessao.commit()
     return _login_out(usuario)
+
+
+class NomeIn(BaseModel):
+    nome: str = Field(min_length=2, max_length=120)
+
+
+@router.post("/nome-livre")
+def nome_livre(dados: NomeIn, sessao: Session = Depends(obter_sessao)):
+    """O app pergunta antes de seguir no cadastro: esse nome ainda está livre? (os nomes já aparecem para todos no app)"""
+    return {"livre": not servico_conta.nome_em_uso(sessao, dados.nome)}
 
 
 @router.post("/login", response_model=LoginOut)
@@ -132,6 +145,8 @@ def cadastro_social(dados: CadastroSocialIn, sessao: Session = Depends(obter_ses
     nome = (dados.nome or t.get("nome") or email.split("@")[0]).strip()[:120]
     if len(nome) < 2:
         nome = "Você"
+    if servico_conta.nome_em_uso(sessao, nome):
+        raise HTTPException(409, servico_conta.MSG_NOME_EM_USO)
     # sem senha própria: o hash é de um valor aleatório que ninguém conhece (quem quiser uma senha usa "Esqueci a senha")
     usuario = Usuario(email=email, nome=nome, senha_hash=gerar_hash(secrets.token_urlsafe(32)), nascimento=dados.nascimento, marketing=dados.marketing)
     sessao.add(usuario)

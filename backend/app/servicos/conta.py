@@ -10,6 +10,7 @@ from app.modelos import (
     Assinatura, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Membro, Notificacao, Post, RedefinicaoSenha, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
 )
 from app.servicos import midia as servico_midia
+from app.servicos.busca import normalizar
 
 
 def _data(x) -> str | None:
@@ -112,3 +113,17 @@ def limpar_vencidos(sessao: Session, forcar: bool = False) -> None:
     sessao.execute(delete(Notificacao).where(Notificacao.criado_em < agora - RETENCAO_NOTIFICACOES))
     sessao.execute(delete(RedefinicaoSenha).where(RedefinicaoSenha.criado_em < agora - timedelta(days=1)))   # códigos de redefinição velhos, usados ou não
     sessao.commit()
+
+
+MSG_NOME_EM_USO = "Já existe uma conta com esse nome. Escolha outro, por exemplo com o sobrenome."
+
+
+def nome_em_uso(sessao: Session, nome: str, ignorar_id: int | None = None) -> bool:
+    """Já tem uma conta com esse nome? Compara sem maiúscula, sem acento e sem espaço sobrando: "Vinícius  Silva" e "vinicius silva" são o mesmo nome."""
+    alvo = normalizar(nome)
+    if not alvo:
+        return False
+    consulta = select(Usuario.id, Usuario.nome).where(Usuario.busca.contains(alvo, autoescape=True))
+    if ignorar_id is not None:
+        consulta = consulta.where(Usuario.id != ignorar_id)
+    return any(normalizar(n) == alvo for _, n in sessao.execute(consulta))

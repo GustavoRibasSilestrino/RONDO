@@ -85,6 +85,7 @@ export const FALAS = {
   deVolta: 'Bem-vindo de volta, {nome}! Que bom te ver.',
   contaCriada: 'Pronto, {nome}! Sua conta está criada e o seu perfil está salvo. Bem-vindo ao RONDO.',
   emailJaTem: 'Esse e-mail já tem uma conta. Use outro, ou volte e entre com ele.',
+  nomeJaTem: 'Esse nome já é de outra conta. Escolha outro, por exemplo com o sobrenome.',
   falhaCriar: 'Não consegui criar a conta agora.',
 };
 
