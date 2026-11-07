@@ -79,7 +79,7 @@
   display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: clamp(1.5rem, 4vw, 4rem); align-items: center;
   padding-block: clamp(1rem, 2.5vw, 1.8rem);
 }
-.moment h3 { font-size: clamp(1.8rem, 3.6vw, 3.2rem); line-height: 1.12; }
+.moment h3 { font-size: clamp(2.2rem, 4.8vw, 4.2rem); line-height: 1.04; }
 .m-text p { color: var(--ink-2); margin-top: 1.2rem; max-width: 36ch; }
 
 /* setas grandes nas laterais do palco, na altura do meio */

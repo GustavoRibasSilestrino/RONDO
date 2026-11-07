@@ -336,8 +336,8 @@ function Licencas() {
       </p>
       <h2>Fontes</h2>
       <ul>
-        <li>Inter e Inter Tight, de Rasmus Andersson: SIL Open Font License 1.1.</li>
-        <li>JetBrains Mono, da JetBrains: SIL Open Font License 1.1.</li>
+        <li>Bricolage Grotesque, de Mathieu Triay: SIL Open Font License 1.1.</li>
+        <li>Reenie Beanie, de James Grieshaber: SIL Open Font License 1.1.</li>
         <li>Poppins, da Indian Type Foundry (no app): SIL Open Font License 1.1.</li>
       </ul>
       <h2>Bibliotecas do site e do app</h2>

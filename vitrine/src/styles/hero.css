@@ -1,12 +1,11 @@
 /* ===== Topo: tela inteira de um violeta saturado que escurece até o preto embaixo, o RONDO gigante ao fundo,
-   o título e os botões à esquerda. Letra Poppins, cantos quase retos. ===== */
+   o título e os botões à esquerda. Letra Bricolage Grotesque, cantos quase retos. ===== */
 .hero {
   position: relative; isolation: isolate; overflow: hidden; display: block; min-height: 100vh; min-height: 100svh;
   padding: calc(var(--nav-h) + clamp(1rem, 5vh, 3rem)) 0 clamp(4.5rem, 10vh, 6.5rem);
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0) 52%, rgba(3, 1, 8, .78) 82%, #030108 100%),
     radial-gradient(ellipse 62% 78% at 68% 36%, #a35cff 0%, #6a1ee8 38%, #35108f 68%, #170544 100%);
-  font-family: "Poppins", var(--font-body);
 }
 .hero-grao {
   position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: .16; mix-blend-mode: overlay;
@@ -16,21 +15,21 @@
 /* a palavra, grande e quase apagada, ao fundo */
 .hero-marca {
   position: absolute; z-index: -1; left: 0; right: 0; bottom: 6%; text-align: center; pointer-events: none; user-select: none;
-  font-family: "Bricolage Grotesque", "Poppins", sans-serif; font-weight: 800; line-height: .8; letter-spacing: -.045em; color: rgba(255, 255, 255, .1);
+  font-family: var(--font-display); font-weight: 800; line-height: .8; letter-spacing: -.045em; color: rgba(255, 255, 255, .1);
   font-size: 28.2vw;   /* de margem a margem em qualquer largura */
 }
 
 .hero-grade { position: relative; z-index: 2; display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; min-height: calc(100svh - var(--nav-h) - 8rem); grid-template-rows: none; }
 .hero-texto { max-width: 36rem; }
-.hero-title { font-size: clamp(2rem, 4vw, 3.6rem); line-height: 1.2; color: #fff; }
+.hero-title { font-size: clamp(2.6rem, 5.8vw, 5.2rem); line-height: 1.04; color: #fff; }
 .hero-title .ln { display: block; }
 /* só o V da primeira palavra, em letra de mão (pincel); o resto do título segue na fonte dos títulos */
 .hero-title .v-mao { font-family: "Reenie Beanie", cursive; font-weight: 400; font-size: 2.3em; line-height: 0; margin-right: .03em; display: inline-block; transform: translateY(.04em); }
-/* "de ontem.": Poppins fina (200), para contrastar com a primeira linha */
-.hero-title .trail { font-family: "Poppins", system-ui, sans-serif; font-weight: 200; letter-spacing: -.02em; font-size: 1.08em; color: rgba(255, 255, 255, .85); text-shadow: none; }
-.hero-texto .lead { font-family: "Inter", system-ui, sans-serif; margin-top: clamp(1rem, 2.4vh, 1.5rem); max-width: 38ch; font-size: clamp(.92rem, 1.1vw, 1.02rem); font-weight: 300; color: rgba(255, 255, 255, .86); line-height: 1.65; }
+/* "de ontem.": a mesma fonte em peso leve, para contrastar com a primeira linha */
+.hero-title .trail { font-weight: 300; letter-spacing: -.02em; font-size: 1em; color: rgba(255, 255, 255, .85); text-shadow: none; }
+.hero-texto .lead { margin-top: clamp(1rem, 2.4vh, 1.5rem); max-width: 38ch; font-size: clamp(.92rem, 1.1vw, 1.02rem); font-weight: 300; color: rgba(255, 255, 255, .86); line-height: 1.65; }
 .hero-cta { display: flex; gap: .8rem; flex-wrap: wrap; margin-top: clamp(1.6rem, 4vh, 2.4rem); }
-.hero-cta .btn { padding: 1rem 1.9rem; border-radius: 4px; font-family: "Poppins", var(--font-body); font-size: 1rem; font-weight: 400; }
+.hero-cta .btn { padding: 1rem 1.9rem; border-radius: 4px; font-size: 1rem; font-weight: 500; }
 .hero-cta .btn-primary { background: transparent; border: 1px solid rgba(255, 255, 255, .7); box-shadow: none; color: #fff; }
 .hero-cta .btn-ghost { border-color: transparent; background: rgba(0, 0, 0, .28); }
 
@@ -44,7 +43,7 @@
   .hero-texto { padding-bottom: 2.6rem; }   /* compensa o espaço do menu em cima: o texto cai no centro exato da tela */
   .hero-title { margin-top: auto; }
   .hero-texto .lead { margin-bottom: auto; }
-  .hero-title { font-size: clamp(30px, 9.4vw, 52px); line-height: 1.18; }
+  .hero-title { font-size: clamp(36px, 11.4vw, 60px); line-height: 1.06; }
   .hero-texto { max-width: 26rem; }
   .hero-texto .lead { margin-top: 1rem; margin-inline: auto; max-width: 30ch; font-size: clamp(15px, 4.3vw, 19px); line-height: 1.6; }
   .hero-cta { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: .6rem; margin-top: 1.4rem; max-width: none; }
