@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 from app.banco import obter_sessao
 from app.deps import usuario_atual
 from app.esquemas import StatusOut
-from app.esquemas_social import PaginaPessoas, PaginaPosts, PerfilOut
-from app.modelos import Post, Seguidor, Usuario
+from app.esquemas_social import ClubeResumo, PaginaPessoas, PaginaPosts, PerfilOut
+from app.modelos import Clube, Membro, Post, Seguidor, Usuario
 from app.servicos.social import condicao_post_visivel, limite_valido, notificar, pagina_de_posts, pessoas_out
 
 router = APIRouter(prefix="/pessoas", tags=["pessoas"])
@@ -50,7 +50,15 @@ def perfil(pessoa_id: int, usuario: Usuario = Depends(usuario_atual), sessao: Se
     posts = sessao.scalar(select(func.count()).select_from(Post).where(Post.autor_id == u.id, condicao_post_visivel(usuario.id))) or 0
     seguidores = sessao.scalar(select(func.count()).select_from(Seguidor).where(Seguidor.seguido_id == u.id)) or 0
     seguindo = sessao.scalar(select(func.count()).select_from(Seguidor).where(Seguidor.seguidor_id == u.id)) or 0
-    return PerfilOut(**p.model_dump(), bio=u.bio, posts=posts, seguidores=seguidores, seguindo_n=seguindo)
+    # clubes dela: o privado só aparece para quem também é membro (nunca vaza que ele existe)
+    clubes = sessao.execute(
+        select(Clube.id, Clube.nome)
+        .join(Membro, Membro.clube_id == Clube.id)
+        .where(Membro.usuario_id == u.id, or_(Clube.privado.is_(False), Clube.id.in_(select(Membro.clube_id).where(Membro.usuario_id == usuario.id))))
+        .order_by(Membro.entrou_em.desc())
+        .limit(20)
+    ).all()
+    return PerfilOut(**p.model_dump(), bio=u.bio, posts=posts, seguidores=seguidores, seguindo_n=seguindo, clubes=[ClubeResumo(id=i, nome=n) for i, n in clubes])
 
 
 @router.get("/{pessoa_id}/posts", response_model=PaginaPosts)

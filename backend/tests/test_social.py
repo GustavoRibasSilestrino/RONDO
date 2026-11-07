@@ -281,3 +281,20 @@ def test_stories_so_para_quem_segue_e_por_24_horas(cliente):
     assert cliente.delete(f"/social/stories/{s2['id']}", headers=b).status_code == 404
     assert cliente.delete(f"/social/stories/{s2['id']}", headers=a).status_code == 200
     assert cliente.get("/social/stories", headers=a).json()["pessoas"] == []
+
+
+def test_perfil_mostra_os_clubes_que_quem_olha_pode_ver(cliente):
+    a, b = duas(cliente)
+    publico = cliente.post("/clubes", json={"nome": "Corrida 5k"}, headers=a).json()
+    privado = cliente.post("/clubes", json={"nome": "Segredo", "privado": True}, headers=a).json()
+    ana = id_de(cliente, b, "Ana")
+    # quem não está no clube privado vê só o público, e o privado não aparece nem como nome
+    nomes = [c["nome"] for c in cliente.get(f"/pessoas/{ana}", headers=b).json()["clubes"]]
+    assert nomes == ["Corrida 5k"]
+    assert cliente.get(f"/pessoas/{ana}", headers=b).json()["clubes"][0]["id"] == publico["id"]
+    # entrando no privado pelo código, passa a ver os dois
+    cliente.post("/clubes/entrar", json={"codigo": privado["codigo"]}, headers=b)
+    assert sorted(c["nome"] for c in cliente.get(f"/pessoas/{ana}", headers=b).json()["clubes"]) == ["Corrida 5k", "Segredo"]
+    # e o contrário: a Ana vê no perfil da Bia o clube em que as duas estão
+    bia = id_de(cliente, a, "Bia")
+    assert cliente.get(f"/pessoas/{bia}", headers=a).json()["clubes"] == [{"id": privado["id"], "nome": "Segredo"}]

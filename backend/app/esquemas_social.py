@@ -88,6 +88,7 @@ class PerfilOut(PessoaOut):
     posts: int
     seguidores: int
     seguindo_n: int
+    clubes: list[ClubeResumo] = []   # os clubes dela que quem olha pode ver: os públicos e os privados em que quem olha também está
 
 
 class PaginaPessoas(BaseModel):

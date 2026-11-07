@@ -16,9 +16,9 @@ import { CartaoPost } from './CartaoPost';
 import { BotaoSeguir } from './Seguir';
 import { arrobaDe } from './util';
 
-type Props = { id: number | null; aoFechar: () => void; aoAbrirMidia: (itens: Midia[], indice: number) => void };
+type Props = { id: number | null; aoFechar: () => void; aoAbrirMidia: (itens: Midia[], indice: number) => void; aoAbrirClube?: (id: number) => void };
 
-export function PerfilPessoa({ id, aoFechar, aoAbrirMidia }: Props) {
+export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props) {
   const insets = useSafeAreaInsets();
   const [perfil, setPerfil] = useState<PerfilPublico | null>(null);
   const [erro, setErro] = useState('');
@@ -67,6 +67,25 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia }: Props) {
               {perfil && !perfil.voce ? <BotaoSeguir pessoa={perfil} /> : null}
             </View>
 
+            {perfil?.clubes?.length ? (
+              <View style={st.clubes}>
+                <T tam={12} cor={cores.texto3} style={{ letterSpacing: 1.2 }}>{perfil.clubes.length === 1 ? 'CLUBE' : 'CLUBES'}</T>
+                <View style={st.clubesLinha}>
+                  {perfil.clubes.map((c) => (
+                    <Pressable
+                      key={c.id} accessibilityRole="button" accessibilityLabel={`Abrir o clube ${c.nome}`} disabled={!aoAbrirClube}
+                      onPress={() => aoAbrirClube?.(c.id)}
+                      style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.clube, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}
+                    >
+                      <Icone nome="grupo" tamanho={15} cor={cores.destaque2} />
+                      <T tam={13.5} peso="500" cor={cores.destaque2} linhas={1} style={{ flexShrink: 1 }}>{c.nome}</T>
+                      <Icone nome="setaDireita" tamanho={13} cor={cores.texto3} />
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
             <View style={st.divisor}><Icone nome="grade" tamanho={20} cor="#ffffff" /><T tam={13} peso="500">Publicações</T></View>
             {posts.length ? (
               <View style={{ gap: 14 }}>
@@ -89,5 +108,8 @@ const st = estilos(() => StyleSheet.create({
   topo: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 48 },
   voltar: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   cabeca: { flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 8 },
+  clubes: { marginTop: 16, gap: 8 },
+  clubesLinha: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  clube: { flexDirection: 'row', alignItems: 'center', gap: 7, maxWidth: '100%', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   divisor: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 22, marginBottom: 14, paddingVertical: 12, borderTopWidth: 1, borderBottomWidth: 1, borderColor: cores.linha },
 }));
