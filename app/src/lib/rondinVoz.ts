@@ -97,6 +97,10 @@ export function parar(): void {
   try { void Speech.stop(); } catch { /* nada falando */ }
 }
 
+/* O nome da marca é lido com a sílaba forte no começo (RÔN-do). Escrito em maiúsculas, os sintetizadores tendem a ler "rondó" (a palavra
+   da música, com o acento no fim). "Rôndo" tem o mesmo tamanho de "RONDO", então o índice das palavras na legenda não muda. */
+export const comoSeFala = (texto: string): string => texto.replace(/RONDO/gi, 'Rôndo');
+
 function falarComAparelho(texto: string, sotaque: Sotaque, minha: number, aoPalavra?: (i: number) => void): Promise<void> {
   return new Promise((resolve) => {
     encerrarAtual = resolve;
@@ -104,7 +108,7 @@ function falarComAparelho(texto: string, sotaque: Sotaque, minha: number, aoPala
       try {
         const voice = await escolherVoz(sotaque.lang);
         if (rodada !== minha) { resolve(); return; }
-        Speech.speak(texto, {
+        Speech.speak(comoSeFala(texto), {
           language: sotaque.lang, pitch: sotaque.tom, rate: sotaque.taxa, voice,
           onDone: () => resolve(), onStopped: () => resolve(), onError: () => resolve(),
           onBoundary: ((e: { charIndex?: number }) => { if (rodada === minha && typeof e.charIndex === 'number') aoPalavra?.(e.charIndex); }) as never,

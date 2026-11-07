@@ -66,8 +66,6 @@
 
 /* ---- entrada em cascata dos cards ao rolar, só no celular ---- */
 @media (max-width: 980px) and (prefers-reduced-motion: no-preference) {
-  .reveal { transform: translateY(32px) scale(.98); transition-duration: .9s; }
-  .reveal.in { transform: none; }
   .plans > .plan:nth-child(2), .pro-grid > .pro:nth-child(2), .tools > .tool:nth-child(2) { transition-delay: .12s; }
   .plans > .plan:nth-child(3) { transition-delay: .24s; }
 }
