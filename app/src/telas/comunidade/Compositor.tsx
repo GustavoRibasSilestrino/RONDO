@@ -10,6 +10,7 @@ import { T } from '../../componentes/Ui';
 import { useLista } from '../../estado/lista';
 import { useLoja } from '../../estado/loja';
 import { useConta } from '../../lib/beneficios';
+import { useLayoutLargo } from '../../lib/largura';
 import { enviarMidia, escolherMidia, removerMidia } from '../../lib/midia';
 import { cores, larguraMax, FONTE, estilos } from '../../tema';
 import type { Midia } from '../../tipos';
@@ -22,6 +23,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
   const { estado, atualizarSocial } = useLoja();
   const avisar = useAviso();
   const insets = useSafeAreaInsets();
+  const { largo } = useLayoutLargo();   // computador: as opções vão para os cantos da tela
   const meusGrupos = useLista((cursor) => listarClubes({ meus: true, antes: cursor }), [], aberto).itens;
   const nome = estado.usuario?.nome ?? 'Você';
 
@@ -95,29 +97,38 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
   if (!montada && !aberto) return null;
   const rascunho = texto.length > 0 || midia.length > 0;
 
+  const botaoFechar = (
+    <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={aoFechar} hitSlop={8} style={[st.circulo, largo && st.circuloGrande]}>
+      <Icone nome="fechar" tamanho={largo ? 26 : 21} cor={cores.texto} />
+    </Pressable>
+  );
+  const botaoPublicar = (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !pode }}
+      disabled={!pode}
+      onPress={publicar}
+      style={[st.publicar, largo && st.publicarGrande, !pode && { backgroundColor: 'rgba(255,255,255,0.08)' }]}
+    >
+      <T tam={largo ? 15.5 : 14} peso="500" cor={pode ? '#ffffff' : cores.texto3}>Publicar</T>
+    </Pressable>
+  );
+  const ferramentas = (
+    <>
+      <Ferramenta grande={largo} icone="imagem" rotulo="Fotos e vídeos" ocupado={origem === 'galeria'} desabilitado={cheio || origem === 'camera'} aoTocar={() => adicionar('galeria')} />
+      <Ferramenta grande={largo} icone="camera" rotulo="Câmera" ocupado={origem === 'camera'} desabilitado={cheio || origem === 'galeria'} aoTocar={() => adicionar('camera')} />
+    </>
+  );
+
   return (
     <Modal visible={aberto} animationType="slide" onRequestClose={aoFechar} statusBarTranslucent>
       <View style={st.tela}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, width: '100%', maxWidth: larguraMax }}>
           <View style={[st.coluna, { paddingTop: insets.top + 10 }]}>
             <View style={st.barra}>
-              <View style={{ flex: 1, alignItems: 'flex-start' }}>
-                <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={aoFechar} hitSlop={8} style={st.circulo}>
-                  <Icone nome="fechar" tamanho={21} cor={cores.texto} />
-                </Pressable>
-              </View>
+              <View style={{ flex: 1, alignItems: 'flex-start' }}>{largo ? null : botaoFechar}</View>
               <T tam={17} peso="300">Nova publicação</T>
-              <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityState={{ disabled: !pode }}
-                  disabled={!pode}
-                  onPress={publicar}
-                  style={[st.publicar, !pode && { backgroundColor: 'rgba(255,255,255,0.08)' }]}
-                >
-                  <T tam={14} peso="500" cor={pode ? '#ffffff' : cores.texto3}>Publicar</T>
-                </Pressable>
-              </View>
+              <View style={{ flex: 1, alignItems: 'flex-end' }}>{largo ? null : botaoPublicar}</View>
             </View>
 
             <ScrollView style={{ flex: 1 }} contentContainerStyle={st.corpo} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
@@ -179,14 +190,27 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
               ) : null}
             </ScrollView>
 
-            <View style={[st.ferramentas, { paddingBottom: insets.bottom + 12 }]}>
-              <Ferramenta icone="imagem" rotulo="Fotos e vídeos" ocupado={origem === 'galeria'} desabilitado={cheio || origem === 'camera'} aoTocar={() => adicionar('galeria')} />
-              <Ferramenta icone="camera" rotulo="Câmera" ocupado={origem === 'camera'} desabilitado={cheio || origem === 'galeria'} aoTocar={() => adicionar('camera')} />
-              <View style={{ flex: 1 }} />
-              <T tam={12.5} cor={cores.texto3}>{midia.length} de {MAX_MIDIAS}</T>
-            </View>
+            {largo ? null : (
+              <View style={[st.ferramentas, { paddingBottom: insets.bottom + 12 }]}>
+                {ferramentas}
+                <View style={{ flex: 1 }} />
+                <T tam={12.5} cor={cores.texto3}>{midia.length} de {MAX_MIDIAS}</T>
+              </View>
+            )}
           </View>
         </KeyboardAvoidingView>
+
+        {/* computador: as opções ficam nos cantos da tela. Fechar e Publicar no alto; fotos, câmera e o contador embaixo, à esquerda */}
+        {largo ? (
+          <>
+            <View style={[st.cantoEsq, { top: insets.top + 24 }]}>{botaoFechar}</View>
+            <View style={[st.cantoDir, { top: insets.top + 24 }]}>{botaoPublicar}</View>
+            <View style={[st.cantoBaixo, { bottom: insets.bottom + 24 }]}>
+              {ferramentas}
+              <T tam={13.5} cor={cores.texto3} style={{ marginLeft: 8 }}>{midia.length} de {MAX_MIDIAS}</T>
+            </View>
+          </>
+        ) : null}
       </View>
     </Modal>
   );
@@ -200,7 +224,7 @@ function Destino({ nome, ativo, aoTocar }: { nome: string; ativo: boolean; aoToc
   );
 }
 
-function Ferramenta({ icone, rotulo, ocupado, desabilitado, aoTocar }: { icone: 'imagem' | 'camera'; rotulo: string; ocupado: boolean; desabilitado: boolean; aoTocar: () => void }) {
+function Ferramenta({ icone, rotulo, ocupado, desabilitado, aoTocar, grande }: { icone: 'imagem' | 'camera'; rotulo: string; ocupado: boolean; desabilitado: boolean; aoTocar: () => void; grande?: boolean }) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -208,9 +232,9 @@ function Ferramenta({ icone, rotulo, ocupado, desabilitado, aoTocar }: { icone: 
       accessibilityState={{ disabled: desabilitado, busy: ocupado }}
       disabled={desabilitado}
       onPress={aoTocar}
-      style={[st.ferramenta, { opacity: desabilitado ? 0.4 : 1 }]}
+      style={[st.ferramenta, grande && st.ferramentaGrande, { opacity: desabilitado ? 0.4 : 1 }]}
     >
-      <Icone nome={icone} tamanho={24} cor={ocupado ? cores.texto3 : cores.destaque2} />
+      <Icone nome={icone} tamanho={grande ? 28 : 24} cor={ocupado ? cores.texto3 : cores.destaque2} />
     </Pressable>
   );
 }
@@ -233,5 +257,11 @@ const st = estilos(() => StyleSheet.create({
   mais: { width: 132, height: 132, borderRadius: 16, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderStyle: 'dashed', borderColor: 'rgba(196,168,255,0.4)', backgroundColor: `rgba(${cores.tom},0.06)` },
   erro: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 12, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,107,129,0.35)', backgroundColor: 'rgba(255,107,129,0.08)' },
   ferramentas: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: cores.linha, backgroundColor: 'rgba(5,5,7,0.96)' },
+  circuloGrande: { width: 56, height: 56, borderRadius: 28 },
+  publicarGrande: { height: 50, paddingHorizontal: 28, borderRadius: 25 },
+  ferramentaGrande: { width: 58, height: 58, borderRadius: 29 },
+  cantoEsq: { position: 'absolute', left: 28 },
+  cantoDir: { position: 'absolute', right: 28 },
+  cantoBaixo: { position: 'absolute', left: 28, flexDirection: 'row', alignItems: 'center', gap: 10 },
   ferramenta: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(${cores.tom},0.12)` },
 }));
