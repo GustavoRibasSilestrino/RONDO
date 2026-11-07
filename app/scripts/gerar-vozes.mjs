@@ -38,7 +38,8 @@ function ler(nome) {
 const chave = () => ler('AZURE_SPEECH_KEY');
 const regiao = () => ler('AZURE_SPEECH_REGION').toLowerCase();
 
-const escapar = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+const escapar = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
+  .replace(/RONDO/gi, '<sub alias="Rôndo">RONDO</sub>');   // o nome da marca se fala RÔN-do, não "rondó"
 
 async function azure(caminho, opcoes = {}) {
   const url = `https://${regiao()}.tts.speech.microsoft.com${caminho}`;

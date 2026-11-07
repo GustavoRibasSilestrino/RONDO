@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode, type RefObject } from "react";
+import { gsap } from "../lib/gsap";
 import { useSeen } from "../lib/hooks";
 import { finePointer, reduceMotion, vars } from "../lib/util";
 
@@ -18,9 +19,20 @@ type RevealProps = {
   onSubmit?: (e: React.FormEvent) => void; innerRef?: RefObject<HTMLElement | null>;
 };
 export function Reveal({ as: Tag = "div", className = "", children, innerRef, ...rest }: RevealProps) {
-  const [ref, seen] = useSeen<HTMLElement>(0.12, reduceMotion);
+  const ref = useRef<HTMLElement | null>(null);
   const setRef = (el: HTMLElement | null) => { ref.current = el; if (innerRef) innerRef.current = el; };
-  return <Tag ref={setRef} className={`${className} reveal${seen ? " in" : ""}`} {...rest}>{children}</Tag>;
+  /* GSAP + ScrollTrigger: sobe e aparece uma vez, quando o bloco chega perto do meio da tela */
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || reduceMotion) return;
+    const subida = window.innerWidth <= 520 ? 32 : 24;
+    const anim = gsap.fromTo(el, { opacity: 0, y: subida }, {
+      opacity: 1, y: 0, duration: 0.9, ease: "power3.out",
+      scrollTrigger: { trigger: el, start: "top 88%", once: true },
+    });
+    return () => { anim.scrollTrigger?.kill(); anim.kill(); };
+  }, []);
+  return <Tag ref={setRef} className={`${className} reveal`} {...rest}>{children}</Tag>;
 }
 
 /* ---------- títulos: eco ao rolar e entrada palavra por palavra ---------- */
@@ -30,19 +42,29 @@ export function Title({ as: Tag = "h2", parts, echo = true, split = true, classN
   const list = Array.isArray(parts) ? parts : [parts];
   const text = list.map((p) => (typeof p === "string" ? p : p.t)).join("").replace(/\s+/g, " ").trim();
   const doSplit = split && !reduceMotion;
-  const [ref, seen] = useSeen<HTMLElement>(0.3, !doSplit);
-  let n = 0;
+  const ref = useRef<HTMLElement>(null);
+  /* GSAP + ScrollTrigger: as palavras sobem uma a uma de dentro da máscara quando o título chega à tela */
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !doSplit) return;
+    const palavras = el.querySelectorAll(".w > span");
+    const anim = gsap.fromTo(palavras, { yPercent: 108 }, {
+      yPercent: 0, duration: 0.95, ease: "power4.out", stagger: 0.055,
+      scrollTrigger: { trigger: el, start: "top 85%", once: true },
+    });
+    return () => { anim.scrollTrigger?.kill(); anim.kill(); };
+  }, [doSplit]);
   const words = (s: string, key: number) =>
     s.split(/(\s+)/).filter(Boolean).map((tok, j) =>
       /^\s+$/.test(tok) ? tok : (
-        <span className="w" aria-hidden="true" key={`${key}-${j}`}><span style={vars({ "--i": n++ })}>{tok}</span></span>
+        <span className="w" aria-hidden="true" key={`${key}-${j}`}><span>{tok}</span></span>
       ));
   const body = list.map((p, k) => {
     const s = typeof p === "string" ? p : p.t;
     const inner = doSplit ? words(s, k) : s;
     return typeof p === "string" ? <span key={k} style={{ display: "contents" }}>{inner}</span> : <span key={k} className={p.cls}>{inner}</span>;
   });
-  const cls = ["display", echo ? "echo" : "", doSplit ? "js-split" : "", seen ? "w-in" : "", className].filter(Boolean).join(" ");
+  const cls = ["display", echo ? "echo" : "", doSplit ? "js-split" : "", className].filter(Boolean).join(" ");
   return (
     <Tag ref={ref} className={cls} style={style} data-echo={echo ? text : undefined} aria-label={doSplit ? text : undefined}>
       {body}

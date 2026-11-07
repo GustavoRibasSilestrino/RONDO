@@ -14,8 +14,7 @@
 
 /* ---- títulos de seção: palavra por palavra ---- */
 .js-split .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: .14em; margin-bottom: -.14em; }
-.js-split .w > span { display: inline-block; transform: translateY(108%); }   /* sem will-change: uma camada por palavra pesava mais do que ajudava */
-.js-split.w-in .w > span { transform: none; transition: transform .95s var(--ease) calc(var(--i) * 55ms); }
+.js-split .w > span { display: inline-block; }   /* a posição de partida vem do GSAP (ui.tsx, Title); sem will-change: uma camada por palavra pesava mais do que ajudava */
 
 /* ---- cards: a luz acompanha o cursor, no fundo e na borda ---- */
 .tool, .panel, .pro, .plan, .s-card { position: relative; isolation: isolate; }
