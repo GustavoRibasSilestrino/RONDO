@@ -102,3 +102,24 @@ class Story(Base):
     legenda: Mapped[str | None] = mapped_column(String(120), nullable=True)
     midia: Mapped[object | None] = mapped_column(JSON, nullable=True)   # {id, tipo, largura, altura, url}
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_agora, index=True)
+
+
+class StoryVisto(Base):
+    """Quem já viu o story (só o autor enxerga a lista). Uma linha por pessoa e story."""
+
+    __tablename__ = "story_vistos"
+
+    story_id: Mapped[int] = mapped_column(ForeignKey("stories.id", ondelete="CASCADE"), primary_key=True)
+    usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), primary_key=True, index=True)
+    em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_agora)
+
+
+class StoryReacao(Base):
+    """A reação de uma pessoa a um story: curtir (o coração) ou um emoji. Uma por pessoa e story; trocar muda a mesma linha."""
+
+    __tablename__ = "story_reacoes"
+
+    story_id: Mapped[int] = mapped_column(ForeignKey("stories.id", ondelete="CASCADE"), primary_key=True)
+    usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), primary_key=True, index=True)
+    tipo: Mapped[str] = mapped_column(String(10))
+    em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_agora)

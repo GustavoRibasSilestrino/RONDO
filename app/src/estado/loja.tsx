@@ -3,7 +3,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import { ErroHttp, registrarSessaoVencida } from '../api/cliente';
+import { chamar, ErroHttp, registrarSessaoVencida } from '../api/cliente';
 import { esquecerToken, lerToken } from '../api/sessao';
 import { resumoSocial } from '../api/social';
 import { CHAVES_SINCRONIZADAS, baixarDados, enviarDados } from '../api/sincronia';
@@ -131,6 +131,13 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
     try {
       const itens = await baixarDados();
       const copia: Estado = { ...recente.current };
+      /* a conta no servidor manda: se a foto, o nome ou o @ mudaram em outro aparelho, este passa a mostrar o mesmo */
+      try {
+        const eu = await chamar<{ nome: string; arroba: string | null; foto: string | null; verificado: boolean; pro: boolean; selo: string | null; papel: string }>('GET', '/auth/eu');
+        if (copia.usuario) copia.usuario = { ...copia.usuario, nome: eu.nome, arroba: eu.arroba ?? undefined, foto: eu.foto ?? undefined, verificado: eu.verificado, pro: eu.pro, selo: eu.selo, papel: eu.papel };
+      } catch (e) {
+        if (e instanceof ErroHttp && e.status === 401) throw e;   // sessão vencida: o tratamento de baixo derruba a sessão
+      }
       for (const k of CHAVES_SINCRONIZADAS) {
         if (k in itens) { (copia as unknown as Record<string, unknown>)[k] = itens[k]; enviado.current[k] = JSON.stringify(itens[k]); }
       }

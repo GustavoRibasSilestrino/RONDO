@@ -130,7 +130,8 @@ def test_busca_de_pessoas_sem_vazar_email(cliente):
     cliente.patch("/me/perfil", json={"arroba": "ana.run"}, headers=a)
     r = cliente.get("/pessoas", params={"q": "@ana.r"}, headers=b).json()["itens"]
     assert [x["nome"] for x in r] == ["Ana"] and "email" not in r[0]
-    assert cliente.get("/pessoas", params={"q": "ana%"}, headers=b).json()["itens"] == []   # % não vira curinga
+    assert cliente.get("/pessoas", params={"q": "%"}, headers=b).json()["itens"] == []   # % não vira curinga
+    assert cliente.get("/pessoas", params={"q": "_"}, headers=b).json()["itens"] == []
     sug = cliente.get("/pessoas", headers=b).json()["itens"]
     assert [x["nome"] for x in sug] == ["Ana"]   # sugestão: quem ainda não segue, nunca a própria pessoa
 
@@ -298,3 +299,103 @@ def test_perfil_mostra_os_clubes_que_quem_olha_pode_ver(cliente):
     # e o contrário: a Ana vê no perfil da Bia o clube em que as duas estão
     bia = id_de(cliente, a, "Bia")
     assert cliente.get(f"/pessoas/{bia}", headers=a).json()["clubes"] == [{"id": privado["id"], "nome": "Segredo"}]
+
+
+def test_story_reacoes_visualizacoes_e_privacidade(cliente):
+    a, b = duas(cliente)
+    c, _ = conta(cliente, "caio@x.com", "Caio")
+    d, _ = conta(cliente, "duda@x.com", "Duda")
+    e, _ = conta(cliente, "edu@x.com", "Edu")
+    ana = id_de(cliente, b, "Ana")
+    for quem in (b, c, d, e):
+        cliente.put(f"/pessoas/{ana}/seguir", headers=quem)
+    intruso, _ = conta(cliente, "fora@x.com", "Fora")   # não segue a Ana
+    s = cliente.post("/social/stories", json={"texto": "Bom dia"}, headers=a).json()
+    base = f"/social/stories/{s['id']}"
+
+    # quem não segue não vê, não reage e não marca visto
+    assert cliente.post(f"{base}/visto", headers=intruso).status_code == 404
+    assert cliente.put(f"{base}/reacao", json={"tipo": "curtir"}, headers=intruso).status_code == 404
+    # o autor não reage ao próprio story, e a reação precisa ser de uma das opções
+    assert cliente.put(f"{base}/reacao", json={"tipo": "curtir"}, headers=a).status_code == 422
+    assert cliente.put(f"{base}/reacao", json={"tipo": "xingamento"}, headers=b).status_code == 422
+
+    # a Bia vê, reage com fogo e troca por curtir; a reação é uma só por pessoa
+    assert cliente.post(f"{base}/visto", headers=b).status_code == 200
+    assert cliente.post(f"{base}/visto", headers=b).status_code == 200   # repetir não duplica
+    assert cliente.put(f"{base}/reacao", json={"tipo": "fogo"}, headers=b).status_code == 200
+    assert cliente.put(f"{base}/reacao", json={"tipo": "curtir"}, headers=b).status_code == 200
+    meu_view = cliente.get("/social/stories", headers=b).json()["pessoas"][0]["itens"][0]
+    assert meu_view["minha_reacao"] == "curtir" and meu_view["visualizacoes"] == 0 and meu_view["vistos"] == []   # quem vê não enxerga os números
+
+    # os outros três veem; só o autor enxerga a contagem e as 3 últimas pessoas
+    for quem in (c, d, e):
+        cliente.post(f"{base}/visto", headers=quem)
+    do_autor = cliente.get("/social/stories", headers=a).json()["pessoas"][0]["itens"][0]
+    assert do_autor["visualizacoes"] == 4 and do_autor["reacoes"] == 1 and len(do_autor["vistos"]) == 3
+    assert do_autor["minha_reacao"] is None
+
+    # a lista completa só para o autor, com a reação de cada um
+    assert cliente.get(f"{base}/visualizacoes", headers=b).status_code == 404
+    lista = cliente.get(f"{base}/visualizacoes", headers=a).json()
+    assert lista["total"] == 4 and len(lista["itens"]) == 4
+    assert {i["pessoa"]["nome"]: i["reacao"] for i in lista["itens"]}["Bia"] == "curtir"
+
+    # tirar a reação; e apagar o story leva junto o que as pessoas fizeram nele
+    assert cliente.delete(f"{base}/reacao", headers=b).status_code == 200
+    assert cliente.get("/social/stories", headers=b).json()["pessoas"][0]["itens"][0]["minha_reacao"] is None
+    assert cliente.delete(base, headers=a).status_code == 200
+    from sqlalchemy import select
+    from app.banco import Sessao
+    from app.modelos import StoryVisto
+    with Sessao() as sessao:
+        assert sessao.scalars(select(StoryVisto)).all() == []
+
+
+def test_pessoas_trazem_a_foto_de_perfil(cliente):
+    from app.banco import Sessao
+    from app.modelos import Usuario
+    from sqlalchemy import select
+
+    a, b = duas(cliente)
+    with Sessao() as s:
+        u = s.scalars(select(Usuario).where(Usuario.nome == "Ana")).first()
+        u.foto = "https://exemplo.supabase.co/storage/v1/object/public/midia/1/foto.jpg"
+        s.commit()
+    ana = id_de(cliente, b, "Ana")
+    assert cliente.get(f"/pessoas/{ana}", headers=b).json()["foto"].endswith("/1/foto.jpg")
+    assert cliente.get("/pessoas", params={"q": "Ana"}, headers=b).json()["itens"][0]["foto"].endswith("/1/foto.jpg")
+    cliente.post("/social/posts", json={"texto": "oi"}, headers=a)
+    assert cliente.get("/social/feed", headers=b).json()["itens"][0]["autor"]["foto"].endswith("/1/foto.jpg")
+
+
+def test_busca_parecida_com_a_do_instagram(cliente):
+    eu, _ = conta(cliente, "eu@x.com", "Eu Mesmo")
+    nomes = ["Vinícius Silva", "Vinicius Souza", "Vini Costa", "Marcos Vinícius", "Ana Vinhas", "Bruno Lima", "Viviane Dias"]
+    for k, n in enumerate(nomes):
+        conta(cliente, f"p{k}@x.com", n)
+    vinicius_souza = id_de(cliente, eu, "Vinicius Souza")
+    cliente.put(f"/pessoas/{vinicius_souza}/seguir", headers=eu)
+
+    def buscar(q):
+        return [x["nome"] for x in cliente.get("/pessoas", params={"q": q}, headers=eu).json()["itens"]]
+
+    r = buscar("vinicius")
+    # sem acento e sem maiúscula acha os dois Vinícius e o "Marcos Vinícius"; quem eu sigo vem primeiro
+    assert r[0] == "Vinicius Souza" and {"Vinícius Silva", "Marcos Vinícius"} <= set(r[:4])
+    assert "Bruno Lima" not in r
+    assert "Vinícius Silva" in buscar("VINÍCIUS")
+    assert "Vinícius Silva" in buscar("vini sil")        # cada palavra começa uma palavra do nome
+    assert "Vinícius Silva" in buscar("vinicus")         # erro de digitação: perdoado
+    assert "Vini Costa" in buscar("vin")                 # começo do nome
+    assert "Vini Costa" in buscar("vinicius")            # "Vini" é um começo de "vinicius": parecido
+    assert buscar("zzzzqq") == []
+    assert "Eu Mesmo" not in buscar("eu mesmo")          # nunca a própria pessoa
+    assert cliente.get("/pessoas", params={"q": "vini%"}, headers=eu).status_code == 200   # % não vira curinga
+
+
+def test_busca_acha_pelo_novo_nome_e_arroba_depois_de_editar_o_perfil(cliente):
+    a, b = duas(cliente)
+    cliente.patch("/me/perfil", json={"nome": "Ana Carolina", "arroba": "carol.run"}, headers=a)
+    assert [x["nome"] for x in cliente.get("/pessoas", params={"q": "carol"}, headers=b).json()["itens"]] == ["Ana Carolina"]
+    assert [x["nome"] for x in cliente.get("/pessoas", params={"q": "@carol.run"}, headers=b).json()["itens"]] == ["Ana Carolina"]

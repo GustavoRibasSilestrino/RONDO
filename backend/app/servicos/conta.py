@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_STORIES
 from app.modelos import (
-    Assinatura, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Membro, Notificacao, Post, RedefinicaoSenha, Seguidor, Story, Usuario,
+    Assinatura, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Membro, Notificacao, Post, RedefinicaoSenha, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
 )
 from app.servicos import midia as servico_midia
 
@@ -72,6 +72,9 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
             servico_midia.apagar_arquivos([m["url"]])
     if u.foto:
         servico_midia.apagar_arquivos([u.foto])
+    meus_stories = select(Story.id).where(Story.autor_id == uid)
+    for tabela in (StoryVisto, StoryReacao):   # o que as pessoas fizeram nos seus stories, e o que você fez nos dos outros
+        sessao.execute(delete(tabela).where(or_(tabela.story_id.in_(meus_stories), tabela.usuario_id == uid)))
     sessao.execute(delete(Story).where(Story.autor_id == uid))
     sessao.execute(delete(Comentario).where(Comentario.autor_id == uid))
     sessao.execute(delete(Curtida).where(Curtida.usuario_id == uid))
@@ -101,6 +104,8 @@ def limpar_vencidos(sessao: Session, forcar: bool = False) -> None:
     _ultima_limpeza = agora
     velhos = list(sessao.scalars(select(Story).where(Story.criado_em < agora - RETENCAO_STORIES)))
     for s in velhos:
+        sessao.execute(delete(StoryVisto).where(StoryVisto.story_id == s.id))
+        sessao.execute(delete(StoryReacao).where(StoryReacao.story_id == s.id))
         if s.midia and s.midia.get("url"):
             servico_midia.apagar_arquivos([s.midia["url"]])
         sessao.delete(s)

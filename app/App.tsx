@@ -3,7 +3,7 @@
 import { Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
-import { BackHandler, StyleSheet, View } from 'react-native';
+import { BackHandler, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Abertura } from './src/componentes/Abertura';
 import { AvisoNivel } from './src/componentes/AvisoNivel';
@@ -13,6 +13,7 @@ import { TrocaTemaProvider, useTrocaTema } from './src/componentes/TrocaTema';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
 import { BotaoVoltar } from './src/componentes/BotaoVoltar';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
+import { Icone } from './src/componentes/Icone';
 import { MenuLateral } from './src/componentes/MenuLateral';
 import { useMenuRecolhido } from './src/lib/largura';
 import { PainelLateral } from './src/componentes/PainelLateral';
@@ -60,6 +61,8 @@ function Raiz() {
   const [tela, setTela] = useState(INICIO);
   const [planoAberto, setPlanoAberto] = useState(false);   // a folha do plano PRO, aberta pela estrela do topo
   const [antes, setAntes] = useState(INICIO);   // a aba em que a pessoa estava ao abrir as notificações: o sino volta para ela
+  const [voltarPara, setVoltarPara] = useState('perfil');   // de onde a pessoa veio ao abrir Hoje, Evolução, Recado ou Coleções: o voltar leva para lá (o recado do feed volta para o feed)
+  const [buscando, setBuscando] = useState(false);   // a busca de pessoas, aberta pela lupa (no alto do app, ou no canto do feed no computador)
   useNotificacoes();
   const trocarTema = useTrocaTema();
   const avisar = useAviso();
@@ -74,11 +77,11 @@ function Raiz() {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (tela === 'notificacoes') { setTela(antes); return true; }
       if (tela === INICIO) return false;
-      setTela(DO_PERFIL.includes(tela) ? 'perfil' : INICIO);
+      setTela(DO_PERFIL.includes(tela) ? voltarPara : INICIO);
       return true;
     });
     return () => sub.remove();
-  }, [tela, antes]);
+  }, [tela, antes, voltarPara]);
 
   if (!pronto) {
     return (
@@ -109,7 +112,9 @@ function Raiz() {
     );
   }
 
-  const naBarra = tela === 'notificacoes' ? '' : DO_PERFIL.includes(tela) ? 'perfil' : tela;
+  const naBarra = tela === 'notificacoes' ? '' : DO_PERFIL.includes(tela) ? voltarPara : tela;
+  /* ir para uma tela de dentro do Perfil: guarda de onde veio, para o voltar levar de volta para lá */
+  const irPara = (t: string) => { if (DO_PERFIL.includes(t)) setVoltarPara(DO_PERFIL.includes(tela) ? voltarPara : tela); setTela(t); };
   const temaBloqueado = nivelDe(xpTotal(estado)) < NIVEL_ULTRA;
   const aoTrocarTema = () => { if (temaBloqueado) avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); else trocarTema(tema === 'ultra' ? 'normal' : 'ultra'); };
   const aoAbrirNotificacoes = () => { if (tela === 'notificacoes') { setTela(antes); } else { setAntes(tela); setTela('notificacoes'); } };
@@ -119,21 +124,26 @@ function Raiz() {
       {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} recolhido={menuRecolhido} aoAlternar={alternarMenu} tema={tema} nome={estado.usuario?.nome ?? ""} nivel={nivelDe(xpTotal(estado))} aoAbrirConta={() => setTela("perfil")} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} aoAbrirPro={() => setPlanoAberto(true)} temaBloqueado={temaBloqueado} aoTrocarTema={aoTrocarTema} /> : null}
       <View style={{ flex: 1 }}>
       {tema === 'ultra' ? <FundoUltra /> : <FundoBolhas />}
-      {tela === 'home' && <Social modo="home" ir={setTela} />}
-      {tela === 'comunidade' && <Social modo="comunidade" ir={setTela} />}
+      {tela === 'home' && <Social modo="home" ir={irPara} buscaAberta={buscando} aoFecharBusca={() => setBuscando(false)} />}
+      {tela === 'comunidade' && <Social modo="comunidade" ir={irPara} buscaAberta={false} aoFecharBusca={() => setBuscando(false)} />}
       {tela === 'treino' && <><Treino />{estado.treinoAtual ? null : <CriarPlano tipo="treino" />}</>}
       {tela === 'dieta' && <><Dieta /><CriarPlano tipo="dieta" /></>}
-      {tela === 'hoje' && <Hoje ir={setTela} />}
+      {tela === 'hoje' && <Hoje ir={irPara} />}
       {tela === 'evolucao' && <Evolucao />}
       {tela === 'recado' && <Recado />}
       {tela === 'colecoes' && <Colecoes />}
       {tela === 'notificacoes' && <Notificacoes />}
-      {tela === 'perfil' && <Perfil ir={setTela} />}
-      {DO_PERFIL.includes(tela) ? <BotaoVoltar rotulo="Voltar ao perfil" aoPressionar={() => setTela('perfil')} /> : null}
-      {largo ? null : <CabecalhoApp aoAbrirPro={() => setPlanoAberto(true)} mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={temaBloqueado} aoTrocarTema={aoTrocarTema} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
+      {tela === 'perfil' && <Perfil ir={irPara} />}
+      {DO_PERFIL.includes(tela) ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
+      {largo ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} aoAbrirPro={() => setPlanoAberto(true)} mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={temaBloqueado} aoTrocarTema={aoTrocarTema} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
       {largo ? null : <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />}
       </View>
       {comPainel ? <PainelLateral ir={setTela} /> : null}
+      {largo && tela === 'home' ? (
+        <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={() => setBuscando(true)} style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.lupaCanto, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}>
+          <Icone nome="busca" tamanho={24} cor="#ffffff" />
+        </Pressable>
+      ) : null}
       <PlanoPro aberto={planoAberto} aoFechar={() => setPlanoAberto(false)} />
       <AvisoNivel />
     </View>
@@ -161,4 +171,5 @@ export default function App() {
 const st = estilos(() => StyleSheet.create({
   raiz: { flex: 1, backgroundColor: cores.fundo },
   centro: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' },
+  lupaCanto: { position: 'absolute', top: 22, right: 18, width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 5 },
 }));

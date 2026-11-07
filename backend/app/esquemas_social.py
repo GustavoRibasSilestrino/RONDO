@@ -14,6 +14,7 @@ class PessoaOut(BaseModel):
     verificado: bool = False
     seguindo: bool = False   # quem está logado segue esta pessoa
     voce: bool = False
+    foto: str | None = None  # a foto de perfil (endereço público no Storage); vem do servidor, então aparece em qualquer aparelho e para os outros
 
 
 class ClubeResumo(BaseModel):
@@ -180,6 +181,9 @@ class StoryIn(BaseModel):
         return self
 
 
+REACOES_STORY = ("curtir", "fogo", "forca", "palmas", "risada", "uau")
+
+
 class StoryOut(BaseModel):
     id: int
     texto: str | None = None
@@ -187,6 +191,27 @@ class StoryOut(BaseModel):
     legenda: str | None = None
     midia: dict[str, Any] | None = None
     quando: int
+    # só nos seus stories: quantas pessoas viram, quantas reagiram e as 3 últimas que viram (as bolinhas do canto)
+    visualizacoes: int = 0
+    reacoes: int = 0
+    vistos: list[PessoaOut] = []
+    # nos stories dos outros: a sua reação (ou nada)
+    minha_reacao: str | None = None
+
+
+class ReacaoStoryIn(BaseModel):
+    tipo: Literal["curtir", "fogo", "forca", "palmas", "risada", "uau"]
+
+
+class VisualizacaoOut(BaseModel):
+    pessoa: PessoaOut
+    reacao: str | None = None
+    quando: int
+
+
+class PaginaVisualizacoes(BaseModel):
+    total: int
+    itens: list[VisualizacaoOut]
 
 
 class StoriesDaPessoa(BaseModel):

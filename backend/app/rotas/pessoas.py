@@ -8,6 +8,7 @@ from app.deps import usuario_atual
 from app.esquemas import StatusOut
 from app.esquemas_social import ClubeResumo, PaginaPessoas, PaginaPosts, PerfilOut
 from app.modelos import Clube, Membro, Post, Seguidor, Usuario
+from app.servicos.busca import normalizar, pontuar
 from app.servicos.social import condicao_post_visivel, limite_valido, notificar, pagina_de_posts, pessoas_out
 
 router = APIRouter(prefix="/pessoas", tags=["pessoas"])
@@ -28,18 +29,33 @@ def _pagina(sessao: Session, uid: int, ids: list[int], proximo: int | None) -> P
 @router.get("", response_model=PaginaPessoas)
 def buscar(
     q: str = Query("", max_length=60),
-    limite: int = Query(20, ge=1, le=50),
+    limite: int = Query(30, ge=1, le=50),
     usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_sessao),
 ):
-    """Por nome ou @. Sem busca, sugere quem a pessoa ainda não segue. Nunca devolve e-mail."""
-    q = q.strip().lstrip("@").lower()
-    consulta = select(Usuario.id).where(Usuario.id != usuario.id)
-    if q:
-        consulta = consulta.where(or_(func.lower(Usuario.nome).contains(q, autoescape=True), Usuario.arroba.contains(q, autoescape=True)))
-    else:
-        consulta = consulta.where(Usuario.id.not_in(select(Seguidor.seguido_id).where(Seguidor.seguidor_id == usuario.id)))
-    ids = list(sessao.scalars(consulta.order_by(Usuario.id.desc()).limit(limite_valido(limite))))
+    """Parecida com a do Instagram: sem acento e sem maiúscula, por pedaço do nome ou do @, perdoando erro de digitação, e quem você já
+    segue vem na frente. Sem busca, sugere quem a pessoa ainda não segue. Nunca devolve e-mail."""
+    termo = normalizar(q).lstrip("@")
+    if not termo:
+        consulta = select(Usuario.id).where(Usuario.id != usuario.id, Usuario.id.not_in(select(Seguidor.seguido_id).where(Seguidor.seguidor_id == usuario.id)))
+        ids = list(sessao.scalars(consulta.order_by(Usuario.id.desc()).limit(limite_valido(limite))))
+        return _pagina(sessao, usuario.id, ids, None)
+
+    palavras = [p for p in termo.replace(".", " ").replace("_", " ").split() if p]
+    # 1) quem contém algum pedaço da busca (rápido, no banco); 2) se sobrou pouca gente, olha os mais recentes para achar nomes parecidos (erro de digitação)
+    filtros = [Usuario.busca.contains(p, autoescape=True) for p in palavras]
+    candidatos = list(sessao.execute(select(Usuario.id, Usuario.nome, Usuario.arroba, Usuario.verificado).where(Usuario.id != usuario.id, or_(*filtros)).limit(400)).all())
+    if len(candidatos) < limite:
+        ja = {c.id for c in candidatos}
+        extras = sessao.execute(select(Usuario.id, Usuario.nome, Usuario.arroba, Usuario.verificado).where(Usuario.id != usuario.id).order_by(Usuario.id.desc()).limit(2000)).all()
+        candidatos += [e for e in extras if e.id not in ja]
+    ids_c = [c.id for c in candidatos]
+    sigo = set(sessao.scalars(select(Seguidor.seguido_id).where(Seguidor.seguidor_id == usuario.id, Seguidor.seguido_id.in_(ids_c)))) if ids_c else set()
+    me_seguem = set(sessao.scalars(select(Seguidor.seguidor_id).where(Seguidor.seguido_id == usuario.id, Seguidor.seguidor_id.in_(ids_c)))) if ids_c else set()
+    contagem = dict(sessao.execute(select(Seguidor.seguido_id, func.count()).where(Seguidor.seguido_id.in_(ids_c)).group_by(Seguidor.seguido_id)).all()) if ids_c else {}
+    pontos = [(pontuar(termo, c.nome, c.arroba, c.id in sigo, c.id in me_seguem, bool(c.verificado), contagem.get(c.id, 0)), c) for c in candidatos]
+    ordem = sorted((x for x in pontos if x[0] > 0), key=lambda x: (-x[0], normalizar(x[1].nome), x[1].id))
+    ids = [c.id for _, c in ordem[:limite_valido(limite)]]
     return _pagina(sessao, usuario.id, ids, None)
 
 

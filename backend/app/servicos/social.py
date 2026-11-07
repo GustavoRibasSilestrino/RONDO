@@ -52,7 +52,7 @@ def pessoas_out(sessao: Session, uid: int, ids: set[int]) -> dict[int, PessoaOut
     usuarios = sessao.scalars(select(Usuario).where(Usuario.id.in_(ids))).all()
     sigo = set(sessao.scalars(select(Seguidor.seguido_id).where(Seguidor.seguidor_id == uid, Seguidor.seguido_id.in_(ids))))
     return {
-        u.id: PessoaOut(id=u.id, nome=u.nome, arroba=u.arroba, selo=u.selo, verificado=u.verificado, seguindo=u.id in sigo, voce=u.id == uid)
+        u.id: PessoaOut(id=u.id, nome=u.nome, arroba=u.arroba, selo=u.selo, verificado=u.verificado, seguindo=u.id in sigo, voce=u.id == uid, foto=u.foto)
         for u in usuarios
     }
 

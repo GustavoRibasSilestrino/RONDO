@@ -86,7 +86,7 @@ export function BuscaUsuarios({ aberto, aoFechar, aoAbrirPerfil }: Props) {
                 {lista.map((n) => (
                   <View key={n.id} style={st.linha}>
                     <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${n.nome}`} onPress={() => abrir(n.id)} style={st.pessoa}>
-                      <Avatar nome={n.nome} tamanho={46} />
+                      <Avatar nome={n.nome} tamanho={46} foto={n.foto ?? undefined} />
                       <View style={{ flex: 1 }}>
                         <T tam={15} peso="500" linhas={1}>{n.nome}</T>
                         <T tam={12.5} linhas={1} style={{ opacity: 0.75 }}>@{n.arroba ?? arrobaDe(n.nome)}</T>

@@ -194,7 +194,7 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
       <View style={st.insta}>
         <View style={st.instaTopo}>
           <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor.nome}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)} style={st.instaAutor}>
-            <Avatar nome={post.autor.nome} voce={meu} tamanho={38} />
+            <Avatar nome={post.autor.nome} voce={meu} tamanho={38} foto={post.autor.foto ?? undefined} />
             <View style={{ flexShrink: 1 }}>
               <View style={st.linhaTweet}>
                 <T tam={14} peso="500" linhas={1} style={{ flexShrink: 1 }}>{nomeMostrado}</T>
@@ -252,7 +252,7 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
     return (
       <View style={[st.tweet, sangrar && st.tweetSangra]}>
         <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor.nome}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)}>
-          <Avatar nome={post.autor.nome} voce={meu} tamanho={42} />
+          <Avatar nome={post.autor.nome} voce={meu} tamanho={42} foto={post.autor.foto ?? undefined} />
         </Pressable>
         <View style={{ flex: 1 }}>
           <View style={st.linhaTweet}>
@@ -292,7 +292,7 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
     <Cartao>
       <View style={st.cabeca}>
         <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor.nome}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)} hitSlop={6}>
-          <Avatar nome={post.autor.nome} voce={meu} />
+          <Avatar nome={post.autor.nome} voce={meu} foto={post.autor.foto ?? undefined} />
         </Pressable>
         <View style={{ flex: 1 }}>
           <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor.nome}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)} style={{ alignSelf: 'flex-start' }}>
@@ -401,7 +401,7 @@ function Comentarios({ aberto, aoFechar, postId, aoMudarTotal }: { aberto: boole
         <View style={{ gap: 14, marginBottom: 16 }}>
           {itens.map((c) => (
             <View key={c.id} style={{ flexDirection: 'row', gap: 10 }}>
-              <Avatar nome={c.autor.nome} voce={c.meu} tamanho={32} />
+              <Avatar nome={c.autor.nome} voce={c.meu} tamanho={32} foto={c.autor.foto ?? undefined} />
               <View style={{ flex: 1 }}>
                 <View style={st.meta}>
                   <T tam={13.5} peso="500">{c.autor.nome}</T>
