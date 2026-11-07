@@ -62,7 +62,9 @@ def enviar_dados(dados: DadosIn, usuario: Usuario = Depends(usuario_atual), sess
 
 @router.patch("/perfil", response_model=UsuarioOut)
 def mudar_perfil(dados: PerfilIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
-    if dados.nome is not None:
+    if dados.nome is not None and dados.nome.strip() != usuario.nome:
+        if servico_conta.nome_em_uso(sessao, dados.nome, ignorar_id=usuario.id):   # trocar o nome para o de outra conta também não vale
+            raise HTTPException(409, servico_conta.MSG_NOME_EM_USO)
         usuario.nome = dados.nome.strip()
     if dados.arroba is not None:
         usuario.arroba = dados.arroba or None

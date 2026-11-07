@@ -35,7 +35,7 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
   const posts = lista.itens;
 
   return (
-    <Modal visible animationType="slide" onRequestClose={aoFechar} statusBarTranslucent>
+    <Modal visible animationType="none" onRequestClose={aoFechar} statusBarTranslucent>
       <View style={st.tela}>
         <View style={[st.coluna, { paddingTop: insets.top + 8 }]}>
           <View style={st.topo}>

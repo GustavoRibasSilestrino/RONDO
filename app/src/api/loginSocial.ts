@@ -45,13 +45,13 @@ export async function entrarComProvedor(provedor: 'google' | 'apple', idToken: s
 }
 
 export type CadastroSocial = {
-  tokenSocial: string; nascimento: string; marketing: boolean;   // nascimento em AAAA-MM-DD
+  tokenSocial: string; nome?: string; nascimento: string; marketing: boolean;   // nascimento em AAAA-MM-DD
   responsavel: { nome: string; email: string; autoriza: boolean } | null;
 };
 
 export async function concluirCadastroSocial(d: CadastroSocial): Promise<Usuario> {
   const r = await enviar('/auth/social/cadastro', {
-    token_social: d.tokenSocial, nascimento: d.nascimento, aceita_termos: true, aceita_privacidade: true, marketing: d.marketing, responsavel: d.responsavel, origem: 'app',
+    token_social: d.tokenSocial, nome: d.nome, nascimento: d.nascimento, aceita_termos: true, aceita_privacidade: true, marketing: d.marketing, responsavel: d.responsavel, origem: 'app',
   });
   if (!r.ok) throw await erroDe(r, 'Não foi possível criar a conta agora. Tente de novo.');
   return usuarioDe((await r.json()) as LoginBruto);

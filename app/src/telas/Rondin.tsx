@@ -5,7 +5,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { cadastrar, entrar } from '../api/conta';
+import { cadastrar, entrar, nomeEstaLivre } from '../api/conta';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
 import { Icone } from '../componentes/Icone';
 import { Orbe } from '../componentes/Orbe';
@@ -254,10 +254,17 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
     responder(o.id, o.comentario);
   };
 
-  const enviarCampo = (p: Extract<Passo, { tipo: 'campo' }>) => {
+  const enviarCampo = async (p: Extract<Passo, { tipo: 'campo' }>) => {
     const valor = p.campo === 'senha' ? texto : texto.trim();
     const problema = p.validar(valor, respRef.current);
     if (problema) { setErro(problema); setFase('trabalhando'); dizer([problema], () => { setFase('pergunta'); setTimeout(() => campoRef.current?.focus(), 50); }, sotaqueRef.current, 500); return; }
+    /* o nome precisa ser único: pergunta ao servidor já aqui, antes de a pessoa responder todo o resto */
+    if (modo === 'cadastro' && p.id === 'nome') {
+      setEnviando(true);
+      const livre = await nomeEstaLivre(valor);
+      setEnviando(false);
+      if (!livre) { setErro(FALAS.nomeJaTem); setFase('trabalhando'); dizer([FALAS.nomeJaTem], () => { setFase('pergunta'); setTimeout(() => campoRef.current?.focus(), 50); }, sotaqueRef.current, 500); return; }
+    }
     responder(valor, p.comentario?.(valor, respRef.current));
   };
 
@@ -276,7 +283,10 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
       dizer([FALAS.contaCriada], () => aoEntrar(usuario, perfil));
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Não foi possível criar a conta agora.';
-      if (/e-mail já tem conta/i.test(msg)) {
+      if (/já existe uma conta com esse nome/i.test(msg)) {   // por garantia: outra pessoa pegou o nome enquanto a conversa seguia
+        prefixo.current = FALAS.nomeJaTem;
+        irPara('nome');
+      } else if (/e-mail já tem conta/i.test(msg)) {
         prefixo.current = FALAS.emailJaTem;
         irPara('email');
       } else {

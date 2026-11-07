@@ -114,7 +114,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       }
       await salvarPerfilNoServidor({ nome: n, arroba: a, bio: bio.trim(), foto: fotoFinal });
     } catch (e) {
-      if (e instanceof ErroHttp && e.status === 409) { setErroEd({ arroba: e.message }); return; }
+      if (e instanceof ErroHttp && e.status === 409) { setErroEd(/nome/i.test(e.message) && !e.message.includes('@') ? { nome: e.message } : { arroba: e.message }); return; }
       avisar(e instanceof Error ? e.message : 'Não foi possível salvar o perfil agora.');
       return;
     }

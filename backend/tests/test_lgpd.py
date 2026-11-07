@@ -21,7 +21,8 @@ def cliente():
 
 
 def _corpo(email="ana@x.com", nascimento="1995-04-10", **extra):
-    return {"nome": "Ana", "email": email, "senha": "segredo1", "nascimento": nascimento,
+    # o nome sai do e-mail ("ana@x.com" vira "Ana"): duas contas não podem ter o mesmo nome
+    return {"nome": email.split("@")[0].replace(".", " ").title(), "email": email, "senha": "segredo1", "nascimento": nascimento,
             "aceita_termos": True, "aceita_privacidade": True, **extra}
 
 
@@ -338,3 +339,36 @@ def test_apple_funciona_como_o_google(cliente, chaves_de_teste, monkeypatch):
     corpo = {"token_social": d["token_social"], "nome": "Maçã Silva", "nascimento": "1990-01-01", "aceita_termos": True, "aceita_privacidade": True}
     r = cliente.post("/auth/social/cadastro", json=corpo)
     assert r.status_code == 201 and r.json()["nome"] == "Maçã Silva"
+
+
+def test_nao_cria_conta_com_nome_que_ja_existe(cliente):
+    assert cliente.post("/auth/cadastro", json={**_corpo("a1@x.com"), "nome": "Vinícius Silva"}).status_code == 201
+    # sem acento, em maiúsculas ou com espaço sobrando: é o mesmo nome
+    for variante in ("Vinicius Silva", "VINÍCIUS SILVA", "  vinicius   silva ", "vinícius silva"):
+        r = cliente.post("/auth/cadastro", json={**_corpo("a2@x.com"), "nome": variante})
+        assert r.status_code == 409 and "nome" in r.json()["detail"]
+    # a pergunta rápida do app
+    assert cliente.post("/auth/nome-livre", json={"nome": "vinicius silva"}).json() == {"livre": False}
+    assert cliente.post("/auth/nome-livre", json={"nome": "Vinícius Souza"}).json() == {"livre": True}
+    # outro nome passa; o e-mail repetido continua com a própria mensagem
+    assert cliente.post("/auth/cadastro", json={**_corpo("a2@x.com"), "nome": "Vinícius Souza"}).status_code == 201
+    assert "e-mail" in cliente.post("/auth/cadastro", json={**_corpo("a2@x.com"), "nome": "Outra Pessoa"}).json()["detail"]
+
+
+def test_trocar_o_nome_para_o_de_outra_conta_tambem_nao_vale(cliente):
+    a = _conta(cliente, "ana@x.com")
+    b = _conta(cliente, "bia@x.com")
+    assert cliente.patch("/me/perfil", json={"nome": "ANA"}, headers=b).status_code == 409
+    assert cliente.patch("/me/perfil", json={"nome": "Bia Souza"}, headers=b).status_code == 200
+    # quem não muda o nome (só a bio) não é barrado, e pode "trocar" para o próprio nome
+    assert cliente.patch("/me/perfil", json={"nome": "Bia Souza", "bio": "oi"}, headers=b).status_code == 200
+    assert cliente.patch("/me/perfil", json={"nome": "bia souza"}, headers=b).status_code == 200
+
+
+def test_cadastro_social_com_nome_repetido_pede_outro(cliente, chaves_de_teste, monkeypatch):
+    _configurar(monkeypatch)
+    cliente.post("/auth/cadastro", json={**_corpo("a1@x.com"), "nome": "Gente Boa"})
+    d = cliente.post("/auth/google", json={"id_token": _id_token(chaves_de_teste, email="nova@example.com", nome="Gente Boa")}).json()
+    corpo = {"token_social": d["token_social"], "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True}
+    assert cliente.post("/auth/social/cadastro", json=corpo).status_code == 409
+    assert cliente.post("/auth/social/cadastro", json={**corpo, "nome": "Gente Boa Demais"}).status_code == 201
