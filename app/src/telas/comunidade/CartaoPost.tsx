@@ -25,7 +25,8 @@ type Props = {
   aoAbrirPerfil?: (autor: Pessoa) => void;
   aoApagar?: (id: number) => void;           // avisa a tela que a publicação saiu do servidor
   insta?: boolean;                           // estilo Instagram web: sem cartão, cabeçalho, foto grande, ações e legenda
-  timeline?: boolean;                        // estilo X (Twitter): sem cartão, com avatar à esquerda e linha entre as publicações   // tocar na foto ou no nome de quem publicou abre o perfil dessa pessoa
+  timeline?: boolean;                        // sem cartão: foto do autor à esquerda, conteúdo à direita e uma linha entre as publicações
+  sangrar?: boolean;                         // dentro de uma lista de ponta a ponta da tela: dá a margem lateral ao conteúdo
 };
 
 /* a palavra Cheers, discreta: sobe um pouco, com um único quique leve, e some */
@@ -64,7 +65,7 @@ function PuloCheers({ disparo }: { disparo: number }) {
   );
 }
 
-export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, aoApagar, timeline, insta }: Props) {
+export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, aoApagar, timeline, insta, sangrar }: Props) {
   const { estado, commit, atualizarSocial } = useLoja();
   const { limites } = useConta();
   const avisar = useAviso();
@@ -244,29 +245,39 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
     );
   }
 
-  /* no estilo do X (Twitter): sem cartão, foto à esquerda e o conteúdo à direita, com uma linha separando cada publicação */
+  /* sem cartão, contínuo: foto do autor à esquerda; à direita o nome, a hora, o texto, a mídia de cantos redondos e as ações.
+     Só uma linha fina separa uma publicação da outra. */
   if (timeline) {
     const nomeMostrado = meu ? estado.usuario?.nome ?? post.autor.nome : post.autor.nome;
     return (
-      <View style={st.tweet}>
+      <View style={[st.tweet, sangrar && st.tweetSangra]}>
         <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${meu ? 'você' : post.autor.nome}`} disabled={!aoAbrirPerfil} onPress={() => aoAbrirPerfil?.(post.autor)}>
           <Avatar nome={post.autor.nome} voce={meu} tamanho={42} />
         </Pressable>
         <View style={{ flex: 1 }}>
           <View style={st.linhaTweet}>
             <T tam={14.5} peso="500" linhas={1} style={{ flexShrink: 1 }}>{nomeMostrado}</T>
-            <T tam={13} linhas={1} style={{ flexShrink: 2, opacity: 0.7 }}>@{meu ? estado.usuario?.arroba ?? post.autor.arroba ?? arrobaDe(nomeMostrado) : post.autor.arroba ?? arrobaDe(post.autor.nome)}</T>
-            <T tam={13} style={{ opacity: 0.7 }}>· {quando(post.quando)}</T>
-            {meu ? (
-              <Pressable accessibilityRole="button" accessibilityLabel="Mais opções da publicação" onPress={() => setApagando(true)} hitSlop={8} style={{ marginLeft: 'auto' }}>
-                <Icone nome="pontos" tamanho={18} cor={cores.texto2} />
-              </Pressable>
-            ) : null}
+            {post.autor.verificado ? <Icone nome="verificado" tamanho={15} cor={cores.destaque2} /> : null}
+            <T tam={13} cor={cores.texto3} style={{ flexShrink: 0 }}>· {quando(post.quando)}</T>
+            <View style={{ marginLeft: 'auto' }}>
+              {meu ? (
+                <Pressable accessibilityRole="button" accessibilityLabel="Mais opções da publicação" onPress={() => setApagando(true)} hitSlop={8}>
+                  <Icone nome="pontos" tamanho={18} cor={cores.texto2} />
+                </Pressable>
+              ) : (
+                <BotaoSeguir pessoa={post.autor} />
+              )}
+            </View>
           </View>
+          {nomeGrupo ? (
+            <Pressable accessibilityRole="button" accessibilityLabel={`Abrir o clube ${nomeGrupo}`} onPress={aoAbrirGrupo} hitSlop={6} style={{ alignSelf: 'flex-start' }}>
+              <T tam={12} peso="500" cor={cores.destaque2}>{nomeGrupo}</T>
+            </Pressable>
+          ) : null}
           {post.texto ? <T tam={15} style={{ marginTop: 3, lineHeight: 21 }}>{post.texto}</T> : null}
           {post.destaque ? <T tam={17} peso="400" style={{ marginTop: 6 }}>{post.destaque}</T> : null}
           {midia?.length ? (
-            <View style={{ marginTop: 10 }}>
+            <View style={st.tweetMidia}>
               <MidiaGrade itens={midia} aoAbrir={(i) => aoAbrirMidia(midia, i)} />
             </View>
           ) : null}
@@ -442,6 +453,8 @@ const st = estilos(() => StyleSheet.create({
   instaAutor: { flexDirection: 'row', alignItems: 'center', gap: 10, flexShrink: 1 },
   instaMidia: { marginTop: 6, borderRadius: 14, overflow: 'hidden' },
   tweet: { flexDirection: 'row', gap: 12, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: cores.linha },
+  tweetSangra: { paddingHorizontal: 20 },
+  tweetMidia: { marginTop: 10, borderRadius: 14, overflow: 'hidden' },
   linhaTweet: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   cheersDado: { backgroundColor: `rgba(${cores.tom},0.14)`, borderRadius: 22, paddingHorizontal: 14 },
   linhaComentario: { flexDirection: 'row', alignItems: 'center', gap: 8 },

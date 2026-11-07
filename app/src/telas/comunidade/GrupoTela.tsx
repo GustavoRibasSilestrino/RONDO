@@ -155,9 +155,11 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia, aoAbrirPerfil 
 
       <T tam={20} peso="300" style={{ marginTop: 28, marginBottom: 12, letterSpacing: -0.4 }}>Publicações</T>
       {posts.length ? (
-        <View style={{ gap: 14 }}>
-          {posts.map((p) => <CartaoPost key={p.id} post={p} aoAbrirMidia={aoAbrirMidia} aoAbrirPerfil={aoAbrirPerfil} aoApagar={(pid) => lista.mudar((l) => l.filter((x) => x.id !== pid))} />)}
-          {lista.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais publicações" aoPressionar={lista.maisItens} carregando={lista.carregando} /> : null}
+        <View>
+          <View style={{ marginHorizontal: -20, borderTopWidth: 1, borderTopColor: cores.linha }}>
+            {posts.map((p) => <CartaoPost key={p.id} timeline sangrar post={p} aoAbrirMidia={aoAbrirMidia} aoAbrirPerfil={aoAbrirPerfil} aoApagar={(pid) => lista.mudar((l) => l.filter((x) => x.id !== pid))} />)}
+          </View>
+          {lista.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais publicações" aoPressionar={lista.maisItens} carregando={lista.carregando} style={{ marginTop: 14 }} /> : null}
         </View>
       ) : (
         <Cartao>
