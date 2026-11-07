@@ -33,9 +33,9 @@ function Aba({ item, largura, ativo, aoPressionar, movimentoReduzido }: { item: 
     <Pressable accessibilityRole="tab" accessibilityState={{ selected: ativo }} accessibilityLabel={item.rotulo} onPress={aoPressionar} style={[st.aba, { width: largura }]}>
       <Animated.View
         pointerEvents="none"
-        style={{ position: 'absolute', width: ALTURA, height: ALTURA, borderRadius: ALTURA / 2, overflow: 'hidden', backgroundColor: cores.destaqueForte, opacity: luz, transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}
+        style={{ position: 'absolute', width: ALTURA, height: ALTURA, borderRadius: ALTURA / 2, overflow: 'hidden', backgroundColor: cores.destaqueForte, opacity: luz, ...(temaAtual() === 'ultra' ? ({ boxShadow: '0 0 20px 1px rgba(58,95,255,0.85)' } as object) : null), transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}
       >
-        {temaAtual() === 'normal' ? <LinearGradient colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
+        <LinearGradient colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} />
       </Animated.View>
       <View pointerEvents="none">
         <Icone nome={item.icone} tamanho={23} cor="#ffffff" />

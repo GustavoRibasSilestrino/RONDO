@@ -46,30 +46,30 @@ const normal: Paleta = {
 };
 
 const ultra: Paleta = {
-  fundo: '#040817',
-  fundo2: '#0a1230',
-  cartao: 'rgba(120,160,255,0.09)',
-  cartao2: 'rgba(120,160,255,0.17)',
-  linha: 'rgba(150,190,255,0.18)',
-  linha2: 'rgba(150,190,255,0.36)',
+  fundo: '#02030c',                          // quase preto, com um fio de azul: a aurora brilha mais contra ele
+  fundo2: '#070a22',
+  cartao: 'rgba(110,140,255,0.085)',
+  cartao2: 'rgba(130,150,255,0.18)',
+  linha: 'rgba(130,170,255,0.20)',
+  linha2: 'rgba(160,190,255,0.42)',
   texto: '#ffffff',
-  texto2: '#e4edff',
-  texto3: '#c3d3ff',
-  violeta: '#2760ff',
-  violetaEscuro: '#0b1a4d',
-  destaque: '#5fd4ff',
-  destaqueForte: '#2760ff', /* azul vivo que leva texto branco (5:1) */
-  destaque2: '#9ff3ff',
+  texto2: '#e8eeff',
+  texto3: '#c4d2ff',
+  violeta: '#3a4bff',
+  violetaEscuro: '#0b1050',
+  destaque: '#37e6ff',                       // ciano elétrico
+  destaqueForte: '#3a4bff',                  // azul-violeta vivo que leva texto branco
+  destaque2: '#b8f6ff',
   bom: '#4dffc3',
   alerta: '#ffb36b',
   erro: '#ff7a96',
   branco: '#ffffff',
   placeholder: 'rgba(220,235,255,0.5)',
-  tom: '95,212,255',
-  painel: '#0a1230',
-  aviso: '#13204d',
-  barra: 'rgba(8,18,52,0.6)',
-  cabecalho: 'rgba(8,20,60,0.38)',   // vidro: deixa a aurora aparecer
+  tom: '70,150,255',
+  painel: '#080b26',
+  aviso: '#14195a',
+  barra: 'rgba(6,10,40,0.72)',
+  cabecalho: 'rgba(6,12,44,0.42)',           // vidro: deixa a aurora aparecer
 };
 
 /* as cores das letras do nome no tema Ultra, do ciano ao rosa: a palavra RONDO no cabeçalho e a palavra ULTRA da transição */
@@ -103,12 +103,28 @@ export function estilos<T extends object>(fabrica: () => T): T {
 export const raio = { p: 8, m: 14, g: 22, pilula: 999 } as const;
 
 /* degradês do tema normal: o roxo da marca indo para o violeta claro, sempre na diagonal (do canto de cima à esquerda) */
-export const DEGRADE = {
+const DEGRADE_NORMAL = {
   roxo: ['#5a0fc4', '#7426ec', '#8a45f5'] as const,          // botão principal, aba ativa, seleção (branco por cima: 4,9:1 ou mais)
   barra: ['#7b2cf0', '#c4a8ff'] as const,                       // progresso
   brilhoCartao: ['rgba(255,255,255,0.035)', 'rgba(255,255,255,0)'] as const,
   brilhoDestaque: ['rgba(139,92,246,0.20)', 'rgba(139,92,246,0.02)'] as const,
   fio: ['rgba(196,168,255,0)', 'rgba(196,168,255,0.55)', 'rgba(196,168,255,0)'] as const,   // o fio de luz no alto dos cartões
+};
+/* Ultra: iridescente, do azul elétrico ao violeta e ao magenta, com luz que parece sair de dentro */
+const DEGRADE_ULTRA = {
+  roxo: ['#0b6dff', '#3a4bff', '#8a3dff'] as const,          // botão, aba ativa, seleção (branco por cima: 4,2:1 ou mais)
+  barra: ['#00e0ff', '#6a8bff', '#d46bff'] as const,
+  brilhoCartao: ['rgba(120,170,255,0.13)', 'rgba(150,90,255,0.035)'] as const,
+  brilhoDestaque: ['rgba(0,224,255,0.24)', 'rgba(170,80,255,0.10)'] as const,
+  fio: ['rgba(0,224,255,0)', 'rgba(150,220,255,0.95)', 'rgba(210,110,255,0)'] as const,
+};
+/* lê o tema na hora: quem usa DEGRADE.roxo recebe o do tema que está valendo */
+export const DEGRADE = {
+  get roxo() { return (atual === 'ultra' ? DEGRADE_ULTRA : DEGRADE_NORMAL).roxo; },
+  get barra() { return (atual === 'ultra' ? DEGRADE_ULTRA : DEGRADE_NORMAL).barra; },
+  get brilhoCartao() { return (atual === 'ultra' ? DEGRADE_ULTRA : DEGRADE_NORMAL).brilhoCartao; },
+  get brilhoDestaque() { return (atual === 'ultra' ? DEGRADE_ULTRA : DEGRADE_NORMAL).brilhoDestaque; },
+  get fio() { return (atual === 'ultra' ? DEGRADE_ULTRA : DEGRADE_NORMAL).fio; },
 };
 export const INICIO_DIAGONAL = { x: 0, y: 0 } as const;
 export const FIM_DIAGONAL = { x: 1, y: 1 } as const;

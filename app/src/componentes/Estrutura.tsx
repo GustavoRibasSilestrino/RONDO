@@ -1,6 +1,6 @@
 /* Estrutura das telas: coluna rolável (Tela), painel que sobe de baixo (Folha) e aviso rápido (Aviso). */
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Animated, Easing, KeyboardAvoidingView, Modal, PanResponder, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayoutLargo } from '../lib/largura';
 import { definirRolagem } from '../lib/rolagem';
@@ -54,19 +54,48 @@ export function Folha({ aberta, aoFechar, titulo, children }: { aberta: boolean;
     const t = setTimeout(() => setMontada(false), 400);
     return () => clearTimeout(t);
   }, [aberta]);
+  /* arrastar para baixo fecha a folha: pela alça e pelo título (no navegador e no aparelho) e, no aparelho, por qualquer ponto
+     quando o conteúdo está no topo. Passando de ~90 px (ou de um arremesso rápido) ela sai; senão, volta ao lugar. Um toque na alça também fecha. */
+  const arraste = useRef(new Animated.Value(0)).current;
+  const nativo = Platform.OS !== 'web';
+  const fecharRef = useRef(aoFechar);
+  fecharRef.current = aoFechar;
+  const noTopo = useRef(true);   // o conteúdo da folha está rolado até o topo
+  useEffect(() => { if (aberta) arraste.setValue(0); }, [aberta, arraste]);
+  const voltarAoLugar = () => Animated.spring(arraste, { toValue: 0, useNativeDriver: nativo, bounciness: 5 }).start();
+  const criarArraste = (capturar: boolean) => PanResponder.create({
+    onStartShouldSetPanResponder: () => !capturar,
+    onMoveShouldSetPanResponder: (_e, g) => !capturar && Math.abs(g.dy) > 4 && Math.abs(g.dy) > Math.abs(g.dx),
+    onMoveShouldSetPanResponderCapture: (_e, g) => capturar && noTopo.current && g.dy > 10 && g.dy > Math.abs(g.dx) * 1.5,
+    onPanResponderMove: (_e, g) => { arraste.setValue(Math.max(0, g.dy)); },
+    onPanResponderRelease: (_e, g) => {
+      if (Math.abs(g.dy) < 4 && Math.abs(g.dx) < 4) { fecharRef.current(); return; }   // só um toque
+      if (g.dy > 90 || g.vy > 0.9) Animated.timing(arraste, { toValue: 700, duration: 170, easing: Easing.out(Easing.quad), useNativeDriver: nativo }).start(() => fecharRef.current());
+      else voltarAoLugar();
+    },
+    onPanResponderTerminate: voltarAoLugar,
+    onPanResponderTerminationRequest: () => false,
+  });
+  const arrasteAlca = useRef(criarArraste(false)).current;      // a alça e o título
+  const arrasteCorpo = useRef(criarArraste(true)).current;      // o resto da folha, só no aparelho e só com o conteúdo no topo
   if (!montada && !aberta) return null;
   return (
     <Modal visible={aberta} transparent animationType="slide" onRequestClose={aoFechar} statusBarTranslucent>
       <View style={st.fundo}>
         <Pressable style={StyleSheet.absoluteFill} onPress={aoFechar} accessibilityLabel="Fechar" />
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={st.espaco} pointerEvents="box-none">
-          <View style={[st.corpo, { paddingBottom: insets.bottom + 18 }]}>
-            <View style={st.alca} />
-            {titulo ? <T tam={22} peso="300" style={{ marginBottom: 14, letterSpacing: -0.4 }}>{titulo}</T> : null}
-            <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 520 }} showsVerticalScrollIndicator={false}>
+          <Animated.View style={[st.corpo, { paddingBottom: insets.bottom + 18, transform: [{ translateY: arraste }] }]} {...(nativo ? arrasteCorpo.panHandlers : {})}>
+            <View {...arrasteAlca.panHandlers} accessibilityLabel="Arraste para baixo para fechar" style={[st.zonaAlca, !nativo && ({ touchAction: 'none', cursor: 'grab', userSelect: 'none' } as object)]}>
+              <View style={st.alca} />
+              {titulo ? <T tam={22} peso="300" style={{ marginBottom: 14, letterSpacing: -0.4 }}>{titulo}</T> : null}
+            </View>
+            <ScrollView
+              keyboardShouldPersistTaps="handled" style={{ maxHeight: 520 }} showsVerticalScrollIndicator={false} scrollEventThrottle={16}
+              onScroll={(e) => { noTopo.current = e.nativeEvent.contentOffset.y <= 0; }}
+            >
               {children}
             </ScrollView>
-          </View>
+          </Animated.View>
         </KeyboardAvoidingView>
       </View>
     </Modal>
@@ -106,6 +135,7 @@ const st = estilos(() => StyleSheet.create({
   fundo: { flex: 1, backgroundColor: 'transparent', justifyContent: 'flex-end' },
   espaco: { width: '100%', maxWidth: larguraMax, alignSelf: 'center' },
   corpo: { backgroundColor: cores.painel, borderColor: cores.linha2, borderWidth: 1, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 22, paddingTop: 12, ...({ boxShadow: '0 -10px 40px rgba(0,0,0,0.5)' } as object) },
-  alca: { alignSelf: 'center', width: 42, height: 5, borderRadius: 3, backgroundColor: cores.linha2, marginBottom: 16 },
+  zonaAlca: { marginHorizontal: -22, paddingHorizontal: 22, paddingTop: 4 },   // a área de pegar: alça e título, de ponta a ponta
+  alca: { alignSelf: 'center', width: 42, height: 5, borderRadius: 3, backgroundColor: cores.linha2, marginTop: 6, marginBottom: 16 },
   aviso: { position: 'absolute', left: 24, right: 24, alignSelf: 'center', maxWidth: 420, backgroundColor: cores.aviso, borderColor: cores.linha2, borderWidth: 1, borderRadius: raio.pilula, paddingVertical: 12, paddingHorizontal: 20, boxShadow: '0 16px 34px -14px rgba(0,0,0,0.9)' },
 }));

@@ -38,10 +38,9 @@ export function T({ children, tam = 15, peso = '300', cor = cores.texto, mono, c
 /* no tema normal: um brilho leve de cima para baixo e um fio de luz no alto da borda; no destaque, o brilho é roxo.
    No Ultra o cartão continua de vidro, sem esses enfeites. */
 export function Cartao({ children, style, destaque }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; destaque?: boolean }) {
-  const normal = temaAtual() === 'normal';
   return (
     <View style={[st.cartao, destaque && st.cartaoDestaque, style]}>
-      {normal ? (
+      {true ? (
         <>
           <LinearGradient pointerEvents="none" colors={destaque ? DEGRADE.brilhoDestaque : DEGRADE.brilhoCartao} start={{ x: 0, y: 0 }} end={{ x: 0.4, y: 1 }} style={StyleSheet.absoluteFill} />
           <LinearGradient pointerEvents="none" colors={DEGRADE.fio} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={[st.fio, !destaque && { opacity: 0.45 }]} />
@@ -101,7 +100,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
       onPressOut={() => mola(1)}
       style={[st.botao, comOrbita && { borderRadius: raio.m - 1.5 }, tipo === 'primario' && { backgroundColor: cores.destaqueForte }, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto, { opacity: desabilitado ? 0.45 : 1 }]}
     >
-      {tipo === 'primario' && temaAtual() === 'normal' ? (
+      {tipo === 'primario' ? (
         <>
           <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} />
           <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.22)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.5 }} style={StyleSheet.absoluteFill} />
@@ -215,7 +214,7 @@ export function Barra({ valor, max, cor = cores.destaque }: { valor: number; max
   const p = max > 0 ? Math.min(1, valor / max) : 0;
   return (
     <View style={st.barra}>
-      {temaAtual() === 'normal' && (cor === cores.destaque || cor === cores.destaque2) ? (
+      {cor === cores.destaque || cor === cores.destaque2 ? (
         <LinearGradient colors={DEGRADE.barra} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ width: `${p * 100}%`, height: '100%', borderRadius: 99 }} />
       ) : (
         <View style={{ width: `${p * 100}%`, height: '100%', backgroundColor: cor, borderRadius: 99 }} />
@@ -226,7 +225,7 @@ export function Barra({ valor, max, cor = cores.destaque }: { valor: number; max
 
 /* ---------- segmentos (abas pequenas) ---------- */
 export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar }: { opcoes: { valor: V; nome: string }[]; valor: V; aoMudar: (v: V) => void }) {
-  const normal = temaAtual() === 'normal';
+  const normal = true;   // os dois temas desenham o segmento ativo com degradê (o do Ultra é iridescente)
   return (
     <View style={st.segmentos}>
       {opcoes.map((o) => {
@@ -276,12 +275,16 @@ export function Titulo({ children, direita }: { children: React.ReactNode; direi
 
 const st = estilos(() => StyleSheet.create({
   cartao: {
-    backgroundColor: cores.cartao, borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden', boxShadow: '0 24px 44px -30px rgba(0,0,0,0.95)',
+    backgroundColor: cores.cartao, borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden',
+    /* Ultra: o cartão tem brilho próprio (um halo azul em volta e luz na borda de cima); no normal, só a sombra de sempre */
+    boxShadow: temaAtual() === 'ultra' ? '0 0 34px -12px rgba(58,95,255,0.6), 0 24px 44px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.16)' : '0 24px 44px -30px rgba(0,0,0,0.95)',
     ...(Platform.OS === 'web' ? ({ contentVisibility: 'auto', containIntrinsicSize: 'auto 240px' } as object) : null),
   },
-  cartaoDestaque: { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: cores.cartao, boxShadow: '0 24px 50px -30px rgba(106,0,212,0.55)' },
+  cartaoDestaque: temaAtual() === 'ultra'
+    ? { borderColor: 'rgba(90,200,255,0.6)', backgroundColor: cores.cartao, boxShadow: '0 0 46px -10px rgba(0,224,255,0.55), 0 0 70px -20px rgba(170,80,255,0.55), inset 0 1px 0 rgba(255,255,255,0.22)' }
+    : { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: cores.cartao, boxShadow: '0 24px 50px -30px rgba(106,0,212,0.55)' },
   fio: { position: 'absolute', top: 0, left: 24, right: 24, height: 1 },
-  brilho: {},
+  brilho: temaAtual() === 'ultra' ? { boxShadow: '0 0 30px -4px rgba(58,75,255,0.8), 0 10px 26px -10px rgba(0,224,255,0.6)' } : {},
   orbita: { borderRadius: raio.m, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(196,168,255,0.2)' },
   campoFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.06)` },
   botao: { borderRadius: raio.m, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
@@ -297,7 +300,7 @@ const st = estilos(() => StyleSheet.create({
   segmentos: { flexDirection: 'row', backgroundColor: cores.cartao2, borderRadius: raio.pilula, padding: 4, borderWidth: 1, borderColor: cores.linha },
   segmento: { flexGrow: 1, flexBasis: 'auto', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderRadius: raio.pilula },
   segmentoAtivo: { backgroundColor: cores.texto },
-  segmentoAtivoNormal: { overflow: 'hidden', boxShadow: '0 6px 16px -8px rgba(106,0,212,0.9)' },
+  segmentoAtivoNormal: { overflow: 'hidden', boxShadow: temaAtual() === 'ultra' ? '0 0 20px -2px rgba(58,75,255,0.9)' : '0 6px 16px -8px rgba(106,0,212,0.9)' },
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
   campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },
