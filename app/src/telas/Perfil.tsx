@@ -29,6 +29,7 @@ import { useLista } from '../estado/lista';
 import { Avatar } from './comunidade/Avatar';
 import { CartaoPost } from './comunidade/CartaoPost';
 import { Miniatura, VisorMidia } from './comunidade/Midia';
+import { PerfilPessoa } from './comunidade/PerfilPessoa';
 import { BotaoSeguir } from './comunidade/Seguir';
 import { Configuracoes } from './perfil/Configuracoes';
 import { EditarTitulos } from './perfil/EditarTitulos';
@@ -57,6 +58,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const [erroEd, setErroEd] = useState<{ nome?: string; arroba?: string }>({});
   const [editandoTitulos, setEditandoTitulos] = useState(false);
   const [lista, setLista] = useState<'seguidores' | 'seguindo' | null>(null);
+  const [perfilAberto, setPerfilAberto] = useState<number | null>(null);   // o perfil de alguém da lista de seguidores/seguindo ou de um story
   const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
 
   const xp = xpTotal(estado);
@@ -273,11 +275,18 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
           <View style={{ gap: 14 }}>
             {conexoes.itens.map((n) => (
               <View key={n.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Avatar nome={n.nome} voce={n.voce} />
-                <View style={{ flex: 1 }}>
-                  <T tam={15} linhas={1}>{n.nome}</T>
-                  {n.arroba ? <T tam={12.5} linhas={1} style={{ opacity: 0.75 }}>@{n.arroba}</T> : null}
-                </View>
+                {/* tocar na pessoa (foto ou nome) abre o perfil dela */}
+                <Pressable
+                  accessibilityRole="button" accessibilityLabel={`Abrir o perfil de ${n.nome}`} disabled={n.voce}
+                  onPress={() => { setLista(null); setPerfilAberto(n.id); }}
+                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}
+                >
+                  <Avatar nome={n.nome} voce={n.voce} foto={n.foto ?? undefined} />
+                  <View style={{ flex: 1 }}>
+                    <T tam={15} linhas={1}>{n.nome}</T>
+                    {n.arroba ? <T tam={12.5} linhas={1} style={{ opacity: 0.75 }}>@{n.arroba}</T> : null}
+                  </View>
+                </Pressable>
                 {n.voce ? null : <BotaoSeguir pessoa={n} />}
               </View>
             ))}
@@ -295,6 +304,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       <CriarStory aberto={criandoStory} aoFechar={() => setCriandoStory(false)} aoPublicar={() => { recarregarStories().catch(() => {}); }} />
       <VisorStory aberto={verStory} listas={[{ autor: 'Você', itens: stories }]} aoFechar={() => setVerStory(false)} aoExcluir={(s) => excluirStory(s.id)} />
       <VisorMidia itens={visor?.itens ?? []} inicio={visor ? visor.indice : null} aoFechar={() => setVisor(null)} />
+      <PerfilPessoa id={perfilAberto} aoFechar={() => setPerfilAberto(null)} aoAbrirMidia={(itens, indice) => setVisor({ itens, indice })} />
     </Tela>
   );
 }

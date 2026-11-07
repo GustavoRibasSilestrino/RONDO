@@ -11,10 +11,10 @@ from app.deps import usuario_atual
 from app.esquemas import StatusOut
 from app.esquemas_social import (
     ComentarioIn, ComentarioOut, NotificacaoOut, PaginaComentarios, PaginaNotificacoes, PaginaPosts, PostIn,
-    StoriesDaPessoa, StoriesOut, StoryIn, StoryOut,
+    PaginaVisualizacoes, ReacaoStoryIn, StoriesDaPessoa, StoriesOut, StoryIn, StoryOut, VisualizacaoOut,
     PostOut, ResumoOut,
 )
-from app.modelos import Clube, Comentario, Curtida, Membro, Notificacao, Post, Seguidor, Story, Usuario
+from app.modelos import Clube, Comentario, Curtida, Membro, Notificacao, Post, Seguidor, Story, StoryReacao, StoryVisto, Usuario
 from app.servicos import conta as servico_conta
 from app.servicos import midia as servico_midia
 from app.servicos.social import (
@@ -278,7 +278,95 @@ def stories_no_ar(usuario: Usuario = Depends(usuario_atual), sessao: Session = D
     pessoas = pessoas_out(sessao, usuario.id, set(por_autor))
     # você primeiro; os outros, do story mais recente para o mais antigo
     ordem = sorted(por_autor, key=lambda a: (a != usuario.id, -por_autor[a][-1].id))
-    return StoriesOut(pessoas=[StoriesDaPessoa(autor=pessoas[a], itens=[_story_out(s) for s in por_autor[a]]) for a in ordem])
+
+    # quem viu e quem reagiu aos seus; a sua reação aos dos outros
+    meus_ids = [s.id for s in por_autor.get(usuario.id, [])]
+    n_vistos = dict(sessao.execute(select(StoryVisto.story_id, func.count()).where(StoryVisto.story_id.in_(meus_ids)).group_by(StoryVisto.story_id)).all()) if meus_ids else {}
+    n_reacoes = dict(sessao.execute(select(StoryReacao.story_id, func.count()).where(StoryReacao.story_id.in_(meus_ids)).group_by(StoryReacao.story_id)).all()) if meus_ids else {}
+    ultimos: dict[int, list[int]] = {}
+    for sid in meus_ids:
+        ultimos[sid] = list(sessao.scalars(select(StoryVisto.usuario_id).where(StoryVisto.story_id == sid).order_by(StoryVisto.em.desc(), StoryVisto.usuario_id.desc()).limit(3)))
+    quem = pessoas_out(sessao, usuario.id, {u for lista in ultimos.values() for u in lista})
+    todos_ids = [s.id for s in linhas]
+    minhas = dict(sessao.execute(select(StoryReacao.story_id, StoryReacao.tipo).where(StoryReacao.usuario_id == usuario.id, StoryReacao.story_id.in_(todos_ids))).all()) if todos_ids else {}
+
+    def saida(s: Story) -> StoryOut:
+        o = _story_out(s)
+        if s.autor_id == usuario.id:
+            o.visualizacoes = n_vistos.get(s.id, 0)
+            o.reacoes = n_reacoes.get(s.id, 0)
+            o.vistos = [quem[u] for u in ultimos.get(s.id, []) if u in quem]
+        else:
+            o.minha_reacao = minhas.get(s.id)
+        return o
+
+    return StoriesOut(pessoas=[StoriesDaPessoa(autor=pessoas[a], itens=[saida(s) for s in por_autor[a]]) for a in ordem])
+
+
+def _story_visivel(sessao: Session, uid: int, story_id: int) -> Story:
+    """O story, se está no ar e a pessoa pode ver (é dela ou ela segue o autor); senão 404."""
+    s = sessao.get(Story, story_id)
+    desde = datetime.now(timezone.utc) - DURACAO_STORY
+    if not s or (s.criado_em if s.criado_em.tzinfo else s.criado_em.replace(tzinfo=timezone.utc)) < desde:
+        raise HTTPException(404, "Story não encontrado.")
+    if s.autor_id != uid and not sessao.get(Seguidor, (uid, s.autor_id)):
+        raise HTTPException(404, "Story não encontrado.")
+    return s
+
+
+@router.post("/stories/{story_id}/visto", response_model=StatusOut)
+def marcar_story_visto(story_id: int, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    """Registra que a pessoa viu o story (o autor vê quem foi). Repetir não duplica; ver o próprio story não conta."""
+    s = _story_visivel(sessao, usuario.id, story_id)
+    if s.autor_id != usuario.id and not sessao.get(StoryVisto, (s.id, usuario.id)):
+        sessao.add(StoryVisto(story_id=s.id, usuario_id=usuario.id))
+        sessao.commit()
+    return StatusOut(status="ok")
+
+
+@router.put("/stories/{story_id}/reacao", response_model=StatusOut)
+def reagir_ao_story(story_id: int, dados: ReacaoStoryIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    s = _story_visivel(sessao, usuario.id, story_id)
+    if s.autor_id == usuario.id:
+        raise HTTPException(422, "Você não pode reagir ao seu próprio story.")
+    atual = sessao.get(StoryReacao, (s.id, usuario.id))
+    if atual:
+        atual.tipo = dados.tipo
+    else:
+        sessao.add(StoryReacao(story_id=s.id, usuario_id=usuario.id, tipo=dados.tipo))
+    if not sessao.get(StoryVisto, (s.id, usuario.id)):
+        sessao.add(StoryVisto(story_id=s.id, usuario_id=usuario.id))   # quem reage, viu
+    sessao.commit()
+    return StatusOut(status="ok")
+
+
+@router.delete("/stories/{story_id}/reacao", response_model=StatusOut)
+def tirar_reacao_do_story(story_id: int, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    s = _story_visivel(sessao, usuario.id, story_id)
+    atual = sessao.get(StoryReacao, (s.id, usuario.id))
+    if atual:
+        sessao.delete(atual)
+        sessao.commit()
+    return StatusOut(status="ok")
+
+
+@router.get("/stories/{story_id}/visualizacoes", response_model=PaginaVisualizacoes)
+def quem_viu_o_story(
+    story_id: int, limite: int = Query(50, ge=1, le=100),
+    usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao),
+):
+    """Só o autor vê quem viu o story, com a reação de cada um. Os mais recentes primeiro."""
+    s = sessao.get(Story, story_id)
+    if not s or s.autor_id != usuario.id:
+        raise HTTPException(404, "Story não encontrado.")
+    total = sessao.scalar(select(func.count()).select_from(StoryVisto).where(StoryVisto.story_id == s.id)) or 0
+    vistos = list(sessao.scalars(select(StoryVisto).where(StoryVisto.story_id == s.id).order_by(StoryVisto.em.desc(), StoryVisto.usuario_id.desc()).limit(limite)))
+    pessoas = pessoas_out(sessao, usuario.id, {v.usuario_id for v in vistos})
+    reacoes = dict(sessao.execute(select(StoryReacao.usuario_id, StoryReacao.tipo).where(StoryReacao.story_id == s.id)).all())
+    return PaginaVisualizacoes(
+        total=total,
+        itens=[VisualizacaoOut(pessoa=pessoas[v.usuario_id], reacao=reacoes.get(v.usuario_id), quando=ms(v.em)) for v in vistos if v.usuario_id in pessoas],
+    )
 
 
 @router.delete("/stories/{story_id}", response_model=StatusOut)
@@ -288,6 +376,8 @@ def apagar_story(story_id: int, usuario: Usuario = Depends(usuario_atual), sessa
         raise HTTPException(404, "Story não encontrado.")   # de outra pessoa: nem confirma que existe
     if s.midia and s.midia.get("url"):
         servico_midia.apagar_arquivos([s.midia["url"]])
+    sessao.execute(delete(StoryVisto).where(StoryVisto.story_id == s.id))
+    sessao.execute(delete(StoryReacao).where(StoryReacao.story_id == s.id))
     sessao.delete(s)
     sessao.commit()
     return StatusOut(status="ok")

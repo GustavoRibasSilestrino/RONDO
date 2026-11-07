@@ -114,7 +114,7 @@ export function GrupoTela({ id, aoVoltar, aoCompor, aoAbrirMidia, aoAbrirPerfil 
       <View style={st.rostos}>
         {membros.slice(0, 6).map((m, i) => (
           <View key={m.id} style={[st.rosto, { marginLeft: i === 0 ? 0 : -10 }]}>
-            <Avatar nome={m.nome} voce={m.voce} tamanho={34} />
+            <Avatar nome={m.nome} voce={m.voce} tamanho={34} foto={m.foto ?? undefined} />
           </View>
         ))}
         {total > Math.min(membros.length, 6) ? <T tam={13} cor={cores.texto2} style={{ marginLeft: 12 }}>+{fmt(total - Math.min(membros.length, 6))}</T> : null}

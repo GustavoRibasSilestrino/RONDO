@@ -56,7 +56,7 @@ export function BarraAbas({ itens, atual, aoEscolher }: Props) {
   const folga = util - circulo * n;                              // sobra de arredondamento, repartida nas pontas
 
   return (
-    <View pointerEvents="box-none" style={[st.doca, { bottom: insets.bottom + 6 }]}>
+    <View pointerEvents="box-none" style={[st.doca, { bottom: insets.bottom + 16 }]}>
       <View style={[st.barra, vidro(), { width: barra, paddingHorizontal: RECHEIO + folga / 2 }]}>
         {itens.map((it) => {
           const ativo = it.id === atual;

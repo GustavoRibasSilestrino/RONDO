@@ -12,7 +12,21 @@ export const DURACAO_STORY_MS = 5000;   // quanto tempo cada story fica na tela
 export const FUNDOS_STORY = ['#6a00d4', '#0a67ff', '#e11d48', '#059669', '#d97706', '#27272a'];
 
 /* um story pronto para mostrar, seu ou de outra pessoa (o id é o do servidor, em texto) */
-export type StoryVista = { id: string; autor: string; criado: number; midia?: Midia; texto?: string; fundo?: number; legenda?: string; meu?: boolean };
+export type StoryVista = {
+  id: string; autor: string; criado: number; midia?: Midia; texto?: string; fundo?: number; legenda?: string; meu?: boolean;
+  visualizacoes?: number; reacoes?: number; vistos?: Pessoa[]; minhaReacao?: string | null;
+};
+
+/* as reações: o coração é o "curtir"; as outras são emojis. O servidor guarda só o nome. */
+export const REACOES_STORY: { tipo: string; emoji: string; rotulo: string }[] = [
+  { tipo: 'curtir', emoji: '❤️', rotulo: 'Curtir' },
+  { tipo: 'fogo', emoji: '🔥', rotulo: 'Fogo' },
+  { tipo: 'forca', emoji: '💪', rotulo: 'Força' },
+  { tipo: 'palmas', emoji: '👏', rotulo: 'Palmas' },
+  { tipo: 'risada', emoji: '😂', rotulo: 'Risada' },
+  { tipo: 'uau', emoji: '😮', rotulo: 'Uau' },
+];
+export const emojiDe = (tipo: string | null | undefined): string => REACOES_STORY.find((r) => r.tipo === tipo)?.emoji ?? '';
 /* os stories de uma pessoa, na ordem em que foram publicados */
 export type StoriesPessoa = { pessoa: Pessoa; autor: string; itens: StoryVista[] };
 
@@ -35,6 +49,7 @@ function converter(p: StoriesDaPessoa): StoriesPessoa {
     itens: p.itens.map((s) => ({
       id: String(s.id), autor, criado: s.quando, meu: p.autor.voce,
       midia: s.midia ?? undefined, texto: s.texto ?? undefined, fundo: s.fundo, legenda: s.legenda ?? undefined,
+      visualizacoes: s.visualizacoes, reacoes: s.reacoes, vistos: s.vistos, minhaReacao: s.minha_reacao ?? null,
     })),
   };
 }

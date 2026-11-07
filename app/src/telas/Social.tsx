@@ -28,7 +28,7 @@ import { Ranking } from './comunidade/Ranking';
 
 type Aba = 'grupos' | 'ranking';
 
-export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: string) => void }) {
+export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' | 'comunidade'; ir: (tela: string) => void; buscaAberta: boolean; aoFecharBusca: () => void }) {
   const { estado } = useLoja();
   const avisar = useAviso();
   const [aba, setAba] = useState<Aba>('grupos');
@@ -36,7 +36,6 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
   const [compor, setCompor] = useState<{ aberto: boolean; grupo: number | null }>({ aberto: false, grupo: null });
   const [criando, setCriando] = useState(false);
   const [menuMais, setMenuMais] = useState(false);   // o menu do botão +
-  const [buscando, setBuscando] = useState(false);   // a busca de pessoas, aberta pela lupa
   const [perfilAberto, setPerfilAberto] = useState<number | null>(null);   // o perfil de quem publicou, aberto ao tocar na foto
   const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
 
@@ -74,17 +73,13 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
 
   return (
     <>
-      <Tela>
+      <Tela compacto={modo === 'home' && !grupoAberto}>
         {grupoAberto ? (
           <GrupoTela id={grupoAberto} aoVoltar={voltarDoGrupo} aoCompor={abrirCompositor} aoAbrirMidia={abrirMidia} aoAbrirPerfil={abrirPerfil} />
         ) : modo === 'home' ? (
           <>
-            <View style={st.tituloFeed}>
-              <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={() => setBuscando(true)} style={st.lupa}>
-                <Icone nome="busca" tamanho={22} cor="#ffffff" />
-              </Pressable>
-            </View>
-            <View style={{ marginTop: 10 }}><BarraStories /></View>
+            {/* a lupa mora no alto do app (ao lado do tema no celular; no canto do feed no computador) */}
+            <BarraStories aoAbrirPerfil={abrirPerfil} />
             <View style={{ marginTop: 14 }}><RecadoDoDia aoAbrir={() => ir('recado')} /></View>
             <View style={{ marginTop: 16 }}>
               {posts.length ? (
@@ -130,7 +125,7 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
 
         <Compositor aberto={compor.aberto} aoFechar={() => setCompor((c) => ({ ...c, aberto: false }))} grupoInicial={compor.grupo} />
         <CriarGrupo aberto={criando} aoFechar={() => setCriando(false)} aoCriar={(id) => { setCriando(false); setAba('grupos'); setGrupoAberto(id); }} />
-        <BuscaUsuarios aberto={buscando} aoFechar={() => setBuscando(false)} aoAbrirPerfil={(id) => setPerfilAberto(id)} />
+        <BuscaUsuarios aberto={buscaAberta} aoFechar={aoFecharBusca} aoAbrirPerfil={(id) => setPerfilAberto(id)} />
         <PerfilPessoa id={perfilAberto} aoFechar={() => setPerfilAberto(null)} aoAbrirMidia={abrirMidia} aoAbrirClube={(cid) => { setPerfilAberto(null); setGrupoAberto(cid); }} />
         <VisorMidia itens={visor?.itens ?? []} inicio={visor ? visor.indice : null} aoFechar={() => setVisor(null)} />
       </Tela>
@@ -162,8 +157,6 @@ export function Social({ modo, ir }: { modo: 'home' | 'comunidade'; ir: (tela: s
 }
 
 const st = estilos(() => StyleSheet.create({
-  tituloFeed: { height: 44, justifyContent: 'center', marginTop: -6 },
-  lupa: { position: 'absolute', right: -6, top: 0, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   lista: { marginHorizontal: -20, borderTopWidth: 1, borderTopColor: cores.linha },
   opcao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
   opcaoIcone: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },

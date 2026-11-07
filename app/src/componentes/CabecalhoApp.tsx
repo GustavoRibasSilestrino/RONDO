@@ -19,9 +19,9 @@ function Nome() {
   );
 }
 
-type Props = { aoAbrirPro: () => void; mostrarNome: boolean; mostrarTema: boolean; temaBloqueado: boolean; aoTrocarTema: () => void; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
+type Props = { aoBuscar?: () => void; aoAbrirPro: () => void; mostrarNome: boolean; mostrarTema: boolean; temaBloqueado: boolean; aoTrocarTema: () => void; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
 
-export function CabecalhoApp({ aoAbrirPro, mostrarNome, mostrarTema, temaBloqueado, aoTrocarTema, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
+export function CabecalhoApp({ aoBuscar, aoAbrirPro, mostrarNome, mostrarTema, temaBloqueado, aoTrocarTema, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
   const insets = useSafeAreaInsets();
   const rolada = useRolada();   // com a tela rolada, só o nome some; as outras opções ficam
   return (
@@ -52,6 +52,11 @@ export function CabecalhoApp({ aoAbrirPro, mostrarNome, mostrarTema, temaBloquea
             <Nome />
           </View>
         ) : null}
+        {aoBuscar ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={aoBuscar} style={st.busca}>
+            <Icone nome="busca" tamanho={23} cor="#ffffff" />
+          </Pressable>
+        ) : null}
         {mostrarTema ? (
           <Pressable
             accessibilityRole="button"
@@ -71,6 +76,7 @@ export function CabecalhoApp({ aoAbrirPro, mostrarNome, mostrarTema, temaBloquea
 const st = estilos(() => StyleSheet.create({
   fundo: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: cores.cabecalho, ...(Platform.OS === 'web' && temaAtual() === 'ultra' ? ({ backdropFilter: 'blur(22px) saturate(1.5)', WebkitBackdropFilter: 'blur(22px) saturate(1.5)' } as object) : null), borderBottomWidth: 1, borderBottomColor: cores.linha, alignItems: 'center', zIndex: 20 },
   linha: { width: '100%', maxWidth: larguraMax, height: ALTURA_CABECALHO, justifyContent: 'center', paddingHorizontal: 12 },
+  busca: { position: 'absolute', right: 56, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   tema: { position: 'absolute', right: 12, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   cadeado: { position: 'absolute', right: 5, bottom: 7, width: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   esquerda: { position: 'absolute', left: 4, flexDirection: 'row', alignItems: 'center' },

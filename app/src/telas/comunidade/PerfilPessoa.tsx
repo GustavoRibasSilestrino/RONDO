@@ -47,7 +47,7 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
 
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 40 }}>
             <View style={st.cabeca}>
-              <Avatar nome={nome || ' '} tamanho={84} />
+              <Avatar nome={nome || ' '} tamanho={84} foto={perfil?.foto ?? undefined} />
               <View style={{ flex: 1, alignItems: 'center' }}>
                 <T tam={18} peso="500">{fmt(perfil?.posts ?? 0)}</T>
                 <T tam={12}>Publicações</T>

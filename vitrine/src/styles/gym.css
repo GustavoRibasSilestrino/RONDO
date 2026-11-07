@@ -78,8 +78,9 @@
 @media (max-width: 820px) {
   .gym { height: 420vh; --corte: 26px; }
   .gym-base { grid-template-columns: 1fr; gap: 1rem; }
-  .gym-title { font-size: clamp(1.1rem, 5.2vw, 1.5rem); }
+  .gym-title { font-size: clamp(1.25rem, 6.4vw, 1.9rem); }
   .gym-meio small { display: none; }
+  .gym-meio b { font-size: .95rem; }
   .gym-hex { width: 56px; height: 56px; }
   .gym-fim { display: none; }
   .gym-etiquetas { display: none; }

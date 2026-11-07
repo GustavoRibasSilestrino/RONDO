@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Boolean, Date, DateTime, String, false
+from sqlalchemy import Boolean, Date, DateTime, String, event, false
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.banco import Base
@@ -27,3 +27,14 @@ class Usuario(Base):
     nascimento: Mapped[date | None] = mapped_column(Date, nullable=True)
     # e-mails de novidades: só com consentimento separado, desligado por padrão; o histórico fica em consentimentos
     marketing: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    # o nome e o @ sem acento e em minúsculas, para a busca de pessoas; preenchido sozinho ao gravar (ver abaixo)
+    busca: Mapped[str] = mapped_column(String(200), default='', server_default='')
+
+
+def _preencher_busca(_mapper, _conexao, usuario: "Usuario") -> None:
+    from app.servicos.busca import texto_de_busca
+    usuario.busca = texto_de_busca(usuario.nome, usuario.arroba)
+
+
+event.listen(Usuario, "before_insert", _preencher_busca)
+event.listen(Usuario, "before_update", _preencher_busca)

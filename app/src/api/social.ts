@@ -2,7 +2,7 @@
 import type { Midia } from '../tipos';
 import { chamar } from './cliente';
 
-export type Pessoa = { id: number; nome: string; arroba: string | null; selo: string | null; verificado: boolean; seguindo: boolean; voce: boolean };
+export type Pessoa = { id: number; nome: string; arroba: string | null; selo: string | null; verificado: boolean; seguindo: boolean; voce: boolean; foto?: string | null };
 export type PerfilPublico = Pessoa & { bio: string; posts: number; seguidores: number; seguindo_n: number; clubes?: { id: number; nome: string }[] };
 
 export type PostSocial = {
@@ -80,10 +80,19 @@ export const apagarClube = (id: number) => chamar<{ status: string }>('DELETE', 
 export const lerMembros = (id: number) => chamar<Pagina<Pessoa>>('GET', `/clubes/${id}/membros`);
 
 /* stories: 24 horas no ar, os seus e os de quem você segue */
-export type StorySocial = { id: number; texto: string | null; fundo: number; legenda: string | null; midia: Midia | null; quando: number };
+export type StorySocial = {
+  id: number; texto: string | null; fundo: number; legenda: string | null; midia: Midia | null; quando: number;
+  visualizacoes?: number; reacoes?: number; vistos?: Pessoa[];   // só nos seus stories: quantos viram, quantos reagiram e as 3 últimas pessoas
+  minha_reacao?: string | null;                                   // nos dos outros: a sua reação
+};
+export type Visualizacao = { pessoa: Pessoa; reacao: string | null; quando: number };
 export type StoriesDaPessoa = { autor: Pessoa; itens: StorySocial[] };   // itens do mais antigo para o mais novo; você vem primeiro
 export const lerStories = () => chamar<{ pessoas: StoriesDaPessoa[] }>('GET', '/social/stories');
 export const publicarStory = (d: { texto?: string; fundo?: number; legenda?: string; midia?: Midia }) => chamar<StorySocial>('POST', '/social/stories', d);
+export const marcarStoryVisto = (id: number) => chamar<{ status: string }>('POST', `/social/stories/${id}/visto`);
+export const reagirAoStory = (id: number, tipo: string) => chamar<{ status: string }>('PUT', `/social/stories/${id}/reacao`, { tipo });
+export const tirarReacaoDoStory = (id: number) => chamar<{ status: string }>('DELETE', `/social/stories/${id}/reacao`);
+export const quemViuOStory = (id: number) => chamar<{ total: number; itens: Visualizacao[] }>('GET', `/social/stories/${id}/visualizacoes`);
 export const apagarStory = (id: number) => chamar<{ status: string }>('DELETE', `/social/stories/${id}`);
 
 export const pedirUpload = (tipo: 'imagem' | 'video', ext: string) => chamar<{ url_envio: string; url: string }>('POST', '/midia/upload', { tipo, ext });

@@ -1,7 +1,8 @@
 /* A faixa de stories no alto do Feed: o seu (com o + para criar) e os de quem você segue, que vêm do servidor. */
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { apagarStory } from '../../api/social';
+import { apagarStory, marcarStoryVisto } from '../../api/social';
+import type { Pessoa } from '../../api/social';
 import { useLoja } from '../../estado/loja';
 import { haStoryNovo, StoryVista, useStories } from '../../lib/stories';
 import { estilos } from '../../tema';
@@ -12,7 +13,7 @@ import { AnelStory } from './AnelStory';
 import { CriarStory } from './CriarStory';
 import { ListaStory, VisorStory } from './VisorStory';
 
-export function BarraStories() {
+export function BarraStories({ aoAbrirPerfil }: { aoAbrirPerfil?: (pessoa: Pessoa) => void }) {
   const { estado, commit } = useLoja();
   const avisar = useAviso();
   const { meus, outros, recarregar } = useStories();
@@ -21,11 +22,13 @@ export function BarraStories() {
 
   /* quem ainda tem story não visto vem antes; dentro de cada grupo, a ordem do servidor (mais recente primeiro) */
   const pessoas = [...outros].sort((a, b) => Number(haStoryNovo(b.itens, estado.storiesVistos)) - Number(haStoryNovo(a.itens, estado.storiesVistos)));
-  const listasDosOutros: ListaStory[] = pessoas.map((p) => ({ autor: p.autor, itens: p.itens }));
+  const listasDosOutros: ListaStory[] = pessoas.map((p) => ({ autor: p.autor, itens: p.itens, pessoa: p.pessoa }));
 
+  const meuPessoa = estado.social.id ? ({ id: estado.social.id, nome: estado.usuario?.nome ?? 'Você', arroba: estado.usuario?.arroba ?? null, selo: null, verificado: false, seguindo: false, voce: true, foto: estado.usuario?.foto ?? null } as Pessoa) : undefined;
   const abrirMeus = () => {
     if (meus.length === 0) { setCriando(true); return; }
-    setVisor({ listas: [{ autor: 'Você', itens: meus }], inicio: 0 });
+    recarregar().catch(() => {});   // números novos de quem viu e reagiu
+    setVisor({ listas: [{ autor: 'Você', itens: meus, pessoa: meuPessoa }], inicio: 0 });
   };
 
   const excluir = async (s: StoryVista) => {
@@ -55,7 +58,7 @@ export function BarraStories() {
           return (
             <View key={p.pessoa.id} style={st.item}>
               <AnelStory tamanho={58} estado={novo ? 'novo' : 'visto'} aoPressionar={() => setVisor({ listas: listasDosOutros, inicio: k })} rotulo={`Ver o story de ${p.autor}`}>
-                <Avatar nome={p.autor} tamanho={58} />
+                <Avatar nome={p.autor} tamanho={58} foto={p.pessoa.foto ?? undefined} />
               </AnelStory>
               <T tam={12} linhas={1} centro style={st.nome}>{p.autor.split(' ')[0]}</T>
             </View>
@@ -69,8 +72,12 @@ export function BarraStories() {
         listas={visor?.listas ?? []}
         inicio={visor?.inicio ?? 0}
         aoFechar={() => setVisor(null)}
-        aoVer={(s) => { if (!estado.storiesVistos[s.id]) commit((e) => { e.storiesVistos[s.id] = true; }); }}
+        aoVer={(s) => {
+          if (!estado.storiesVistos[s.id]) commit((e) => { e.storiesVistos[s.id] = true; });
+          marcarStoryVisto(Number(s.id)).catch(() => {});   // o autor vê que você viu
+        }}
         aoExcluir={excluir}
+        aoAbrirPerfil={aoAbrirPerfil}
       />
     </View>
   );
