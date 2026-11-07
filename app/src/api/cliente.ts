@@ -5,6 +5,16 @@ declare const process: { env: Record<string, string | undefined> };
 
 export const URL_API = process.env.EXPO_PUBLIC_API_URL;
 
+/* O servidor do plano grátis dorme depois de uns 15 minutos parado e leva de 30 a 60 s para acordar: era isso que fazia o primeiro
+   login demorar tanto. Esta chamada, feita assim que a primeira tela abre, acorda o servidor enquanto a pessoa ainda está lendo ou
+   digitando. A resposta não importa; falhar não faz mal. */
+let aquecida = false;
+export function aquecerApi(): void {
+  if (aquecida || !URL_API) return;
+  aquecida = true;
+  fetch(`${URL_API}/saude`).catch(() => { aquecida = false; });
+}
+
 /* `status` 0 = sem conexão ou servidor não configurado; 401 = sessão vencida ou inválida */
 export class ErroHttp extends Error {
   status: number;
