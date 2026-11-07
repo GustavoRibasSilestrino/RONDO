@@ -1,8 +1,9 @@
 /* A primeira tela de quem não está logado: o orbe do RONDIN e as duas opções, entrar ou criar conta. Qualquer uma das
    duas abre a conversa com o RONDIN (telas/Rondin.tsx). */
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { aquecerApi } from '../api/cliente';
 import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
 import { useLayoutLargo } from '../lib/largura';
@@ -11,6 +12,7 @@ import { cores, estilos } from '../tema';
 export function Inicio({ aoCriar, aoEntrar }: { aoCriar: () => void; aoEntrar: () => void }) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  useEffect(() => { aquecerApi(); }, []);   // acorda o servidor enquanto a pessoa decide entre entrar e criar conta
   /* computador: tudo cresce junto com a janela (orbe, letras e botões). 1 = o tamanho do celular */
   const { largo } = useLayoutLargo();
   const k = largo ? Math.min(2, Math.max(1, Math.min(width / 800, height / 620))) : 1;

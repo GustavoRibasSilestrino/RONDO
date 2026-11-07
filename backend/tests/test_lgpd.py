@@ -136,3 +136,26 @@ def test_erro_de_validacao_nao_devolve_a_senha(cliente):
     assert r.status_code == 422
     assert "segredo1" not in r.text and "ana@x.com" not in r.text and "1995-04-10" not in r.text
     assert "aceite os Termos de Uso" in r.json()["detail"][0]["msg"]
+
+
+def test_login_regrava_hash_antigo_no_formato_leve(cliente):
+    """Conta criada com o hash pesado de antes: o login confere e regrava no formato atual, e a senha segue valendo."""
+    from argon2 import PasswordHasher
+    from sqlalchemy import select
+    from app.banco import Sessao
+    from app.modelos import Usuario
+    from app.seguranca import precisa_atualizar
+
+    assert cliente.post("/auth/cadastro", json=_corpo("hash@example.com")).status_code == 201
+    pesado = PasswordHasher().hash("segredo1")   # parâmetros padrão da biblioteca: os antigos
+    assert precisa_atualizar(pesado)
+    with Sessao() as s:
+        u = s.scalar(select(Usuario).where(Usuario.email == "hash@example.com"))
+        u.senha_hash = pesado
+        s.commit()
+    assert cliente.post("/auth/login", json={"email": "hash@example.com", "senha": "segredo1"}).status_code == 200
+    with Sessao() as s:
+        novo = s.scalar(select(Usuario).where(Usuario.email == "hash@example.com")).senha_hash
+    assert not precisa_atualizar(novo) and novo != pesado
+    assert cliente.post("/auth/login", json={"email": "hash@example.com", "senha": "segredo1"}).status_code == 200
+    assert cliente.post("/auth/login", json={"email": "hash@example.com", "senha": "errada123"}).status_code == 401

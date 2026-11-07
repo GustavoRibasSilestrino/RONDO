@@ -7,7 +7,7 @@ from app.deps import usuario_atual
 from app.esquemas import CadastroIn, LoginIn, LoginOut, SenhaIn, StatusOut, UsuarioOut
 from app.legal import VERSAO_PRIVACIDADE, VERSAO_TERMOS
 from app.modelos import Consentimento, Usuario
-from app.seguranca import conferir_senha, criar_token, gerar_hash
+from app.seguranca import conferir_senha, criar_token, gerar_hash, precisa_atualizar
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -52,6 +52,9 @@ def login(dados: LoginIn, sessao: Session = Depends(obter_sessao)):
     usuario = sessao.scalar(select(Usuario).where(Usuario.email == dados.email.lower()))
     if not usuario or not conferir_senha(dados.senha, usuario.senha_hash):
         raise HTTPException(401, "E-mail ou senha incorretos.")
+    if precisa_atualizar(usuario.senha_hash):   # conta antiga, com o hash mais pesado: regrava no formato leve, uma vez só
+        usuario.senha_hash = gerar_hash(dados.senha)
+        sessao.commit()
     return _login_out(usuario)
 
 
