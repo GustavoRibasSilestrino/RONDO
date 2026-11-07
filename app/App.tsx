@@ -137,13 +137,14 @@ function Raiz() {
       {DO_PERFIL.includes(tela) ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
       {largo ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} aoAbrirPro={() => setPlanoAberto(true)} mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={temaBloqueado} aoTrocarTema={aoTrocarTema} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
       {largo ? null : <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />}
-      </View>
-      {comPainel ? <PainelLateral ir={setTela} /> : null}
+      {/* dentro da área do feed: a lupa encosta na borda do painel de gráficos, sem passar por cima dele */}
       {largo && tela === 'home' ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={() => setBuscando(true)} style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.lupaCanto, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}>
           <Icone nome="busca" tamanho={24} cor="#ffffff" />
         </Pressable>
       ) : null}
+      </View>
+      {comPainel ? <PainelLateral ir={setTela} /> : null}
       <PlanoPro aberto={planoAberto} aoFechar={() => setPlanoAberto(false)} />
       <AvisoNivel />
     </View>
@@ -171,5 +172,5 @@ export default function App() {
 const st = estilos(() => StyleSheet.create({
   raiz: { flex: 1, backgroundColor: cores.fundo },
   centro: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' },
-  lupaCanto: { position: 'absolute', top: 22, right: 18, width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 5 },
+  lupaCanto: { position: 'absolute', top: 22, right: 14, width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 5 },
 }));
