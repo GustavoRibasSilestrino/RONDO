@@ -27,7 +27,7 @@ type AoEntrar = (usuario: Usuario, extra?: Partial<Estado>) => void;
 /* ---------- uma palavra da legenda: aparece esmaecendo, sem pulo ----------
    No navegador a transição é de CSS (o próprio navegador anima, sem refazer o React a cada quadro); no aparelho, Animated com o driver nativo.
    Memorizada: só a palavra que mudou é redesenhada, não a frase inteira. */
-const DURACAO_FADE = 420;
+const DURACAO_FADE = 180;   // curto: a palavra surge rápido, sem ficar meio apagada esperando
 const Palavra = React.memo(function Palavra({ texto, visivel, destaque, reduzido }: { texto: string; visivel: boolean; destaque: boolean; reduzido: boolean }) {
   const op = useRef(new Animated.Value(visivel ? 1 : 0)).current;
   useEffect(() => {
@@ -48,12 +48,14 @@ function Legenda({ largo, texto, chave, taxa, duracaoMs, indiceVoz, completa, ao
   const palavras = useMemo(() => texto.split(/\s+/).filter(Boolean), [texto]);
   const inicios = useMemo(() => { let i = 0; return palavras.map((p) => { const o = texto.indexOf(p, i); i = o + p.length; return o; }); }, [palavras, texto]);
   const [n, setN] = useState(0);
+  const [alvo, setAlvo] = useState(0);   // até onde a voz já chegou, em palavras: a legenda alcança de pouco em pouco, nunca de uma vez
   const reduzido = useMovimentoReduzido();
   const fim = useRef(aoCompletar);
   fim.current = aoCompletar;
 
   useEffect(() => {   // fala nova: recomeça
     setN(0);
+    setAlvo(0);
   }, [chave]);
 
   useEffect(() => {   // o relógio: uma palavra por vez, mais devagar se a palavra for longa
@@ -61,17 +63,19 @@ function Legenda({ largo, texto, chave, taxa, duracaoMs, indiceVoz, completa, ao
     if (n >= palavras.length) return undefined;
     const total = palavras.reduce((a, p) => a + p.length + 1, 0);
     /* com o áudio pronto, o tempo de cada palavra vem da duração real; sem ele, uma estimativa */
-    const espera = duracaoMs > 0
-      ? (n === 0 ? 100 : (duracaoMs * 0.96 * (palavras[n - 1].length + 1)) / total)
-      : (n === 0 ? 120 : 150 + 38 * palavras[n - 1].length) / Math.max(0.6, taxa);
+    const normal = duracaoMs > 0
+      ? (n === 0 ? 60 : (duracaoMs * 0.96 * (palavras[n - 1].length + 1)) / total)
+      : (n === 0 ? 60 : 95 + 30 * palavras[n - 1].length) / Math.max(0.6, taxa);
+    /* a voz já passou desta palavra: ela surge logo em seguida, mas uma de cada vez (antes entravam várias juntas, de uma vez) */
+    const espera = n < alvo ? Math.min(normal, 55) : normal;
     const id = setTimeout(() => setN((v) => v + 1), espera);
     return () => clearTimeout(id);
-  }, [n, palavras, taxa, duracaoMs, completa, reduzido]);
+  }, [n, alvo, palavras, taxa, duracaoMs, completa, reduzido]);
 
   useEffect(() => {   // a voz avisou onde está: a legenda não fica atrás dela
     if (indiceVoz < 0) return;
-    const alvo = inicios.filter((o) => o <= indiceVoz + 1).length;
-    setN((v) => Math.max(v, Math.min(alvo, palavras.length)));
+    const ate = inicios.filter((o) => o <= indiceVoz + 1).length;
+    setAlvo((v) => Math.max(v, Math.min(ate, palavras.length)));
   }, [indiceVoz, inicios, palavras.length]);
 
   useEffect(() => {
