@@ -1,13 +1,13 @@
 """Direitos do titular (LGPD, art. 18): ver uma cópia de tudo o que o servidor guarda da pessoa e apagar a conta.
 E a retenção: o que o servidor apaga sozinho, nos prazos de app/legal.py."""
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import delete, or_, select, update
 from sqlalchemy.orm import Session
 
 from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_STORIES
 from app.modelos import (
-    Assinatura, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Membro, Notificacao, Post, Seguidor, Story, Usuario,
+    Assinatura, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Membro, Notificacao, Post, RedefinicaoSenha, Seguidor, Story, Usuario,
 )
 from app.servicos import midia as servico_midia
 
@@ -81,6 +81,7 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
     sessao.execute(delete(Clube).where(Clube.id.in_(meus_clubes)))
     sessao.execute(delete(DadoUsuario).where(DadoUsuario.usuario_id == uid))
     sessao.execute(delete(Consentimento).where(Consentimento.usuario_id == uid))
+    sessao.execute(delete(RedefinicaoSenha).where(RedefinicaoSenha.usuario_id == uid))
     # pedidos de assinatura ficam sem dono (sem dado pessoal): o histórico de cobrança pode ser exigido por lei
     sessao.execute(update(Assinatura).where(Assinatura.usuario_id == uid).values(usuario_id=None))
     sessao.delete(u)
@@ -104,4 +105,5 @@ def limpar_vencidos(sessao: Session, forcar: bool = False) -> None:
             servico_midia.apagar_arquivos([s.midia["url"]])
         sessao.delete(s)
     sessao.execute(delete(Notificacao).where(Notificacao.criado_em < agora - RETENCAO_NOTIFICACOES))
+    sessao.execute(delete(RedefinicaoSenha).where(RedefinicaoSenha.criado_em < agora - timedelta(days=1)))   # códigos de redefinição velhos, usados ou não
     sessao.commit()

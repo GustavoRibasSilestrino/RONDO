@@ -19,6 +19,16 @@ services:
         sync: false
       # DATABASE_URL: use a string do POOLER do Supabase em modo transação (porta 6543), que divide poucas conexões entre muita gente.
       # Ajustes opcionais (valores padrão no código): DB_POOL_TAMANHO=5, DB_POOL_EXTRA=5, LIMITE_REQ_MINUTO=600, LIMITE_AUTH_MINUTO=20
+      # e-mail da recuperação de senha (API HTTP: o plano grátis do Render bloqueia SMTP). Veja docs/login-social.md
+      - key: BREVO_API_KEY
+        sync: false
+      - key: EMAIL_REMETENTE   # o e-mail confirmado no Brevo, ex.: rondooficial.dev@gmail.com
+        sync: false
+      # entrar com Google e Apple: os IDs de cliente (separados por vírgula). Veja docs/login-social.md
+      - key: GOOGLE_CLIENT_IDS
+        sync: false
+      - key: APPLE_CLIENT_IDS
+        sync: false
       - key: AZURE_SPEECH_KEY   # voz do RONDIN para nomes e números; preencha no painel
         sync: false
       - key: AZURE_SPEECH_REGION   # ex.: brazilsouth ou eastus (a região do recurso Speech)

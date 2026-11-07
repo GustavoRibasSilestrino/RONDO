@@ -4,7 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Exercicio, Rotina } from '../dados';
+import { useLoja } from '../estado/loja';
 import { minutosDe } from '../lib/rotinas';
+import { GRUPOS_SEM_APARELHO, TREINOS_EM_CASA, exercicioSemAparelho, montarTreinoEmCasa } from '../lib/semAparelho';
 import { OPCOES_MUSCULO, inferirMusculos, type GrupoMuscular } from '../lib/musculos';
 import { cores, estilos, larguraMax } from '../tema';
 import { CorpoMusculos } from './CorpoMusculos';
@@ -28,6 +30,9 @@ type Props = {
 
 export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }: Props) {
   const insets = useSafeAreaInsets();
+  const { estado } = useLoja();
+  const treinaEmCasa = ['casa', 'rua', 'misto'].includes(estado.perfilFit?.local ?? '');   // quem disse que treina em casa já vê os exercícios sem aparelho abertos
+  const [semAberto, setSemAberto] = useState(false);
   const [nome, setNome] = useState('');
   const [musculos, setMusculos] = useState<GrupoMuscular[]>([]);
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
@@ -40,11 +45,19 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
     setMusculos(inicial?.musculos ?? []);
     setExercicios(inicial?.exercicios.length ? inicial.exercicios : [novoExercicio()]);
     setTentou(false);
-  }, [aberto, inicial]);
+    setSemAberto(treinaEmCasa);
+  }, [aberto, inicial, treinaEmCasa]);
 
   const mudar = (id: string, parte: Partial<Exercicio>) => setExercicios((l) => l.map((x) => (x.id === id ? { ...x, ...parte } : x)));
   const marcado = (grupos: GrupoMuscular[]) => grupos.every((g) => musculos.includes(g));
   const alternar = (grupos: GrupoMuscular[]) => setMusculos((m) => (marcado(grupos) ? m.filter((g) => !grupos.includes(g)) : [...new Set([...m, ...grupos])]));
+
+  /* um exercício sem aparelho entra na lista (no lugar do campo vazio, se for o único) */
+  const adicionarSem = (b: { nome: string; series: number; faixa: [number, number] }) => setExercicios((l) => {
+    const novo = exercicioSemAparelho(b);
+    return l.length === 1 && l[0].nome.trim() === '' ? [novo] : [...l, novo];
+  });
+  const usarPronto = (i: number) => { const t = montarTreinoEmCasa(i); setNome(t.nome); setMusculos(t.musculos); setExercicios(t.exercicios); };
 
   const nomeOk = nome.trim().length >= 2;
   const validos = exercicios.filter((x) => x.nome.trim().length >= 2);
@@ -125,6 +138,45 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
               {tentou && validos.length === 0 ? <T tam={12.5} cor={cores.erro}>Preencha o nome de pelo menos um exercício.</T> : null}
             </View>
 
+            {/* sem aparelho: dá para treinar sozinho, em casa ou na rua, só com o peso do corpo */}
+            <View style={st.sem}>
+              <Pressable accessibilityRole="button" accessibilityState={{ expanded: semAberto }} onPress={() => setSemAberto((v) => !v)} style={st.semTopo}>
+                <View style={{ flex: 1 }}>
+                  <T tam={14} peso="500">Sem aparelho, para fazer em casa</T>
+                  <T tam={12.5} cor={cores.texto2} style={{ marginTop: 2 }}>Toque para adicionar. Carga 0 kg é só o peso do corpo.</T>
+                </View>
+                <Icone nome={semAberto ? 'menos' : 'mais'} tamanho={18} cor="#ffffff" />
+              </Pressable>
+              {semAberto ? (
+                <View style={{ gap: 14, marginTop: 14 }}>
+                  {!editando ? (
+                    <View style={{ gap: 8 }}>
+                      <T tam={12} cor={cores.texto3} style={{ letterSpacing: 1.2 }}>TREINOS PRONTOS</T>
+                      <View style={st.chips}>
+                        {TREINOS_EM_CASA.map((t, i) => (
+                          <Pressable key={t.nome} accessibilityRole="button" accessibilityLabel={`Usar o treino pronto ${t.nome}. ${t.sub}`} onPress={() => usarPronto(i)} style={[st.chip, st.chipPronto]}>
+                            <T tam={13} peso="500">{t.nome}</T>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </View>
+                  ) : null}
+                  {GRUPOS_SEM_APARELHO.map((g) => (
+                    <View key={g.grupo} style={{ gap: 8 }}>
+                      <T tam={12} cor={cores.texto3} style={{ letterSpacing: 1.2 }}>{g.grupo.toUpperCase()}</T>
+                      <View style={st.chips}>
+                        {g.itens.map((b) => (
+                          <Pressable key={b.nome} accessibilityRole="button" accessibilityLabel={`Adicionar ${b.nome}`} onPress={() => adicionarSem(b)} style={st.chip}>
+                            <T tam={13} peso="300">{b.nome}</T>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </View>
+
             <Botao titulo="Salvar treino" icone="ok" aoPressionar={salvar} />
             {editando && aoExcluir ? <Botao tipo="perigo" icone="lixo" titulo="Excluir treino" aoPressionar={() => aoExcluir(inicial!.id)} /> : null}
           </ScrollView>
@@ -142,6 +194,9 @@ const st = estilos(() => StyleSheet.create({
   musculos: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 99, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao2 },
+  chipPronto: { borderColor: 'rgba(196,168,255,0.45)' },
+  sem: { padding: 16, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  semTopo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   chipOn: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
   exercicio: { padding: 14, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, gap: 14 },
   numero: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, marginBottom: 12 },

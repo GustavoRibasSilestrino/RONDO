@@ -17,6 +17,7 @@ import { Dita, FALAS, Opcao, Passo, Respostas, emailValido, lerData, mascararDat
 import { SOTAQUES, Sotaque, falar, parar, sotaquePadrao } from '../lib/rondinVoz';
 import { cores, estilos } from '../tema';
 import type { Estado, Usuario } from '../tipos';
+import { RecuperarSenha } from './RecuperarSenha';
 import { SITE } from './Login';
 
 export type Modo = 'entrar' | 'cadastro';
@@ -157,6 +158,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [enviando, setEnviando] = useState(false);
+  const [recuperando, setRecuperando] = useState(false);   // a tela de esqueci a senha, no lugar da conversa
   const campoRef = useRef<CampoRef>(null), senhaRef = useRef<CampoRef>(null);
 
   const passo = passos.find((p) => p.id === idAtual) ?? passos[0];
@@ -315,6 +317,10 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   const opcoesAbertas = largo && fase === 'pergunta' && (passo.tipo === 'sotaque' || passo.tipo === 'opcoes' || passo.tipo === 'multi');   // sobra pouca altura: o orbe encolhe para as opções caberem
   const orbe = Math.round(Math.min(campoAberto ? 150 : opcoesAbertas ? 170 : 250, (width / k) * (campoAberto ? 0.4 : 0.62), (height / k) * (largo ? 0.36 : 0.3)));
 
+  if (recuperando) {
+    return <RecuperarSenha emailInicial={email} aoVoltar={() => setRecuperando(false)} aoConcluir={(e) => { setEmail(e); setSenha(''); setErro(''); setRecuperando(false); }} />;
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: '#000000' }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -452,6 +458,9 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                       </View>
                     ) : null}
                     <Botao orbita carregando={enviando} titulo={enviando ? 'Entrando…' : 'Entrar'} aoPressionar={fazerLogin} />
+                    <Pressable accessibilityRole="button" onPress={() => { parar(); setRecuperando(true); }} style={{ alignSelf: 'center', paddingVertical: 10 }}>
+                      <T tam={13.5} cor={cores.destaque2} style={{ textDecorationLine: 'underline' }}>Esqueci a minha senha</T>
+                    </Pressable>
                   </View>
                 ) : null}
 

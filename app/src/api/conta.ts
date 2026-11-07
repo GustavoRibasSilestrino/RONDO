@@ -37,6 +37,34 @@ export async function entrar(email: string, senha: string): Promise<Usuario> {
   throw new Error('O servidor do RONDO não está configurado neste aparelho.');
 }
 
+/* Esqueci a senha: o servidor manda um código de 6 números para o e-mail (e responde igual exista a conta ou não); com o código
+   a pessoa define a senha nova. O código vale 15 minutos, aceita 5 tentativas e só se usa uma vez. */
+async function enviarJson(caminho: string, corpo: unknown): Promise<Response> {
+  const api = process.env.EXPO_PUBLIC_API_URL;
+  if (!api) throw new Error('O servidor do RONDO não está configurado neste aparelho.');
+  try {
+    return await fetch(`${api}${caminho}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
+  } catch {
+    throw new Error('Sem conexão. Tente de novo em instantes.');
+  }
+}
+async function mensagemDe(r: Response, padrao: string): Promise<string> {
+  if (r.status === 429) return 'Muitas tentativas em pouco tempo. Espere um minuto e tente de novo.';
+  try {
+    const d = (await r.json()) as { detail?: unknown };
+    if (typeof d.detail === 'string') return d.detail;
+  } catch { /* sem corpo legível */ }
+  return padrao;
+}
+export async function pedirCodigoDeSenha(email: string): Promise<void> {
+  const r = await enviarJson('/auth/esqueci-senha', { email });
+  if (!r.ok) throw new Error(await mensagemDe(r, 'Não foi possível enviar agora. Tente de novo.'));
+}
+export async function redefinirSenha(email: string, codigo: string, nova: string): Promise<void> {
+  const r = await enviarJson('/auth/redefinir-senha', { email, codigo, nova });
+  if (!r.ok) throw new Error(await mensagemDe(r, 'Não foi possível trocar a senha agora. Tente de novo.'));
+}
+
 /* Criar a conta pelo próprio app: POST {API}/auth/cadastro, com a data de nascimento, o aceite dos documentos e,
    para menores de 18 anos, a autorização do responsável. O servidor registra o aceite e devolve o token: já entra. */
 export type NovaConta = {
