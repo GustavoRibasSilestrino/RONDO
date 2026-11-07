@@ -215,7 +215,7 @@ export function passosCadastro(r: Respostas): Passo[] {
     },
     {
       id: 'meta90', tipo: 'opcoes', fala: () => 'Imagina daqui a noventa dias. O que você quer ouvir das pessoas?',
-      opcoes: opc(['emagreceu', 'Nossa, você emagreceu!'], ['braco', 'Que braço é esse?'], ['energia', 'Você está cheio de energia!'], ['correu', 'Você correu tudo isso?!'], ['forte', 'Você está muito mais forte!'])
+      opcoes: opc(['emagreceu', 'Nossa, você emagreceu!'], ['energia', 'Você está cheio de energia!'], ['correu', 'Você correu tudo isso?!'], ['forte', 'Você está muito mais forte!'])
         .map((o) => ({ ...o, comentario: 'Combinado. É essa frase que a gente vai buscar.' })),
     },
     {

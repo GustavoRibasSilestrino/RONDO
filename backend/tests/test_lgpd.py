@@ -159,3 +159,182 @@ def test_login_regrava_hash_antigo_no_formato_leve(cliente):
     assert not precisa_atualizar(novo) and novo != pesado
     assert cliente.post("/auth/login", json={"email": "hash@example.com", "senha": "segredo1"}).status_code == 200
     assert cliente.post("/auth/login", json={"email": "hash@example.com", "senha": "errada123"}).status_code == 401
+
+
+# ---------- recuperar a senha por código no e-mail ----------
+def _com_email_capturado(monkeypatch):
+    """Troca o envio de e-mail por uma lista: o teste lê o código que iria para a caixa de entrada."""
+    enviados = []
+    monkeypatch.setattr("app.rotas.auth.enviar", lambda para, assunto, texto: enviados.append((para, assunto, texto)))
+    return enviados
+
+
+def _codigo_de(texto: str) -> str:
+    import re
+    return re.search(r"código é: (\d{6})", texto).group(1)
+
+
+def test_recuperar_senha_com_codigo(cliente, monkeypatch):
+    enviados = _com_email_capturado(monkeypatch)
+    assert cliente.post("/auth/cadastro", json=_corpo("rec@example.com")).status_code == 201
+    assert cliente.post("/auth/esqueci-senha", json={"email": "rec@example.com"}).json() == {"status": "ok"}
+    assert len(enviados) == 1 and enviados[0][0] == "rec@example.com"
+    codigo = _codigo_de(enviados[0][2])
+    # o código errado não vale; o certo troca a senha, e só serve uma vez
+    assert cliente.post("/auth/redefinir-senha", json={"email": "rec@example.com", "codigo": "000000" if codigo != "000000" else "111111", "nova": "novasenha1"}).status_code == 400
+    assert cliente.post("/auth/redefinir-senha", json={"email": "rec@example.com", "codigo": codigo, "nova": "novasenha1"}).json() == {"status": "ok"}
+    assert cliente.post("/auth/login", json={"email": "rec@example.com", "senha": "segredo1"}).status_code == 401
+    assert cliente.post("/auth/login", json={"email": "rec@example.com", "senha": "novasenha1"}).status_code == 200
+    assert cliente.post("/auth/redefinir-senha", json={"email": "rec@example.com", "codigo": codigo, "nova": "outrasenha1"}).status_code == 400
+
+
+def test_recuperar_senha_nao_revela_quem_tem_conta(cliente, monkeypatch):
+    enviados = _com_email_capturado(monkeypatch)
+    r = cliente.post("/auth/esqueci-senha", json={"email": "ninguem@example.com"})
+    assert r.status_code == 200 and r.json() == {"status": "ok"} and enviados == []
+    assert cliente.post("/auth/redefinir-senha", json={"email": "ninguem@example.com", "codigo": "123456", "nova": "novasenha1"}).status_code == 400
+
+
+def test_codigo_morre_depois_de_5_erros_e_vence_em_15_minutos(cliente, monkeypatch):
+    from datetime import datetime, timedelta, timezone
+    from sqlalchemy import select
+    from app.banco import Sessao
+    from app.modelos import RedefinicaoSenha
+
+    enviados = _com_email_capturado(monkeypatch)
+    cliente.post("/auth/cadastro", json=_corpo("lim@example.com"))
+    cliente.post("/auth/esqueci-senha", json={"email": "lim@example.com"})
+    certo = _codigo_de(enviados[0][2])
+    errado = "999999" if certo != "999999" else "888888"
+    for _ in range(5):
+        assert cliente.post("/auth/redefinir-senha", json={"email": "lim@example.com", "codigo": errado, "nova": "novasenha1"}).status_code == 400
+    # depois de 5 erros nem o código certo vale
+    assert cliente.post("/auth/redefinir-senha", json={"email": "lim@example.com", "codigo": certo, "nova": "novasenha1"}).status_code == 400
+    # um código novo vale; vencido, não
+    cliente.post("/auth/esqueci-senha", json={"email": "lim@example.com"})
+    novo = _codigo_de(enviados[1][2])
+    with Sessao() as s:
+        p = s.scalars(select(RedefinicaoSenha).order_by(RedefinicaoSenha.id.desc())).first()
+        p.expira_em = datetime.now(timezone.utc) - timedelta(minutes=1)
+        s.commit()
+    assert cliente.post("/auth/redefinir-senha", json={"email": "lim@example.com", "codigo": novo, "nova": "novasenha1"}).status_code == 400
+
+
+def test_no_maximo_3_codigos_por_hora(cliente, monkeypatch):
+    enviados = _com_email_capturado(monkeypatch)
+    cliente.post("/auth/cadastro", json=_corpo("tres@example.com"))
+    for _ in range(5):
+        assert cliente.post("/auth/esqueci-senha", json={"email": "tres@example.com"}).status_code == 200
+    assert len(enviados) == 3
+
+
+def test_o_codigo_nao_fica_guardado_em_claro(cliente, monkeypatch):
+    from sqlalchemy import select
+    from app.banco import Sessao
+    from app.modelos import RedefinicaoSenha
+
+    enviados = _com_email_capturado(monkeypatch)
+    cliente.post("/auth/cadastro", json=_corpo("hash2@example.com"))
+    cliente.post("/auth/esqueci-senha", json={"email": "hash2@example.com"})
+    codigo = _codigo_de(enviados[0][2])
+    with Sessao() as s:
+        guardado = s.scalars(select(RedefinicaoSenha)).first().codigo_hash
+    assert codigo not in guardado and len(guardado) == 64
+
+
+# ---------- entrar com Google e com a Apple ----------
+@pytest.fixture
+def chaves_de_teste(monkeypatch):
+    """Um par de chaves RSA de mentira: o teste assina o id_token como se fosse o Google ou a Apple, e o servidor confere com a chave pública."""
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    privada = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    monkeypatch.setattr("app.servicos.login_social._chave", lambda url, token: privada.public_key())
+    return privada
+
+
+def _id_token(privada, provedor="google", email="gente@example.com", audiencia="cliente-rondo", verificado=True, expirado=False, nome="Gente Boa"):
+    import jwt as pyjwt
+    from datetime import datetime, timedelta, timezone
+    agora = datetime.now(timezone.utc)
+    emissor = "https://accounts.google.com" if provedor == "google" else "https://appleid.apple.com"
+    corpo = {"iss": emissor, "aud": audiencia, "sub": "12345", "email": email, "email_verified": verificado, "name": nome,
+             "exp": agora + timedelta(minutes=-5 if expirado else 5)}
+    return pyjwt.encode(corpo, privada, algorithm="RS256")
+
+
+def _configurar(monkeypatch):
+    from app.config import config
+    monkeypatch.setattr(config(), "google_client_ids", "cliente-rondo,outro-cliente")
+    monkeypatch.setattr(config(), "apple_client_ids", "cliente-rondo")
+
+
+def test_google_nao_configurado_responde_503(cliente, chaves_de_teste):
+    r = cliente.post("/auth/google", json={"id_token": _id_token(chaves_de_teste)})
+    assert r.status_code == 503
+
+
+def test_google_primeira_vez_pede_cadastro_e_depois_entra_direto(cliente, chaves_de_teste, monkeypatch):
+    _configurar(monkeypatch)
+    r = cliente.post("/auth/google", json={"id_token": _id_token(chaves_de_teste)})
+    assert r.status_code == 200
+    d = r.json()
+    assert d["precisa_cadastro"] is True and d["login"] is None and d["email"] == "gente@example.com" and d["token_social"]
+    # o token da primeira etapa não abre a conta: só serve para o cadastro social
+    assert cliente.get("/auth/eu", headers={"Authorization": f"Bearer {d['token_social']}"}).status_code == 401
+
+    corpo = {"token_social": d["token_social"], "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True}
+    assert cliente.post("/auth/social/cadastro", json={**corpo, "aceita_termos": False}).status_code == 422   # sem aceite não cria
+    criada = cliente.post("/auth/social/cadastro", json=corpo)
+    assert criada.status_code == 201 and criada.json()["email"] == "gente@example.com" and criada.json()["nome"] == "Gente Boa"
+    assert cliente.get("/auth/eu", headers={"Authorization": f"Bearer {criada.json()['token']}"}).status_code == 200
+    assert cliente.post("/auth/social/cadastro", json=corpo).status_code == 409   # a conta já existe
+
+    # da segunda vez o Google entra direto, e a conta guardou o aceite
+    de_novo = cliente.post("/auth/google", json={"id_token": _id_token(chaves_de_teste)}).json()
+    assert de_novo["precisa_cadastro"] is False and de_novo["login"]["email"] == "gente@example.com" and de_novo["login"]["token"]
+    h = {"Authorization": f"Bearer {de_novo['login']['token']}"}
+    tipos = {c["tipo"] for c in cliente.get("/me/exportar", headers=h).json()["consentimentos"]}
+    assert {"termos", "privacidade"} <= tipos
+
+
+def test_google_conta_que_ja_existe_entra_direto(cliente, chaves_de_teste, monkeypatch):
+    _configurar(monkeypatch)
+    cliente.post("/auth/cadastro", json=_corpo("gente@example.com"))
+    d = cliente.post("/auth/google", json={"id_token": _id_token(chaves_de_teste)}).json()
+    assert d["precisa_cadastro"] is False and d["login"]["email"] == "gente@example.com"
+
+
+def test_id_token_ruim_e_recusado(cliente, chaves_de_teste, monkeypatch):
+    _configurar(monkeypatch)
+    for token in (
+        _id_token(chaves_de_teste, audiencia="de-outro-app"),   # não é para o RONDO
+        _id_token(chaves_de_teste, verificado=False),           # e-mail que o provedor não confirmou
+        _id_token(chaves_de_teste, expirado=True),              # vencido
+        "isto-nao-e-um-token-valido",
+    ):
+        assert cliente.post("/auth/google", json={"id_token": token}).status_code == 401
+    # assinado por outra chave
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    outra = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    assert cliente.post("/auth/google", json={"id_token": _id_token(outra)}).status_code == 401
+
+
+def test_cadastro_social_de_menor_exige_responsavel(cliente, chaves_de_teste, monkeypatch):
+    _configurar(monkeypatch)
+    d = cliente.post("/auth/google", json={"id_token": _id_token(chaves_de_teste, email="jovem@example.com")}).json()
+    corpo = {"token_social": d["token_social"], "nascimento": _anos_atras(15), "aceita_termos": True, "aceita_privacidade": True}
+    assert cliente.post("/auth/social/cadastro", json=corpo).status_code == 422
+    com = {**corpo, "responsavel": {"nome": "Mãe do Jovem", "email": "mae@example.com", "autoriza": True}}
+    assert cliente.post("/auth/social/cadastro", json=com).status_code == 201
+
+
+def test_apple_funciona_como_o_google(cliente, chaves_de_teste, monkeypatch):
+    _configurar(monkeypatch)
+    token = _id_token(chaves_de_teste, provedor="apple", email="maca@privaterelay.appleid.com", nome=None)
+    d = cliente.post("/auth/apple", json={"id_token": token}).json()
+    assert d["precisa_cadastro"] is True and d["email"] == "maca@privaterelay.appleid.com"
+    # um token com o emissor do Google não vale como token da Apple
+    assert cliente.post("/auth/apple", json={"id_token": _id_token(chaves_de_teste, provedor="google")}).status_code == 401
+    corpo = {"token_social": d["token_social"], "nome": "Maçã Silva", "nascimento": "1990-01-01", "aceita_termos": True, "aceita_privacidade": True}
+    r = cliente.post("/auth/social/cadastro", json=corpo)
+    assert r.status_code == 201 and r.json()["nome"] == "Maçã Silva"

@@ -4,7 +4,7 @@ sqlalchemy>=2
 alembic
 psycopg[binary]
 pydantic-settings
-pyjwt
+pyjwt[crypto]
 argon2-cffi
 email-validator
 httpx

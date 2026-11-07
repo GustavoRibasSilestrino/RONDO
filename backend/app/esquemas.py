@@ -18,6 +18,23 @@ def idade_em(nascimento: date, hoje: date) -> int:
     return hoje.year - nascimento.year - ((hoje.month, hoje.day) < (nascimento.month, nascimento.day))
 
 
+def conferir_cadastro(nascimento: date, aceita_termos: bool, aceita_privacidade: bool, responsavel: "ResponsavelIn | None", email: str):
+    """Data de nascimento, aceite dos documentos e autorização do responsável de quem tem menos de 18 anos. Devolve o responsável
+    (ou None, para adultos: não guardamos dados de responsável à toa)."""
+    hoje = date.today()
+    if nascimento > hoje or nascimento.year < 1900:
+        raise ValueError("Data de nascimento inválida.")
+    if not (aceita_termos and aceita_privacidade):
+        raise ValueError("Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.")
+    if idade_em(nascimento, hoje) < MAIORIDADE:
+        if not responsavel or not responsavel.autoriza:
+            raise ValueError("Menores de 18 anos precisam da autorização de um responsável.")
+        if responsavel.email.lower() == email.lower():
+            raise ValueError("O e-mail do responsável precisa ser diferente do seu.")
+        return responsavel
+    return None
+
+
 class CadastroIn(BaseModel):
     nome: str = Field(min_length=2, max_length=120)
     email: EmailStr
@@ -31,20 +48,24 @@ class CadastroIn(BaseModel):
 
     @model_validator(mode="after")
     def conferir(self):
-        hoje = date.today()
-        if self.nascimento > hoje or self.nascimento.year < 1900:
-            raise ValueError("Data de nascimento inválida.")
-        if not (self.aceita_termos and self.aceita_privacidade):
-            raise ValueError("Para criar a conta, aceite os Termos de Uso e a Política de Privacidade.")
-        if idade_em(self.nascimento, hoje) < MAIORIDADE:
-            r = self.responsavel
-            if not r or not r.autoriza:
-                raise ValueError("Menores de 18 anos precisam da autorização de um responsável.")
-            if r.email.lower() == self.email.lower():
-                raise ValueError("O e-mail do responsável precisa ser diferente do seu.")
-        else:
-            self.responsavel = None   # adulto: não guardamos dados de responsável à toa
+        self.responsavel = conferir_cadastro(self.nascimento, self.aceita_termos, self.aceita_privacidade, self.responsavel, self.email)
         return self
+
+
+class SocialIn(BaseModel):
+    id_token: str = Field(min_length=20, max_length=8192)
+
+
+class CadastroSocialIn(BaseModel):
+    """Segunda etapa de quem entrou pela primeira vez com Google ou Apple: a data de nascimento e os aceites (como no cadastro comum)."""
+    token_social: str = Field(max_length=8192)
+    nome: str | None = Field(default=None, min_length=2, max_length=120)   # a Apple só dá o nome na primeira vez, e só ao app
+    nascimento: date
+    aceita_termos: bool
+    aceita_privacidade: bool
+    marketing: bool = False
+    responsavel: ResponsavelIn | None = None
+    origem: Literal["site", "app"] = "app"
 
 
 class MarketingIn(BaseModel):
@@ -115,6 +136,16 @@ class StatusOut(BaseModel):
 
 class SenhaIn(BaseModel):
     atual: str = Field(max_length=128)
+    nova: str = Field(min_length=6, max_length=128)
+
+
+class EsqueciSenhaIn(BaseModel):
+    email: EmailStr
+
+
+class RedefinirSenhaIn(BaseModel):
+    email: EmailStr
+    codigo: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
     nova: str = Field(min_length=6, max_length=128)
 
 

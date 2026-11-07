@@ -4,12 +4,14 @@ import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { aquecerApi } from '../api/cliente';
+import type { ResultadoSocial } from '../api/loginSocial';
+import { BotoesSociais } from '../componentes/BotoesSociais';
 import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
 import { useLayoutLargo } from '../lib/largura';
 import { cores, estilos } from '../tema';
 
-export function Inicio({ aoCriar, aoEntrar }: { aoCriar: () => void; aoEntrar: () => void }) {
+export function Inicio({ aoCriar, aoEntrar, aoSocial }: { aoCriar: () => void; aoEntrar: () => void; aoSocial: (r: ResultadoSocial) => void }) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   useEffect(() => { aquecerApi(); }, []);   // acorda o servidor enquanto a pessoa decide entre entrar e criar conta
@@ -34,6 +36,7 @@ export function Inicio({ aoCriar, aoEntrar }: { aoCriar: () => void; aoEntrar: (
           <View style={{ marginTop: 28, gap: 12 }}>
             <Botao orbita titulo="Criar conta" icone="ia" aoPressionar={aoCriar} />
             <Botao tipo="fantasma" titulo="Já tenho conta" aoPressionar={aoEntrar} />
+            <BotoesSociais aoResultado={aoSocial} />
           </View>
         </View>
       </ScrollView>

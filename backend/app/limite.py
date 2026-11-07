@@ -8,7 +8,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 JANELA = 60.0
-ROTAS_DE_ENTRADA = ("/auth/login", "/auth/cadastro", "/auth/senha")
+ROTAS_DE_ENTRADA = ("/auth/login", "/auth/cadastro", "/auth/senha", "/auth/esqueci-senha", "/auth/redefinir-senha", "/auth/google", "/auth/apple", "/auth/social/cadastro")
 
 
 class LimiteDeRequisicoes(BaseHTTPMiddleware):

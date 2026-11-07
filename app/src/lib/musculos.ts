@@ -27,7 +27,7 @@ export const MUSCULOS_DA_ROTINA: Record<string, GrupoMuscular[]> = {
 
 /* deduz os músculos pelo nome dos exercícios ("supino" -> peito, "rosca" -> bíceps...): usado em treinos enviados por arquivo */
 const PALAVRAS: [GrupoMuscular[], RegExp][] = [
-  [['peito'], /supino|crucifixo|peck|voador|flexao de brac|crossover|peitoral|peito/],
+  [['peito'], /supino|crucifixo|peck|voador|flexao|crossover|peitoral|peito/],
   [['dorsal', 'trapezio'], /puxada|remada|barra fixa|pulldown|costas|dorsal|serrote|levantamento terra|encolhimento/],
   [['biceps'], /rosca|biceps|martelo/],
   [['triceps'], /triceps|frances|testa|mergulho|paralela|coice/],

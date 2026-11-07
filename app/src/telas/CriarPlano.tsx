@@ -12,6 +12,7 @@ import type { Rotina } from '../dados';
 import { useLoja } from '../estado/loja';
 import { escolherArquivoDeTreino } from '../lib/arquivoTreino';
 import { inferirMusculos } from '../lib/musculos';
+import { montarTreinoEmCasa } from '../lib/semAparelho';
 import { guardarRotina } from '../lib/rotinas';
 import { SITE } from './Login';
 import { cores, estilos } from '../tema';
@@ -56,6 +57,7 @@ export function CriarPlano({ tipo }: Props) {
   const [lendo, setLendo] = useState(false);
 
   const criarNoApp = () => { setAberta(false); setErro(''); setEditor({ inicial: null }); };
+  const criarEmCasa = () => { setAberta(false); setErro(''); const t = montarTreinoEmCasa(0); setEditor({ inicial: { id: '', nome: t.nome, exercicios: t.exercicios, musculos: t.musculos } }); };
   const enviarArquivo = async () => {
     setErro('');
     setLendo(true);
@@ -77,6 +79,7 @@ export function CriarPlano({ tipo }: Props) {
           {tipo === 'treino' ? (
             <>
               <Opcao icone="lapis" titulo="Criar no app" sub="Dê um nome e adicione os exercícios, com séries, repetições e carga." aoPressionar={criarNoApp} />
+              <Opcao icone="treino" titulo="Treino para fazer em casa" sub="Sem aparelho, só com o peso do corpo. Já vem pronto, e você ajusta como quiser." aoPressionar={criarEmCasa} />
               <Opcao icone="upload" titulo={lendo ? 'Lendo o arquivo…' : 'Enviar um arquivo'} sub="CSV, TXT ou JSON com o seu treino. Você confere tudo antes de salvar." aoPressionar={enviarArquivo} />
               {erro ? <View accessibilityLiveRegion="polite" accessibilityRole="alert"><T tam={13} cor={cores.erro} style={{ lineHeight: 19 }}>{erro}</T></View> : null}
             </>
