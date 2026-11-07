@@ -13,7 +13,7 @@
 }
 .logo { display: flex; align-items: center; flex: none; color: #fff; }
 .logo svg { height: 22px; width: auto; }
-.logo-nome { justify-self: start; font-weight: 500; font-size: 1.15rem; letter-spacing: .32em; line-height: 1; }
+.logo-nome { justify-self: start; font-family: "Bricolage Grotesque", "Poppins", sans-serif; font-weight: 800; font-size: 1.3rem; letter-spacing: .06em; line-height: 1; }
 .nav-links { display: flex; align-self: stretch; gap: .1rem; font-size: .9rem; font-weight: 300; }
 .nav-end { justify-self: end; display: flex; align-items: center; gap: .6rem; }
 

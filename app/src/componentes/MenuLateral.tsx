@@ -34,7 +34,7 @@ function Item({ icone, rotulo, recolhido, ativo, selo, papel = 'tab', aoPression
         onHoverOut={() => setSobre(false)}
         style={({ pressed }) => [st.item, recolhido && st.itemFechado, ativo && st.itemAtivo, !ativo && (sobre || pressed) && st.itemSobre]}
       >
-        {ativo && temaAtual() === 'normal' ? <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
+        {ativo ? <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
         <View pointerEvents="none" style={st.icone}>
           <Icone nome={icone} tamanho={21} cor={ativo ? '#ffffff' : sobre ? cores.texto : cores.texto2} />
           {recolhido && selo ? <View style={st.ponto} /> : null}

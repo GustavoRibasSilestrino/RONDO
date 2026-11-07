@@ -28,7 +28,7 @@ export function Avatar({ nome, voce, tamanho = 38, foto, semFoto }: { nome: stri
       importantForAccessibility="no"
       style={{ width: tamanho, height: tamanho, borderRadius: tamanho / 2, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: voce ? cores.violeta : tom }}
     >
-      {voce && temaAtual() === 'normal' ? <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
+      {voce ? <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} /> : null}
       <T tam={Math.round(tamanho * 0.37)} peso="500" cor="#ffffff">{inicial}</T>
       {idFoto ? <FotoRedonda id={idFoto} tamanho={tamanho} /> : null}
     </View>

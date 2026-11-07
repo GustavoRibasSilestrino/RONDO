@@ -24,7 +24,7 @@ img, svg, video, canvas { max-width: 100%; }
 @media (max-width: 1280px) {
   .nav-in { gap: 1.2rem; }
   .nav-trigger { padding: .5rem .65rem; }
-  .logo-nome { font-size: 1rem; letter-spacing: .26em; }
+  .logo-nome { font-size: 1.15rem; letter-spacing: .05em; }
   .cmp-row b { font-size: clamp(1.8rem, 4vw, 3.2rem); }
 }
 

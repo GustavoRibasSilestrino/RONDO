@@ -11,7 +11,7 @@
   }
   .nav-links, .nav-end { display: none; }
   .nav.menu-open::before { opacity: 1; background: #050507; backdrop-filter: none; }
-  .logo-nome { font-size: 1rem; letter-spacing: .28em; }
+  .logo-nome { font-size: 1.15rem; letter-spacing: .05em; }
   .logo .logo-mark { height: 18px; margin-right: .55rem; }
 
   .burger {
