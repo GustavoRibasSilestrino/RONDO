@@ -45,35 +45,39 @@ const normal: Paleta = {
   cabecalho: '#07060b',
 };
 
+/* Ultra, "aurora de vidro": azul-noite com uma única luz fria vinda de cima, cartões de vidro de borda fina e um só acento (ciano).
+   Tudo é azul frio de ponta a ponta; o que é vivo (ciano, azul dos botões) aparece só onde há ação ou estado. Contrastes medidos
+   sobre o fundo: texto 17:1, texto2 12:1, texto3 8:1; branco sobre o azul dos botões, 5,2:1 ou mais. */
 const ultra: Paleta = {
-  fundo: '#02030c',                          // quase preto, com um fio de azul: a aurora brilha mais contra ele
-  fundo2: '#070a22',
-  cartao: 'rgba(110,140,255,0.085)',
-  cartao2: 'rgba(130,150,255,0.18)',
-  linha: 'rgba(130,170,255,0.20)',
-  linha2: 'rgba(160,190,255,0.42)',
-  texto: '#ffffff',
-  texto2: '#e8eeff',
-  texto3: '#c4d2ff',
-  violeta: '#3a4bff',
-  violetaEscuro: '#0b1050',
-  destaque: '#37e6ff',                       // ciano elétrico
-  destaqueForte: '#3a4bff',                  // azul-violeta vivo que leva texto branco
-  destaque2: '#b8f6ff',
-  bom: '#4dffc3',
+  fundo: '#050816',                          // azul-noite, quase preto: a aurora lê melhor contra ele
+  fundo2: '#0a1030',
+  cartao: 'rgba(150,175,255,0.07)',          // vidro: um véu frio, sem cor própria
+  cartao2: 'rgba(160,185,255,0.12)',
+  linha: 'rgba(170,195,255,0.15)',
+  linha2: 'rgba(190,212,255,0.28)',
+  texto: '#f3f6ff',
+  texto2: '#d3dcf7',
+  texto3: '#a3b3da',
+  violeta: '#3d56e8',
+  violetaEscuro: '#0c1244',
+  destaque: '#62d6ff',                       // ciano claro: link, número, seleção
+  destaqueForte: '#2f5ff0',                  // o azul dos botões: leva texto branco
+  destaque2: '#c2ebff',
+  bom: '#52e0b0',
   alerta: '#ffb36b',
   erro: '#ff7a96',
   branco: '#ffffff',
-  placeholder: 'rgba(220,235,255,0.5)',
-  tom: '70,150,255',
-  painel: '#080b26',
-  aviso: '#14195a',
-  barra: 'rgba(6,10,40,0.72)',
-  cabecalho: 'rgba(6,12,44,0.42)',           // vidro: deixa a aurora aparecer
+  placeholder: 'rgba(205,220,250,0.62)',   // 5,5:1 sobre o campo
+  tom: '98,150,255',
+  painel: '#0a1030',
+  aviso: '#131a44',
+  barra: 'rgba(8,12,36,0.78)',
+  cabecalho: 'rgba(6,10,30,0.55)',           // vidro: deixa a aurora aparecer
 };
 
-/* as cores das letras do nome no tema Ultra, do ciano ao rosa: a palavra RONDO no cabeçalho e a palavra ULTRA da transição */
-export const LETRAS_ULTRA = ['#5fd4ff', '#6f9bff', '#a07dff', '#d47cf0', '#ff7ad9'] as const;
+/* as cores das letras do nome no tema Ultra: a palavra RONDO no cabeçalho e a palavra ULTRA da transição.
+   Uma rampa só de azuis frios, do ciano ao lilás (sem o rosa), para combinar com o resto da paleta. */
+export const LETRAS_ULTRA = ['#7fdcff', '#79c2ff', '#8eaaff', '#a29fff', '#bb9eff'] as const;
 
 export const PALETAS: Record<TemaId, Paleta> = { normal, ultra };
 
@@ -110,13 +114,13 @@ const DEGRADE_NORMAL = {
   brilhoDestaque: ['rgba(139,92,246,0.20)', 'rgba(139,92,246,0.02)'] as const,
   fio: ['rgba(196,168,255,0)', 'rgba(196,168,255,0.55)', 'rgba(196,168,255,0)'] as const,   // o fio de luz no alto dos cartões
 };
-/* Ultra: iridescente, do azul elétrico ao violeta e ao magenta, com luz que parece sair de dentro */
+/* Ultra: um matiz só (azul), do azul-cobalto ao índigo; o brilho dos cartões é um reflexo frio de vidro, não cor */
 const DEGRADE_ULTRA = {
-  roxo: ['#0b6dff', '#3a4bff', '#8a3dff'] as const,          // botão, aba ativa, seleção (branco por cima: 4,2:1 ou mais)
-  barra: ['#00e0ff', '#6a8bff', '#d46bff'] as const,
-  brilhoCartao: ['rgba(120,170,255,0.13)', 'rgba(150,90,255,0.035)'] as const,
-  brilhoDestaque: ['rgba(0,224,255,0.24)', 'rgba(170,80,255,0.10)'] as const,
-  fio: ['rgba(0,224,255,0)', 'rgba(150,220,255,0.95)', 'rgba(210,110,255,0)'] as const,
+  roxo: ['#2a62f0', '#3a58ee', '#4a4fe4'] as const,          // botão, aba ativa, seleção (branco por cima: 5,1:1 ou mais)
+  barra: ['#4cc9ff', '#5b8cff'] as const,                    // progresso: do ciano ao azul
+  brilhoCartao: ['rgba(190,210,255,0.07)', 'rgba(190,210,255,0)'] as const,
+  brilhoDestaque: ['rgba(98,214,255,0.14)', 'rgba(98,214,255,0.02)'] as const,
+  fio: ['rgba(190,225,255,0)', 'rgba(190,225,255,0.5)', 'rgba(190,225,255,0)'] as const,
 };
 /* lê o tema na hora: quem usa DEGRADE.roxo recebe o do tema que está valendo */
 export const DEGRADE = {

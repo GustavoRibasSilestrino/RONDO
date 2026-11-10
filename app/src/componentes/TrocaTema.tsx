@@ -49,7 +49,7 @@ function Esmaecer({ para, aoMeio, aoFim }: { para: TemaId; aoMeio: () => void; a
       {mostrarPalavra ? (
         <Animated.View style={[st.centro, { opacity: palavra, transform: [{ scale: palavra.interpolate({ inputRange: [0, 1], outputRange: [0.96, 1] }) }] }]} pointerEvents="none">
           <Text style={st.palavra}>
-            {[...'ULTRA'].map((l, i) => <Text key={i} style={{ color: LETRAS_ULTRA[i], textShadowColor: LETRAS_ULTRA[i], textShadowRadius: 22, textShadowOffset: { width: 0, height: 0 } }}>{l}</Text>)}
+            {[...'ULTRA'].map((l, i) => <Text key={i} style={{ color: LETRAS_ULTRA[i], textShadowColor: 'rgba(98,170,255,0.45)', textShadowRadius: 18, textShadowOffset: { width: 0, height: 2 } }}>{l}</Text>)}
           </Text>
         </Animated.View>
       ) : null}

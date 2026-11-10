@@ -35,8 +35,8 @@ export function T({ children, tam = 15, peso = '300', cor = cores.texto, mono, c
 }
 
 /* ---------- cartão ---------- */
-/* no tema normal: um brilho leve de cima para baixo e um fio de luz no alto da borda; no destaque, o brilho é roxo.
-   No Ultra o cartão continua de vidro, sem esses enfeites. */
+/* um brilho leve de cima para baixo e um fio de luz no alto da borda; no destaque, o brilho tem a cor do acento
+   (roxo no tema normal, ciano no Ultra). No Ultra o cartão é de vidro: o brilho é só um reflexo frio. */
 export function Cartao({ children, style, destaque }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; destaque?: boolean }) {
   return (
     <View style={[st.cartao, destaque && st.cartaoDestaque, style]}>
@@ -276,15 +276,15 @@ export function Titulo({ children, direita }: { children: React.ReactNode; direi
 const st = estilos(() => StyleSheet.create({
   cartao: {
     backgroundColor: cores.cartao, borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden',
-    /* Ultra: o cartão tem brilho próprio (um halo azul em volta e luz na borda de cima); no normal, só a sombra de sempre */
-    boxShadow: temaAtual() === 'ultra' ? '0 0 34px -12px rgba(58,95,255,0.6), 0 24px 44px -30px rgba(0,0,0,0.95), inset 0 1px 0 rgba(255,255,255,0.16)' : '0 24px 44px -30px rgba(0,0,0,0.95)',
+    /* Ultra: vidro. Sombra de profundidade (cai para baixo, sem halo colorido) e um fio de luz na borda de cima; no normal, só a sombra */
+    boxShadow: temaAtual() === 'ultra' ? '0 18px 40px -24px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.07)' : '0 24px 44px -30px rgba(0,0,0,0.95)',
     ...(Platform.OS === 'web' ? ({ contentVisibility: 'auto', containIntrinsicSize: 'auto 240px' } as object) : null),
   },
   cartaoDestaque: temaAtual() === 'ultra'
-    ? { borderColor: 'rgba(90,200,255,0.6)', backgroundColor: cores.cartao, boxShadow: '0 0 46px -10px rgba(0,224,255,0.55), 0 0 70px -20px rgba(170,80,255,0.55), inset 0 1px 0 rgba(255,255,255,0.22)' }
+    ? { borderColor: 'rgba(98,214,255,0.34)', backgroundColor: cores.cartao, boxShadow: '0 18px 40px -24px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1)' }
     : { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: cores.cartao, boxShadow: '0 24px 50px -30px rgba(106,0,212,0.55)' },
   fio: { position: 'absolute', top: 0, left: 24, right: 24, height: 1 },
-  brilho: temaAtual() === 'ultra' ? { boxShadow: '0 0 30px -4px rgba(58,75,255,0.8), 0 10px 26px -10px rgba(0,224,255,0.6)' } : {},
+  brilho: temaAtual() === 'ultra' ? { boxShadow: '0 10px 22px -10px rgba(42,98,240,0.75)' } : {},
   orbita: { borderRadius: raio.m, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(196,168,255,0.2)' },
   campoFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.06)` },
   botao: { borderRadius: raio.m, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
@@ -300,7 +300,7 @@ const st = estilos(() => StyleSheet.create({
   segmentos: { flexDirection: 'row', backgroundColor: cores.cartao2, borderRadius: raio.pilula, padding: 4, borderWidth: 1, borderColor: cores.linha },
   segmento: { flexGrow: 1, flexBasis: 'auto', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderRadius: raio.pilula },
   segmentoAtivo: { backgroundColor: cores.texto },
-  segmentoAtivoNormal: { overflow: 'hidden', boxShadow: temaAtual() === 'ultra' ? '0 0 20px -2px rgba(58,75,255,0.9)' : '0 6px 16px -8px rgba(106,0,212,0.9)' },
+  segmentoAtivoNormal: { overflow: 'hidden', boxShadow: temaAtual() === 'ultra' ? '0 6px 14px -6px rgba(42,98,240,0.8)' : '0 6px 16px -8px rgba(106,0,212,0.9)' },
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
   campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },

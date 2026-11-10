@@ -25,5 +25,5 @@ export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPression
 
 const st = estilos(() => StyleSheet.create({
   faixa: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  mais: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: cores.destaqueForte, borderWidth: 1, borderColor: 'rgba(196,168,255,0.35)', boxShadow: temaAtual() === 'ultra' ? '0 0 34px 2px rgba(58,95,255,0.75), 0 12px 28px -10px rgba(0,224,255,0.6)' : '0 12px 28px -10px rgba(106,0,212,0.9)' },
+  mais: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: cores.destaqueForte, borderWidth: 1, borderColor: temaAtual() === 'ultra' ? 'rgba(190,215,255,0.28)' : 'rgba(196,168,255,0.35)', boxShadow: temaAtual() === 'ultra' ? '0 12px 26px -10px rgba(42,98,240,0.8)' : '0 12px 28px -10px rgba(106,0,212,0.9)' },
 }));
