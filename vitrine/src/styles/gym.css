@@ -2,18 +2,24 @@
    A cor do painel muda de um aparelho para o outro; o fundo da página é essa mesma cor, bem escura.
    Regra desta seção: o que anda a cada quadro é só transform e opacity, em camadas próprias (will-change). Nada aqui
    anima cor, tamanho nem posição em px, e não há mix-blend-mode nem filtro sobre coisa em movimento. ===== */
+/* O fundo e o painel dividem a mesma célula de uma grade que tem a altura da seção toda. Assim os dois grudam na tela
+   enquanto a seção rola e soltam junto com o fim dela: nenhum passa da borda (antes, uma margem negativa deixava o
+   fundo pendurado por cima da seção seguinte). */
 .gym {
   --corte: 38px;
   position: relative; height: 480vh; border-top: 1px solid var(--line);
+  display: grid; grid-template-rows: minmax(0, 1fr);
   background: #170640;   /* a primeira cena escurecida; as camadas de .gym-fundo se dissolvem por cima */
 }
 /* o fundo: uma camada por cena, presa à tela; troca de cor mudando só a opacidade */
 .gym-fundo {
-  position: sticky; top: 0; z-index: 0; height: 100vh; height: 100svh; margin-bottom: -100vh; margin-bottom: -100svh;
+  grid-area: 1 / 1; align-self: start;
+  position: sticky; top: 0; z-index: 0; height: 100vh; height: 100svh;
   overflow: hidden; pointer-events: none;
 }
 .gym-fundo i, .gym-cor { position: absolute; inset: 0; display: block; will-change: opacity; }
 .gym-stage {
+  grid-area: 1 / 1; align-self: start;
   position: sticky; z-index: 1; top: calc(var(--nav-h) + 6px); height: calc(100vh - var(--nav-h) - 18px); height: calc(100svh - var(--nav-h) - 18px); overflow: hidden;
   margin-inline: clamp(8px, 2vw, 28px);
   /* duas quinas cortadas, em diagonal, como na referência */
@@ -121,7 +127,7 @@
 
 /* movimento reduzido: nada anda nem fica preso à rolagem; a seção vira uma grade parada com os quatro aparelhos */
 @media (prefers-reduced-motion: reduce) {
-  .gym { height: auto; }
+  .gym { height: auto; display: block; }
   .gym-fundo, .gym-words, .gym-regua, .gym-etiquetas, .gym-fim, .gym-eco { display: none; }
   .gym-stage { position: relative; top: auto; height: auto; display: flex; flex-direction: column; padding-top: clamp(3.5rem, 8vh, 5.5rem); }
   .gym-aparelhos {
