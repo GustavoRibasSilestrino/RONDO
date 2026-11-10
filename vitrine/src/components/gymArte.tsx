@@ -76,8 +76,6 @@ function Kettlebell() {
       <circle cx="200" cy="282" r="124" fill="url(#gym-ferro-r)" />
       <rect x="132" y="390" width="136" height="20" rx="8" fill="url(#gym-borracha)" />
       <path className="br" d="M104 262A100 100 0 0 1 150 190" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="10" strokeLinecap="round" />
-      <circle className="br" cx="200" cy="294" r="46" fill="rgba(0,0,0,.18)" />
-      <text className="br" x="200" y="307" textAnchor="middle" fontSize="38" fontWeight="300" fill="rgba(255,255,255,.7)" style={{ fontFamily: "var(--font-mono)" }}>24</text>
     </>
   );
 }
