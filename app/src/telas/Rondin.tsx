@@ -1,18 +1,26 @@
 /* O RONDIN: um agente que conversa com a pessoa para entrar ou criar a conta. Ele se apresenta, pergunta o sotaque,
    fala cada pergunta em voz alta (a legenda vai surgindo palavra por palavra embaixo do orbe) e mostra as opções ou o
    campo para responder. No cadastro, as respostas viram o perfil da conta (altura, peso, objetivo, rotina...) e são
-   salvas no servidor junto com ela. O roteiro está em lib/rondinRoteiro.ts e a voz em lib/rondinVoz.ts. */
+   salvas no servidor junto com ela. O roteiro está em lib/rondinRoteiro.ts e a voz em lib/rondinVoz.ts.
+
+   A tela tem cara de painel de assistente (um "Jarvis"): o orbe fica dentro de uma moldura de instrumento (componentes/Orbe),
+   uma etiqueta diz o que ele está fazendo (falando, ouvindo, processando) e o progresso vira "ETAPA 03 · 14". E ela responde:
+   o orbe acompanha o cursor e solta uma onda a cada tecla; tocar nele pula a fala ou repete a pergunta; no computador as
+   opções têm atalho de teclado (1 a 9, e Enter para continuar).
+   Tamanho: no navegador a coluna inteira escala com a janela (`k`), para caber sem rolar e nunca ficar gigante. */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cadastrar, entrar, nomeEstaLivre } from '../api/conta';
+import { LinearGradient } from 'expo-linear-gradient';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
+import { FundoCena } from '../componentes/FundoCena';
 import { Icone } from '../componentes/Icone';
 import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
 import { useLayoutLargo } from '../lib/largura';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { EstadoOrbe } from '../lib/orbe';
+import { EstadoOrbe, ROTULO_ESTADO } from '../lib/orbe';
 import { Dita, FALAS, Opcao, Passo, Respostas, emailValido, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar, primeiroNome, trechosDe } from '../lib/rondinRoteiro';
 import { SOTAQUES, Sotaque, falar, parar, sotaquePadrao } from '../lib/rondinVoz';
 import { cores, estilos } from '../tema';
@@ -39,9 +47,9 @@ const Palavra = React.memo(function Palavra({ texto, visivel, destaque, reduzido
   const cor = destaque ? cores.destaque2 : cores.texto;
   if (Platform.OS === 'web') {
     const transicao = reduzido ? null : ({ transition: `opacity ${DURACAO_FADE}ms ease-out, color ${DURACAO_FADE}ms ease-out`, willChange: 'opacity' } as object);
-    return <T tam={22} peso="300" cor={cor} style={[{ opacity: visivel ? 1 : 0, lineHeight: 31 }, transicao]}>{texto}</T>;
+    return <T tam={20} peso="300" cor={cor} style={[{ opacity: visivel ? 1 : 0, lineHeight: 29 }, transicao]}>{texto}</T>;
   }
-  return <Animated.View style={{ opacity: op }}><T tam={22} peso="300" cor={cor} style={{ lineHeight: 31 }}>{texto}</T></Animated.View>;
+  return <Animated.View style={{ opacity: op }}><T tam={20} peso="300" cor={cor} style={{ lineHeight: 29 }}>{texto}</T></Animated.View>;
 });
 
 /* ---------- a legenda: as palavras surgem no ritmo da fala; a última fica em destaque ---------- */
@@ -85,7 +93,7 @@ function Legenda({ largo, texto, chave, taxa, duracaoMs, indiceVoz, completa, ao
   }, [n, palavras.length, chave]);
 
   return (
-    <View accessible accessibilityLabel={texto} accessibilityLiveRegion="polite" style={[st.legenda, largo && { minHeight: 70 }]}>
+    <View accessible accessibilityLabel={texto} accessibilityLiveRegion="polite" style={[st.legenda, largo && { minHeight: 62 }]}>
       {palavras.map((p, i) => (
         <Palavra key={`${chave}-${i}`} texto={`${p}${i < palavras.length - 1 ? ' ' : ''}`} visivel={i < n} destaque={i === n - 1} reduzido={reduzido} />
       ))}
@@ -93,46 +101,42 @@ function Legenda({ largo, texto, chave, taxa, duracaoMs, indiceVoz, completa, ao
   );
 }
 
-/* ---------- o orbe com o anel em volta; o anel pulsa quando ele fala ---------- */
-function OrbeRondin({ tamanho, estado }: { tamanho: number; estado: EstadoOrbe }) {
-  const pulso = useRef(new Animated.Value(0)).current;
-  const reduzido = useMovimentoReduzido();
-  useEffect(() => {
-    if (reduzido || estado !== 'falando') { pulso.setValue(0); return undefined; }
-    const anim = Animated.loop(Animated.timing(pulso, { toValue: 1, duration: 1500, easing: Easing.out(Easing.quad), useNativeDriver: Platform.OS !== 'web' }));
-    anim.start();
-    return () => anim.stop();
-  }, [estado, reduzido, pulso]);
-  const anel = tamanho + 18;
-  return (
-    <View style={{ width: anel + 40, height: anel + 40, alignItems: 'center', justifyContent: 'center' }}>
-      <Animated.View pointerEvents="none" style={[st.anel, { width: anel, height: anel, borderRadius: anel / 2, borderColor: 'rgba(196,168,255,0.5)', opacity: pulso.interpolate({ inputRange: [0, 1], outputRange: [0.8, 0] }), transform: [{ scale: pulso.interpolate({ inputRange: [0, 1], outputRange: [1, 1.18] }) }] }]} />
-      <View pointerEvents="none" style={[st.anel, { width: anel, height: anel, borderRadius: anel / 2 }]} />
-      <View style={{ position: 'absolute' }}><Orbe tamanho={tamanho} estado={estado} /></View>
-    </View>
-  );
-}
-
 /* ---------- uma opção para tocar ---------- */
-function Pilula({ opcao, marcada, aoPressionar, grande }: { opcao: Opcao; marcada?: boolean; aoPressionar: () => void; grande?: boolean }) {
+function Pilula({ opcao, marcada, aoPressionar, tecla }: { opcao: Opcao; marcada?: boolean; aoPressionar: () => void; tecla?: number }) {
   return (
     <Pressable
       accessibilityRole="button" accessibilityState={{ selected: !!marcada }} accessibilityLabel={opcao.nota ? `${opcao.rotulo}, ${opcao.nota}` : opcao.rotulo}
       onPress={aoPressionar}
-      style={({ pressed }) => [st.pilula, grande && st.pilulaGrande, marcada && st.pilulaMarcada, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
+      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.pilula, hovered && !marcada && st.pilulaSobre, marcada && st.pilulaMarcada, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
     >
-      <T tam={14.5} peso="500" cor={marcada ? cores.branco : cores.texto}>{opcao.rotulo}</T>
-      {opcao.nota ? <T tam={12} cor={marcada ? 'rgba(255,255,255,0.85)' : cores.texto3} style={{ marginTop: 2 }}>{opcao.nota}</T> : null}
+      {tecla ? <View style={[st.tecla, marcada && { borderColor: 'rgba(255,255,255,0.5)' }]}><T tam={10.5} peso="500" cor={marcada ? cores.branco : cores.destaque2}>{tecla}</T></View> : null}
+      <View style={{ flexShrink: 1 }}>
+        <T tam={14} peso="500" cor={marcada ? cores.branco : cores.texto}>{opcao.rotulo}</T>
+        {opcao.nota ? <T tam={11.5} cor={marcada ? 'rgba(255,255,255,0.85)' : cores.texto3} style={{ marginTop: 1 }}>{opcao.nota}</T> : null}
+      </View>
     </Pressable>
+  );
+}
+
+/* ---------- os quatro cantos da moldura do painel, só no computador ---------- */
+function Cantos() {
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <View style={[st.canto, { top: 0, left: 0, borderTopWidth: 1, borderLeftWidth: 1 }]} />
+      <View style={[st.canto, { top: 0, right: 0, borderTopWidth: 1, borderRightWidth: 1 }]} />
+      <View style={[st.canto, { bottom: 0, left: 0, borderBottomWidth: 1, borderLeftWidth: 1 }]} />
+      <View style={[st.canto, { bottom: 0, right: 0, borderBottomWidth: 1, borderRightWidth: 1 }]} />
+    </View>
   );
 }
 
 export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoEntrar; aoVoltar: () => void }) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  /* computador: tudo cresce junto com a janela (letras, orbe, opções, campos). 1 = o tamanho do celular */
+  /* no navegador, a coluna inteira (letras, orbe, opções, campos) escala com a janela: 1 = um celular de 390 px. Encolhe em
+     tela estreita ou baixa, para caber, e cresce só um pouco em tela grande (antes ia até 1,8 e as opções ficavam enormes). */
   const { largo } = useLayoutLargo();
-  const k = largo ? Math.min(1.8, Math.max(1, Math.min(width / 800, height / 760))) : 1;
+  const k = Platform.OS === 'web' ? Math.min(1.12, Math.max(0.78, Math.min(width / 390, height / 720))) : 1;
 
   const [resp, setResp] = useState<Respostas>({});
   const respRef = useRef<Respostas>({});
@@ -160,6 +164,8 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   const [enviando, setEnviando] = useState(false);
   const [recuperando, setRecuperando] = useState(false);   // a tela de esqueci a senha, no lugar da conversa
   const campoRef = useRef<CampoRef>(null), senhaRef = useRef<CampoRef>(null);
+  const [teclas, setTeclas] = useState(0);            // cada tecla digitada solta uma onda no orbe
+  const trechosRef = useRef<Parameters<typeof falar>[0]>([]);   // o áudio da última fala, para repetir ao tocar no orbe
 
   const passo = passos.find((p) => p.id === idAtual) ?? passos[0];
   const indice = passos.findIndex((p) => p.id === passo.id);
@@ -181,6 +187,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
     const itens = partes.map((p) => (typeof p === 'string' ? trechosDe(p, { nome }) : trechosDe(p.modelo, { nome, ...p.valores })));
     const t = itens.map((i) => i.exibir).join(' ');
     const trechos = itens.flatMap((i) => i.audio);
+    trechosRef.current = trechos;
     const id = ctrl.current.id + 1;
     ctrl.current = { id, voz: false, leg: false, depois, graca };
     setFala(t); setChave(id); setIndiceVoz(-1); setDuracaoMs(0); setCompleta(false); setFase('falando');
@@ -194,6 +201,11 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
     setTimeout(() => { if (ctrl.current.id === id) { ctrl.current.voz = true; checar(id); } }, ctrl.current.graca);
   }, [checar]);
   const pular = () => { parar(); ctrl.current.voz = true; setCompleta(true); };
+  /* tocar no orbe: enquanto ele fala, pula a fala; esperando a resposta, ele repete a pergunta em voz alta */
+  const tocarNoOrbe = () => {
+    if (fase === 'falando' && !completa) pular();
+    else if (fase === 'pergunta' && trechosRef.current.length) falar(trechosRef.current, sotaqueRef.current, () => undefined);
+  };
 
   const irPara = useCallback((id: string) => {
     setErro(''); setTexto(''); setMarcadas([]); setFalhou(false);
@@ -222,8 +234,8 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   }, [idAtual]);
   useEffect(() => () => parar(), []);
 
-  /* o orbe: ouve enquanto espera a resposta, fala enquanto fala */
-  const estadoOrbe: EstadoOrbe = fase === 'falando' ? 'falando' : fase === 'pergunta' ? 'ouvindo' : 'quieto';
+  /* o orbe: ouve enquanto espera a resposta, fala enquanto fala, pensa enquanto o servidor responde */
+  const estadoOrbe: EstadoOrbe = fase === 'falando' ? 'falando' : fase === 'pergunta' ? (enviando ? 'pensando' : 'ouvindo') : 'pensando';
 
   /* ---------- guardar uma resposta e seguir ---------- */
   const guardar = (id: string, valor: string | string[]) => {
@@ -267,6 +279,13 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
     }
     responder(valor, p.comentario?.(valor, respRef.current));
   };
+
+  /* marcar ou desmarcar uma opção numa pergunta de várias respostas */
+  const alternar = (p: Extract<Passo, { tipo: 'multi' }>, o: Opcao) => setMarcadas((m) => {
+    if (o.id === p.exclusiva) return m.includes(o.id) ? [] : [o.id];
+    const sem = m.filter((x) => x !== p.exclusiva);
+    return sem.includes(o.id) ? sem.filter((x) => x !== o.id) : [...sem, o.id];
+  });
 
   /* ---------- criar a conta com tudo o que foi respondido ---------- */
   const criarConta = async () => {
@@ -321,11 +340,31 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
     irPara(anteriores[anteriores.length - 1].id);
   };
 
+  /* ---------- atalhos de teclado (navegador): 1 a 9 escolhem a opção; Enter continua nas perguntas de várias respostas ---------- */
+  useEffect(() => {
+    if (Platform.OS !== 'web' || fase !== 'pergunta') return undefined;
+    const aoTeclar = (e: KeyboardEvent) => {
+      const alvo = e.target as HTMLElement | null;
+      if ((alvo && /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName)) || e.ctrlKey || e.metaKey || e.altKey) return;
+      const n = /^[1-9]$/.test(e.key) ? Number(e.key) : 0;
+      if (passo.tipo === 'sotaque' && n && n <= SOTAQUES.length) escolherSotaque(SOTAQUES[n - 1]);
+      else if (passo.tipo === 'opcoes' && n && n <= passo.opcoes.length) escolher(passo, passo.opcoes[n - 1]);
+      else if (passo.tipo === 'multi' && n && n <= passo.opcoes.length) alternar(passo, passo.opcoes[n - 1]);
+      else if (passo.tipo === 'multi' && e.key === 'Enter' && marcadas.length) responder(marcadas);
+    };
+    window.addEventListener('keydown', aoTeclar);
+    return () => window.removeEventListener('keydown', aoTeclar);
+  });
+
   /* ---------- tamanhos ---------- */
   const campoAberto = fase === 'pergunta' && (passo.tipo === 'campo' || passo.tipo === 'entrar');
-  /* com o zoom, a janela "cabe" menos unidades: as contas usam a janela já dividida por k */
-  const opcoesAbertas = largo && fase === 'pergunta' && (passo.tipo === 'sotaque' || passo.tipo === 'opcoes' || passo.tipo === 'multi');   // sobra pouca altura: o orbe encolhe para as opções caberem
-  const orbe = Math.round(Math.min(campoAberto ? 150 : opcoesAbertas ? 170 : 250, (width / k) * (campoAberto ? 0.4 : 0.62), (height / k) * (largo ? 0.36 : 0.3)));
+  const opcoesAbertas = fase === 'pergunta' && (passo.tipo === 'sotaque' || passo.tipo === 'opcoes' || passo.tipo === 'multi');   // sobra pouca altura: o orbe encolhe para as opções caberem
+  /* com o zoom, a janela "cabe" menos unidades: as contas usam a janela já dividida por k. O tamanho já inclui a moldura do orbe. */
+  const orbe = Math.round(Math.min(campoAberto ? 176 : opcoesAbertas ? 196 : 276, (width / k) * (campoAberto ? 0.5 : 0.72), (height / k) * 0.34));
+  /* a etapa em que a conversa está, contando só as perguntas */
+  const perguntas = passos.filter((p) => p.tipo !== 'fala' && p.tipo !== 'criar');
+  const etapa = Math.max(1, passos.slice(0, indice + 1).filter((p) => p.tipo !== 'fala' && p.tipo !== 'criar').length);
+  const doisDigitos = (n: number) => String(n).padStart(2, '0');
 
   if (recuperando) {
     return <RecuperarSenha emailInicial={email} aoVoltar={() => setRecuperando(false)} aoConcluir={(e) => { setEmail(e); setSenha(''); setErro(''); setRecuperando(false); }} />;
@@ -333,12 +372,16 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 
   return (
     <View style={{ flex: 1, backgroundColor: '#000000' }}>
+      {/* a mesma pista vermelha da tela inicial, um pouco mais apagada: aqui quem manda é a conversa */}
+      <FundoCena cena="pista" forca={1} veu={false} />
+      <LinearGradient pointerEvents="none" colors={['rgba(8,4,20,0.56)', 'rgba(8,4,20,0.5)', 'rgba(8,4,20,0.6)']} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1, alignItems: 'center', paddingTop: insets.top + 12, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
+          contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: largo ? 'center' : 'flex-start', paddingTop: insets.top + 12, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
         >
-          <View style={[st.coluna, largo ? { maxWidth: 560 } : null, k > 1 ? ({ zoom: k } as object) : null]}>
+          <View style={[st.coluna, largo ? st.colunaLarga : null, k !== 1 ? ({ zoom: k } as object) : null]}>
+            {largo ? <Cantos /> : null}
             {/* topo: voltar e o progresso */}
             <View style={st.topo}>
               {largo ? <View style={st.botaoTopo} /> : (
@@ -350,14 +393,28 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
               <View style={st.botaoTopo} />
             </View>
             {modo === 'cadastro' ? (
-              <View style={st.trilho} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(progresso * 100) }}>
-                <View style={[st.trilhoCheio, { width: `${Math.max(3, progresso * 100)}%` }]} />
+              <View>
+                <View style={st.etapa}>
+                  <T tam={10.5} mono cor={cores.texto3} style={{ letterSpacing: 2 }}>CRIAR CONTA</T>
+                  <T tam={10.5} mono cor={cores.destaque2} style={{ letterSpacing: 2 }}>ETAPA {doisDigitos(etapa)} · {doisDigitos(perguntas.length)}</T>
+                </View>
+                <View style={st.trilho} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(progresso * 100) }}>
+                  <View style={[st.trilhoCheio, { width: `${Math.max(3, progresso * 100)}%` }]} />
+                </View>
               </View>
             ) : null}
 
-            <View style={{ alignItems: 'center', marginTop: 4 }}>
-              <OrbeRondin tamanho={orbe} estado={estadoOrbe} />
-              <T tam={13} peso="500" cor={cores.destaque2} style={{ letterSpacing: 3, marginTop: -6 }}>RONDIN</T>
+            <View style={{ alignItems: 'center', marginTop: 6 }}>
+              <Orbe
+                hud tamanho={orbe} estado={estadoOrbe} pulso={teclas} aoPressionar={tocarNoOrbe}
+                rotulo={fase === 'falando' && !completa ? 'RONDIN. Tocar para pular a fala' : 'RONDIN. Tocar para ouvir a pergunta de novo'}
+              />
+              <View style={st.estado}>
+                <T tam={12.5} peso="500" cor={cores.destaque2} style={{ letterSpacing: 3 }}>RONDIN</T>
+                <View style={st.estadoFio} />
+                <View style={[st.estadoPonto, { backgroundColor: estadoOrbe === 'falando' ? cores.destaque2 : estadoOrbe === 'ouvindo' ? cores.bom : cores.alerta }]} />
+                <T tam={10.5} mono cor={cores.texto2} style={{ letterSpacing: 2 }}>{ROTULO_ESTADO[estadoOrbe]}</T>
+              </View>
             </View>
 
             <Legenda largo={largo} texto={fala} chave={chave} taxa={sotaque.taxa} duracaoMs={duracaoMs} indiceVoz={indiceVoz} completa={completa} aoCompletar={aoCompletarLegenda} />
@@ -372,15 +429,15 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
               <View style={{ marginTop: 14, width: '100%' }}>
                 {passo.tipo === 'sotaque' ? (
                   <View style={st.grade}>
-                    {SOTAQUES.map((s) => (
+                    {SOTAQUES.map((s, i) => (
                       <Pressable
                         key={s.id} accessibilityRole="button" accessibilityLabel={`${s.nome}, ${s.nota}`} onPress={() => escolherSotaque(s)}
-                        style={({ pressed }) => [st.cartaoSotaque, largo && st.cartaoSotaqueLargo, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
+                        style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.cartaoSotaque, largo && st.cartaoSotaqueLargo, hovered && st.pilulaSobre, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
                       >
-                        <Icone nome={s.mudo ? 'comentario' : 'tocar'} tamanho={16} cor={cores.destaque2} />
+                        {largo && i < 9 ? <View style={st.tecla}><T tam={10.5} peso="500" cor={cores.destaque2}>{i + 1}</T></View> : <Icone nome={s.mudo ? 'comentario' : 'tocar'} tamanho={15} cor={cores.destaque2} />}
                         <View style={{ flex: 1 }}>
-                          <T tam={14.5} peso="500">{s.nome}</T>
-                          <T tam={12} cor={cores.texto3} style={{ marginTop: 1 }}>{s.nota}</T>
+                          <T tam={13.5} peso="500">{s.nome}</T>
+                          <T tam={11.5} cor={cores.texto3} style={{ marginTop: 1 }}>{s.nota}</T>
                         </View>
                       </Pressable>
                     ))}
@@ -389,7 +446,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 
                 {passo.tipo === 'opcoes' ? (
                   <View style={st.opcoes}>
-                    {passo.opcoes.map((o) => <Pilula key={o.id} opcao={o} aoPressionar={() => escolher(passo, o)} />)}
+                    {passo.opcoes.map((o, i) => <Pilula key={o.id} opcao={o} tecla={largo && i < 9 ? i + 1 : undefined} aoPressionar={() => escolher(passo, o)} />)}
                     {passo.links ? (
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, width: '100%', justifyContent: 'center', marginTop: 4 }}>
                         {[['Termos de Uso', '/termos'], ['Política de Privacidade', '/privacidade']].map(([t, c]) => (
@@ -405,15 +462,8 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                 {passo.tipo === 'multi' ? (
                   <View>
                     <View style={st.opcoes}>
-                      {passo.opcoes.map((o) => (
-                        <Pilula
-                          key={o.id} opcao={o} marcada={marcadas.includes(o.id)}
-                          aoPressionar={() => setMarcadas((m) => {
-                            if (o.id === passo.exclusiva) return m.includes(o.id) ? [] : [o.id];
-                            const sem = m.filter((x) => x !== passo.exclusiva);
-                            return sem.includes(o.id) ? sem.filter((x) => x !== o.id) : [...sem, o.id];
-                          })}
-                        />
+                      {passo.opcoes.map((o, i) => (
+                        <Pilula key={o.id} opcao={o} marcada={marcadas.includes(o.id)} tecla={largo && i < 9 ? i + 1 : undefined} aoPressionar={() => alternar(passo, o)} />
                       ))}
                     </View>
                     <View style={{ marginTop: 18 }}>
@@ -426,7 +476,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                   <View style={{ gap: 14 }}>
                     <CampoFlutuante
                       key={passo.id} ref={campoRef} rotulo={passo.rotulo} accessibilityLabel={passo.rotulo} value={texto} autoFocus={Platform.OS === 'web'}
-                      onChangeText={(v) => { setErro(''); setTexto(passo.campo === 'data' ? mascararData(v) : v); }}
+                      onChangeText={(v) => { setErro(''); setTeclas((n) => n + 1); setTexto(passo.campo === 'data' ? mascararData(v) : v); }}
                       erro={erro}
                       icone={passo.campo === 'email' ? 'email' : passo.campo === 'senha' ? 'cadeado' : passo.campo === 'data' ? 'calendario' : passo.campo === 'texto' ? 'perfil' : 'evolucao'}
                       secureTextEntry={passo.campo === 'senha' && !verSenha}
@@ -448,12 +498,12 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                 {passo.tipo === 'entrar' ? (
                   <View style={{ gap: 14 }}>
                     <CampoFlutuante
-                      ref={campoRef} rotulo="E-mail" icone="email" value={email} onChangeText={(v) => { setEmail(v); setErro(''); }} autoFocus={Platform.OS === 'web'}
+                      ref={campoRef} rotulo="E-mail" icone="email" value={email} onChangeText={(v) => { setEmail(v); setErro(''); setTeclas((n) => n + 1); }} autoFocus={Platform.OS === 'web'}
                       valido={emailValido(email)} autoCapitalize="none" autoCorrect={false} autoComplete="email" keyboardType="email-address" textContentType="emailAddress"
                       returnKeyType="next" submitBehavior="submit" onSubmitEditing={() => senhaRef.current?.focus()}
                     />
                     <CampoFlutuante
-                      ref={senhaRef} rotulo="Senha" icone="cadeado" value={senha} onChangeText={(v) => { setSenha(v); setErro(''); }} secureTextEntry={!verSenha}
+                      ref={senhaRef} rotulo="Senha" icone="cadeado" value={senha} onChangeText={(v) => { setSenha(v); setErro(''); setTeclas((n) => n + 1); }} secureTextEntry={!verSenha}
                       autoCapitalize="none" autoCorrect={false} autoComplete="current-password" textContentType="password" returnKeyType="go" onSubmitEditing={fazerLogin}
                       direita={
                         <Pressable accessibilityRole="button" accessibilityLabel={verSenha ? 'Esconder senha' : 'Mostrar senha'} hitSlop={6} onPress={() => setVerSenha((v) => !v)} style={st.olho}>
@@ -491,7 +541,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
           accessibilityRole="button" accessibilityLabel={indice <= 0 ? 'Voltar para o início' : 'Voltar uma pergunta'} onPress={voltar} hitSlop={8}
           style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.setaCanto, { top: insets.top + 24 }, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}
         >
-          <Icone nome="voltar" tamanho={34} cor="#ffffff" />
+          <Icone nome="voltar" tamanho={24} cor="#ffffff" />
         </Pressable>
       ) : null}
     </View>
@@ -500,26 +550,32 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 
 const st = estilos(() => StyleSheet.create({
   coluna: { width: '100%', maxWidth: 440, alignSelf: 'center' },
+  colunaLarga: { maxWidth: 520, paddingHorizontal: 26, paddingBottom: 24, backgroundColor: 'rgba(8,5,18,0.72)', borderRadius: 4 },
+  canto: { position: 'absolute', width: 18, height: 18, borderColor: 'rgba(196,168,255,0.45)' },
   topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 44 },
-  setaCanto: { position: 'absolute', left: 28, width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' },
+  setaCanto: { position: 'absolute', left: 24, width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   botaoTopo: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  trilho: { height: 3, borderRadius: 2, backgroundColor: cores.linha, overflow: 'hidden', marginTop: 4 },
-  trilhoCheio: { height: 3, borderRadius: 2, backgroundColor: cores.destaque },
-  anel: { position: 'absolute', borderWidth: 1, borderColor: 'rgba(196,168,255,0.28)' },
-  legenda: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 18, minHeight: 96, paddingHorizontal: 4 },
-  opcoes: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10 },
+  etapa: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 },
+  trilho: { height: 2, borderRadius: 1, backgroundColor: cores.linha },
+  trilhoCheio: { height: 2, borderRadius: 1, backgroundColor: cores.destaque2, boxShadow: '0 0 8px rgba(196,168,255,0.9)' },
+  estado: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
+  estadoFio: { width: 18, height: 1, backgroundColor: cores.linha2, marginHorizontal: 2 },
+  estadoPonto: { width: 6, height: 6, borderRadius: 3 },
+  legenda: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, minHeight: 88, paddingHorizontal: 4 },
+  opcoes: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
   pilula: {
-    minHeight: 46, paddingVertical: 11, paddingHorizontal: 18, borderRadius: 24, borderWidth: 1, borderColor: cores.linha2,
-    backgroundColor: cores.cartao, alignItems: 'center', justifyContent: 'center',
+    minHeight: 44, paddingVertical: 9, paddingHorizontal: 15, borderRadius: 12, borderWidth: 1, borderColor: cores.linha2,
+    backgroundColor: `rgba(${cores.tom},0.07)`, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, maxWidth: '100%',
   },
-  pilulaGrande: { width: '100%' },
-  pilulaMarcada: { backgroundColor: cores.destaqueForte, borderColor: cores.destaque },
-  grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  pilulaSobre: { borderColor: 'rgba(196,168,255,0.7)', backgroundColor: `rgba(${cores.tom},0.16)`, boxShadow: '0 0 18px -6px rgba(139,92,246,0.9)' },
+  pilulaMarcada: { backgroundColor: cores.destaqueForte, borderColor: cores.destaque2, boxShadow: '0 0 18px -6px rgba(139,92,246,0.95)' },
+  tecla: { width: 20, height: 20, borderRadius: 5, borderWidth: 1, borderColor: 'rgba(196,168,255,0.4)', alignItems: 'center', justifyContent: 'center' },
+  grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   cartaoSotaque: {
-    flexGrow: 1, flexBasis: '47%', minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 14,
-    borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao,
+    flexGrow: 1, flexBasis: '47%', minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, paddingHorizontal: 12,
+    borderRadius: 12, borderWidth: 1, borderColor: cores.linha2, backgroundColor: `rgba(${cores.tom},0.07)`,
   },
-  cartaoSotaqueLargo: { flexBasis: '30%', minWidth: 150 },   // computador: 3 por linha, e as 9 opções cabem na tela
+  cartaoSotaqueLargo: { flexBasis: '30%', minWidth: 140 },   // computador: as duas vozes lado a lado
   olho: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   banner: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 12,

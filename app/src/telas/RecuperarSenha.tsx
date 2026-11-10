@@ -56,7 +56,7 @@ export function RecuperarSenha({ emailInicial, aoVoltar, aoConcluir }: Props) {
   const trocar = async () => {
     if (enviando) return;
     if (!/^\d{6}$/.test(codigo)) { setErro('O código tem 6 números.'); return; }
-    if (senha.length < 6) { setErro('A senha nova precisa de pelo menos 6 caracteres.'); return; }
+    if (senha.length < 8) { setErro('A senha nova precisa de pelo menos 8 caracteres.'); return; }
     setErro(''); setEnviando(true);
     try {
       await redefinirSenha(email.trim(), codigo, senha);

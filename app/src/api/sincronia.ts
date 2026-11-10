@@ -19,4 +19,4 @@ export const enviarDados = (itens: Record<string, unknown>) => chamar<{ itens: R
 export const salvarPerfilNoServidor = (dados: { nome?: string; arroba?: string; bio?: string; foto?: string | null }) =>
   chamar<{ nome: string; arroba: string | null; bio: string }>('PATCH', '/me/perfil', dados);
 
-export const trocarSenhaNoServidor = (atual: string, nova: string) => chamar<{ status: string }>('POST', '/auth/senha', { atual, nova });
+export const trocarSenhaNoServidor = (atual: string, nova: string) => chamar<{ status: string; token?: string }>('POST', '/auth/senha', { atual, nova });

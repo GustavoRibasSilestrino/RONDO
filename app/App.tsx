@@ -7,7 +7,7 @@ import { BackHandler, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Abertura } from './src/componentes/Abertura';
 import { AvisoNivel } from './src/componentes/AvisoNivel';
-import { FundoBolhas } from './src/componentes/FundoBolhas';
+import { FundoCena, cenaDaTela } from './src/componentes/FundoCena';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
 import { BotaoVoltar } from './src/componentes/BotaoVoltar';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
@@ -113,7 +113,8 @@ function Raiz() {
     <View style={{ flex: 1, flexDirection: largo ? 'row' : 'column' }}>
       {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} recolhido={menuRecolhido} aoAlternar={alternarMenu} nome={estado.usuario?.nome ?? ""} nivel={nivelDe(xpTotal(estado))} aoAbrirConta={() => setTela("perfil")} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} aoAbrirPro={() => setPlanoAberto(true)} /> : null}
       <View style={{ flex: 1 }}>
-      <FundoBolhas />
+      {/* a paisagem ilustrada da tela (as bolhas roxas saíram: tingiam o desenho todo de roxo) */}
+      <FundoCena cena={cenaDaTela(tela)} />
       {tela === 'home' && <Social modo="home" ir={irPara} buscaAberta={buscando} aoFecharBusca={() => setBuscando(false)} />}
       {tela === 'comunidade' && <Social modo="comunidade" ir={irPara} buscaAberta={false} aoFecharBusca={() => setBuscando(false)} />}
       {tela === 'treino' && <><Treino />{estado.treinoAtual ? null : <CriarPlano tipo="treino" />}</>}

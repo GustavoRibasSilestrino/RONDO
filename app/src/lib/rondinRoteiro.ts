@@ -225,7 +225,7 @@ export function passosCadastro(r: Respostas): Passo[] {
     },
     {
       id: 'senha', tipo: 'campo', campo: 'senha', rotulo: 'Senha', fala: () => 'Escolha uma senha com pelo menos seis caracteres. Prometo que não conto pra ninguém.',
-      validar: (v) => (v.length < 6 ? 'A senha precisa de pelo menos 6 caracteres.' : undefined),
+      validar: (v) => (v.length < 8 ? 'A senha precisa de pelo menos 8 caracteres.' : undefined),
     },
     {
       id: 'termos', tipo: 'opcoes', links: true,
