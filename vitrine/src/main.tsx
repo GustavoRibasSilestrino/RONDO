@@ -5,6 +5,7 @@ import { AvisoCookies } from "./components/AvisoCookies";
 import { PAGINAS_LEGAIS } from "./components/Legal";
 /* fontes servidas pelo próprio site (só o alfabeto latino): nenhuma chamada ao Google, nenhum IP de visitante enviado a terceiros */
 import "@fontsource-variable/bricolage-grotesque/opsz.css";
+import "@fontsource/climate-crisis/latin-400.css";   // a fonte dos títulos
 import "./styles/base.css";
 import "./styles/layout.css";
 import "./styles/components.css";
@@ -20,6 +21,7 @@ import "./styles/cadastro.css";
 import "./styles/legal.css";
 import "./styles/hero.css";
 import "./styles/acabamento.css";
+import "./styles/cenas.css";
 
 /* sem zoom de pinça: o Safari do iPhone ignora o user-scalable=no do index.html, mas respeita cancelar o gesto
    (esses eventos só existem no Safari) */

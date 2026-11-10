@@ -107,10 +107,10 @@ export function usePauseOffscreen() {
 
 /* ---------- botões: o primário é atraído pelo cursor ---------- */
 type BtnProps = {
-  href?: string; kind?: "primary" | "ghost"; small?: boolean; type?: "button" | "submit";
+  href?: string; kind?: "primary" | "ghost"; small?: boolean; type?: "button" | "submit"; disabled?: boolean;
   className?: string; children: ReactNode;
 };
-export function Btn({ href, kind = "primary", small, type = "button", className = "", children }: BtnProps) {
+export function Btn({ href, kind = "primary", small, type = "button", disabled, className = "", children }: BtnProps) {
   const cls = `btn btn-${kind}${small ? " btn-sm" : ""} ${className}`.trim();
   const magnet = kind === "primary" && finePointer && !reduceMotion;
   const onMove = (e: React.PointerEvent<HTMLElement>) => {
@@ -125,7 +125,7 @@ export function Btn({ href, kind = "primary", small, type = "button", className 
   const hooks = magnet ? { onPointerMove: onMove, onPointerLeave: onLeave } : {};
   return href
     ? <a href={href} className={cls} {...hooks}>{children}</a>
-    : <button type={type} className={cls} {...hooks}>{children}</button>;
+    : <button type={type} className={cls} disabled={disabled} aria-busy={disabled || undefined} {...hooks}>{children}</button>;
 }
 
 /* ---------- seção ---------- */

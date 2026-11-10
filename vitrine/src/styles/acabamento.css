@@ -67,3 +67,61 @@ input, select, textarea { caret-color: var(--accent-2); accent-color: var(--acce
   .panel:hover, .mini:hover, .step:hover { border-color: var(--line); }
   .footer-links a:hover { background-size: 0 1px; }
 }
+
+/* ===== Títulos na Climate Crisis =====
+   A letra é de cartaz, gorda e uns 60% mais larga que a Bricolage: os tamanhos descem para cada frase caber na sua coluna
+   (medidos: "Vença o você" tem 9,3 em de largura; "RECORDE DE AMANHÃ." 16,3 em; "KETTLEBELL" 9,1 em). */
+.display { line-height: 1.16; }
+h1.display { font-size: clamp(1.7rem, 4.8vw, 4.4rem); line-height: 1.1; }
+h2.display { font-size: clamp(1.5rem, 3vw, 2.6rem); }
+.hero-texto { max-width: 46rem; }
+.hero-title { font-size: clamp(1.9rem, 4.6vw, 4.4rem); line-height: 1.12; }
+.hero-title .trail { font-size: 1.12em; }
+.moment h3 { font-size: clamp(1.5rem, 3vw, 2.6rem); line-height: 1.12; }
+.modal h2 { font-size: 1.3rem; line-height: 1.2; }
+.gym-title { font-size: clamp(1rem, 2.4vw, 2.3rem); line-height: 1.16; }
+.gym-word { font-size: clamp(2rem, 8.4vw, 11rem); }
+@media (max-width: 960px) {
+  .hero-texto { max-width: 26rem; }
+  .hero-title { font-size: clamp(1.7rem, 7.4vw, 2.6rem); line-height: 1.14; }
+}
+@media (max-width: 820px) {
+  .gym-title { font-size: clamp(1rem, 5.1vw, 1.9rem); }
+  .gym-word { font-size: clamp(1.6rem, 10.2vw, 4.6rem); }
+  .moment h3 { font-size: clamp(1.5rem, 7vw, 2.1rem); }
+}
+@media (max-width: 640px) {
+  .hero-title { font-size: 2.05rem; }
+  h1.display { font-size: 1.6rem; }
+  h2.display { font-size: 1.42rem; }
+}
+
+/* ===== Botões =====
+   O mesmo desenho do app: canto de 12 px, degradê roxo com um fio de luz em cima e sombra embaixo, brilho roxo por baixo.
+   Com o cursor em cima o botão sobe, o brilho cresce e um reflexo atravessa. O contorno de luz que gira continua (base.css). */
+.btn { border-radius: 12px; font-weight: 600; letter-spacing: .01em; padding: .95rem 1.6rem; transition: transform .25s var(--ease), background .25s, box-shadow .3s, border-color .25s; }
+.btn-sm { border-radius: 10px; padding: .6rem 1.05rem; }
+.btn-primary {
+  background: linear-gradient(135deg, #5a0fc4 0%, #7426ec 48%, #9a5cff 100%); color: #fff; border: 1px solid rgba(214, 196, 255, .34);
+  box-shadow: 0 14px 30px -16px rgba(122, 38, 236, .95), inset 0 1px 0 rgba(255, 255, 255, .3), inset 0 -12px 18px -12px rgba(20, 0, 60, .55);
+}
+.btn-primary:hover { box-shadow: 0 20px 36px -16px rgba(139, 92, 246, 1), inset 0 1px 0 rgba(255, 255, 255, .42), inset 0 -12px 18px -12px rgba(20, 0, 60, .45); border-color: rgba(232, 220, 255, .7); }
+.btn-ghost { border: 1px solid rgba(196, 168, 255, .32); background: rgba(139, 92, 246, .08); backdrop-filter: blur(6px); }
+.btn-ghost:hover { background: rgba(139, 92, 246, .18); border-color: rgba(196, 168, 255, .72); box-shadow: 0 0 22px -8px rgba(139, 92, 246, .9); }
+/* o reflexo que atravessa o botão quando o cursor chega */
+.btn::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .26) 50%, transparent 62%) 160% 0 / 260% 100% no-repeat;
+}
+.btn:hover::after { background-position: -60% 0; transition: background-position .75s var(--ease); }
+/* primeira tela: o botão principal é claro, para saltar do roxo; o segundo é de vidro */
+.hero-cta .btn { border-radius: 12px; font-weight: 600; }
+.hero-cta .btn-primary { background: #fff; color: #1b0a3d; border: 1px solid #fff; box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .8), inset 0 -10px 16px -12px rgba(106, 30, 232, .35); }
+.hero-cta .btn-primary:hover { background: #f3ecff; box-shadow: 0 24px 46px -18px rgba(0, 0, 0, .85), inset 0 -10px 16px -12px rgba(106, 30, 232, .45); }
+.hero-cta .btn-primary::before { display: none; }   /* sem o contorno girando: o branco já chama */
+.hero-cta .btn-primary::after { background-image: linear-gradient(105deg, transparent 38%, rgba(139, 92, 246, .24) 50%, transparent 62%); }
+.hero-cta .btn-ghost { border: 1px solid rgba(255, 255, 255, .28); background: rgba(10, 4, 30, .34); }
+.hero-cta .btn-ghost:hover { background: rgba(10, 4, 30, .5); border-color: rgba(255, 255, 255, .6); box-shadow: none; }
+.btn-mini { border-radius: 10px; }
+@media (prefers-reduced-motion: reduce) { .btn::after { display: none; } }
+@media (hover: none) { .btn::after { display: none; } }

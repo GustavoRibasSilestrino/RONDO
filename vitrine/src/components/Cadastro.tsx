@@ -38,6 +38,7 @@ export function CriarConta() {
 
   async function enviar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (enviando) return;   // já está enviando: o segundo clique não manda de novo
     const form = e.currentTarget;
     const f = new FormData(form);
     setEnviando(true);
@@ -65,7 +66,7 @@ export function CriarConta() {
     <form className="cadastro" onSubmit={enviar}>
       <label className="field">Nome<input name="nome" required minLength={2} maxLength={120} autoComplete="name" /></label>
       <label className="field">E-mail<input name="email" type="email" required autoComplete="email" /></label>
-      <label className="field">Senha<input name="senha" type="password" required minLength={6} maxLength={128} autoComplete="new-password" /></label>
+      <label className="field">Senha<input name="senha" type="password" required minLength={8} maxLength={128} autoComplete="new-password" /></label>
       <label className="field">Data de nascimento
         <input name="nascimento" type="date" required min="1900-01-01" max={hoje()} value={nascimento} onChange={(e) => setNascimento(e.target.value)} aria-describedby="nasc-ajuda" />
       </label>
@@ -89,7 +90,7 @@ export function CriarConta() {
         <input name="marketing" type="checkbox" />
         <span>Quero receber e-mails de novidades do RONDO (opcional; dá para sair quando quiser).</span>
       </label>
-      <Btn type="submit">{enviando ? "Criando…" : "Criar conta"}</Btn>
+      <Btn type="submit" disabled={enviando}>{enviando ? "Criando…" : "Criar conta"}</Btn>
       <p className={`cadastro-aviso ${aviso.tipo ? "is-" + aviso.tipo : ""}`} role="status">{aviso.texto}</p>
     </form>
   );
@@ -103,6 +104,7 @@ export function CadastroProfissional() {
 
   async function enviar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (enviando) return;   // já está enviando: o segundo clique não manda de novo
     const form = e.currentTarget;
     const f = new FormData(form);
     setEnviando(true);
@@ -144,7 +146,7 @@ export function CadastroProfissional() {
           <span className="sr-only"> (abrem em nova aba)</span>.
         </span>
       </label>
-      <Btn type="submit">{enviando ? "Enviando…" : "Enviar cadastro"}</Btn>
+      <Btn type="submit" disabled={enviando}>{enviando ? "Enviando…" : "Enviar cadastro"}</Btn>
       <p className={`cadastro-aviso ${aviso.tipo ? "is-" + aviso.tipo : ""}`} role="status">{aviso.texto}</p>
     </form>
   );
