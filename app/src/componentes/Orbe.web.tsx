@@ -134,6 +134,16 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
       varre += dt * (e === 'ouvindo' ? 1.5 : e === 'pensando' ? 3.2 : 0.7);
       quadro(pts, t, amp, R, c, c, saida, 0.42 + my * 0.5, mx * 0.9);
       ctx.clearRect(0, 0, tamanho, tamanho);
+      /* o destaque: uma auréola de luz roxa atrás da esfera, que respira devagar e cresce quando ele fala ou o cursor chega */
+      if (hud) {
+        const forca = 0.34 + 0.22 * amp + 0.12 * brilho + 0.04 * Math.sin(t * 1.3);
+        const halo = ctx.createRadialGradient(c, c, R * 0.2, c, c, tamanho * 0.5);
+        halo.addColorStop(0, `rgba(176,128,255,${Math.min(0.62, forca).toFixed(3)})`);
+        halo.addColorStop(0.45, `rgba(124,58,237,${(forca * 0.42).toFixed(3)})`);
+        halo.addColorStop(1, 'rgba(91,33,182,0)');
+        ctx.fillStyle = halo;
+        ctx.fillRect(0, 0, tamanho, tamanho);
+      }
       for (const passe of [0, 1]) {   // primeiro os pontos de trás, depois os da frente
         for (let i = 0; i < N; i += 1) {
           const o = i * CAMPOS;

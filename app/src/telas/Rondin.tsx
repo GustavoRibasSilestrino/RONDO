@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cadastrar, entrar, nomeEstaLivre } from '../api/conta';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
-import { FundoCena } from '../componentes/FundoCena';
+import { FundoCena, posicaoDoNome } from '../componentes/FundoCena';
 import { Icone } from '../componentes/Icone';
 import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
@@ -360,7 +360,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   const campoAberto = fase === 'pergunta' && (passo.tipo === 'campo' || passo.tipo === 'entrar');
   const opcoesAbertas = fase === 'pergunta' && (passo.tipo === 'sotaque' || passo.tipo === 'opcoes' || passo.tipo === 'multi');   // sobra pouca altura: o orbe encolhe para as opções caberem
   /* com o zoom, a janela "cabe" menos unidades: as contas usam a janela já dividida por k. O tamanho já inclui a moldura do orbe. */
-  const orbe = Math.round(Math.min(campoAberto ? 176 : opcoesAbertas ? 196 : 276, (width / k) * (campoAberto ? 0.5 : 0.72), (height / k) * 0.34));
+  const orbe = Math.round(Math.max(130, Math.min(campoAberto ? 176 : opcoesAbertas ? 196 : 276, (width / k) * (campoAberto ? 0.5 : 0.72), ((height - posicaoDoNome(width, height).base) / k) * 0.34)));
   /* a etapa em que a conversa está, contando só as perguntas */
   const perguntas = passos.filter((p) => p.tipo !== 'fala' && p.tipo !== 'criar');
   const etapa = Math.max(1, passos.slice(0, indice + 1).filter((p) => p.tipo !== 'fala' && p.tipo !== 'criar').length);
@@ -372,13 +372,13 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 
   return (
     <View style={{ flex: 1, backgroundColor: '#000000' }}>
-      {/* a mesma serra ao anoitecer da tela inicial, um pouco mais apagada: aqui quem manda é a conversa */}
-      <FundoCena cena="noite" forca={1} veu={false} />
-      <LinearGradient pointerEvents="none" colors={['#000000', 'rgba(8,4,20,0.42)', 'rgba(8,4,20,0.36)', 'rgba(8,4,20,0.5)', '#000000']} locations={[0, 0.2, 0.5, 0.82, 1]} style={StyleSheet.absoluteFill} />
+      {/* a mesma serra com o nome RONDO da tela inicial, um pouco mais apagada: aqui quem manda é a conversa */}
+      <FundoCena cena="rondo" forca={1} veu={false} />
+      <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0.35)', 'rgba(8,4,20,0)', 'rgba(8,4,20,0.36)', 'rgba(8,4,20,0.5)', '#000000']} locations={[0, 0.12, 0.5, 0.82, 1]} style={StyleSheet.absoluteFill} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: largo ? 'center' : 'flex-start', paddingTop: insets.top + 12, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
+          contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: Math.max(insets.top + 12, posicaoDoNome(width, height).base + 10), paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
         >
           <View style={[st.coluna, largo ? st.colunaLarga : null, k !== 1 ? ({ zoom: k } as object) : null]}>
             {largo ? <Cantos /> : null}

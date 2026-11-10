@@ -3,7 +3,7 @@
    anel de marcações. Tocar nele chama `aoPressionar`. */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { CAMPOS, EstadoOrbe, amplitude, corDoPonto, esfera, quadro } from '../lib/orbe';
 import { useMovimentoReduzido } from '../lib/movimento';
 
@@ -57,6 +57,19 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
   const fio = Math.max(1, tamanho / 210);
   const rEspectro = tamanho * 0.385, rArcos = tamanho * 0.436, rMarcas = tamanho * 0.47;
   const voltaArcos = 2 * Math.PI * rArcos, voltaMarcas = 2 * Math.PI * rMarcas;
+  /* o destaque: uma auréola de luz roxa atrás da esfera, que cresce quando ele fala */
+  const halo = hud ? (
+    <>
+      <Defs>
+        <RadialGradient id="halo-rondin" cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor="#b080ff" stopOpacity={Math.min(0.62, 0.34 + 0.22 * a)} />
+          <Stop offset="0.45" stopColor="#7c3aed" stopOpacity={(0.34 + 0.22 * a) * 0.42} />
+          <Stop offset="1" stopColor="#5b21b6" stopOpacity="0" />
+        </RadialGradient>
+      </Defs>
+      <Circle cx={c} cy={c} r={c} fill="url(#halo-rondin)" />
+    </>
+  ) : null;
   const moldura = hud ? (
     <>
       <Circle cx={c} cy={c} r={rEspectro} fill="none" stroke="#c4a8ff" strokeOpacity={0.25 + 0.5 * a} strokeWidth={fio + a * tamanho * 0.035} strokeDasharray={`${fio * 1.4} ${fio * 2.6}`} />
@@ -65,7 +78,7 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
     </>
   ) : null;
 
-  const desenho = <Svg width={tamanho} height={tamanho} viewBox={`0 0 ${tamanho} ${tamanho}`}>{bolinhas}{moldura}</Svg>;
+  const desenho = <Svg width={tamanho} height={tamanho} viewBox={`0 0 ${tamanho} ${tamanho}`}>{halo}{bolinhas}{moldura}</Svg>;
   if (!aoPressionar) return desenho;
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={aoPressionar} style={({ pressed }) => ({ width: tamanho, height: tamanho, borderRadius: tamanho / 2, opacity: pressed ? 0.85 : 1 })}>
