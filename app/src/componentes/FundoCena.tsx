@@ -1,25 +1,29 @@
 /* A foto de paisagem que fica no fundo das telas: a serra de dia ou a serra ao anoitecer (as mesmas do site, em assets/cenas).
-   Para o texto continuar fácil de ler, a foto entra a meia força e com um véu escuro por cima, mais forte embaixo. */
+   Para o texto continuar fácil de ler, a foto entra a meia força e nasce do preto: degradê cheio do preto no alto e embaixo. */
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 
-export type NomeCena = 'dia' | 'noite';
+export type NomeCena = 'dia' | 'noite' | 'vale' | 'picos';
 
 const CENAS: Record<NomeCena, number> = {
   dia: require('../../assets/cenas/serra-dia.webp'),
   noite: require('../../assets/cenas/serra-noite.webp'),
+  vale: require('../../assets/cenas/vale-nuvens.webp'),
+  picos: require('../../assets/cenas/picos-noite.webp'),
 };
 
 /* a foto de cada tela do app */
-const DA_TELA: Record<string, NomeCena> = { home: 'noite', treino: 'dia', comunidade: 'dia', dieta: 'dia', perfil: 'noite', hoje: 'dia', evolucao: 'dia', recado: 'noite', colecoes: 'noite', notificacoes: 'noite' };
+/* a foto de cada tela: as cinco abas têm fotos diferentes entre si */
+const DA_TELA: Record<string, NomeCena> = { home: 'picos', treino: 'dia', comunidade: 'vale', dieta: 'dia', perfil: 'noite', hoje: 'vale', evolucao: 'dia', recado: 'picos', colecoes: 'noite', notificacoes: 'picos' };
 export const cenaDaTela = (tela: string): NomeCena => DA_TELA[tela] ?? 'noite';
 
 export function FundoCena({ cena, forca = 0.55, veu = true }: { cena: NomeCena; forca?: number; veu?: boolean }) {
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <Image source={CENAS[cena]} resizeMode="cover" accessibilityIgnoresInvertColors style={[StyleSheet.absoluteFill, { width: '100%', height: '100%', opacity: forca }]} />
-      {veu ? <LinearGradient colors={['rgba(7,6,11,0.42)', 'rgba(7,6,11,0.18)', 'rgba(7,6,11,0.7)']} locations={[0, 0.4, 1]} style={StyleSheet.absoluteFill} /> : null}
+      {/* a foto nasce do preto: preto cheio no alto e embaixo, meia força no meio */}
+      {veu ? <LinearGradient colors={['#07060b', 'rgba(7,6,11,0.55)', 'rgba(7,6,11,0.22)', 'rgba(7,6,11,0.55)', '#07060b']} locations={[0, 0.16, 0.45, 0.8, 1]} style={StyleSheet.absoluteFill} /> : null}
     </View>
   );
 }

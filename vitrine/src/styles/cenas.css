@@ -1,13 +1,13 @@
 /* ===== Fotos de paisagem no fundo =====
-   Três imagens do dono, em assets/cenas: hero-foto (a serra com o nome RONDO, na primeira tela), serra-dia e serra-noite
-   (nas seções e na chamada final). Regra de leitura: a foto nunca fica atrás de texto em força total. */
+   Imagens do dono, em assets/cenas: hero-foto (a serra com o nome RONDO, na primeira tela), serra-dia e serra-noite, e dois
+   recortes delas (vale-nuvens e picos-noite), para cada parte do site ter uma imagem diferente. Regra de leitura: a foto nunca fica atrás de texto em força total. */
 
 /* primeira tela: a foto das montanhas ao nascer do sol, com o nome RONDO esculpido nelas (a imagem é do dono; a palavra
    gigante e a cena em vetor que ficavam aqui saíram). Um véu escuro do lado do texto garante a leitura, e a base escurece
    até a cor da página. No celular a foto é centrada no nome. */
 .hero {
   background:
-    linear-gradient(180deg, rgba(3, 1, 8, .28) 0%, rgba(3, 1, 8, 0) 22%, rgba(3, 1, 8, 0) 74%, rgba(3, 1, 8, .7) 93%, #030108 100%),
+    linear-gradient(180deg, rgba(3, 1, 8, .28) 0%, rgba(3, 1, 8, 0) 22%, rgba(3, 1, 8, 0) 62%, rgba(5, 5, 7, .6) 84%, var(--bg) 100%),
     linear-gradient(90deg, rgba(14, 8, 34, .66) 0%, rgba(14, 8, 34, .4) 34%, rgba(14, 8, 34, 0) 62%),
     url("../assets/cenas/hero-foto.webp") 55% 42% / cover no-repeat,
     #2a2350;
@@ -20,7 +20,7 @@
   .hero { min-height: max(100svh, calc(25.5vw + 24rem)); }
   .hero {
     background:
-      linear-gradient(180deg, rgba(3, 1, 8, .28) 0%, rgba(3, 1, 8, 0) 22%, rgba(3, 1, 8, 0) 70%, rgba(3, 1, 8, .7) 93%, #030108 100%),
+      linear-gradient(180deg, rgba(3, 1, 8, .28) 0%, rgba(3, 1, 8, 0) 22%, rgba(3, 1, 8, 0) 62%, rgba(5, 5, 7, .6) 84%, var(--bg) 100%),
       radial-gradient(70% 62% at 12% 82%, rgba(14, 8, 34, .74) 0%, rgba(14, 8, 34, .4) 52%, rgba(14, 8, 34, 0) 80%),
       url("../assets/cenas/hero-foto.webp") 55% 42% / cover no-repeat,
       #2a2350;
@@ -34,7 +34,7 @@
 @media (max-width: 960px), (max-aspect-ratio: 4/5) {
   .hero {
     background:
-      linear-gradient(180deg, rgba(3, 1, 8, 0) 0, rgba(3, 1, 8, 0) calc(145vw / 1.78 * .62), rgba(10, 6, 24, .9) calc(145vw / 1.78 * .96), #0a0618 calc(145vw / 1.78 + 2px), #030108 100%),
+      linear-gradient(180deg, rgba(3, 1, 8, 0) 0, rgba(3, 1, 8, 0) calc(145vw / 1.78 * .62), rgba(10, 6, 24, .9) calc(145vw / 1.78 * .96), #0a0618 calc(145vw / 1.78 + 2px), var(--bg) 100%),
       url("../assets/cenas/hero-foto.webp") 68% 0 / 145% auto no-repeat,
       #0a0618;
   }
@@ -42,27 +42,29 @@
   .hero-texto { padding-top: calc(145vw / 1.78 * .42); }
 }
 
-/* seções: as outras duas fotos (a serra de dia e a serra ao anoitecer) entram como fundo distante, a meia força, e somem
-   em cima e embaixo */
+/* seções: cada uma com uma foto diferente, que nasce do preto da página. Em cima e embaixo a foto se funde no preto (degradê
+   cheio, não um corte), e no meio ela aparece a meia força, com um véu escuro para o texto. As fotos:
+   recado: picos-noite (os picos nevados e as luzes do vale ao anoitecer); constancia: serra-dia (o nascer do sol);
+   planos: vale-nuvens (o vale de nuvens e florestas); chamada final: serra-noite (o anoitecer). */
 #recado, #constancia, #planos { isolation: isolate; }
 #recado::after, #constancia::after, #planos::after {
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .5;
-  background: center / cover no-repeat;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 80%, transparent 100%);
-  mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 80%, transparent 100%);
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    linear-gradient(180deg, var(--bg) 0%, rgba(5, 5, 7, .82) 14%, rgba(5, 5, 7, .45) 36%, rgba(5, 5, 7, .45) 66%, rgba(5, 5, 7, .82) 86%, var(--bg) 100%),
+    var(--foto) center / cover no-repeat;
 }
-#recado::after { background-image: url("../assets/cenas/serra-noite.webp"); }                  /* recado para o futuro: o anoitecer */
-#constancia::after { background-image: url("../assets/cenas/serra-dia.webp"); opacity: .42; }  /* constância: o dia nascendo */
-#planos::after { background-image: url("../assets/cenas/serra-noite.webp"); background-position: 70% center; }
+#recado { --foto: url("../assets/cenas/picos-noite.webp"); }
+#constancia { --foto: url("../assets/cenas/serra-dia.webp"); }
+#planos { --foto: url("../assets/cenas/vale-nuvens.webp"); }
 /* os cartões dessas seções ganham fundo fechado: o texto de dentro não disputa com a foto */
 #recado .recorder, #recado .mini, #constancia .streak-board, #constancia .points li, #planos .plan { background-color: rgba(12, 9, 20, .86); backdrop-filter: blur(6px); }
 #planos .plan.hot { background: linear-gradient(170deg, rgba(58, 26, 124, .94), rgba(12, 9, 20, .9) 62%); }
 
-/* a chamada final: um quadro com a serra de dia, e o texto por cima de um véu escuro */
+/* a chamada final: um quadro com a serra ao anoitecer, que sai do preto em cima e volta ao preto embaixo */
 .cta-final { isolation: isolate; }
 .cta-final::before {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(6, 10, 30, .58) 0%, rgba(6, 10, 30, .76) 100%),
-    url("../assets/cenas/serra-dia.webp") center 45% / cover no-repeat;
+    linear-gradient(180deg, var(--bg) 0%, rgba(5, 5, 7, .55) 30%, rgba(5, 5, 7, .55) 62%, var(--bg) 100%),
+    url("../assets/cenas/serra-noite.webp") center 55% / cover no-repeat;
 }

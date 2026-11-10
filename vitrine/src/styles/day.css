@@ -49,7 +49,10 @@
 .day-clock {
   font-family: var(--font-display); font-weight: 200; font-size: clamp(3rem, 7vw, 6rem);
   letter-spacing: -.05em; line-height: .86; font-variant-numeric: tabular-nums; color: var(--ink);
+  animation: horaNova .38s var(--ease) both;
 }
+@keyframes horaNova { from { opacity: 0; transform: translateY(.18em); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+@media (prefers-reduced-motion: reduce) { .day-clock { animation: none; } }
 
 /* abas: os horários do dia */
 .day-tabs {

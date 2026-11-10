@@ -155,10 +155,20 @@ export function Day() {
   const atualRef = useRef(0);
   atualRef.current = atual;
 
+  /* o momento para onde o palco está indo por uma seta ou aba (null: ninguém mandou, a rolagem é do dedo) */
+  const indoPara = useRef<number | null>(null);
+  const soltarEm = useRef(0);
+
   /* mostra o momento i: rola o palco de lado (só ele; a página fica onde está) */
   const ir = (i: number, suave = true) => {
     const t = track.current;
     const n = Math.max(0, Math.min(MOMENTS.length - 1, i));
+    /* Enquanto a rolagem suave anda, ela passa pelos momentos do meio. Antes, cada um deles virava o "atual" por um instante
+       e o relógio voltava ao horário anterior e pulava de novo (o tranco nos números). Agora a rolagem pedida não mexe no
+       momento atual até chegar; quem manda é o destino. */
+    indoPara.current = n;
+    window.clearTimeout(soltarEm.current);
+    soltarEm.current = window.setTimeout(() => { indoPara.current = null; }, 1200);   // garantia, se o navegador não avisar o fim
     setAtual(n);
     t?.scrollTo({ left: n * t.clientWidth, behavior: suave && !reduceMotion ? "smooth" : "auto" });
   };
@@ -171,15 +181,29 @@ export function Day() {
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = 0;
+        const destino = indoPara.current;
+        if (destino !== null) {   // rolagem pedida por seta ou aba: só libera quando chegar
+          if (Math.abs(t.scrollLeft - destino * t.clientWidth) < 2) indoPara.current = null;
+          return;
+        }
         const i = Math.round(t.scrollLeft / Math.max(1, t.clientWidth));
         if (i !== atualRef.current) setAtual(i);
       });
     };
+    const fim = () => { indoPara.current = null; };
+    const dedo = () => { indoPara.current = null; window.clearTimeout(soltarEm.current); };   // a pessoa pegou o palco: volta a mandar
     // girar o aparelho ou mudar o tamanho da janela: o palco continua no mesmo momento
     const ro = new ResizeObserver(() => { t.scrollLeft = atualRef.current * t.clientWidth; });
     ro.observe(t);
     t.addEventListener("scroll", onScroll, { passive: true });
-    return () => { t.removeEventListener("scroll", onScroll); ro.disconnect(); cancelAnimationFrame(raf); };
+    t.addEventListener("scrollend", fim);
+    t.addEventListener("pointerdown", dedo, { passive: true });
+    t.addEventListener("wheel", dedo, { passive: true });
+    return () => {
+      t.removeEventListener("scroll", onScroll); t.removeEventListener("scrollend", fim);
+      t.removeEventListener("pointerdown", dedo); t.removeEventListener("wheel", dedo);
+      ro.disconnect(); cancelAnimationFrame(raf); window.clearTimeout(soltarEm.current);
+    };
   }, []);
 
   /* a aba escolhida fica à vista na faixa de abas (rola só a faixa, nunca a página) */
@@ -220,7 +244,8 @@ export function Day() {
       <div className="wrap">
         <div className="day-head">
           <Title parts="Um dia inteiro contra o seu ontem." />
-          <time className="day-clock" dateTime={m.time} aria-live="polite">{m.time}</time>
+          {/* o horário novo entra deslizando de leve (a chave troca o elemento, e a animação roda uma vez) */}
+          <time key={m.time} className="day-clock" dateTime={m.time} aria-live="polite">{m.time}</time>
         </div>
 
         <div className="day-tabs" ref={abas} role="tablist" aria-label="Horários do dia" onKeyDown={onKey}>

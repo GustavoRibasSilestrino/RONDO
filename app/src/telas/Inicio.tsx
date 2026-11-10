@@ -24,7 +24,7 @@ export function Inicio({ aoCriar, aoEntrar, aoSocial }: { aoCriar: () => void; a
     <View style={{ flex: 1, backgroundColor: '#000000' }}>
       {/* a serra ao anoitecer ao fundo, em cores, com um véu escuro só o bastante para o texto e os botões ficarem fáceis de ler */}
       <FundoCena cena="noite" forca={1} veu={false} />
-      <LinearGradient pointerEvents="none" colors={['rgba(8,4,20,0.3)', 'rgba(8,4,20,0.26)', 'rgba(8,4,20,0.4)']} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
+      <LinearGradient pointerEvents="none" colors={['#000000', 'rgba(8,4,20,0.3)', 'rgba(8,4,20,0.22)', 'rgba(8,4,20,0.4)', '#000000']} locations={[0, 0.2, 0.5, 0.82, 1]} style={StyleSheet.absoluteFill} />
       <ScrollView
         style={{ flex: 1 }} showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top + 24, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
