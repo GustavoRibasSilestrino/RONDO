@@ -1,4 +1,4 @@
-/* A pílula da sequência: a joia (ChamaJoia) e o número de dias seguidos. Fica no canto de cima, à direita, em todas as telas;
+/* A sequência no cabeçalho: a chama (ChamaJoia, plana e sem contorno) e o número de dias seguidos. Fica no canto de cima, à esquerda, em todas as telas;
    tocar abre o calendário da constância, com a joia marcada nos dias da sequência. */
 import React, { useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
@@ -22,7 +22,7 @@ export function SeloSequencia() {
         accessibilityLabel={rotulo}
         onPress={() => setAberto(true)}
         hitSlop={6}
-        style={({ pressed }) => [st.selo, situacao === 'apagada' && st.seloApagado, pressed && { opacity: 0.8 }]}
+        style={({ pressed }) => [st.selo, pressed && { opacity: 0.7 }]}
       >
         <ChamaJoia tamanho={22} situacao={situacao} />
         <T tam={14.5} peso="500" cor={situacao === 'apagada' ? cores.texto3 : cores.destaque2}>{dias}</T>
@@ -35,9 +35,6 @@ export function SeloSequencia() {
 }
 
 const st = estilos(() => StyleSheet.create({
-  selo: {
-    flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 11, borderRadius: 999,
-    backgroundColor: 'rgba(138,61,255,0.16)', borderWidth: 1, borderColor: 'rgba(196,168,255,0.3)',
-  },
-  seloApagado: { backgroundColor: 'rgba(255,255,255,0.05)', borderColor: cores.linha },
+  /* sem contorno e sem fundo: só a chama e o número, como os outros ícones do cabeçalho */
+  selo: { flexDirection: 'row', alignItems: 'center', gap: 5, height: 36, paddingHorizontal: 6 },
 }));

@@ -65,7 +65,7 @@ export function CalendarioMes() {
         </View>
       </View>
       <T tam={11.5} cor={cores.texto3} style={{ marginTop: 10, lineHeight: 16 }}>
-        A joia marca os dias da sua sequência. Uma falta por semana não quebra a sequência.{situacao === 'emRisco' ? ' Registre algo hoje para mantê-la acesa.' : ''}
+        A chama marca os dias da sua sequência. Uma falta por semana não quebra a sequência.{situacao === 'emRisco' ? ' Registre algo hoje para mantê-la acesa.' : ''}
       </T>
     </View>
   );

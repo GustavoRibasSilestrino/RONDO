@@ -127,9 +127,9 @@ function Raiz() {
       {DO_PERFIL.includes(tela) ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
       {largo ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} aoAbrirPro={() => setPlanoAberto(true)} mostrarNome={tela === 'home'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
       {largo ? null : <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />}
-      {/* computador: a joia da sequência fica no canto de cima, à direita da área (no celular ela mora no cabeçalho) */}
+      {/* computador: a joia da sequência fica no canto de cima, à esquerda da área (no celular ela mora no cabeçalho) */}
       {largo ? <View pointerEvents="box-none" style={st.seloCanto}><SeloSequencia /></View> : null}
-      {/* dentro da área do feed: a lupa fica ao lado da joia, sem passar por cima do painel de gráficos */}
+      {/* dentro da área do feed: a lupa fica sozinha no canto de cima à direita, sem passar por cima do painel de gráficos */}
       {largo && tela === 'home' ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={() => setBuscando(true)} style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.lupaCanto, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}>
           <Icone nome="busca" tamanho={24} cor="#ffffff" />
@@ -162,6 +162,6 @@ export default function App() {
 const st = estilos(() => StyleSheet.create({
   raiz: { flex: 1, backgroundColor: cores.fundo },
   centro: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' },
-  lupaCanto: { position: 'absolute', top: 22, right: 118, width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 5 },
-  seloCanto: { position: 'absolute', top: 28, right: 18, zIndex: 5 },
+  lupaCanto: { position: 'absolute', top: 22, right: 18, width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 5 },
+  seloCanto: { position: 'absolute', top: 28, left: 18, zIndex: 5 },
 }));
