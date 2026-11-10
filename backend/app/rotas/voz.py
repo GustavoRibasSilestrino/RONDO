@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, field_validator
 
+from app.protecao import ip_do_cliente
 from app.servicos import voz as servico
 
 router = APIRouter(prefix="/rondin", tags=["rondin"])
@@ -31,16 +32,11 @@ class VozOut(BaseModel):
     url: str   # caminho do áudio, relativo à API; o texto não vai na URL
 
 
-def _ip(req: Request) -> str:
-    quem = req.headers.get("x-forwarded-for", "")
-    return quem.split(",")[0].strip() or (req.client.host if req.client else "?")
-
-
 @router.post("/voz", response_model=VozOut)
 def pedir_voz(dados: VozIn, req: Request):
     ident = servico.identificador(dados.sotaque, dados.texto)
     if servico.guardado(ident) is None:
-        if not servico.dentro_do_limite(_ip(req)):
+        if not servico.dentro_do_limite(ip_do_cliente(req)):
             raise HTTPException(429, "Muitos pedidos. Tente de novo em instantes.")
         try:
             servico.guardar(ident, servico.gerar_mp3(dados.texto, dados.sotaque))

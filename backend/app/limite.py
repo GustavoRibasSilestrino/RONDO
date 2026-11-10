@@ -7,6 +7,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
+from app.protecao import ip_do_cliente
+
 JANELA = 60.0
 ROTAS_DE_ENTRADA = ("/auth/login", "/auth/cadastro", "/auth/senha", "/auth/esqueci-senha", "/auth/redefinir-senha", "/auth/google", "/auth/apple", "/auth/social/cadastro", "/auth/nome-livre")
 
@@ -43,7 +45,7 @@ class LimiteDeRequisicoes(BaseHTTPMiddleware):
             return await call_next(request)
         agora = time.monotonic()
         self._limpar(agora)
-        quem = request.client.host if request.client else "desconhecido"
+        quem = ip_do_cliente(request)
         excedeu = False
         if self.auth_por_minuto and request.url.path in ROTAS_DE_ENTRADA and request.method == "POST":
             excedeu = self._estourou(self._auth[quem], self.auth_por_minuto, agora)

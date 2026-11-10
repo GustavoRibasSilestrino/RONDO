@@ -38,7 +38,7 @@ def conferir_cadastro(nascimento: date, aceita_termos: bool, aceita_privacidade:
 class CadastroIn(BaseModel):
     nome: str = Field(min_length=2, max_length=120)
     email: EmailStr
-    senha: str = Field(min_length=6, max_length=128)
+    senha: str = Field(min_length=8, max_length=128)
     nascimento: date
     aceita_termos: bool
     aceita_privacidade: bool
@@ -134,9 +134,14 @@ class StatusOut(BaseModel):
     status: str
 
 
+class SenhaOut(BaseModel):
+    status: str
+    token: str   # o token antigo morreu junto com a senha antiga: este é o novo, para a pessoa continuar logada neste aparelho
+
+
 class SenhaIn(BaseModel):
     atual: str = Field(max_length=128)
-    nova: str = Field(min_length=6, max_length=128)
+    nova: str = Field(min_length=8, max_length=128)
 
 
 class EsqueciSenhaIn(BaseModel):
@@ -146,7 +151,7 @@ class EsqueciSenhaIn(BaseModel):
 class RedefinirSenhaIn(BaseModel):
     email: EmailStr
     codigo: str = Field(min_length=6, max_length=6, pattern=r"^\d{6}$")
-    nova: str = Field(min_length=6, max_length=128)
+    nova: str = Field(min_length=8, max_length=128)
 
 
 class PerfilIn(BaseModel):

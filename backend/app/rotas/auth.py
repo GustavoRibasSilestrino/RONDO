@@ -14,8 +14,9 @@ from app.config import config
 import jwt
 from pydantic import BaseModel, Field
 
-from app.esquemas import CadastroIn, CadastroSocialIn, EsqueciSenhaIn, LoginIn, LoginOut, RedefinirSenhaIn, SenhaIn, SocialIn, StatusOut, UsuarioOut, conferir_cadastro
+from app.esquemas import CadastroIn, CadastroSocialIn, EsqueciSenhaIn, LoginIn, LoginOut, RedefinirSenhaIn, SenhaIn, SenhaOut, SocialIn, StatusOut, UsuarioOut, conferir_cadastro
 from app.legal import VERSAO_PRIVACIDADE, VERSAO_TERMOS
+from app.protecao import conta_travada, registrar_falha, zerar_falhas
 from app.modelos import Consentimento, RedefinicaoSenha, Usuario
 from app.servicos import conta as servico_conta
 from app.servicos.email import EmailIndisponivel, enviar
@@ -41,7 +42,7 @@ def _aware(d: datetime) -> datetime:
 def _login_out(u: Usuario) -> LoginOut:
     return LoginOut(
         email=u.email, nome=u.nome, papel=u.papel, verificado=u.verificado, pro=u.pro, selo=u.selo,
-        arroba=u.arroba, bio=u.bio, foto=u.foto, marketing=u.marketing, token=criar_token(u.id),
+        arroba=u.arroba, bio=u.bio, foto=u.foto, marketing=u.marketing, token=criar_token(u.id, u.senha_hash),
     )
 
 
@@ -87,9 +88,15 @@ def nome_livre(dados: NomeIn, sessao: Session = Depends(obter_sessao)):
 
 @router.post("/login", response_model=LoginOut)
 def login(dados: LoginIn, sessao: Session = Depends(obter_sessao)):
-    usuario = sessao.scalar(select(Usuario).where(Usuario.email == dados.email.lower()))
+    email = dados.email.lower()
+    # muitas senhas erradas para a mesma conta: para de conferir por um tempo, venha o pedido de onde vier
+    if conta_travada(email):
+        raise HTTPException(429, "Muitas tentativas para esta conta. Espere 15 minutos ou use \"Esqueci a minha senha\".", headers={"Retry-After": "900"})
+    usuario = sessao.scalar(select(Usuario).where(Usuario.email == email))
     if not usuario or not conferir_senha(dados.senha, usuario.senha_hash):
+        registrar_falha(email)   # conta que não existe também conta: a resposta é igual, e ninguém descobre quem tem conta
         raise HTTPException(401, "E-mail ou senha incorretos.")
+    zerar_falhas(email)
     if precisa_atualizar(usuario.senha_hash):   # conta antiga, com o hash mais pesado: regrava no formato leve, uma vez só
         usuario.senha_hash = gerar_hash(dados.senha)
         sessao.commit()
@@ -215,15 +222,21 @@ def redefinir_senha(dados: RedefinirSenhaIn, sessao: Session = Depends(obter_ses
     return StatusOut(status="ok")
 
 
-@router.post("/senha", response_model=StatusOut)
+@router.post("/senha", response_model=SenhaOut)
 def trocar_senha(dados: SenhaIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    chave = f"senha:{usuario.id}"
+    if conta_travada(chave):
+        raise HTTPException(429, "Muitas tentativas. Espere 15 minutos e tente de novo.", headers={"Retry-After": "900"})
     if not conferir_senha(dados.atual, usuario.senha_hash):
+        registrar_falha(chave)
         raise HTTPException(401, "A senha atual está incorreta.")
+    zerar_falhas(chave)
     if dados.nova == dados.atual:
         raise HTTPException(422, "A nova senha precisa ser diferente da atual.")
     usuario.senha_hash = gerar_hash(dados.nova)
     sessao.commit()
-    return StatusOut(status="ok")
+    # todos os tokens antigos (deste e de outros aparelhos) deixam de valer; este aparelho recebe um novo e segue logado
+    return SenhaOut(status="ok", token=criar_token(usuario.id, usuario.senha_hash))
 
 
 @router.get("/eu", response_model=UsuarioOut)

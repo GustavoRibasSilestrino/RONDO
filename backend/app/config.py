@@ -21,6 +21,7 @@ class Config(BaseSettings):
     # limite de requisições por endereço, por minuto (0 desliga); entrar e criar conta têm um limite menor
     limite_req_minuto: int = 600
     limite_auth_minuto: int = 20
+    max_corpo_bytes: int = 8_000_000   # corpo de pedido maior que isso é recusado (a sincronia do app manda até 2 MB por dado)
     jwt_segredo: str = "troque-em-producao"
     jwt_expira_minutos: int = 60 * 24 * 7
     origens_permitidas: str = "http://localhost:5173,http://localhost:5180,http://localhost:8081"
