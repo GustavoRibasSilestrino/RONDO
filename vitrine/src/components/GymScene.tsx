@@ -1,19 +1,28 @@
 import { useEffect, useRef } from "react";
 import { onFrame } from "../lib/frame";
 import { clamp, reduceMotion, vars } from "../lib/util";
-import { ARTES, ArteDefs } from "./gymArte";
+import { FOLHAS, QUADROS } from "./gymQuadros";
 
 /* Aparelhos de academia passando pela tela, enquanto a cor da tela muda de um para o outro.
-   Os aparelhos são desenhos vetoriais (gymArte.tsx), sem WebGL e sem arquivo de imagem. A cena é presa à rolagem:
-   rolar a página empurra o próximo aparelho da direita para a esquerda, e atrás dele vem o "ontem" do aparelho, só o contorno.
+   Os aparelhos são modelos 3D, mas o 3D não é calculado aqui: cada um foi renderizado antes (scripts/aparelhos3d), em vários
+   ângulos, e a cena só troca de quadro conforme a rolagem. Rolar a página empurra o próximo aparelho da direita para a esquerda,
+   girando, e atrás dele vem o "ontem" do aparelho, só o contorno.
 
-   Para não travar: tudo o que anda é só transform e opacity (a GPU move camadas prontas, nada é repintado a cada quadro);
-   a cor do painel é uma pilha de camadas que se dissolvem uma na outra, nunca um background-color animado; os valores só são
-   escritos quando mudam; e o laço do quadro dorme assim que a rolagem para. Com movimento reduzido, a seção vira uma grade
-   parada com os quatro aparelhos (ver styles/gym.css). */
+   Para não travar: não há WebGL; o que anda é só transform e opacity (a GPU move camadas prontas); trocar de ângulo é copiar um
+   pedaço de uma imagem já aberta para um canvas pequeno, e só quando o quadro muda; a cor do painel é uma pilha de camadas que
+   se dissolvem uma na outra, nunca um background-color animado; os valores só são escritos quando mudam; e o laço do quadro
+   dorme assim que a rolagem para.
+
+   As folhas com os ângulos (AVIF) só são baixadas quando a seção está chegando, uma de cada vez e com prioridade baixa. Até
+   chegarem, e em navegador sem AVIF ou com economia de dados ligada, aparece o quadro de descanso (uma imagem parada do mesmo
+   modelo). Com movimento reduzido, a seção vira uma grade parada com os quatro aparelhos (ver styles/gym.css). */
+
+const ARQUIVOS = import.meta.glob("../assets/gym/*.{avif,webp}", { eager: true, query: "?url", import: "default" }) as Record<string, string>;
+const arquivo = (nome: string) => ARQUIVOS[`../assets/gym/${nome}`];
 
 type Cena = { nome: string; linha: string; cor: string; luz: string };
 
+/* a ordem e as cores são as mesmas de scripts/aparelhos3d/render.mjs: a luz de cada cena já vem pintada no metal */
 const CENAS: Cena[] = [
   { nome: "Halter", linha: "Abre com a carga de ontem e sugere a de hoje.", cor: "#3b0f8c", luz: "#c4a8ff" },
   { nome: "Kettlebell", linha: "Cada série registrada, cada recorde guardado.", cor: "#1b2a9e", luz: "#9db4ff" },
@@ -30,6 +39,7 @@ const ESCURAS = CENAS.map((c) => escuro(c.cor, 0.62));
 const painel = (c: Cena) => `radial-gradient(60% 52% at 50% 50%, ${c.luz}38, transparent 72%), ${c.cor}`;
 const smooth = (t: number) => { const x = clamp(t, 0, 1); return x * x * (3 - 2 * x); };
 
+const GIRO_PLANO = 9;    // graus que o quadro ainda vira como um cartão nas pontas do caminho (o giro de verdade vem dos quadros)
 const ATRASO = 0.045;    // o quanto o "ontem" fica para trás do aparelho parado, em largura da tela
 const PLATO = 0.12;      // o aparelho fica parado no centro enquanto |d| < PLATO
 const FOLGA = 0.62;      // quanto ele anda para fora, em (largura da tela + a largura dele)
@@ -41,8 +51,10 @@ export function GymScene() {
   const cores = useRef<(HTMLElement | null)[]>([]);
   const fundos = useRef<(HTMLElement | null)[]>([]);
   const palavras = useRef<(HTMLSpanElement | null)[]>([]);
-  const hojes = useRef<(SVGSVGElement | null)[]>([]);
-  const ecos = useRef<(SVGSVGElement | null)[]>([]);
+  const hojes = useRef<(HTMLDivElement | null)[]>([]);
+  const ecos = useRef<(HTMLImageElement | null)[]>([]);
+  const fotos = useRef<(HTMLImageElement | null)[]>([]);
+  const telas = useRef<(HTMLCanvasElement | null)[]>([]);
   const regua = useRef<HTMLDivElement>(null);
   const etiquetas = useRef<(HTMLLIElement | null)[]>([]);
   const indice = useRef<HTMLSpanElement>(null);
@@ -54,7 +66,7 @@ export function GymScene() {
 
     /* só escreve no DOM quando o valor muda */
     const ultimo = new Map<Element, Record<string, string>>();
-    const poe = (el: HTMLElement | SVGElement | null, prop: "transform" | "opacity" | "visibility", v: string) => {
+    const poe = (el: HTMLElement | null, prop: "transform" | "opacity" | "visibility", v: string) => {
       if (!el) return;
       let m = ultimo.get(el);
       if (!m) ultimo.set(el, (m = {}));
@@ -74,21 +86,82 @@ export function GymScene() {
       const total = Math.max(1, r.height - window.innerHeight);
       return clamp(-r.top / total, 0, 1);
     };
+    let alvo = progresso() * (N - 1), atual = alvo, desliga: (() => void) | null = null;
+
+    /* ---- os quadros 3D ----
+       Cada aparelho tem uma folha com todos os ângulos. A folha aberta (ImageBitmap) ocupa memória, então só ficam abertas a do
+       aparelho da vez e as das vizinhas; as outras ficam guardadas comprimidas e são reabertas quando a rolagem chega perto. */
+    const pequena = matchMedia("(max-width: 820px)").matches;
+    const medida = (i: number) => (pequena ? FOLHAS[i].p : FOLHAS[i]);
+    const guardadas: (Blob | null)[] = FOLHAS.map(() => null);
+    const abertas: (ImageBitmap | null)[] = FOLHAS.map(() => null);
+    const abrindo = FOLHAS.map(() => false);
+    const noQuadro = FOLHAS.map(() => -1);   // o quadro que está desenhado em cada canvas
+    const ctxs = telas.current.map((c, i) => {
+      if (!c) return null;
+      c.width = medida(i).w; c.height = medida(i).h;
+      return c.getContext("2d");
+    });
+    let vivo = true, semFolhas = false, baixando = false;
+
+    const desenhar = (i: number, f: number) => {
+      const folha = abertas[i], ctx = ctxs[i];
+      if (!folha || !ctx || noQuadro[i] === f) return;
+      const m = medida(i);
+      ctx.clearRect(0, 0, m.w, m.h);
+      ctx.drawImage(folha, (f % m.cols) * m.w, Math.floor(f / m.cols) * m.h, m.w, m.h, 0, 0, m.w, m.h);
+      if (noQuadro[i] < 0) poe(fotos.current[i], "opacity", "0");   // o canvas assume o lugar do quadro de descanso
+      noQuadro[i] = f;
+    };
+    const perto = (i: number) => Math.abs(i - Math.max(0, ativa)) <= 1;
+    const abrir = async (i: number) => {
+      const blob = guardadas[i];
+      if (!blob || abertas[i] || abrindo[i] || semFolhas) return;
+      abrindo[i] = true;
+      try {
+        const folha = await createImageBitmap(blob);
+        if (vivo && perto(i)) { abertas[i] = folha; pintar(atual); } else folha.close();
+      } catch { semFolhas = true; }   // navegador sem AVIF: fica o quadro de descanso
+      abrindo[i] = false;
+    };
+    const cuidar = () => {
+      for (let i = 0; i < N; i++) {
+        if (perto(i)) void abrir(i);
+        else if (abertas[i]) { abertas[i]!.close(); abertas[i] = null; }
+      }
+    };
+    const baixar = async () => {
+      const economia = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+      if (baixando || semFolhas || economia) return;
+      baixando = true;
+      const ordem = FOLHAS.map((_, i) => i).sort((a, b) => Math.abs(a - atual) - Math.abs(b - atual));   // primeiro a que está na tela
+      for (const i of ordem) {
+        if (!vivo || semFolhas) break;
+        if (guardadas[i]) continue;
+        try {
+          const r = await fetch(arquivo(`${FOLHAS[i].id}-${pequena ? "p" : "g"}.avif`), { priority: "low" } as RequestInit);
+          if (!r.ok) continue;
+          guardadas[i] = await r.blob();
+          cuidar();
+        } catch { /* sem rede: fica o quadro de descanso; a próxima chegada à seção tenta de novo */ }
+      }
+      baixando = false;
+    };
 
     /* d = quanto o aparelho está do centro: -1 chegando pela direita, 0 no meio, 1 saindo pela esquerda.
        k = quanto ele já andou para fora: 0 enquanto |d| < PLATO (parado no centro, para dar tempo de ler) e, dali em diante, em linha reta até 1.
        Linha reta de propósito: com a curva que quase parava no centro, o que sai e o que entra ficavam perto do meio ao mesmo tempo,
-       e no celular, onde cada desenho ocupa 80 a 98% da largura, um passava por cima do outro. Com FOLGA = 0,62 a distância entre
+       e no celular, onde cada aparelho ocupa quase a largura toda, um passava por cima do outro. Com FOLGA = 0,62 a distância entre
        dois vizinhos em qualquer instante é maior que a soma das meias-larguras (conferido na medição), e em |d| = 1 ele já saiu inteiro. */
     const k = (d: number) => clamp((Math.abs(d) - PLATO) / (1 - PLATO), 0, 1);
     const xDe = (d: number, i: number) => -Math.sign(d) * k(d) * (W + larg[i]) * FOLGA;
     const pose = (d: number, i: number, extra = 0) => {
       const a = k(d);
-      const esc = 1 - 0.1 * Math.pow(a, 1.5);   // nunca passa de 1: o desenho não precisa ser repintado maior
-      return `translate3d(${(xDe(d, i) + extra).toFixed(1)}px,0,0) perspective(1200px) rotateY(${(-Math.sign(d) * a * 26).toFixed(2)}deg) scale(${esc.toFixed(3)})`;
+      const esc = 1 - 0.1 * Math.pow(a, 1.5);   // nunca passa de 1: a imagem não precisa ser ampliada
+      return `translate3d(${(xDe(d, i) + extra).toFixed(1)}px,0,0) perspective(1200px) rotateY(${(-Math.sign(d) * a * GIRO_PLANO).toFixed(2)}deg) scale(${esc.toFixed(3)})`;
     };
 
-    const pintar = (q: number) => {
+    function pintar(q: number) {
       /* cor: a camada da cena de baixo fica inteira e a de cima se dissolve por cima */
       const i0 = clamp(Math.floor(q), 0, N - 2);
       const f = smooth(q - i0);
@@ -105,7 +178,11 @@ export function GymScene() {
         const verEco = clamp(1 - (Math.abs(d) - 0.2) / 0.3, 0, 1);
         poe(hojes.current[i], "visibility", dentro ? "visible" : "hidden");
         poe(ecos.current[i], "visibility", verEco > 0 ? "visible" : "hidden");
-        if (dentro) poe(hojes.current[i], "transform", pose(d, i));
+        if (dentro) {
+          poe(hojes.current[i], "transform", pose(d, i));
+          /* o ângulo acompanha o caminho: quadro 0 entrando pela direita, o do meio no centro, o último saindo pela esquerda */
+          desenhar(i, clamp(Math.round((d + 1) * 0.5 * (QUADROS.n - 1)), 0, QUADROS.n - 1));
+        }
         if (verEco > 0) {
           poe(ecos.current[i], "opacity", (0.55 * verEco).toFixed(3));
           poe(ecos.current[i], "transform", pose(d, i, W * (ATRASO + 0.1 * k(d))));   // fica um pouco para trás (à direita) do aparelho
@@ -121,13 +198,13 @@ export function GymScene() {
         ativa = nova;
         if (indice.current) indice.current.textContent = String(nova + 1).padStart(2, "0");
         etiquetas.current.forEach((el, i) => el?.classList.toggle("on", i === nova));
+        cuidar();
       }
       poe(trilha.current, "transform", `scaleX(${(q / (N - 1)).toFixed(4)})`);
-    };
+    }
 
     /* a rolagem define o alvo; o laço corre atrás dele com um pouco de inércia (rolar com a roda do mouse anda aos pulos)
        e dorme quando chega */
-    let alvo = progresso() * (N - 1), atual = alvo, desliga: (() => void) | null = null;
     const passo = (_t: number, dt: number) => {
       atual += (alvo - atual) * (1 - Math.pow(0.84, dt));
       if (Math.abs(alvo - atual) < 0.0006) { atual = alvo; desliga?.(); desliga = null; }
@@ -147,10 +224,17 @@ export function GymScene() {
     };
     const io = new IntersectionObserver(([e]) => escutar(e.isIntersecting), { rootMargin: "300px 0px" });
     io.observe(sec);
+    /* as folhas começam a descer quando a seção está a menos de uma tela de distância */
+    const ioFolhas = new IntersectionObserver(([e]) => { if (e.isIntersecting) void baixar(); }, { rootMargin: "100% 0px" });
+    ioFolhas.observe(sec);
     const ro = new ResizeObserver(medir);
     ro.observe(stage);
 
-    return () => { io.disconnect(); ro.disconnect(); escutar(false); };
+    return () => {
+      vivo = false;
+      io.disconnect(); ioFolhas.disconnect(); ro.disconnect(); escutar(false);
+      abertas.forEach((f) => f?.close());
+    };
   }, []);
 
   return (
@@ -163,7 +247,6 @@ export function GymScene() {
           <feGaussianBlur stdDeviation="0.8" />
         </filter>
       </svg>
-      <ArteDefs />
 
       {/* o fundo da página: a cor de cada cena bem escurecida, camada sobre camada */}
       <div className="gym-fundo" aria-hidden="true">
@@ -178,14 +261,17 @@ export function GymScene() {
         </div>
         <div className="gym-regua" ref={regua} aria-hidden="true" />
 
-        {/* os aparelhos: o contorno do "ontem" atrás, o desenho de hoje na frente */}
+        {/* os aparelhos: o contorno do "ontem" atrás e o de hoje na frente (o quadro de descanso e, por cima, o canvas com o ângulo da vez) */}
         <div className="gym-aparelhos">
           {CENAS.map((c, i) => {
-            const { id, ratio, caixa, desenho: Desenho } = ARTES[i];
+            const { id, w, h, chao } = FOLHAS[i];
             return (
-              <figure key={id} className={`gym-ap ap-${id}`} style={vars({ "--r": ratio.toFixed(3) })}>
-                <svg className="gym-eco" viewBox={caixa} preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false" ref={(el) => { ecos.current[i] = el; }}><Desenho /></svg>
-                <svg className="gym-hoje" viewBox={caixa} preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false" ref={(el) => { hojes.current[i] = el; }}><Desenho /></svg>
+              <figure key={id} className={`gym-ap ap-${id}`} style={vars({ "--r": (w / h).toFixed(4), "--chao": chao })}>
+                <img className="gym-eco" src={arquivo(`${id}-eco.webp`)} alt="" width={w} height={h} loading="lazy" decoding="async" ref={(el) => { ecos.current[i] = el; }} />
+                <div className="gym-hoje" ref={(el) => { hojes.current[i] = el; }}>
+                  <img src={arquivo(`${id}.webp`)} alt="" width={w} height={h} loading="lazy" decoding="async" ref={(el) => { fotos.current[i] = el; }} />
+                  <canvas aria-hidden="true" ref={(el) => { telas.current[i] = el; }} />
+                </div>
                 <figcaption><b>{c.nome}</b><span>{c.linha}</span></figcaption>
               </figure>
             );

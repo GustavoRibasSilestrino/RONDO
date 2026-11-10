@@ -7,6 +7,8 @@
    fundo pendurado por cima da seção seguinte). */
 .gym {
   --corte: 38px;
+  --regua: 17px;                   /* altura dos traços da régua */
+  --piso: calc(27% + 58px);        /* a linha do chão, medida a partir do pé do painel: é onde os aparelhos pousam */
   position: relative; height: 480vh; border-top: 1px solid var(--line);
   display: grid; grid-template-rows: minmax(0, 1fr);
   background: #170640;   /* a primeira cena escurecida; as camadas de .gym-fundo se dissolvem por cima */
@@ -49,26 +51,32 @@
 
 /* a régua do chão: anda com a rolagem e dá a sensação de que o aparelho desliza */
 .gym-regua {
-  position: absolute; z-index: 1; left: -120px; right: -120px; bottom: calc(27% + 28px); height: 17px; pointer-events: none; will-change: transform;
+  position: absolute; z-index: 1; left: -120px; right: -120px; bottom: calc(var(--piso) - var(--regua)); height: var(--regua); pointer-events: none; will-change: transform;
   background:
     linear-gradient(90deg, rgba(255, 255, 255, .4) 1px, transparent 1px) 0 0 / 24px 8px repeat-x,
     linear-gradient(90deg, rgba(255, 255, 255, .7) 1px, transparent 1px) 0 0 / 120px 17px repeat-x,
     linear-gradient(rgba(255, 255, 255, .35), rgba(255, 255, 255, .35)) 0 0 / 100% 1px no-repeat;
 }
 
-/* os aparelhos: pousados no chão, um sobre o outro; cada um tem o contorno do "ontem" atrás e o desenho de hoje na frente */
-.gym-aparelhos { position: absolute; inset: 0 0 27% 0; z-index: 2; display: grid; justify-items: center; align-items: end; pointer-events: none; }
+/* os aparelhos: imagens de modelos 3D, vistas um pouco de cima, pousadas na linha do chão; um sobre o outro.
+   Cada quadro traz o aparelho e a sombra dele, e uma parte do quadro fica abaixo da linha do chão (--chao, fração da altura):
+   a figura desce esse tanto, para o pé do aparelho ficar em cima da linha. O quadro tem folga transparente dos lados
+   (a sombra e o espaço do giro), por isso as larguras passam do que o aparelho em si ocupa. */
+.gym-aparelhos { position: absolute; inset: 0 0 var(--piso) 0; z-index: 2; display: grid; justify-items: center; align-items: end; pointer-events: none; }
 .gym-ap {
   grid-area: 1 / 1; display: grid; justify-items: center;
-  width: min(var(--w), calc(46vh * var(--r)));   /* largura pela tela, mas nunca mais alto que 46% da altura */
+  width: min(var(--w), calc(var(--alto, 48vh) * var(--r)));   /* largura pela tela, mas com teto de altura */
+  transform: translateY(calc(var(--chao) * 100%));
 }
-.ap-halter { --w: 40%; } .ap-kettlebell { --w: 27%; } .ap-barra { --w: 62%; } .ap-banco { --w: 44%; }
-.gym-ap > svg { grid-area: 1 / 1; display: block; width: 100%; height: auto; will-change: transform; visibility: hidden; }   /* quem mostra é o js, na posição certa */
+.ap-halter { --w: 50%; --alto: 40vh; } .ap-kettlebell { --w: 31%; } .ap-barra { --w: 76%; --alto: 44vh; } .ap-banco { --w: 50%; }
+/* quem mostra é o js, na posição certa */
+.gym-ap > .gym-eco, .gym-ap > .gym-hoje { grid-area: 1 / 1; display: block; width: 100%; height: auto; aspect-ratio: var(--r); will-change: transform; visibility: hidden; }
 .gym-ap figcaption { display: none; }
-/* o "ontem": só o contorno, sem brilho nem sombra */
+/* o de hoje: o quadro de descanso e, por cima, o canvas com o ângulo da vez */
+.gym-hoje { position: relative; }
+.gym-hoje > img, .gym-hoje > canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+/* o "ontem": só o contorno do modelo */
 .gym-eco { opacity: .55; }
-.gym-eco * { fill: none; stroke: rgba(255, 255, 255, .8); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-.gym-eco .br { display: none; }
 
 /* etiquetas técnicas: dados da cena, não títulos */
 .gym-etiquetas {
@@ -111,7 +119,7 @@
 }
 
 @media (max-width: 820px) {
-  .gym { height: 420vh; --corte: 26px; }
+  .gym { height: 420vh; --corte: 26px; --piso: calc(31% + 39px); }
   .gym-base { grid-template-columns: 1fr; gap: 1rem; }
   .gym-title { font-size: clamp(1.5rem, 7.8vw, 2.3rem); }
   .gym-meio small { display: none; }
@@ -120,29 +128,27 @@
   .gym-fim { display: none; }
   .gym-etiquetas { display: none; }
   .gym-word { font-size: clamp(2.6rem, 15.5vw, 7rem); }
-  .gym-aparelhos { bottom: 31%; }
-  .gym-regua { bottom: calc(31% + 22px); }
-  .ap-halter { --w: 80%; } .ap-kettlebell { --w: 56%; } .ap-barra { --w: 98%; } .ap-banco { --w: 82%; }
+  .ap-halter { --w: 104%; } .ap-kettlebell { --w: 64%; } .ap-barra { --w: 122%; } .ap-banco { --w: 96%; }
 }
 /* celular: o corte das quinas, o botão octogonal e a régua do chão em rem, para escalarem com a largura da tela (px ÷ 16,38) */
 @media (max-width: 640px) {
-  .gym { --corte: 1.59rem; }
+  .gym { --corte: 1.59rem; --regua: 1.04rem; --piso: calc(31% + 2.38rem); }
   .gym-hex { width: 3.42rem; height: 3.42rem; }
-  .gym-regua { height: 1.04rem; bottom: calc(31% + 1.34rem); }
 }
 
 /* movimento reduzido: nada anda nem fica preso à rolagem; a seção vira uma grade parada com os quatro aparelhos */
 @media (prefers-reduced-motion: reduce) {
   .gym { height: auto; display: block; }
-  .gym-fundo, .gym-words, .gym-regua, .gym-etiquetas, .gym-fim, .gym-eco { display: none; }
+  .gym-fundo, .gym-words, .gym-regua, .gym-etiquetas, .gym-fim, .gym-ap > .gym-eco, .gym-hoje > canvas { display: none; }
   .gym-stage { position: relative; top: auto; height: auto; display: flex; flex-direction: column; padding-top: clamp(3.5rem, 8vh, 5.5rem); }
   .gym-aparelhos {
     position: relative; inset: auto; display: grid; pointer-events: auto;
     grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr)); gap: 3rem clamp(1.5rem, 3vw, 3rem);
     align-items: end; padding: 1rem clamp(1.2rem, 3vw, 2.6rem) 3rem;
   }
-  .gym-ap { grid-area: auto; width: auto; gap: 1.1rem; justify-items: stretch; }
-  .gym-ap > svg { visibility: visible; height: 11rem; will-change: auto; }
+  .gym-ap { grid-area: auto; width: auto; gap: 1.1rem; justify-items: stretch; transform: none; }
+  .gym-ap > .gym-hoje { visibility: visible; height: 11rem; aspect-ratio: auto; will-change: auto; }
+  .gym-hoje > img { object-fit: contain; object-position: 50% 100%; }
   .gym-ap figcaption { display: grid; gap: .3rem; font-size: .85rem; line-height: 1.45; color: rgba(255, 255, 255, .78); }
   .gym-ap figcaption b { font-family: var(--font-mono); font-weight: 500; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: #fff; }
   .gym-base { position: relative; inset: auto; margin: 0 clamp(1.2rem, 3vw, 2.6rem); padding-bottom: clamp(1.2rem, 4vh, 2.4rem); }
