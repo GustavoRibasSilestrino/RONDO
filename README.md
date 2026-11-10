@@ -18,7 +18,7 @@ Três projetos na mesma pasta, cada um com o seu `package.json` ou `requirements
 |---|---|---|---|
 | `app/` | O app (celular e web) | Expo 58, React Native 0.88, react-native-web, TypeScript | Vercel (versão web) e Expo (celular) |
 | `backend/` | A API | FastAPI, SQLAlchemy, Alembic, Postgres | Render |
-| `vitrine/` | O site de divulgação, cadastro de profissionais e páginas legais | Vite, React 19, three.js | Vercel |
+| `vitrine/` | O site de divulgação, cadastro de profissionais e páginas legais | Vite, React 19 | Vercel |
 
 Outras pastas: `brand/` (símbolo da marca), `docs/` (conformidade e fichas das lojas), `site/` (versão antiga do site, não é a publicada),
 `PRODUCT.md` (público e posicionamento do produto).
@@ -133,10 +133,10 @@ Passo a passo da Brevo, do Google e da Apple em `docs/login-social.md`.
 
 ## 6. Site (`vitrine/`)
 
-- **Conteúdo (uma página, rolagem):** topo em violeta com a palavra RONDO gigante ao fundo (de margem a margem) e o título "Vença o você de ontem." (só o "V" em letra de mão, Reenie Beanie), seção de aparelhos em 3D (three.js, carregado sob demanda) com palavras que trocam, Constância (quadro de 12 semanas, só para ver), Recado de voz, ferramentas, comparação "Você vs. Ontem", planos e cadastro de profissionais. Também `/privacidade`, `/termos`, `/excluir-conta` e as outras páginas legais. O corredor do topo foi **removido**.
+- **Conteúdo (uma página, rolagem):** topo em violeta com a palavra RONDO gigante ao fundo (de margem a margem) e o título "Vença o você de ontem." (só o "V" em letra de mão, Reenie Beanie), seção de aparelhos (desenhos vetoriais em SVG, `components/gymArte.tsx`, movidos só por transform e opacity pela rolagem; sem WebGL, e com grade parada para quem pede movimento reduzido) com palavras que trocam, Constância (quadro de 12 semanas, só para ver), Recado de voz, ferramentas, comparação "Você vs. Ontem", planos e cadastro de profissionais. Também `/privacidade`, `/termos`, `/excluir-conta` e as outras páginas legais. O corredor do topo foi **removido**.
 - **Cadastro e entrada:** "Criar conta" abre uma janela de cadastro (`CadastroModal.tsx`, hash `#cadastro`); "Entrar" e "Abrir o app" levam ao app web em `/app` (a Vercel do site repassa `/app` para o projeto do app).
 - **Fonte:** **Bricolage Grotesque** (a do logo do GastroMatch) em **todo** o texto, variável, auto-hospedada (`@fontsource-variable/bricolage-grotesque`). Títulos em peso 800. Única exceção: o "V" em Reenie Beanie. As variáveis `--font-display`, `--font-body`, `--font-mono` e `--font-titulo` em `styles/base.css` apontam para ela.
-- **Animações:** **GSAP + ScrollTrigger** (`src/lib/gsap.ts`): entrada do topo em sequência, a palavra do fundo desce mais devagar ao rolar, blocos que sobem ao aparecer (`Reveal`) e títulos palavra por palavra (`Title`, ambos em `components/ui.tsx`). A cena dos aparelhos continua com código próprio, de propósito leve.
+- **Animações:** **GSAP + ScrollTrigger** (`src/lib/gsap.ts`): entrada do topo em sequência, a palavra do fundo desce mais devagar ao rolar, blocos que sobem ao aparecer (`Reveal`) e títulos palavra por palavra (`Title`, ambos em `components/ui.tsx`). A cena dos aparelhos tem código próprio, de propósito leve (`GymScene.tsx`: só transform e opacity, e o laço dorme quando a rolagem para).
 - **Celular:** a escala é fluida em `rem` (base de 16,4 px em 390 px de largura, de 14 a 17 px), com letras grandes. Na primeira tela o texto fica no centro e os botões descem para perto da borda de baixo. Conferido em 390, 360 e 412 px, sem rolagem lateral.
 - **Arquivos:** `src/App.tsx`, `src/components/` (`Hero`, `GymScene`, `Constancia`, `Tools`, `Recado`, `Cadastro`, `CadastroModal`, `Legal`, `Nav`...), `src/styles/` (`base.css`, `hero.css`, `gym.css`, `day.css`, `legal.css`, `responsive.css`...).
 - **Estilo:** violeta e preto, quinas cortadas (`clip-path`), botões de contorno fino.

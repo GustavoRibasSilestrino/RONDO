@@ -1,10 +1,16 @@
 import { useEffect, useRef } from "react";
-import { reduceMotion } from "../lib/util";
-import { Btn } from "./ui";
+import { onFrame } from "../lib/frame";
+import { clamp, reduceMotion, vars } from "../lib/util";
+import { ARTES, ArteDefs } from "./gymArte";
 
-/* Aparelhos de academia em 3D passando pela tela, enquanto a cor da tela muda de um para o outro.
-   Tudo é desenhado no próprio navegador (three.js, formas simples, nenhum arquivo de modelo). A cena é presa à rolagem:
-   rolar a página empurra o próximo aparelho da direita para a esquerda. O three.js só é baixado quando a seção está perto. */
+/* Aparelhos de academia passando pela tela, enquanto a cor da tela muda de um para o outro.
+   Os aparelhos são desenhos vetoriais (gymArte.tsx), sem WebGL e sem arquivo de imagem. A cena é presa à rolagem:
+   rolar a página empurra o próximo aparelho da direita para a esquerda, e atrás dele vem o "ontem" do aparelho, só o contorno.
+
+   Para não travar: tudo o que anda é só transform e opacity (a GPU move camadas prontas, nada é repintado a cada quadro);
+   a cor do painel é uma pilha de camadas que se dissolvem uma na outra, nunca um background-color animado; os valores só são
+   escritos quando mudam; e o laço do quadro dorme assim que a rolagem para. Com movimento reduzido, a seção vira uma grade
+   parada com os quatro aparelhos (ver styles/gym.css). */
 
 type Cena = { nome: string; linha: string; cor: string; luz: string };
 
@@ -14,99 +20,132 @@ const CENAS: Cena[] = [
   { nome: "Barra", linha: "Volume da semana comparado com a anterior.", cor: "#7a1180", luz: "#f2a8ff" },
   { nome: "Banco", linha: "Descanso cronometrado entre uma série e outra.", cor: "#0b4a63", luz: "#8fe0ff" },
 ];
+const N = CENAS.length;
 
 const hex = (c: string) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
-const mix = (a: string, b: string, t: number) => {
-  const A = hex(a), B = hex(b);
-  return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * t)).join(",")})`;
-};
 /* o fundo da página é a cor de cada cena bem escurecida */
 const escuro = (c: string, t: number) => "#" + hex(c).map((v) => Math.round(v * (1 - t)).toString(16).padStart(2, "0")).join("");
 const ESCURAS = CENAS.map((c) => escuro(c.cor, 0.62));
-const smooth = (t: number) => { const x = Math.min(1, Math.max(0, t)); return x * x * (3 - 2 * x); };
-const ease = (t: number) => { const x = Math.min(1, Math.max(0, t)); return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+/* o painel: a cor da cena com um clarão da luz dela atrás do aparelho */
+const painel = (c: Cena) => `radial-gradient(60% 52% at 50% 50%, ${c.luz}38, transparent 72%), ${c.cor}`;
+const smooth = (t: number) => { const x = clamp(t, 0, 1); return x * x * (3 - 2 * x); };
+
+const ATRASO = 0.1;      // o quanto o "ontem" fica para trás, em aparelhos
+const PERIODO = 120;     // distância entre os traços grandes da régua, em px
 
 export function GymScene() {
-  const wrap = useRef<HTMLElement>(null);
-  const host = useRef<HTMLDivElement>(null);
+  const secao = useRef<HTMLElement>(null);
+  const palco = useRef<HTMLDivElement>(null);
+  const cores = useRef<(HTMLElement | null)[]>([]);
+  const fundos = useRef<(HTMLElement | null)[]>([]);
   const palavras = useRef<(HTMLSpanElement | null)[]>([]);
+  const hojes = useRef<(SVGSVGElement | null)[]>([]);
+  const ecos = useRef<(SVGSVGElement | null)[]>([]);
+  const regua = useRef<HTMLDivElement>(null);
   const etiquetas = useRef<(HTMLLIElement | null)[]>([]);
   const indice = useRef<HTMLSpanElement>(null);
   const trilha = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const secao = wrap.current, alvo = host.current;
-    if (!secao || !alvo) return;
-    let vivo = true;
-    let limpar = () => {};
+    const sec = secao.current, stage = palco.current;
+    if (!sec || !stage || reduceMotion) return;   // movimento reduzido: o CSS mostra a grade parada
 
-    /* posição da seção guardada: ler getBoundingClientRect a cada quadro forçava o navegador a refazer o layout.
-       Só é medida de novo quando algo muda de tamanho. */
-    let topo = 0, altura = 1;
-    const medir = () => { const r = secao.getBoundingClientRect(); topo = r.top + window.scrollY; altura = r.height; };
-    medir();
-    const roSecao = new ResizeObserver(medir);
-    roSecao.observe(secao);
-    roSecao.observe(document.body);   // o que está acima da seção mudou de altura (fontes, imagens): o topo dela mudou
+    /* só escreve no DOM quando o valor muda */
+    const ultimo = new Map<Element, Record<string, string>>();
+    const poe = (el: HTMLElement | SVGElement | null, prop: "transform" | "opacity" | "visibility", v: string) => {
+      if (!el) return;
+      let m = ultimo.get(el);
+      if (!m) ultimo.set(el, (m = {}));
+      if (m[prop] === v) return;
+      m[prop] = v;
+      el.style[prop] = v;
+    };
+
+    let W = stage.clientWidth;
+    let larg: number[] = [];   // largura de cada aparelho na tela
+    const medirTudo = () => { W = stage.clientWidth; larg = hojes.current.map((el) => el?.parentElement?.offsetWidth ?? W * 0.5); };
+    medirTudo();
+    let ativa = -1;
+
     const progresso = () => {
-      const total = Math.max(1, altura - window.innerHeight);
-      return Math.min(1, Math.max(0, (window.scrollY - topo) / total));
+      const r = sec.getBoundingClientRect();
+      const total = Math.max(1, r.height - window.innerHeight);
+      return clamp(-r.top / total, 0, 1);
     };
 
-    /* só mexe na página quando algo muda de verdade: a cena chama isto a cada quadro, mesmo parada,
-       e cada escrita repetida custava estilo e layout de novo */
-    let ultimoQ = NaN, ultimaAtiva = -1;
-    const opacidades: string[] = [];
+    /* d = quanto o aparelho está do centro: -1 chegando pela direita, 0 no meio, 1 saindo pela esquerda.
+       Perto do centro ele quase para (para dar tempo de ler); nas pontas ele corre. */
+    const xDe = (d: number, i: number) => -Math.sign(d) * Math.pow(Math.abs(d), 1.7) * (W + larg[i]) * 0.52;   // em |d| = 1 ele já saiu inteiro da tela
+    const pose = (d: number, i: number) => {
+      const a = Math.abs(d);
+      const esc = 1 - 0.1 * Math.pow(Math.min(1, a), 1.5);   // nunca passa de 1: o desenho não precisa ser repintado maior
+      return `translate3d(${xDe(d, i).toFixed(1)}px,0,0) perspective(1200px) rotateY(${(d * -26).toFixed(2)}deg) scale(${esc.toFixed(3)})`;
+    };
+
     const pintar = (q: number) => {
-      if (q === ultimoQ) return;
-      ultimoQ = q;
-      const i0 = Math.min(CENAS.length - 2, Math.max(0, Math.floor(q)));
+      /* cor: a camada da cena de baixo fica inteira e a de cima se dissolve por cima */
+      const i0 = clamp(Math.floor(q), 0, N - 2);
       const f = smooth(q - i0);
-      const c = mix(CENAS[i0].cor, CENAS[i0 + 1].cor, f);
-      secao.style.setProperty("--cena", c);
-      secao.style.setProperty("--cena-escura", mix(ESCURAS[i0], ESCURAS[i0 + 1], f));
-      const ativa = Math.min(CENAS.length - 1, Math.max(0, Math.round(q)));
-      if (ativa !== ultimaAtiva) {
-        ultimaAtiva = ativa;
-        if (indice.current) indice.current.textContent = String(ativa + 1).padStart(2, "0");
-        etiquetas.current.forEach((el, i) => el?.classList.toggle("on", i === ativa));
+      for (let i = 0; i < N; i++) {
+        const o = i === i0 ? 1 : i === i0 + 1 ? f : 0;
+        poe(cores.current[i], "opacity", o.toFixed(3));
+        poe(fundos.current[i], "opacity", o.toFixed(3));
       }
-      if (trilha.current) trilha.current.style.transform = `scaleX(${(q / (CENAS.length - 1)).toFixed(4)})`;
-      palavras.current.forEach((el, i) => {
-        if (!el) return;
-        const o = String(Math.max(0, 1 - Math.abs(q - i) * 1.9));
-        if (opacidades[i] === o) return;
-        opacidades[i] = o;
-        el.style.opacity = o;
-      });
+
+      for (let i = 0; i < N; i++) {
+        const d = q - i, dg = d - ATRASO;
+        /* o "ontem" some junto com o aparelho: sem isso o contorno do que já saiu fica espiando na borda */
+        const dentro = Math.abs(d) < 1.08, dentroEco = Math.abs(d) < 0.97;
+        poe(hojes.current[i], "visibility", dentro ? "visible" : "hidden");
+        poe(ecos.current[i], "visibility", dentroEco ? "visible" : "hidden");
+        if (dentro) poe(hojes.current[i], "transform", pose(d, i));
+        if (dentroEco) poe(ecos.current[i], "transform", pose(dg, i));
+        const el = palavras.current[i];
+        poe(el, "opacity", Math.max(0, 1 - Math.abs(d) * 1.9).toFixed(3));
+        if (el && Math.abs(d) < 0.6) poe(el, "transform", `translate3d(${(-d * 0.14 * W).toFixed(1)}px,0,0)`);
+      }
+      poe(regua.current, "transform", `translate3d(${(-((q * W * 0.55) % PERIODO)).toFixed(1)}px,0,0)`);
+
+      const nova = clamp(Math.round(q), 0, N - 1);
+      if (nova !== ativa) {
+        ativa = nova;
+        if (indice.current) indice.current.textContent = String(nova + 1).padStart(2, "0");
+        etiquetas.current.forEach((el, i) => el?.classList.toggle("on", i === nova));
+      }
+      poe(trilha.current, "transform", `scaleX(${(q / (N - 1)).toFixed(4)})`);
     };
-    /* sem WebGL (ou antes de baixar o three.js): só a cor e o nome mudam */
-    const aoRolar = () => pintar(progresso() * (CENAS.length - 1));
-    aoRolar();
-    window.addEventListener("scroll", aoRolar, { passive: true });
-    limpar = () => { window.removeEventListener("scroll", aoRolar); roSecao.disconnect(); };
 
-    const io = new IntersectionObserver(async ([e]) => {
-      if (!e.isIntersecting || !vivo) return;
-      io.disconnect();
-      try {
-        const sceneMod = await import("./gymScene3d");
-        if (!vivo) return;
-        const parar = sceneMod.iniciar(alvo, secao, CENAS, progresso, pintar, reduceMotion);
-        const antes = limpar;
-        limpar = () => { antes(); parar(); };
-      } catch {
-        /* sem WebGL neste aparelho: a seção continua mudando de cor e de nome */
-      }
-    }, { rootMargin: "600px 0px" });
-    io.observe(secao);
+    /* a rolagem define o alvo; o laço corre atrás dele com um pouco de inércia (rolar com a roda do mouse anda aos pulos)
+       e dorme quando chega */
+    let alvo = progresso() * (N - 1), atual = alvo, desliga: (() => void) | null = null;
+    const passo = (_t: number, dt: number) => {
+      atual += (alvo - atual) * (1 - Math.pow(0.84, dt));
+      if (Math.abs(alvo - atual) < 0.0006) { atual = alvo; desliga?.(); desliga = null; }
+      pintar(atual);
+    };
+    const aoRolar = () => { alvo = progresso() * (N - 1); if (!desliga) desliga = onFrame(passo); };
+    const medir = () => { medirTudo(); ultimo.clear(); pintar(atual); };
+    pintar(atual);
 
-    return () => { vivo = false; io.disconnect(); limpar(); };
+    /* só escuta a rolagem enquanto a seção está perto da tela */
+    let ouvindo = false;
+    const escutar = (liga: boolean) => {
+      if (liga === ouvindo) return;
+      ouvindo = liga;
+      if (liga) { window.addEventListener("scroll", aoRolar, { passive: true }); aoRolar(); }
+      else { window.removeEventListener("scroll", aoRolar); desliga?.(); desliga = null; }
+    };
+    const io = new IntersectionObserver(([e]) => escutar(e.isIntersecting), { rootMargin: "300px 0px" });
+    io.observe(sec);
+    const ro = new ResizeObserver(medir);
+    ro.observe(stage);
+
+    return () => { io.disconnect(); ro.disconnect(); escutar(false); };
   }, []);
 
   return (
-    <section ref={wrap} className="gym" id="aparelhos" aria-labelledby="gym-titulo">
-      {/* textura de spray: ruído que desmancha a borda das letras grandes */}
+    <section ref={secao} className="gym" id="aparelhos" aria-labelledby="gym-titulo">
+      {/* textura de spray: ruído que desmancha a borda das letras grandes (pintada uma vez; a palavra só muda de opacidade) */}
       <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: "absolute" }}>
         <filter id="gym-spray" x="-5%" y="-5%" width="110%" height="110%">
           <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="4" result="ruido" />
@@ -114,11 +153,34 @@ export function GymScene() {
           <feGaussianBlur stdDeviation="0.8" />
         </filter>
       </svg>
-      <div className="gym-stage">
+      <ArteDefs />
+
+      {/* o fundo da página: a cor de cada cena bem escurecida, camada sobre camada */}
+      <div className="gym-fundo" aria-hidden="true">
+        {CENAS.map((c, i) => <i key={c.nome} ref={(el) => { fundos.current[i] = el; }} style={{ background: ESCURAS[i], opacity: i === 0 ? 1 : 0 }} />)}
+      </div>
+
+      <div className="gym-stage" ref={palco}>
+        {CENAS.map((c, i) => <i key={c.nome} className="gym-cor" aria-hidden="true" ref={(el) => { cores.current[i] = el; }} style={{ background: painel(c), opacity: i === 0 ? 1 : 0 }} />)}
+
         <div className="gym-words" aria-hidden="true">
           {CENAS.map((c, i) => <span key={c.nome} ref={(el) => { palavras.current[i] = el; }} className="gym-word"><span>{c.nome}</span></span>)}
         </div>
-        <div className="gym-canvas" ref={host} aria-hidden="true" />
+        <div className="gym-regua" ref={regua} aria-hidden="true" />
+
+        {/* os aparelhos: o contorno do "ontem" atrás, o desenho de hoje na frente */}
+        <div className="gym-aparelhos">
+          {CENAS.map((c, i) => {
+            const { id, ratio, caixa, desenho: Desenho } = ARTES[i];
+            return (
+              <figure key={id} className={`gym-ap ap-${id}`} style={vars({ "--r": ratio.toFixed(3) })}>
+                <svg className="gym-eco" viewBox={caixa} preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false" ref={(el) => { ecos.current[i] = el; }}><Desenho /></svg>
+                <svg className="gym-hoje" viewBox={caixa} preserveAspectRatio="xMidYMax meet" aria-hidden="true" focusable="false" ref={(el) => { hojes.current[i] = el; }}><Desenho /></svg>
+                <figcaption><b>{c.nome}</b><span>{c.linha}</span></figcaption>
+              </figure>
+            );
+          })}
+        </div>
         <div className="gym-grain" aria-hidden="true" />
 
         <ul className="gym-etiquetas" aria-hidden="true">
