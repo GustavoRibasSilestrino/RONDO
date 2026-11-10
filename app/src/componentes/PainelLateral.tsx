@@ -3,7 +3,8 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useLoja } from '../estado/loja';
-import { diaAtivo, epley, inicioDaSemana, streakAtual, volumeDe } from '../lib/calc';
+import { diaAtivo, epley, inicioDaSemana, situacaoDaSequencia, streakAtual, volumeDe } from '../lib/calc';
+import { ChamaJoia } from './ChamaJoia';
 import { dataCurta, fmt, iso, num, somarDias } from '../lib/datas';
 import { LARGURA_PAINEL } from '../lib/largura';
 import { cores, estilos } from '../tema';
@@ -84,8 +85,8 @@ export function PainelLateral({ ir }: { ir: (tela: string) => void }) {
         <View style={st.topo}>
           <T tam={16} peso="400">Constância</T>
           <View style={st.chama}>
-            <Icone nome="chama" tamanho={14} cor={cores.alerta} />
-            <T tam={13} peso="500" cor={cores.alerta}>{streak} {streak === 1 ? 'dia' : 'dias'}</T>
+            <ChamaJoia tamanho={18} situacao={situacaoDaSequencia(estado, hoje).situacao} />
+            <T tam={13} peso="500" cor={cores.destaque2}>{streak} {streak === 1 ? 'dia' : 'dias'}</T>
           </View>
         </View>
         <MapaCalor semanas={mapa} largura={LARG} />

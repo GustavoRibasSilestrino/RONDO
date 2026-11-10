@@ -1,11 +1,11 @@
 /* Menu lateral do computador: o hambúrguer no alto abre e fecha o menu (aberto: ícones com nomes; fechado: só uma régua de ícones).
-   Embaixo ficam as notificações, o plano PRO, a aparência (Normal ou Ultra) e a sua conta. Quadrado, de fios finos, sem brilho. */
+   Embaixo ficam as notificações, o plano PRO e a sua conta. Quadrado, de fios finos, sem brilho. */
 import React, { useEffect, useRef, useState } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { LARGURA_MENU, LARGURA_MENU_FECHADO } from '../lib/largura';
-import { cores, DEGRADE, estilos, FIM_DIAGONAL, INICIO_DIAGONAL, temaAtual } from '../tema';
+import { cores, DEGRADE, estilos, FIM_DIAGONAL, INICIO_DIAGONAL } from '../tema';
 import type { ItemAba } from './BarraAbas';
 import { Icone, NomeIcone } from './Icone';
 import { T } from './Ui';
@@ -15,7 +15,6 @@ type Props = {
   recolhido: boolean; aoAlternar: () => void;
   naoLidas: number; notificacoesAbertas: boolean; aoAbrirNotificacoes: () => void;
   aoAbrirPro: () => void;
-  tema: 'normal' | 'ultra'; temaBloqueado: boolean; aoTrocarTema: () => void;
   nome: string; nivel: number; aoAbrirConta: () => void;
 };
 
@@ -47,36 +46,7 @@ function Item({ icone, rotulo, recolhido, ativo, selo, papel = 'tab', aoPression
   );
 }
 
-/* a aparência: dois lados, Normal e Ultra, como uma chave. O Ultra tem cadeado até o nível 15. */
-function Aparencia({ recolhido, tema, bloqueado, aoTrocar }: { recolhido: boolean; tema: 'normal' | 'ultra'; bloqueado: boolean; aoTrocar: () => void }) {
-  if (recolhido) {
-    return <Item papel="button" icone="tema" rotulo={bloqueado ? 'Aparência: Ultra no nível 15' : `Aparência: ${tema === 'ultra' ? 'Ultra' : 'Normal'}`} recolhido aoPressionar={aoTrocar} />;
-  }
-  const lado = (id: 'normal' | 'ultra', nome: string) => {
-    const ativo = tema === id;
-    return (
-      <Pressable
-        key={id}
-        accessibilityRole="button"
-        accessibilityState={{ selected: ativo }}
-        accessibilityLabel={`Aparência ${nome}${id === 'ultra' && bloqueado ? ', libera no nível 15' : ''}`}
-        onPress={() => { if (!ativo) aoTrocar(); }}
-        style={[st.lado, ativo && st.ladoAtivo]}
-      >
-        <T tam={13} peso={ativo ? '500' : '400'} cor={ativo ? '#ffffff' : cores.texto2}>{nome}</T>
-        {id === 'ultra' && bloqueado ? <Icone nome="cadeado" tamanho={11} cor={cores.texto3} /> : null}
-      </Pressable>
-    );
-  };
-  return (
-    <View style={st.aparencia}>
-      <T tam={12.5} cor={cores.texto3} style={{ marginBottom: 8, paddingHorizontal: 2 }}>Aparência</T>
-      <View style={st.chave}>{lado('normal', 'Normal')}{lado('ultra', 'Ultra')}</View>
-    </View>
-  );
-}
-
-export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, naoLidas, notificacoesAbertas, aoAbrirNotificacoes, aoAbrirPro, tema, temaBloqueado, aoTrocarTema, nome, nivel, aoAbrirConta }: Props) {
+export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, naoLidas, notificacoesAbertas, aoAbrirNotificacoes, aoAbrirPro, nome, nivel, aoAbrirConta }: Props) {
   const reduzido = useMovimentoReduzido();
   const largura = useRef(new Animated.Value(recolhido ? LARGURA_MENU_FECHADO : LARGURA_MENU)).current;
   useEffect(() => {
@@ -115,7 +85,6 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
       <View style={st.rodape}>
         <Item papel="button" icone="sino" rotulo="Notificações" recolhido={recolhido} ativo={notificacoesAbertas} selo={naoLidas} aoPressionar={aoAbrirNotificacoes} />
         <Item papel="button" icone="estrela" rotulo="Plano PRO" recolhido={recolhido} aoPressionar={aoAbrirPro} />
-        <Aparencia recolhido={recolhido} tema={tema} bloqueado={temaBloqueado} aoTrocar={aoTrocarTema} />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Sua conta: ${nome}, nível ${nivel}`}
@@ -149,10 +118,6 @@ const st = estilos(() => StyleSheet.create({
   selo: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   dica: { position: 'absolute', left: 64, top: 8, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10, backgroundColor: cores.painel, borderWidth: 1, borderColor: cores.linha2, zIndex: 20, minWidth: 90 },
   rodape: { gap: 2, paddingTop: 12, borderTopWidth: 1, borderTopColor: cores.linha },
-  aparencia: { paddingVertical: 10, paddingHorizontal: 2 },
-  chave: { flexDirection: 'row', borderWidth: 1, borderColor: cores.linha2, borderRadius: 14, padding: 3, gap: 3 },
-  lado: { flex: 1, height: 34, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, borderRadius: 11 },
-  ladoAtivo: { backgroundColor: cores.destaqueForte },
   conta: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 56, paddingHorizontal: 8, borderRadius: 14, marginTop: 6, borderTopWidth: 1, borderTopColor: cores.linha },
   inicial: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
 }));

@@ -7,7 +7,8 @@ import { Icone } from '../componentes/Icone';
 import { Botao, Cartao, Chip, Passo, T, Titulo } from '../componentes/Ui';
 import { todosExercicios } from '../lib/rotinas';
 import { useLoja } from '../estado/loja';
-import { diaAtivo, epley, estagnado, inicioDaSemana, streakAtual, volumeDe } from '../lib/calc';
+import { diaAtivo, epley, estagnado, inicioDaSemana, situacaoDaSequencia, streakAtual, volumeDe } from '../lib/calc';
+import { ChamaJoia } from '../componentes/ChamaJoia';
 import { dataCurta, fmt, iso, num, somarDias } from '../lib/datas';
 import { cores, larguraMax } from '../tema';
 
@@ -107,7 +108,7 @@ export function Evolucao() {
         <T tam={11} cor={cores.texto3} style={{ marginTop: 6 }}>Toneladas levantadas (carga × repetições). A última barra é a semana atual.</T>
       </Cartao>
 
-      <Titulo direita={<View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}><Icone nome="chama" tamanho={15} cor={cores.alerta} /><T tam={14} peso="500" cor={cores.alerta}>{streakAtual(estado, hoje)} dias</T></View>}>
+      <Titulo direita={<View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}><ChamaJoia tamanho={18} situacao={situacaoDaSequencia(estado, hoje).situacao} /><T tam={14} peso="500" cor={cores.destaque2}>{streakAtual(estado, hoje)} dias</T></View>}>
         Constância
       </Titulo>
       <Cartao>

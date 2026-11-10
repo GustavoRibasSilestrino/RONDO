@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { cores, DEGRADE, FIM_DIAGONAL, FONTE, INICIO_DIAGONAL, PesoFonte, raio, estilos, temaAtual } from '../tema';
+import { cores, DEGRADE, FIM_DIAGONAL, FONTE, INICIO_DIAGONAL, PesoFonte, raio, estilos } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 
 /* ---------- texto ---------- */
@@ -35,8 +35,7 @@ export function T({ children, tam = 15, peso = '300', cor = cores.texto, mono, c
 }
 
 /* ---------- cartão ---------- */
-/* um brilho leve de cima para baixo e um fio de luz no alto da borda; no destaque, o brilho tem a cor do acento
-   (roxo no tema normal, ciano no Ultra). No Ultra o cartão é de vidro: o brilho é só um reflexo frio. */
+/* um brilho leve de cima para baixo e um fio de luz no alto da borda; no destaque, o brilho é roxo. */
 export function Cartao({ children, style, destaque }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; destaque?: boolean }) {
   return (
     <View style={[st.cartao, destaque && st.cartaoDestaque, style]}>
@@ -129,7 +128,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
   ) : null;
 
   return (
-    <Animated.View style={[tipo === 'primario' && !inativo && st.brilho, { transform: [{ scale: escala }], borderRadius: raio.m }, style]}>
+    <Animated.View style={[{ transform: [{ scale: escala }], borderRadius: raio.m }, style]}>
       {comOrbita ? (
         <View onLayout={(e) => setMedida({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} style={st.orbita}>
           {feixe}
@@ -225,7 +224,7 @@ export function Barra({ valor, max, cor = cores.destaque }: { valor: number; max
 
 /* ---------- segmentos (abas pequenas) ---------- */
 export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar }: { opcoes: { valor: V; nome: string }[]; valor: V; aoMudar: (v: V) => void }) {
-  const normal = true;   // os dois temas desenham o segmento ativo com degradê (o do Ultra é iridescente)
+  const normal = true;   // o segmento ativo é sempre desenhado com degradê
   return (
     <View style={st.segmentos}>
       {opcoes.map((o) => {
@@ -276,15 +275,11 @@ export function Titulo({ children, direita }: { children: React.ReactNode; direi
 const st = estilos(() => StyleSheet.create({
   cartao: {
     backgroundColor: cores.cartao, borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden',
-    /* Ultra: vidro. Sombra de profundidade (cai para baixo, sem halo colorido) e um fio de luz na borda de cima; no normal, só a sombra */
-    boxShadow: temaAtual() === 'ultra' ? '0 18px 40px -24px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.07)' : '0 24px 44px -30px rgba(0,0,0,0.95)',
+    boxShadow: '0 24px 44px -30px rgba(0,0,0,0.95)',
     ...(Platform.OS === 'web' ? ({ contentVisibility: 'auto', containIntrinsicSize: 'auto 240px' } as object) : null),
   },
-  cartaoDestaque: temaAtual() === 'ultra'
-    ? { borderColor: 'rgba(98,214,255,0.34)', backgroundColor: cores.cartao, boxShadow: '0 18px 40px -24px rgba(0,0,0,0.9), inset 0 1px 0 rgba(255,255,255,0.1)' }
-    : { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: cores.cartao, boxShadow: '0 24px 50px -30px rgba(106,0,212,0.55)' },
+  cartaoDestaque: { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: cores.cartao, boxShadow: '0 24px 50px -30px rgba(106,0,212,0.55)' },
   fio: { position: 'absolute', top: 0, left: 24, right: 24, height: 1 },
-  brilho: temaAtual() === 'ultra' ? { boxShadow: '0 10px 22px -10px rgba(42,98,240,0.75)' } : {},
   orbita: { borderRadius: raio.m, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(196,168,255,0.2)' },
   campoFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.06)` },
   botao: { borderRadius: raio.m, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
@@ -300,7 +295,7 @@ const st = estilos(() => StyleSheet.create({
   segmentos: { flexDirection: 'row', backgroundColor: cores.cartao2, borderRadius: raio.pilula, padding: 4, borderWidth: 1, borderColor: cores.linha },
   segmento: { flexGrow: 1, flexBasis: 'auto', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderRadius: raio.pilula },
   segmentoAtivo: { backgroundColor: cores.texto },
-  segmentoAtivoNormal: { overflow: 'hidden', boxShadow: temaAtual() === 'ultra' ? '0 6px 14px -6px rgba(42,98,240,0.8)' : '0 6px 16px -8px rgba(106,0,212,0.9)' },
+  segmentoAtivoNormal: { overflow: 'hidden', boxShadow: '0 6px 16px -8px rgba(106,0,212,0.9)' },
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
   campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },

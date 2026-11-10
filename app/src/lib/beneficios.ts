@@ -1,12 +1,11 @@
 /* Um benefício mínimo para cada nível da conta, de 2 a 25. Os números (destaques, títulos, fotos e descrição) crescem de verdade
-   no app; a patente e o tema Ultra aparecem quando o nível chega neles. */
+   no app; a patente aparece quando o nível chega nela. */
 import { useLoja } from '../estado/loja';
 import { nivelDe, xpTotal } from './nivel';
 
-export type Efeito = 'destaque' | 'titulo' | 'midia' | 'bio' | 'patente' | 'tema';
+export type Efeito = 'destaque' | 'titulo' | 'midia' | 'bio' | 'patente';
 export type Beneficio = { nivel: number; texto: string; efeito: Efeito };
 
-export const NIVEL_ULTRA = 15;
 export const NIVEL_MAX_BENEFICIOS = 25;
 
 export const BENEFICIOS: Beneficio[] = [
@@ -23,7 +22,7 @@ export const BENEFICIOS: Beneficio[] = [
   { nivel: 12, texto: 'Patente Platina IV no perfil', efeito: 'patente' },
   { nivel: 13, texto: 'Mais uma foto ou vídeo por publicação', efeito: 'midia' },
   { nivel: 14, texto: 'Mais um título no perfil', efeito: 'titulo' },
-  { nivel: 15, texto: 'Tema Ultra e o título Lenda de ontem', efeito: 'tema' },
+  { nivel: 15, texto: 'Mais uma foto ou vídeo por publicação e o título Lenda de ontem', efeito: 'midia' },
   { nivel: 16, texto: 'Mais um destaque no perfil', efeito: 'destaque' },
   { nivel: 17, texto: 'Descrição do perfil 20 letras maior', efeito: 'bio' },
   { nivel: 18, texto: 'Patente Diamante V no perfil', efeito: 'patente' },

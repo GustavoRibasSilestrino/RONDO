@@ -8,8 +8,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Abertura } from './src/componentes/Abertura';
 import { AvisoNivel } from './src/componentes/AvisoNivel';
 import { FundoBolhas } from './src/componentes/FundoBolhas';
-import { FundoUltra } from './src/componentes/FundoUltra';
-import { TrocaTemaProvider, useTrocaTema } from './src/componentes/TrocaTema';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
 import { BotaoVoltar } from './src/componentes/BotaoVoltar';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
@@ -19,7 +17,8 @@ import { useMenuRecolhido } from './src/lib/largura';
 import { PainelLateral } from './src/componentes/PainelLateral';
 import { useLayoutLargo } from './src/lib/largura';
 import { PlanoPro } from './src/componentes/PlanoPro';
-import { AvisoProvider, useAviso } from './src/componentes/Estrutura';
+import { SeloSequencia } from './src/componentes/SeloSequencia';
+import { AvisoProvider } from './src/componentes/Estrutura';
 import { T } from './src/componentes/Ui';
 import { estadoVazio, LojaProvider, useLoja } from './src/estado/loja';
 import { naoLidas, useNotificacoes } from './src/lib/notificacoes';
@@ -34,10 +33,8 @@ import { Perfil } from './src/telas/Perfil';
 import { Recado } from './src/telas/Recado';
 import { Social } from './src/telas/Social';
 import { Treino } from './src/telas/Treino';
-import { estilos } from './src/tema';
-import { NIVEL_ULTRA } from './src/lib/beneficios';
 import { nivelDe, xpTotal } from './src/lib/nivel';
-import { aplicarTema, cores } from './src/tema';
+import { cores, estilos } from './src/tema';
 
 /* o app abre no Início (o feed), e o botão voltar do Android leva para ele */
 const INICIO = 'home';
@@ -64,12 +61,7 @@ function Raiz() {
   const [voltarPara, setVoltarPara] = useState('perfil');   // de onde a pessoa veio ao abrir Hoje, Evolução, Recado ou Coleções: o voltar leva para lá (o recado do feed volta para o feed)
   const [buscando, setBuscando] = useState(false);   // a busca de pessoas, aberta pela lupa (no alto do app, ou no canto do feed no computador)
   useNotificacoes();
-  const trocarTema = useTrocaTema();
-  const avisar = useAviso();
   const { largo, comPainel } = useLayoutLargo();   // computador: menu lateral no lugar da barra e do cabeçalho
-  /* o tema vale antes de tudo ser desenhado; o Ultra só a partir do nível 15 */
-  const tema = estado.usuario && nivelDe(xpTotal(estado)) >= NIVEL_ULTRA ? estado.tema : 'normal';
-  aplicarTema(tema);
   const [menuRecolhido, alternarMenu] = useMenuRecolhido();
 
   /* botão voltar do Android: de qualquer tela volta para o início; no início, sai do app */
@@ -115,15 +107,13 @@ function Raiz() {
   const naBarra = tela === 'notificacoes' ? '' : DO_PERFIL.includes(tela) ? voltarPara : tela;
   /* ir para uma tela de dentro do Perfil: guarda de onde veio, para o voltar levar de volta para lá */
   const irPara = (t: string) => { if (DO_PERFIL.includes(t)) setVoltarPara(DO_PERFIL.includes(tela) ? voltarPara : tela); setTela(t); };
-  const temaBloqueado = nivelDe(xpTotal(estado)) < NIVEL_ULTRA;
-  const aoTrocarTema = () => { if (temaBloqueado) avisar('O tema Ultra libera no nível 15, o da tag Lenda de ontem.'); else trocarTema(tema === 'ultra' ? 'normal' : 'ultra'); };
   const aoAbrirNotificacoes = () => { if (tela === 'notificacoes') { setTela(antes); } else { setAntes(tela); setTela('notificacoes'); } };
   const escolher = (id: string) => { if (id !== tela) setTela(id); };
   return (
     <View style={{ flex: 1, flexDirection: largo ? 'row' : 'column' }}>
-      {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} recolhido={menuRecolhido} aoAlternar={alternarMenu} tema={tema} nome={estado.usuario?.nome ?? ""} nivel={nivelDe(xpTotal(estado))} aoAbrirConta={() => setTela("perfil")} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} aoAbrirPro={() => setPlanoAberto(true)} temaBloqueado={temaBloqueado} aoTrocarTema={aoTrocarTema} /> : null}
+      {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} recolhido={menuRecolhido} aoAlternar={alternarMenu} nome={estado.usuario?.nome ?? ""} nivel={nivelDe(xpTotal(estado))} aoAbrirConta={() => setTela("perfil")} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} aoAbrirPro={() => setPlanoAberto(true)} /> : null}
       <View style={{ flex: 1 }}>
-      {tema === 'ultra' ? <FundoUltra /> : <FundoBolhas />}
+      <FundoBolhas />
       {tela === 'home' && <Social modo="home" ir={irPara} buscaAberta={buscando} aoFecharBusca={() => setBuscando(false)} />}
       {tela === 'comunidade' && <Social modo="comunidade" ir={irPara} buscaAberta={false} aoFecharBusca={() => setBuscando(false)} />}
       {tela === 'treino' && <><Treino />{estado.treinoAtual ? null : <CriarPlano tipo="treino" />}</>}
@@ -135,9 +125,11 @@ function Raiz() {
       {tela === 'notificacoes' && <Notificacoes />}
       {tela === 'perfil' && <Perfil ir={irPara} />}
       {DO_PERFIL.includes(tela) ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
-      {largo ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} aoAbrirPro={() => setPlanoAberto(true)} mostrarNome={tela === 'home'} mostrarTema={tela === 'home'} temaBloqueado={temaBloqueado} aoTrocarTema={aoTrocarTema} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
+      {largo ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} aoAbrirPro={() => setPlanoAberto(true)} mostrarNome={tela === 'home'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
       {largo ? null : <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />}
-      {/* dentro da área do feed: a lupa encosta na borda do painel de gráficos, sem passar por cima dele */}
+      {/* computador: a joia da sequência fica no canto de cima, à direita da área (no celular ela mora no cabeçalho) */}
+      {largo ? <View pointerEvents="box-none" style={st.seloCanto}><SeloSequencia /></View> : null}
+      {/* dentro da área do feed: a lupa fica ao lado da joia, sem passar por cima do painel de gráficos */}
       {largo && tela === 'home' ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={() => setBuscando(true)} style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.lupaCanto, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}>
           <Icone nome="busca" tamanho={24} cor="#ffffff" />
@@ -156,11 +148,9 @@ export default function App() {
     <SafeAreaProvider>
       <View style={st.raiz}>
         <LojaProvider>
-          <TrocaTemaProvider>
-            <AvisoProvider>
-              <Raiz />
-            </AvisoProvider>
-          </TrocaTemaProvider>
+          <AvisoProvider>
+            <Raiz />
+          </AvisoProvider>
         </LojaProvider>
         <Abertura />
         <StatusBar style="light" />
@@ -172,5 +162,6 @@ export default function App() {
 const st = estilos(() => StyleSheet.create({
   raiz: { flex: 1, backgroundColor: cores.fundo },
   centro: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#000000' },
-  lupaCanto: { position: 'absolute', top: 22, right: 14, width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 5 },
+  lupaCanto: { position: 'absolute', top: 22, right: 118, width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', zIndex: 5 },
+  seloCanto: { position: 'absolute', top: 28, right: 18, zIndex: 5 },
 }));

@@ -36,7 +36,6 @@ export const estadoVazio = (): Estado => ({
   ultimoEmail: '',
   xpExtra: 0,
   pro: false,
-  tema: 'normal',
   nivelAvisado: null,
   medalhasAvisadas: null,
   semeado: false,

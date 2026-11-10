@@ -7,7 +7,8 @@ import { Icone } from '../componentes/Icone';
 import { Anel, Barra, Botao, Cartao, Chip, T } from '../componentes/Ui';
 import { rotinaDe, todasRotinas } from '../lib/rotinas';
 import { useLoja } from '../estado/loja';
-import { comparar, diaDaComparacao, macrosMeta, metaKcal, statsSemana, streakAtual, totaisDia } from '../lib/calc';
+import { comparar, diaDaComparacao, macrosMeta, metaKcal, situacaoDaSequencia, statsSemana, totaisDia } from '../lib/calc';
+import { ChamaJoia } from '../componentes/ChamaJoia';
 import { diaExtenso, fmt, iso, nomeDoDia, num } from '../lib/datas';
 import { cores } from '../tema';
 
@@ -22,7 +23,7 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
   const hora = agora.getHours();
   const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
 
-  const streak = streakAtual(estado, agora);
+  const { dias: streak, situacao } = situacaoDaSequencia(estado, agora);
   const cur = statsSemana(estado, agora, 0);
   const prev = statsSemana(estado, agora, 1);
   const cmp = comparar(cur, prev);
@@ -42,9 +43,9 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
   return (
     <Tela>
       <View style={{ alignItems: 'center', gap: 2 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,154,92,0.12)', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 99, marginBottom: 14 }}>
-          <Icone nome="chama" tamanho={16} cor={cores.alerta} />
-          <T tam={15} peso="500" cor={cores.alerta}>{streak} {streak === 1 ? 'dia' : 'dias'}</T>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: situacao === 'apagada' ? 'rgba(255,255,255,0.05)' : 'rgba(138,61,255,0.16)', paddingVertical: 7, paddingHorizontal: 14, borderRadius: 99, marginBottom: 14 }}>
+          <ChamaJoia tamanho={20} situacao={situacao} />
+          <T tam={15} peso="500" cor={situacao === 'apagada' ? cores.texto3 : cores.destaque2}>{streak} {streak === 1 ? 'dia' : 'dias'}</T>
         </View>
         <T tam={14} cor={cores.texto2} centro>{saudacao}</T>
         <T tam={40} peso="200" linhas={1} centro>{estado.usuario?.nome ?? ''}</T>

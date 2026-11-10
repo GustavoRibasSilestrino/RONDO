@@ -6,7 +6,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { cores, DEGRADE, FIM_DIAGONAL, INICIO_DIAGONAL, larguraMax, estilos, temaAtual } from '../tema';
+import { cores, DEGRADE, FIM_DIAGONAL, INICIO_DIAGONAL, larguraMax, estilos } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 
 export type ItemAba = { id: string; rotulo: string; icone: NomeIcone };
@@ -16,10 +16,6 @@ type Props = { itens: ItemAba[]; atual: string; aoEscolher: (id: string) => void
 const MARGEM = 6;      // da borda da tela até a barra
 const RECHEIO = 6;     // da borda da barra até as abas
 const ALTURA = 48;     // altura de cada aba: igual à largura do círculo das inativas, para ficarem redondas
-
-/* vidro: só no tema Ultra, no navegador. O desfoque é refeito a cada quadro enquanto a tela rola por baixo e trava
-   celulares mais simples; no tema normal a barra é quase opaca e não precisa dele. */
-const vidro = () => (Platform.OS === 'web' && temaAtual() === 'ultra' ? ({ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' } as object) : null);
 
 function Aba({ item, largura, ativo, aoPressionar, movimentoReduzido }: { item: ItemAba; largura: number; ativo: boolean; aoPressionar: () => void; movimentoReduzido: boolean }) {
   const luz = useRef(new Animated.Value(ativo ? 1 : 0)).current;   // o círculo roxo aparece e some
@@ -33,7 +29,7 @@ function Aba({ item, largura, ativo, aoPressionar, movimentoReduzido }: { item: 
     <Pressable accessibilityRole="tab" accessibilityState={{ selected: ativo }} accessibilityLabel={item.rotulo} onPress={aoPressionar} style={[st.aba, { width: largura }]}>
       <Animated.View
         pointerEvents="none"
-        style={{ position: 'absolute', width: ALTURA, height: ALTURA, borderRadius: ALTURA / 2, overflow: 'hidden', backgroundColor: cores.destaqueForte, opacity: luz, ...(temaAtual() === 'ultra' ? ({ boxShadow: '0 6px 14px -6px rgba(42,98,240,0.85)' } as object) : null), transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}
+        style={{ position: 'absolute', width: ALTURA, height: ALTURA, borderRadius: ALTURA / 2, overflow: 'hidden', backgroundColor: cores.destaqueForte, opacity: luz, transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}
       >
         <LinearGradient colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} />
       </Animated.View>
@@ -57,7 +53,7 @@ export function BarraAbas({ itens, atual, aoEscolher }: Props) {
 
   return (
     <View pointerEvents="box-none" style={[st.doca, { bottom: insets.bottom + 16 }]}>
-      <View style={[st.barra, vidro(), { width: barra, paddingHorizontal: RECHEIO + folga / 2 }]}>
+      <View style={[st.barra, { width: barra, paddingHorizontal: RECHEIO + folga / 2 }]}>
         {itens.map((it) => {
           const ativo = it.id === atual;
           return (

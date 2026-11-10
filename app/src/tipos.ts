@@ -121,7 +121,6 @@ export type Estado = {
   ultimoEmail: string;                         // o e-mail da última conta que entrou neste aparelho: outra conta começa com os dados limpos
   xpExtra: number;                             // XP somado ao da atividade; só o dono da conta usa (vem da API)
   pro: boolean;                                // plano PRO ativo, vindo da API
-  tema: 'normal' | 'ultra';                      // a aparência escolhida; o Ultra só vale a partir do nível 15
   nivelAvisado: number | null;                 // o último nível que a pessoa já viu comemorado; null até a primeira leitura
   profissionais: Record<string, boolean>;      // profissionais para quem a pessoa enviou um pedido de contato, por id
   medalhasAvisadas: string[] | null;           // medalhas que já viraram notificação; null até a primeira leitura (as que já estavam abertas não avisam)

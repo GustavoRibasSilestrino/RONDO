@@ -1,4 +1,4 @@
-/* O anel de story em volta de um avatar: roxo (ou ciano no Ultra) quando há story novo, apagado quando já foi visto, sem anel quando não há.
+/* O anel de story em volta de um avatar: roxo quando há story novo, apagado quando já foi visto, sem anel quando não há.
    Com `mais`, ganha o botãozinho de + para criar um story. */
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';

@@ -4,7 +4,7 @@ import React from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayoutLargo } from '../lib/largura';
-import { cores, DEGRADE, FIM_DIAGONAL, INICIO_DIAGONAL, larguraMax, estilos, temaAtual } from '../tema';
+import { cores, DEGRADE, FIM_DIAGONAL, INICIO_DIAGONAL, larguraMax, estilos } from '../tema';
 import { Icone } from './Icone';
 
 export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPressionar: () => void }) {
@@ -25,5 +25,5 @@ export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPression
 
 const st = estilos(() => StyleSheet.create({
   faixa: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  mais: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: cores.destaqueForte, borderWidth: 1, borderColor: temaAtual() === 'ultra' ? 'rgba(190,215,255,0.28)' : 'rgba(196,168,255,0.35)', boxShadow: temaAtual() === 'ultra' ? '0 12px 26px -10px rgba(42,98,240,0.8)' : '0 12px 28px -10px rgba(106,0,212,0.9)' },
+  mais: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: cores.destaqueForte, borderWidth: 1, borderColor: 'rgba(196,168,255,0.35)', boxShadow: '0 12px 28px -10px rgba(106,0,212,0.9)' },
 }));

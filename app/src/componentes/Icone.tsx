@@ -1,6 +1,8 @@
 /* Ícones de traço fino (24x24). */
 import React from 'react';
+import { View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import { ChamaJoia } from './ChamaJoia';
 
 type Primitiva =
   | { t: 'p'; d: string }
@@ -57,7 +59,6 @@ const ICONES = {
   verificado: [p('M12 2.8 14.4 4.4l2.9-.1 1.2 2.7 2.4 1.6-.5 2.9L21 12l-1.6 2.5.5 2.9-2.4 1.6-1.2 2.7-2.9-.1L12 21.2 9.6 19.6l-2.9.1-1.2-2.7-2.4-1.6.5-2.9L3 12l1.6-2.5-.5-2.9 2.4-1.6 1.2-2.7 2.9.1z'), p('m8.6 12.2 2.4 2.4 4.4-4.8')],
   estrela: [p('m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9l-5.2 2.8 1-5.9-4.3-4.1 5.9-.8z')],
   ia: [p('M10 4l1.6 4.4L16 10l-4.4 1.6L10 16l-1.6-4.4L4 10l4.4-1.6z'), p('M18 14l.8 2.2 2.2.8-2.2.8L18 20l-.8-2.2-2.2-.8 2.2-.8z')],
-  tema: [c(12, 12, 8), p('M12 4a8 8 0 0 1 0 16z')],
   grade: [r(4, 4, 7, 7, 1.5), r(13, 4, 7, 7, 1.5), r(4, 13, 7, 7, 1.5), r(13, 13, 7, 7, 1.5)],
   menu: [p('M4 7h16M4 12h16M4 17h16')],
   engrenagem: [p('M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z'), c(12, 12, 3)],
@@ -71,6 +72,8 @@ export type NomeIcone = keyof typeof ICONES;
 type Props = { nome: NomeIcone; tamanho?: number; cor?: string; espessura?: number };
 
 export function Icone({ nome, tamanho = 22, cor = '#ffffff', espessura = 1.7 }: Props) {
+  /* a chama é a joia roxa da sequência (ChamaJoia): não é ícone de traço, então ignora cor e espessura */
+  if (nome === 'chama') return <View style={{ width: tamanho, height: tamanho, alignItems: 'center', justifyContent: 'center' }}><ChamaJoia tamanho={tamanho} /></View>;
   return (
     <Svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" stroke={cor} strokeWidth={espessura} strokeLinecap="round" strokeLinejoin="round">
       {ICONES[nome].map((it, i) => {

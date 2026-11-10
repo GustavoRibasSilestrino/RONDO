@@ -96,6 +96,29 @@ export function streakAtual(estado: Estado, hoje: Date): number {
   return streak;
 }
 
+/* os dias que entram na sequência de agora: os dias com registro (as folgas que não quebram ficam de fora). Serve para marcar a chama
+   no calendário; segue exatamente a mesma regra de streakAtual. */
+export function diasDaSequencia(estado: Estado, hoje: Date): Set<string> {
+  const dias = new Set<string>();
+  let ultimaFalta: number | null = null;
+  for (let i = 0; i < 400; i++) {
+    const d = iso(somarDias(hoje, -i));
+    if (diaAtivo(estado, d)) { dias.add(d); continue; }
+    if (i === 0) continue;
+    if (ultimaFalta !== null && i - ultimaFalta < 7) break;
+    ultimaFalta = i;
+  }
+  return dias;
+}
+
+/* como está a chama: acesa (já teve registro hoje), em risco (a sequência vive, mas hoje ainda não teve registro) ou apagada (sem sequência) */
+export type SituacaoSequencia = 'acesa' | 'emRisco' | 'apagada';
+export function situacaoDaSequencia(estado: Estado, hoje: Date): { dias: number; situacao: SituacaoSequencia } {
+  const dias = streakAtual(estado, hoje);
+  const situacao: SituacaoSequencia = dias === 0 ? 'apagada' : diaAtivo(estado, iso(hoje)) ? 'acesa' : 'emRisco';
+  return { dias, situacao };
+}
+
 export const inicioDaSemana = (d: Date): Date => somarDias(d, -diaDaSemana(d));
 
 export type StatsSemana = { treinos: number; volume: number; refeicoes: number; agua: number };

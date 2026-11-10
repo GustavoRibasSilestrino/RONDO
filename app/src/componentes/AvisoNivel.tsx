@@ -1,20 +1,18 @@
-/* O aviso de nível novo: aparece quando a conta sobe de nível, com o benefício liberado. No nível 15 oferece ativar o tema Ultra. */
+/* O aviso de nível novo: aparece quando a conta sobe de nível, com o benefício liberado. */
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useLoja } from '../estado/loja';
-import { BENEFICIOS, NIVEL_ULTRA } from '../lib/beneficios';
+import { BENEFICIOS } from '../lib/beneficios';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { nivelDe, xpTotal } from '../lib/nivel';
 import { adicionar } from '../lib/notificacoes';
 import { PATENTES } from '../lib/patentes';
 import { cores, estilos, larguraMax } from '../tema';
 import { Icone } from './Icone';
-import { useTrocaTema } from './TrocaTema';
 import { Botao, T } from './Ui';
 
 export function AvisoNivel() {
   const { estado, pronto, commit } = useLoja();
-  const trocarTema = useTrocaTema();
   const reduzido = useMovimentoReduzido();
   const nativo = Platform.OS !== 'web';
   const nivel = nivelDe(xpTotal(estado));
@@ -48,7 +46,6 @@ export function AvisoNivel() {
   const vistos = ganhos.slice(-3);   // se subiu vários níveis de uma vez, mostra os três últimos
   const resto = ganhos.length - vistos.length;
   const patente = PATENTES.find((p) => p.nivel === mostrar.para);
-  const ultra = mostrar.de < NIVEL_ULTRA && mostrar.para >= NIVEL_ULTRA;
 
   const fechar = () => {
     const para = mostrar.para;
@@ -88,10 +85,7 @@ export function AvisoNivel() {
         </View>
 
         <View style={{ alignSelf: 'stretch', gap: 10, marginTop: 20 }}>
-          {ultra ? (
-            <Botao icone="ia" titulo="Ativar o tema Ultra" aoPressionar={() => { fechar(); trocarTema('ultra'); }} />
-          ) : null}
-          <Botao tipo={ultra ? 'discreto' : 'primario'} titulo="Continuar" aoPressionar={fechar} />
+          <Botao titulo="Continuar" aoPressionar={fechar} />
         </View>
       </View>
     </Animated.View>

@@ -6,7 +6,7 @@ import { Image, StyleSheet, View } from 'react-native';
 import { T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
 import { useUriMidia } from '../../lib/midia';
-import { cores, DEGRADE, FIM_DIAGONAL, INICIO_DIAGONAL, temaAtual } from '../../tema';
+import { cores, DEGRADE, FIM_DIAGONAL, INICIO_DIAGONAL } from '../../tema';
 
 const TONS = ['#4c1d95', '#5b21b6', '#6d28d9', '#4338ca', '#6b21a8', '#3730a3'];
 

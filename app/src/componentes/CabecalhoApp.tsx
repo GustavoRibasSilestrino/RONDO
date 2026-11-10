@@ -1,27 +1,19 @@
-/* Cabeçalho fixo do app: as notificações à esquerda, o nome RONDO no meio (só no feed). Fundo preto sólido, para a tela rolar por baixo. */
+/* Cabeçalho fixo do app: as notificações à esquerda, o nome RONDO no meio (só no feed) e, no canto de cima à direita, a busca (só no feed)
+   e a joia da sequência, em todas as telas. Fundo preto sólido, para a tela rolar por baixo. */
 import React from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { cores, estilos, larguraMax, LETRAS_ULTRA, temaAtual } from '../tema';
+import { cores, estilos, larguraMax } from '../tema';
 import { useRolada } from '../lib/rolagem';
 import { Icone } from './Icone';
+import { SeloSequencia } from './SeloSequencia';
 import { T } from './Ui';
 
 export const ALTURA_CABECALHO = 56;
 
-/* no tema Ultra, cada letra do nome tem uma cor; no Normal, é branco */
-function Nome() {
-  const ultra = temaAtual() === 'ultra';
-  return (
-    <T tam={19} peso="500" style={{ letterSpacing: 6, marginRight: -6 }}>
-      {[...'RONDO'].map((l, i) => <T key={i} tam={19} peso="500" cor={ultra ? LETRAS_ULTRA[i] : '#ffffff'}>{l}</T>)}
-    </T>
-  );
-}
+type Props = { aoBuscar?: () => void; aoAbrirPro: () => void; mostrarNome: boolean; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
 
-type Props = { aoBuscar?: () => void; aoAbrirPro: () => void; mostrarNome: boolean; mostrarTema: boolean; temaBloqueado: boolean; aoTrocarTema: () => void; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
-
-export function CabecalhoApp({ aoBuscar, aoAbrirPro, mostrarNome, mostrarTema, temaBloqueado, aoTrocarTema, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
+export function CabecalhoApp({ aoBuscar, aoAbrirPro, mostrarNome, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
   const insets = useSafeAreaInsets();
   const rolada = useRolada();   // com a tela rolada, só o nome some; as outras opções ficam
   return (
@@ -49,36 +41,28 @@ export function CabecalhoApp({ aoBuscar, aoAbrirPro, mostrarNome, mostrarTema, t
 
         {mostrarNome ? (
           <View pointerEvents="none" style={[st.marca, { opacity: rolada ? 0 : 1 }, Platform.OS === 'web' ? ({ transition: 'opacity 220ms ease' } as object) : null]}>
-            <Nome />
+            <T tam={19} peso="500" style={{ letterSpacing: 6, marginRight: -6 }}>RONDO</T>
           </View>
         ) : null}
-        {aoBuscar ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={aoBuscar} style={st.busca}>
-            <Icone nome="busca" tamanho={23} cor="#ffffff" />
-          </Pressable>
-        ) : null}
-        {mostrarTema ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={temaBloqueado ? 'Trocar o tema, bloqueado até o nível 15' : 'Trocar o tema'}
-            onPress={aoTrocarTema}
-            style={st.tema}
-          >
-            <Icone nome="tema" tamanho={23} cor="#ffffff" />
-            {temaBloqueado ? <View style={st.cadeado}><Icone nome="cadeado" tamanho={10} cor="#ffffff" espessura={2.2} /></View> : null}
-          </Pressable>
-        ) : null}
+
+        <View style={st.direita}>
+          {aoBuscar ? (
+            <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={aoBuscar} style={st.busca}>
+              <Icone nome="busca" tamanho={23} cor="#ffffff" />
+            </Pressable>
+          ) : null}
+          <SeloSequencia />
+        </View>
       </View>
     </View>
   );
 }
 
 const st = estilos(() => StyleSheet.create({
-  fundo: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: cores.cabecalho, ...(Platform.OS === 'web' && temaAtual() === 'ultra' ? ({ backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' } as object) : null), borderBottomWidth: 1, borderBottomColor: cores.linha, alignItems: 'center', zIndex: 20 },
+  fundo: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: cores.cabecalho, borderBottomWidth: 1, borderBottomColor: cores.linha, alignItems: 'center', zIndex: 20 },
   linha: { width: '100%', maxWidth: larguraMax, height: ALTURA_CABECALHO, justifyContent: 'center', paddingHorizontal: 12 },
-  busca: { position: 'absolute', right: 56, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  tema: { position: 'absolute', right: 12, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  cadeado: { position: 'absolute', right: 5, bottom: 7, width: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  direita: { position: 'absolute', right: 12, flexDirection: 'row', alignItems: 'center', gap: 2 },
+  busca: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   esquerda: { position: 'absolute', left: 4, flexDirection: 'row', alignItems: 'center' },
   sino: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   selo: { position: 'absolute', top: 3, right: 1, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
