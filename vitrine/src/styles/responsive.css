@@ -58,7 +58,6 @@ img, svg, video, canvas { max-width: 100%; }
 
 /* ---------- celular (até 520) ---------- */
 @media (max-width: 520px) {
-  .cmp { min-height: 520px; }
   .cmp-row b { font-size: 2.2rem; }
   .podium { gap: .4rem; }
   .plan .price { font-size: 2.2rem; }
@@ -66,18 +65,74 @@ img, svg, video, canvas { max-width: 100%; }
   .day-head h2 { max-width: none; }
 }
 
-/* ---------- celular pequeno (até 360) ---------- */
-@media (max-width: 360px) {
-  :root { --gutter: 1rem; }
-  h1.display { font-size: clamp(2.3rem, 13vw, 2.8rem); }
-  h2.display { font-size: 1.65rem; }
-  .btn { padding-inline: 1rem; white-space: normal; text-align: center; }
-  .tool, .panel, .pro, .plan, .cmp, .streak-board { padding-inline: 1rem; }
-  .m-ui { padding: .85rem; }
-  .cups { grid-template-columns: repeat(4, 1fr); gap: .35rem; }
-  .streak-board .heat { gap: 3px; }
-  .legend { gap: .5rem .9rem; }
-  .podium { --degrau: .8rem; }
+/* ---------- celular: tudo proporcional à largura da tela (até 640) ----------
+   Aqui o 1rem vale 4,2% da largura (ver base.css), sem degraus: não há mais regras separadas para 360 px nem para 320 px.
+   Por isso todo tamanho que estava em px (ícones, botões, alturas, larguras, cantos) vira rem: no 390 px o resultado é o mesmo
+   de antes, e os outros celulares são o mesmo desenho, só maior ou menor. Alvos de toque (botão, aba, seta, campo) nunca ficam
+   abaixo de 44 px: `max(44px, ...)`. Tablet e computador não mudam. Conversão: px ÷ 16,38. */
+@media (max-width: 640px) {
+  :root { --nav-h: 3.66rem; --r-lg: 1.1rem; --r-md: .73rem; }
+
+  /* barra do topo e menu de tela cheia */
+  .logo svg { height: 1.34rem; }
+  .logo .logo-mark { height: 1.1rem; }
+  .footer .logo svg { height: 1.6rem; }
+  .burger { width: max(44px, 2.69rem); height: max(44px, 2.69rem); margin-right: -.6rem; }
+  .burger span { width: 1.34rem; height: .86rem; }
+  .burger i:nth-child(2) { top: .38rem; }
+  .burger i:nth-child(3) { top: .76rem; }
+  .burger[aria-expanded="true"] i:nth-child(1), .burger[aria-expanded="true"] i:nth-child(3) { top: .38rem; }
+  .mnav-list a { min-height: max(44px, 3.3rem); }
+  .mnav-list a svg { width: 1.34rem; height: 1.34rem; }
+  .mnav-cta .btn { min-height: max(44px, 3.17rem); }
+
+  /* toque */
+  .btn { min-height: max(44px, 2.93rem); }
+  input, select { min-height: max(44px, 2.93rem); }
+  summary { min-height: max(44px, 2.93rem); }
+  .btn svg { width: 1rem; height: 1rem; }
+
+  /* comparador "Você vs. ontem" */
+  .cmp { min-height: 31.75rem; }
+  .cmp-handle::after { width: 2.81rem; height: 2.81rem; }
+
+  /* séries, anéis, barras e gráficos pequenos */
+  .set { grid-template-columns: 1.1rem 1fr 1fr 2.2rem; }
+  .ok { width: max(32px, 2.2rem); height: max(32px, 2.2rem); }
+  .ring { width: 7.33rem; height: 7.33rem; }
+  .ring b { inset: .67rem; }
+  .bar { height: .37rem; }
+  .bars { height: 7.94rem; }
+  .heat { gap: .3rem; }
+  .streak-board .heat { gap: .24rem; }
+  .avatar { width: 2.08rem; height: 2.08rem; }
+  .pro .avatar { width: 3.17rem; height: 3.17rem; }
+  .legend i { width: .73rem; height: .73rem; }
+  .streak-board .legend .sw { width: .85rem; height: .85rem; }
+  .rk .pos { width: 1.34rem; }
+
+  /* recado de voz */
+  .wave { height: 5.49rem; gap: .18rem; }
+  .wave i { min-height: .37rem; }
+  .wave.big { height: 5.86rem; }
+  #miniWave { height: 4.27rem; }
+  .mic { width: 3.91rem; height: 3.91rem; }
+  .mic span { width: 1.34rem; height: 1.34rem; }
+  .mic.lg { width: 4.4rem; height: 4.4rem; }
+  .mic.lg span { width: 1.71rem; height: 1.71rem; }
+
+  /* campos numéricos com as setas próprias */
+  .num-btns { top: .3rem; right: .3rem; bottom: .3rem; width: 2.07rem; }
+  .num-btns svg { width: .67rem; height: .67rem; }
+
+  /* "Um dia inteiro": cartão do momento, abas e setas */
+  .m-ui { width: min(100%, 22rem); }
+  .day-tab { min-height: 3.05rem; }
+  .key .k { width: .55rem; height: .55rem; }
+  .day-seta { width: max(44px, 2.81rem); height: max(44px, 2.81rem); }
+  .day-seta.ant { left: -.37rem; }
+  .day-seta.prox { right: -.37rem; }
+  .day-seta svg { width: 1.34rem; height: 1.34rem; }
 }
 
 /* ---------- celular muito largo e dobráveis: nada de cartão esticado ---------- */

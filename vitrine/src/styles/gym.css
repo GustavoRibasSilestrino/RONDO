@@ -124,6 +124,12 @@
   .gym-regua { bottom: calc(31% + 22px); }
   .ap-halter { --w: 80%; } .ap-kettlebell { --w: 56%; } .ap-barra { --w: 98%; } .ap-banco { --w: 82%; }
 }
+/* celular: o corte das quinas, o botão octogonal e a régua do chão em rem, para escalarem com a largura da tela (px ÷ 16,38) */
+@media (max-width: 640px) {
+  .gym { --corte: 1.59rem; }
+  .gym-hex { width: 3.42rem; height: 3.42rem; }
+  .gym-regua { height: 1.04rem; bottom: calc(31% + 1.34rem); }
+}
 
 /* movimento reduzido: nada anda nem fica preso à rolagem; a seção vira uma grade parada com os quatro aparelhos */
 @media (prefers-reduced-motion: reduce) {

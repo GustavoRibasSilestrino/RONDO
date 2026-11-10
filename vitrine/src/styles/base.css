@@ -69,8 +69,11 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* celular: tudo que é medido em rem acompanha a largura da tela, com letras bem legíveis (390 px = 16,4 px; 360 px = 15,1 px; 320 px = 14 px; teto de 17 px) */
-@media (max-width: 980px) { html { font-size: clamp(14px, 4.2vw, 17px); } }
+/* celular: tudo que é medido em rem acompanha a largura da tela, em linha reta e sem degraus: 1rem vale 4,2% da largura
+   (390 px = 16,4 px; 360 px = 15,1 px; 320 px = 13,4 px; 430 px = 18,1 px). O piso de 13 px só vale abaixo de 310 px e o teto
+   de 18,5 px, acima de 440 px. No tablet (641 a 980 px) o rem fica em 17 px, como antes. */
+@media (max-width: 980px) { html { font-size: clamp(13px, 4.2vw, 18.5px); } }
+@media (min-width: 641px) and (max-width: 980px) { html { font-size: 17px; } }
 
 /* ===== Tipografia: fontes finas ===== */
 h1, h2, h3, h4, h5, h6 { font-weight: 400; }
@@ -83,9 +86,10 @@ b, strong { font-weight: 500; }
 .display { line-height: 1.08; }
 h1.display { font-size: clamp(2.8rem, 8vw, 7.4rem); line-height: 1.02; }
 h2.display { font-size: clamp(2.1rem, 4.6vw, 3.8rem); }
-@media (max-width: 520px) {
-  h1.display { font-size: clamp(2.4rem, 11vw, 3.6rem); }   /* acompanha a largura do celular */
-  h2.display { font-size: clamp(1.9rem, 8.4vw, 2.7rem); }
+@media (max-width: 640px) {
+  /* só em rem: como 1rem = 4,2% da largura, 2,62rem é 11% e 2rem é 8,4% da largura, em qualquer celular */
+  h1.display { font-size: 2.62rem; }
+  h2.display { font-size: 2rem; }
 }
 .mono { font-family: var(--font-mono); }
 .lead { color: var(--ink-2); font-size: clamp(1rem, 1.35vw, 1.15rem); font-weight: 300; max-width: 52ch; }

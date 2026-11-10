@@ -30,7 +30,9 @@ const ESCURAS = CENAS.map((c) => escuro(c.cor, 0.62));
 const painel = (c: Cena) => `radial-gradient(60% 52% at 50% 50%, ${c.luz}38, transparent 72%), ${c.cor}`;
 const smooth = (t: number) => { const x = clamp(t, 0, 1); return x * x * (3 - 2 * x); };
 
-const ATRASO = 0.1;      // o quanto o "ontem" fica para trás, em aparelhos
+const ATRASO = 0.045;    // o quanto o "ontem" fica para trás do aparelho parado, em largura da tela
+const PLATO = 0.12;      // o aparelho fica parado no centro enquanto |d| < PLATO
+const FOLGA = 0.62;      // quanto ele anda para fora, em (largura da tela + a largura dele)
 const PERIODO = 120;     // distância entre os traços grandes da régua, em px
 
 export function GymScene() {
@@ -74,12 +76,16 @@ export function GymScene() {
     };
 
     /* d = quanto o aparelho está do centro: -1 chegando pela direita, 0 no meio, 1 saindo pela esquerda.
-       Perto do centro ele quase para (para dar tempo de ler); nas pontas ele corre. */
-    const xDe = (d: number, i: number) => -Math.sign(d) * Math.pow(Math.abs(d), 1.7) * (W + larg[i]) * 0.52;   // em |d| = 1 ele já saiu inteiro da tela
-    const pose = (d: number, i: number) => {
-      const a = Math.abs(d);
-      const esc = 1 - 0.1 * Math.pow(Math.min(1, a), 1.5);   // nunca passa de 1: o desenho não precisa ser repintado maior
-      return `translate3d(${xDe(d, i).toFixed(1)}px,0,0) perspective(1200px) rotateY(${(d * -26).toFixed(2)}deg) scale(${esc.toFixed(3)})`;
+       k = quanto ele já andou para fora: 0 enquanto |d| < PLATO (parado no centro, para dar tempo de ler) e, dali em diante, em linha reta até 1.
+       Linha reta de propósito: com a curva que quase parava no centro, o que sai e o que entra ficavam perto do meio ao mesmo tempo,
+       e no celular, onde cada desenho ocupa 80 a 98% da largura, um passava por cima do outro. Com FOLGA = 0,62 a distância entre
+       dois vizinhos em qualquer instante é maior que a soma das meias-larguras (conferido na medição), e em |d| = 1 ele já saiu inteiro. */
+    const k = (d: number) => clamp((Math.abs(d) - PLATO) / (1 - PLATO), 0, 1);
+    const xDe = (d: number, i: number) => -Math.sign(d) * k(d) * (W + larg[i]) * FOLGA;
+    const pose = (d: number, i: number, extra = 0) => {
+      const a = k(d);
+      const esc = 1 - 0.1 * Math.pow(a, 1.5);   // nunca passa de 1: o desenho não precisa ser repintado maior
+      return `translate3d(${(xDe(d, i) + extra).toFixed(1)}px,0,0) perspective(1200px) rotateY(${(-Math.sign(d) * a * 26).toFixed(2)}deg) scale(${esc.toFixed(3)})`;
     };
 
     const pintar = (q: number) => {
@@ -93,13 +99,17 @@ export function GymScene() {
       }
 
       for (let i = 0; i < N; i++) {
-        const d = q - i, dg = d - ATRASO;
-        /* o "ontem" some junto com o aparelho: sem isso o contorno do que já saiu fica espiando na borda */
-        const dentro = Math.abs(d) < 1.08, dentroEco = Math.abs(d) < 0.97;
+        const d = q - i;
+        const dentro = Math.abs(d) < 1.02;
+        /* o "ontem" só aparece com o aparelho perto do centro e some antes da troca: assim o contorno de um nunca se mistura com o vizinho */
+        const verEco = clamp(1 - (Math.abs(d) - 0.2) / 0.3, 0, 1);
         poe(hojes.current[i], "visibility", dentro ? "visible" : "hidden");
-        poe(ecos.current[i], "visibility", dentroEco ? "visible" : "hidden");
+        poe(ecos.current[i], "visibility", verEco > 0 ? "visible" : "hidden");
         if (dentro) poe(hojes.current[i], "transform", pose(d, i));
-        if (dentroEco) poe(ecos.current[i], "transform", pose(dg, i));
+        if (verEco > 0) {
+          poe(ecos.current[i], "opacity", (0.55 * verEco).toFixed(3));
+          poe(ecos.current[i], "transform", pose(d, i, W * (ATRASO + 0.1 * k(d))));   // fica um pouco para trás (à direita) do aparelho
+        }
         const el = palavras.current[i];
         poe(el, "opacity", Math.max(0, 1 - Math.abs(d) * 1.9).toFixed(3));
         if (el && Math.abs(d) < 0.6) poe(el, "transform", `translate3d(${(-d * 0.14 * W).toFixed(1)}px,0,0)`);
