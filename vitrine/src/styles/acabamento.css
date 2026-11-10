@@ -1,0 +1,69 @@
+/* ===== Acabamento: detalhes pequenos, por cima de tudo =====
+   Nada aqui muda o desenho da página. São os ajustes que só se nota quando faltam: quebra de linha, números alinhados,
+   divisórias, resposta ao clique e ao toque. Este arquivo é o último a ser carregado (ver main.tsx). */
+
+/* ---- letra ---- */
+body { -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; font-kerning: normal; }
+/* títulos com as linhas do mesmo tamanho, sem uma palavra sozinha na última; textos corridos sem viúva no fim */
+.display, .hero-title, .gym-title, .tool h3, .panel h3, .pro h3, .plan h3, .mini h3, .rec-q h3, .step b, .faq summary { text-wrap: balance; }
+p, .lead, li { text-wrap: pretty; }
+/* números que mudam ou ficam em coluna: algarismos da mesma largura, para não dançarem */
+.price, .big-num, .result b, .cmp-row b, .timer b, .rk .pt, .rk .pos, .pod span, .points li b, .gym-pager, .streak-count b, .set .f { font-variant-numeric: tabular-nums; }
+
+/* ---- divisória entre as seções: um fio que some nas pontas, no lugar da linha de fora a fora ---- */
+.section { border-top-color: transparent; }
+.section::before {
+  content: ""; position: absolute; top: -1px; left: 0; right: 0; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--line-2) 22%, var(--line-2) 78%, transparent);
+}
+.footer { border-top-color: transparent; position: relative; }
+.footer::before {
+  content: ""; position: absolute; top: -1px; left: 0; right: 0; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--line-2) 22%, var(--line-2) 78%, transparent);
+}
+
+/* ---- cartões: um fio de luz na borda de cima, como uma quina que pega a luz ---- */
+.tool, .panel, .pro, .plan, .mini, .streak-board, .step, .recorder { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .055); }
+.plan.hot { box-shadow: inset 0 1px 0 rgba(196, 168, 255, .28), 0 30px 70px -40px rgba(139, 92, 246, .55); }
+.panel, .mini, .step, .streak-board { transition: border-color .3s; }
+.panel:hover, .mini:hover, .step:hover { border-color: var(--line-2); }
+
+/* ---- clique e toque ---- */
+html { -webkit-tap-highlight-color: transparent; }   /* sem o clarão cinza do toque no celular: cada controle tem a sua resposta */
+.btn:active { transform: translateY(0) scale(.98); transition-duration: .08s; }
+.btn-mini, .mi, .when span, .ok { -webkit-user-select: none; user-select: none; }
+.btn-mini { transition: opacity .2s, transform .2s var(--ease); }
+.btn-mini:hover { opacity: .9; }
+.btn-mini:active { transform: scale(.98); }
+.when label:hover span { border-color: var(--accent); }
+.when label:active span { transform: scale(.97); }
+.footer-links a, .footer a { transition: color .2s; }
+.footer-links a { width: fit-content; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: color .2s, background-size .3s var(--ease); }
+.footer-links a:hover { background-size: 100% 1px; }
+
+/* ---- perguntas: a linha responde ao cursor e a aberta fica marcada ---- */
+.faq summary { transition: color .2s; }
+.faq summary:hover { color: #fff; }
+.faq details[open] summary { color: #fff; }
+.faq summary::after { flex: none; width: 1em; text-align: center; font-weight: 300; }
+.faq details { transition: border-color .3s; }
+.faq details[open] { border-bottom-color: var(--line-2); }
+
+/* ---- campos ---- */
+input, select, textarea { caret-color: var(--accent-2); accent-color: var(--accent); }
+.field input::placeholder { color: var(--ink-3); opacity: .8; }
+.field input:hover, .signup:hover { border-color: rgba(255, 255, 255, .24); }
+.signup { transition: border-color .2s, box-shadow .2s; }
+.signup:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139, 92, 246, .15); }
+
+/* ---- foco pelo teclado: o mesmo anel em tudo, um pouco mais claro sobre o roxo ---- */
+:focus-visible { outline-color: var(--accent-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active, .btn-mini:active, .when label:active span { transform: none; }
+  .footer-links a { transition: color .2s; }
+}
+@media (hover: none) {
+  .panel:hover, .mini:hover, .step:hover { border-color: var(--line); }
+  .footer-links a:hover { background-size: 0 1px; }
+}

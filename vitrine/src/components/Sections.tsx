@@ -17,7 +17,7 @@ const Progress = ({ nome, chip, w, tone }: { nome: string; chip: string; w: numb
 
 export function Clube() {
   return (
-    <Section id="clube" tone="tint-2" ecg={4}>
+    <Section id="clube" tone="tint-2">
       <div className="wrap">
         <Reveal className="section-head">
           <Title parts="Constância vira conquista." />
@@ -72,7 +72,7 @@ const STEPS = [
 
 export function Profissionais() {
   return (
-    <Section id="profissionais" ecg={5}>
+    <Section id="profissionais">
       <div className="wrap">
         <Reveal className="section-head">
           <Title parts="Quem vai acompanhar você terá registro conferido." />
@@ -106,7 +106,7 @@ const PLANS = [
 
 export function Planos() {
   return (
-    <Section id="planos" tone="tint" ecg={6}>
+    <Section id="planos" tone="tint">
       <div className="wrap">
         <Reveal className="section-head"><Title parts="Grátis para começar. PRO para ir além." /></Reveal>
         <div className="plans">
@@ -146,7 +146,7 @@ const FAQ = [
 
 export function Faq() {
   return (
-    <Section id="faq" ecg={7}>
+    <Section id="faq">
       <div className="wrap faq">
         <Reveal className="section-head"><Title parts="O que você precisa saber." /></Reveal>
         {FAQ.map(([q, a]) => <Reveal as="details" key={q}><summary>{q}</summary><p>{a}</p></Reveal>)}

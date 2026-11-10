@@ -35,7 +35,7 @@ export function Compare() {
   }, []);
 
   return (
-    <Section id="compare" ecg={0}>
+    <Section id="compare">
       <div className="wrap">
         <Reveal className="section-head">
           <Title parts="Seu ontem, lado a lado com o seu hoje." />

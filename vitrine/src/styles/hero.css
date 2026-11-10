@@ -23,8 +23,6 @@
 .hero-texto { max-width: 36rem; }
 .hero-title { font-size: clamp(2.6rem, 5.8vw, 5.2rem); line-height: 1.04; color: #fff; }
 .hero-title .ln { display: block; }
-/* só o V da primeira palavra, em letra de mão (pincel); o resto do título segue na fonte dos títulos */
-.hero-title .v-mao { font-family: "Reenie Beanie", cursive; font-weight: 400; font-size: 2.3em; line-height: 0; margin-right: .03em; display: inline-block; transform: translateY(.04em); }
 /* "de ontem.": a mesma fonte em peso leve, para contrastar com a primeira linha */
 .hero-title .trail { font-weight: 300; letter-spacing: -.02em; font-size: 1em; color: rgba(255, 255, 255, .85); text-shadow: none; }
 .hero-texto .lead { margin-top: clamp(1rem, 2.4vh, 1.5rem); max-width: 38ch; font-size: clamp(.92rem, 1.1vw, 1.02rem); font-weight: 300; color: rgba(255, 255, 255, .86); line-height: 1.65; }

@@ -98,7 +98,7 @@ function Calorias() {
 
 export function Tools() {
   return (
-    <Section id="ferramentas" tone="tint" ecg={2}>
+    <Section id="ferramentas" tone="tint">
       <div className="wrap">
         <Reveal className="section-head">
           <Title parts="A matemática do app, aberta para você testar." />

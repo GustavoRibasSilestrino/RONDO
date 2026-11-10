@@ -71,7 +71,7 @@ export function Constancia() {
   }, [count, showCount]);
 
   return (
-    <Section id="constancia" ecg={3}>
+    <Section id="constancia">
       <div className="wrap streak-wrap">
         <Reveal>
           <Title parts="Falhar um dia não zera tudo." echo={false} style={{ margin: "0 0 1.2rem" }} />

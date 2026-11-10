@@ -337,7 +337,6 @@ function Licencas() {
       <h2>Fontes</h2>
       <ul>
         <li>Bricolage Grotesque, de Mathieu Triay: SIL Open Font License 1.1.</li>
-        <li>Reenie Beanie, de James Grieshaber: SIL Open Font License 1.1.</li>
         <li>Poppins, da Indian Type Foundry (no app): SIL Open Font License 1.1.</li>
       </ul>
       <h2>Bibliotecas do site e do app</h2>

@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode, type RefObject } from "react";
 import { gsap } from "../lib/gsap";
-import { useSeen } from "../lib/hooks";
 import { finePointer, reduceMotion, vars } from "../lib/util";
 
 /* ---------- símbolo da marca ---------- */
@@ -129,23 +128,11 @@ export function Btn({ href, kind = "primary", small, type = "button", className 
     : <button type={type} className={cls} {...hooks}>{children}</button>;
 }
 
-/* ---------- seção com o batimento no topo ---------- */
-const PULSE_X = [28, 64, 41, 72, 36, 58];
-function Ecg({ k }: { k: number }) {
-  const x = PULSE_X[k % 6] * 10;   // onde o pulso cai, em um eixo de 0 a 1000
-  const [ref, seen] = useSeen<SVGSVGElement>(0.6, reduceMotion);
-  return (
-    <svg ref={ref} className={`ecg${seen || reduceMotion ? " on" : ""}`} viewBox="0 0 1000 26" preserveAspectRatio="none" aria-hidden="true">
-      <path pathLength={1} d={`M0 13H${x - 40}l7-3 8 3H${x - 12}l5-2 4 2 4 0 6-11 8 24 7-17 5 5H1000`} />
-      <path pathLength={1} className="beat" d={`M${x - 12} 13l5-2 4 2 4 0 6-11 8 24 7-17 5 5`} />
-    </svg>
-  );
-}
-export function Section({ id, tone, ecg, children }: { id: string; tone?: "tint" | "tint-2"; ecg: number; children: ReactNode }) {
+/* ---------- seção ---------- */
+export function Section({ id, tone, children }: { id: string; tone?: "tint" | "tint-2"; children: ReactNode }) {
   return (
     <section className={`section${tone ? ` ${tone}` : ""}`} id={id}>
       {children}
-      <Ecg k={ecg} />
     </section>
   );
 }

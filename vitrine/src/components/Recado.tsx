@@ -78,7 +78,7 @@ function Recorder() {
 
 export function Recado() {
   return (
-    <Section id="recado" tone="tint-2" ecg={1}>
+    <Section id="recado" tone="tint-2">
       <div className="wrap">
         <Reveal className="section-head">
           <Title parts={["Fale com quem você ", { t: "vai ser.", cls: "grad" }]} />
