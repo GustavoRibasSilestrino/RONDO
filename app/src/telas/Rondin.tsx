@@ -372,9 +372,9 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 
   return (
     <View style={{ flex: 1, backgroundColor: '#000000' }}>
-      {/* a mesma pista vermelha da tela inicial, um pouco mais apagada: aqui quem manda é a conversa */}
-      <FundoCena cena="pista" forca={1} veu={false} />
-      <LinearGradient pointerEvents="none" colors={['rgba(8,4,20,0.56)', 'rgba(8,4,20,0.5)', 'rgba(8,4,20,0.6)']} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
+      {/* a mesma serra ao anoitecer da tela inicial, um pouco mais apagada: aqui quem manda é a conversa */}
+      <FundoCena cena="noite" forca={1} veu={false} />
+      <LinearGradient pointerEvents="none" colors={['rgba(8,4,20,0.42)', 'rgba(8,4,20,0.38)', 'rgba(8,4,20,0.5)']} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}

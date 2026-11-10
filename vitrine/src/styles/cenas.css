@@ -1,76 +1,68 @@
-/* ===== Paisagens ilustradas no fundo =====
-   Desenho vetorial plano, em camadas (céu, sol ou lua, nuvens, serras, pinheiros, árvores, cidade, lago), em cores de verdade:
-   céu azul, verde do campo, laranja do pôr do sol. Gerado por scripts/cenas/cenas.mjs.
-   Cada cena tem duas versões: -l (paisagem, computador) e -r (retrato, celular); a troca é pela proporção da tela.
-   Regra de leitura: a ilustração nunca fica atrás de texto em força total. Na primeira tela ela é o próprio fundo, com um véu
-   escuro do lado do texto e embaixo; nas seções ela entra a meia força e some nas bordas de cima e de baixo. */
+/* ===== Fotos de paisagem no fundo =====
+   Três imagens do dono, em assets/cenas: hero-foto (a serra com o nome RONDO, na primeira tela), serra-dia e serra-noite
+   (nas seções e na chamada final). Regra de leitura: a foto nunca fica atrás de texto em força total. */
 
-/* primeira tela: o pôr do sol, em três peças. O céu é o fundo; o nome RONDO faz o papel das montanhas (as letras são
-   preenchidas com a textura de serra, com faces claras e escuras e neve no alto); e uma fileira só de pinheiros passa na
-   frente do pé das letras. Não há lago nem segunda fileira de árvores: é uma camada só. */
+/* primeira tela: a foto das montanhas ao nascer do sol, com o nome RONDO esculpido nelas (a imagem é do dono; a palavra
+   gigante e a cena em vetor que ficavam aqui saíram). Um véu escuro do lado do texto garante a leitura, e a base escurece
+   até a cor da página. No celular a foto é centrada no nome. */
 .hero {
   background:
-    linear-gradient(90deg, rgba(18, 8, 44, .5) 0%, rgba(18, 8, 44, .26) 34%, rgba(18, 8, 44, 0) 60%),
-    url("../assets/cenas/hero-ceu-l.svg") center / cover no-repeat,
-    #3b1c8f;
+    linear-gradient(180deg, rgba(3, 1, 8, .28) 0%, rgba(3, 1, 8, 0) 22%, rgba(3, 1, 8, 0) 74%, rgba(3, 1, 8, .7) 93%, #030108 100%),
+    linear-gradient(90deg, rgba(14, 8, 34, .66) 0%, rgba(14, 8, 34, .4) 34%, rgba(14, 8, 34, 0) 62%),
+    url("../assets/cenas/hero-foto.webp") 55% 42% / cover no-repeat,
+    #2a2350;
 }
-/* no computador o texto sobe para o céu, acima das letras: assim o título e a frase não caem em cima da "montanha" */
+.hero-marca { display: none; }
+/* no computador o texto desce para o canto de baixo, sobre as flores: assim o nome RONDO da foto fica livre lá em cima */
 @media (min-width: 961px) {
-  .hero-grade { align-items: start; padding-top: clamp(.5rem, 5vh, 3.5rem); }
-}
-.hero-texto .lead { text-shadow: 0 1px 16px rgba(20, 6, 50, .7); }
-.hero-marca {
-  bottom: clamp(44px, 9vh, 110px); line-height: .78; color: transparent; mix-blend-mode: normal;
-  background: url("../assets/cenas/hero-serra.svg") center / 100% 100% no-repeat;
-  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 -2px 0 rgba(255, 255, 255, .16));   /* um fio de luz no contorno de cima, como o sol batendo na crista */
-}
-/* os pinheiros na frente do nome, com o chão que escurece até a cor da página */
-.hero::after {
-  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: clamp(150px, 30vh, 290px); z-index: 0; pointer-events: none;
-  background:
-    linear-gradient(180deg, rgba(3, 1, 8, 0) 46%, rgba(3, 1, 8, .7) 82%, #030108 100%),
-    url("../assets/cenas/hero-pinheiros.svg") center bottom / max(100%, 1100px) 100% no-repeat;
-}
-@media (max-aspect-ratio: 4/5) {
+  .hero-grade { align-items: end; padding-bottom: clamp(.5rem, 4vh, 2.5rem); }
+  /* em janela baixa e larga, a tela cresce o bastante para o título nunca subir até o nome (o nome termina em ~25% da largura) */
+  .hero { min-height: max(100svh, calc(25.5vw + 24rem)); }
   .hero {
     background:
-      linear-gradient(180deg, rgba(3, 1, 8, .26) 0%, rgba(3, 1, 8, .2) 60%, rgba(3, 1, 8, 0) 100%),
-      url("../assets/cenas/hero-ceu-r.svg") center / cover no-repeat,
-      #3b1c8f;
+      linear-gradient(180deg, rgba(3, 1, 8, .28) 0%, rgba(3, 1, 8, 0) 22%, rgba(3, 1, 8, 0) 70%, rgba(3, 1, 8, .7) 93%, #030108 100%),
+      radial-gradient(70% 62% at 12% 82%, rgba(14, 8, 34, .74) 0%, rgba(14, 8, 34, .4) 52%, rgba(14, 8, 34, 0) 80%),
+      url("../assets/cenas/hero-foto.webp") 55% 42% / cover no-repeat,
+      #2a2350;
   }
-  .hero-marca { bottom: clamp(110px, 17vh, 170px); }
-  .hero::after { height: clamp(150px, 24vh, 230px); background-size: auto, 1100px 100%; }
+}
+.hero-texto .lead { text-shadow: 0 1px 16px rgba(14, 8, 34, .8); }
+.hero-title { text-shadow: 0 2px 24px rgba(14, 8, 34, .45); }
+/* celular e tablet: com a foto cobrindo a tela inteira, só um pedaço do nome cabia. Aqui a foto ocupa a largura toda no alto,
+   num tamanho em que o nome RONDO aparece inteiro e sem nada na frente, e embaixo dela se funde no escuro, onde ficam o título
+   e os botões. 145% da largura: o nome ocupa 55% da foto (de 28% a 83%), então cabe com folga dos dois lados. */
+@media (max-width: 960px), (max-aspect-ratio: 4/5) {
+  .hero {
+    background:
+      linear-gradient(180deg, rgba(3, 1, 8, 0) 0, rgba(3, 1, 8, 0) calc(145vw / 1.78 * .62), rgba(10, 6, 24, .9) calc(145vw / 1.78 * .96), #0a0618 calc(145vw / 1.78 + 2px), #030108 100%),
+      url("../assets/cenas/hero-foto.webp") 68% 0 / 145% auto no-repeat,
+      #0a0618;
+  }
+  /* o título vem logo abaixo do nome, nunca por cima */
+  .hero-texto { padding-top: calc(145vw / 1.78 * .42); }
 }
 
-/* seções: a cena entra como um fundo distante, a meia força, que some em cima e embaixo */
+/* seções: as outras duas fotos (a serra de dia e a serra ao anoitecer) entram como fundo distante, a meia força, e somem
+   em cima e embaixo */
 #recado, #constancia, #planos { isolation: isolate; }
 #recado::after, #constancia::after, #planos::after {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .5;
-  background: center bottom / cover no-repeat;
+  background: center / cover no-repeat;
   -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 80%, transparent 100%);
   mask-image: linear-gradient(180deg, transparent 0%, #000 30%, #000 80%, transparent 100%);
 }
-#recado::after { background-image: url("../assets/cenas/noite-l.svg"); }          /* recado para o futuro: a cidade à noite */
-#constancia::after { background-image: url("../assets/cenas/pista-l.svg"); opacity: .46; }   /* constância: a pista no pôr do sol */
-#planos::after { background-image: url("../assets/cenas/lago-l.svg"); opacity: .42; }        /* planos: o dia claro na montanha */
-@media (max-aspect-ratio: 4/5) {
-  #recado::after { background-image: url("../assets/cenas/noite-r.svg"); }
-  #constancia::after { background-image: url("../assets/cenas/pista-r.svg"); }
-  #planos::after { background-image: url("../assets/cenas/lago-r.svg"); }
-}
-/* os cartões dessas seções ganham fundo fechado: o texto de dentro não disputa com o desenho */
+#recado::after { background-image: url("../assets/cenas/serra-noite.webp"); }                  /* recado para o futuro: o anoitecer */
+#constancia::after { background-image: url("../assets/cenas/serra-dia.webp"); opacity: .42; }  /* constância: o dia nascendo */
+#planos::after { background-image: url("../assets/cenas/serra-noite.webp"); background-position: 70% center; }
+/* os cartões dessas seções ganham fundo fechado: o texto de dentro não disputa com a foto */
 #recado .recorder, #recado .mini, #constancia .streak-board, #constancia .points li, #planos .plan { background-color: rgba(12, 9, 20, .86); backdrop-filter: blur(6px); }
 #planos .plan.hot { background: linear-gradient(170deg, rgba(58, 26, 124, .94), rgba(12, 9, 20, .9) 62%); }
 
-/* a chamada final: um quadro com o campo de dia, e o texto por cima de um véu escuro */
+/* a chamada final: um quadro com a serra de dia, e o texto por cima de um véu escuro */
 .cta-final { isolation: isolate; }
 .cta-final::before {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(6, 10, 30, .58) 0%, rgba(6, 10, 30, .74) 100%),
-    url("../assets/cenas/campo-l.svg") center 70% / cover no-repeat;
-}
-@media (max-aspect-ratio: 4/5) {
-  .cta-final::before { background: linear-gradient(180deg, rgba(6, 10, 30, .62) 0%, rgba(6, 10, 30, .8) 100%), url("../assets/cenas/campo-r.svg") center 60% / cover no-repeat; }
+    linear-gradient(180deg, rgba(6, 10, 30, .58) 0%, rgba(6, 10, 30, .76) 100%),
+    url("../assets/cenas/serra-dia.webp") center 45% / cover no-repeat;
 }

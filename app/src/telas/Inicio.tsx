@@ -22,9 +22,9 @@ export function Inicio({ aoCriar, aoEntrar, aoSocial }: { aoCriar: () => void; a
   const orbe = Math.round(Math.min(300, (width / k) * 0.78, (height / k) * 0.4));
   return (
     <View style={{ flex: 1, backgroundColor: '#000000' }}>
-      {/* a pista vermelha no pôr do sol ao fundo, em cores, com um véu escuro só o bastante para o texto e os botões ficarem fáceis de ler */}
-      <FundoCena cena="pista" forca={1} veu={false} />
-      <LinearGradient pointerEvents="none" colors={['rgba(8,4,20,0.46)', 'rgba(8,4,20,0.4)', 'rgba(8,4,20,0.5)']} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
+      {/* a serra ao anoitecer ao fundo, em cores, com um véu escuro só o bastante para o texto e os botões ficarem fáceis de ler */}
+      <FundoCena cena="noite" forca={1} veu={false} />
+      <LinearGradient pointerEvents="none" colors={['rgba(8,4,20,0.3)', 'rgba(8,4,20,0.26)', 'rgba(8,4,20,0.4)']} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
       <ScrollView
         style={{ flex: 1 }} showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingTop: insets.top + 24, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
