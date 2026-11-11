@@ -194,7 +194,7 @@ def test_clube_privado_so_por_codigo(cliente):
     assert cliente.get("/clubes", headers=b).json()["itens"] == []
     assert cliente.get(f"/clubes/{clube['id']}", headers=b).status_code == 404
     assert cliente.get(f"/clubes/{clube['id']}/membros", headers=b).status_code == 404
-    assert cliente.post(f"/clubes/{clube['id']}/entrar", headers=b).status_code == 403
+    assert cliente.post(f"/clubes/{clube['id']}/entrar", headers=b).status_code == 404   # nem confirma que existe
     assert cliente.get("/social/feed", headers=b).json()["itens"] == []
     assert cliente.get("/social/feed", params={"clube_id": clube["id"]}, headers=b).status_code == 404
     assert cliente.put(f"/social/posts/{p['id']}/curtida", headers=b).status_code == 404

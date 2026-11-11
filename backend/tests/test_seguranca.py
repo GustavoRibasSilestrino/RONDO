@@ -110,3 +110,24 @@ def test_endereco_do_cliente_nao_pode_ser_inventado():
     # o cabeçalho do proxy vale, se for um endereço de verdade
     assert protecao.ip_do_cliente(_pedido({"CF-Connecting-IP": "203.0.113.7", "X-Forwarded-For": "1.2.3.4"})) == "203.0.113.7"
     assert protecao.ip_do_cliente(_pedido({"CF-Connecting-IP": "não é endereço"})) == "10.0.0.9"
+
+
+def test_codigo_de_convite_trava_depois_de_muitos_erros(cliente):
+    token = _entrar(cliente)
+    h = {"Authorization": f"Bearer {token}"}
+    for _ in range(protecao.MAX_FALHAS):
+        assert cliente.post("/clubes/entrar", json={"codigo": "ZZZZZZ"}, headers=h).status_code == 404
+    # travou: nem um código certo passa por 15 minutos (não dá para sair testando códigos)
+    codigo = cliente.post("/clubes", json={"nome": "Meu", "privado": True}, headers=h).json()["codigo"]
+    assert cliente.post("/clubes/entrar", json={"codigo": codigo}, headers=h).status_code == 429
+
+
+def test_esqueci_a_senha_responde_igual_e_manda_o_email_depois(cliente, monkeypatch):
+    from app.rotas import auth
+    enviados = []
+    monkeypatch.setattr(auth, "enviar", lambda para, assunto, texto: enviados.append(para))
+    _entrar(cliente)
+    r1 = cliente.post("/auth/esqueci-senha", json={"email": "ana@x.com"})
+    r2 = cliente.post("/auth/esqueci-senha", json={"email": "ninguem@x.com"})
+    assert r1.status_code == r2.status_code == 200 and r1.json() == r2.json() == {"status": "ok"}
+    assert enviados == ["ana@x.com"]   # saiu em segundo plano, só para quem tem conta

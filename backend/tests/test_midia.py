@@ -77,3 +77,23 @@ def test_foto_aparece_para_outra_pessoa_e_so_aceita_url_propria(cliente):
     assert cliente.delete(f"/social/posts/{visto['id']}", headers=a).status_code == 200
     apagou = [c for c in cliente.chamadas if c[0] == "DELETE"]
     assert apagou and apagou[0][2] == {"prefixes": [url.split("/public/midia/")[1]]}
+
+
+def test_endereco_de_midia_nao_aceita_pasta_de_outra_pessoa(cliente):
+    """Antes bastava começar com `.../<seu id>/`: `../` levava para a pasta de outra pessoa."""
+    a = conta(cliente, "ana@x.com", "Ana")
+    url = cliente.post("/midia/upload", json={"tipo": "imagem", "ext": "jpg"}, headers=a).json()["url"]
+    base = url.rsplit("/", 1)[0]   # .../public/midia/1
+    nome = url.rsplit("/", 1)[1]
+    ruins = [
+        f"{base}/../2/{nome}", f"{base}/%2e%2e/2/{nome}", f"{base}/x/../{nome}", f"{base}/{nome}\n", f"{base}/{nome}?x=1",
+        f"{base}//{nome}", f"{base}/{nome[:-4]}.svg", f"{base}0/{nome}",
+    ]
+    for ruim in ruins:
+        m = {"id": "m1", "tipo": "imagem", "url": ruim}
+        assert cliente.post("/social/posts", json={"texto": "x", "midia": [m]}, headers=a).status_code == 422, ruim
+        if not ruim.endswith("\n"):   # no perfil o espaço e a quebra de linha das pontas são tirados antes
+            assert cliente.patch("/me/perfil", json={"foto": ruim}, headers=a).status_code == 422, ruim
+        assert cliente.post("/social/stories", json={"texto": "oi", "midia": m}, headers=a).status_code == 422, ruim
+    # o endereço certo continua valendo
+    assert cliente.patch("/me/perfil", json={"foto": url}, headers=a).status_code == 200

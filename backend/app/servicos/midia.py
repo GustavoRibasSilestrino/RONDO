@@ -1,5 +1,6 @@
 """Fotos e vídeos dos posts no Supabase Storage. O app sobe o arquivo direto para o Storage com um endereço assinado
 que a API gera; a chave de serviço nunca sai do servidor."""
+import re
 import uuid
 
 import httpx
@@ -22,6 +23,22 @@ def prefixo_publico() -> str:
 
 def url_publica(caminho: str) -> str:
     return prefixo_publico() + caminho
+
+
+# o único formato de caminho que a API gera: `id-da-pessoa/32-hex.ext`. Nada de `..`, `%2e`, barras extras ou outra pasta.
+_CAMINHO = re.compile(r"^(\d{1,12})/[0-9a-f]{32}\.(" + "|".join(sorted(EXTENSOES)) + r")$")
+
+
+def url_da_pessoa(url: object, usuario_id: int) -> bool:
+    """True só se `url` é um arquivo do nosso Storage, na pasta da própria pessoa, no formato que a API gera.
+    Antes bastava começar com `.../<id>/`, e `.../<id>/../<outro-id>/foto.jpg` passava (a foto de outra pessoa)."""
+    if not config().supabase_url or not isinstance(url, str) or len(url) > 300:
+        return False
+    prefixo = prefixo_publico()
+    if not url.startswith(prefixo):
+        return False
+    m = _CAMINHO.fullmatch(url[len(prefixo):])
+    return bool(m and int(m.group(1)) == usuario_id)
 
 
 def _cabecalho() -> dict[str, str]:
@@ -52,7 +69,7 @@ def apagar_arquivos(urls: list[str]) -> None:
     if not configurado() or not urls:
         return
     prefixo = prefixo_publico()
-    caminhos = [u[len(prefixo):] for u in urls if u.startswith(prefixo)]
+    caminhos = [u[len(prefixo):] for u in urls if isinstance(u, str) and u.startswith(prefixo) and _CAMINHO.fullmatch(u[len(prefixo):])]
     if not caminhos:
         return
     c = config()

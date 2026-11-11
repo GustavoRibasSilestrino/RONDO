@@ -74,7 +74,7 @@ def _midia_valida(itens: list[dict] | None, uid: int) -> list[dict] | None:
                 item[k] = int(m[k])
         url = m.get("url")
         if url is not None:
-            if not (servico_midia.configurado() and isinstance(url, str) and url.startswith(f"{servico_midia.prefixo_publico()}{uid}/") and len(url) <= 300):
+            if not servico_midia.url_da_pessoa(url, uid):
                 raise HTTPException(422, "Endereço de mídia inválido.")
             item["url"] = url
         saida.append(item)

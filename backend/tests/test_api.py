@@ -62,8 +62,10 @@ def test_profissional(cliente):
 
 
 def test_assinatura(cliente):
-    assert cliente.post("/assinaturas", json={"plano_id": "pro-mensal", "token": "t"}).json() == {"status": "pendente"}
-    assert cliente.post("/assinaturas", json={"plano_id": "nada", "token": "t"}).status_code == 422
+    assert cliente.post("/assinaturas", json={"plano_id": "pro-mensal", "token": "t"}).status_code == 401   # só com login
+    ana = _conta(cliente)
+    assert cliente.post("/assinaturas", json={"plano_id": "pro-mensal", "token": "t"}, headers=ana).json() == {"status": "pendente"}
+    assert cliente.post("/assinaturas", json={"plano_id": "nada", "token": "t"}, headers=ana).status_code == 422
 
 
 def _conta(cliente, email="ana@x.com", nome="Ana"):
@@ -199,7 +201,7 @@ def test_foto_de_perfil_fica_salva_e_volta_no_login(cliente, monkeypatch):
 
     with Sessao() as s:
         uid = s.scalar(select(Usuario.id).where(Usuario.email == "ana@x.com"))
-    foto = f"{prefixo}{uid}/abc123.jpg"
+    foto = f"{prefixo}{uid}/{'ab12' * 8}.jpg"   # o formato que a API gera: <id>/<32 hex>.<ext>
     r = cliente.patch("/me/perfil", json={"foto": foto}, headers=ana)
     assert r.status_code == 200 and r.json()["foto"] == foto
     login = cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "segredo1"}).json()
@@ -207,7 +209,7 @@ def test_foto_de_perfil_fica_salva_e_volta_no_login(cliente, monkeypatch):
     # mudar só o nome não mexe na foto
     assert cliente.patch("/me/perfil", json={"nome": "Ana Maria"}, headers=ana).json()["foto"] == foto
     # trocar apaga a antiga do Storage; remover (null) apaga a nova
-    nova = f"{prefixo}{uid}/def456.jpg"
+    nova = f"{prefixo}{uid}/{'cd34' * 8}.png"
     assert cliente.patch("/me/perfil", json={"foto": nova}, headers=ana).json()["foto"] == nova
     assert cliente.patch("/me/perfil", json={"foto": None}, headers=ana).json()["foto"] is None
     assert apagadas == [foto, nova]

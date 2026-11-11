@@ -128,7 +128,7 @@ Passo a passo da Brevo, do Google e da Apple em `docs/login-social.md`.
 - **Rotas:** `/auth` (cadastro, login, eu, `esqueci-senha`, `redefinir-senha`, `google`, `apple`, `social/cadastro`, `nome-livre`), `/me` (perfil, dados, conta), `/social` (feed, posts, curtidas, comentários, stories, resumo, notificações), `/pessoas`, `/clubes`, `/midia` (envio de foto), `/denuncias`, `/bloqueios`, `/moderacao/denuncias` (só o dono), `/profissionais`, `/assinaturas`, `/treinos/1rm`, `/rondin` (voz), `/saude`. A documentação interativa fica em `/docs` com a API rodando localmente (em produção ela fica fechada).
 - **Cadastro** exige `nascimento`, `aceita_termos` e `aceita_privacidade` (LGPD); `marketing` é opcional.
 - **Migrações (Alembic):** `backend/migracoes/versions/`. A última é `a4c7e2f19b83` (tabelas `bloqueios` e `denuncias`, 2026-11-11; antes dela `f1a6d3c92b57`, coluna de busca de pessoas, `e7c2a9b15d40`, stories vistos e reações, e `d5b1e8a47c30`, redefinição de senha). Nova: `alembic revision -m "texto"` e `alembic upgrade head`. O Render roda `upgrade head` a cada deploy.
-- **Testes (86):** `backend/tests/` (API, LGPD com recuperação de senha, login social e nome único, mídia, social com stories e busca, denúncias e bloqueios, escala, segurança). Usam SQLite; **nunca** apontam para o banco real. Use só e-mails `@example.com`.
+- **Testes (89):** `backend/tests/` (API, LGPD com recuperação de senha, login social e nome único, mídia, social com stories e busca, denúncias e bloqueios, escala, segurança). Usam SQLite; **nunca** apontam para o banco real. Use só e-mails `@example.com`.
 
 ### Escala (muitos usuários ao mesmo tempo)
 
@@ -139,7 +139,7 @@ Passo a passo da Brevo, do Google e da Apple em `docs/login-social.md`.
 - Teste de carga: `node backend/scripts/teste_de_carga.mjs http://localhost:8123 400` (deve dar 400 respostas 200). **Só contra banco de teste.** Com SQLite novo, rode `alembic upgrade head` antes.
 - Plano gratuito do Render: dorme após 15 minutos parado e o primeiro acesso demora cerca de um minuto. Para muita gente real, use plano pago.
 
-### Segurança (revisão de 2026-11-10, pelos 19 pontos)
+### Segurança (revisão de 2026-11-10, pelos 19 pontos, e de 2026-11-11)
 
 Nenhum sistema é impossível de invadir; o que existe é fechar as portas conhecidas e manter a casa em ordem. Estado de cada ponto:
 
@@ -156,7 +156,7 @@ Nenhum sistema é impossível de invadir; o que existe é fechar as portas conhe
 | 10 | CSRF | Não há cookie de sessão: o login vai no cabeçalho `Authorization`, que um site de fora não consegue mandar. |
 | 11 | Upload sem validação | Só extensões de imagem e vídeo, em pasta própria de cada pessoa, com endereço assinado de uso único; a chave do Storage nunca sai do servidor. **Falta:** o limite de tamanho e o tipo real do arquivo são do bucket no Supabase (conferir no painel). |
 | 12 | Erros revelando informação | Erros de validação não devolvem o que foi enviado; login e "esqueci a senha" respondem igual exista a conta ou não. |
-| 13 | Dependências vulneráveis | Site: 0 (`npm audit`). App: 5 moderadas, todas em ferramenta de build do Expo (não vão para o aparelho; o conserto exige trocar a versão do Expo). API: versões atuais; `requirements.txt` não fixa versões. |
+| 13 | Dependências vulneráveis | Site: 0 (`npm audit`). API: 0 (`pip-audit`, versões fixas). App: as que sobram são moderadas, todas em ferramenta de build do Expo (não vão para o aparelho; o conserto exige trocar a versão do Expo). API: versões atuais; `requirements.txt` não fixa versões. |
 | 14 | Tokens | O token traz a marca da senha: **trocar ou redefinir a senha derruba todos os tokens antigos** (o aparelho que trocou recebe um novo). O token do login social não serve para entrar. Validade de 7 dias. |
 | 15 | Rate limit | Por endereço em tudo (600 por minuto) e menor nas rotas de entrada. O endereço agora vem do cabeçalho do proxy (`CF-Connecting-IP`), não do `X-Forwarded-For`, que o visitante podia inventar para furar o limite. |
 | 16 | Dados sensíveis expostos | A busca de pessoas não devolve e-mail; respostas da API saem com `Cache-Control: no-store`; no celular o token fica no cofre do sistema. Na web ele fica no armazenamento do navegador (não há cofre), por isso a política de conteúdo abaixo. |
@@ -164,7 +164,15 @@ Nenhum sistema é impossível de invadir; o que existe é fechar as portas conhe
 | 18 | Cookies inseguros | Não há cookies. |
 | 19 | CORS | Só as origens do RONDO, só os métodos e cabeçalhos usados, sem credenciais. |
 
-Além disso: cabeçalhos de segurança em toda resposta da API (`Blindagem`, em `app/protecao.py`: `nosniff`, `X-Frame-Options`, HSTS, CSP) e corpo de pedido limitado a 8 MB; no site (`vitrine/vercel.json`), política de conteúdo (CSP) que só deixa rodar código do próprio site, HSTS e proibição de abrir em moldura; no app web (`app/vercel.json`), os mesmos cabeçalhos com a CSP ainda em modo de relatório (`Report-Only`), para confirmar em produção que o login do Google e da Apple não é bloqueado antes de ligar de vez. Testes: `backend/tests/test_seguranca.py`.
+**Revisão de 2026-11-11 (o que foi achado e corrigido):**
+- **Foto de outra pessoa pelo endereço:** a API aceitava qualquer endereço que começasse com `.../<seu id>/`, então `.../<seu id>/../<outro id>/foto.jpg` passava (mostrar ou pedir para apagar o arquivo de outra pessoa). Agora só vale o formato exato que a própria API gera, `<id>/<32 hex>.<ext>` (`url_da_pessoa` em `app/servicos/midia.py`), nos posts, stories e foto de perfil, e o apagar do Storage também só aceita esse formato.
+- **"Esqueci a senha" entregava quem tem conta pelo tempo:** a resposta demorava mais quando a conta existia (o e-mail saía antes de responder). Agora o e-mail sai depois da resposta, em segundo plano.
+- **Código de convite de clube:** dava para testar códigos sem limite próprio. Agora 8 códigos errados travam a pessoa por 15 minutos. E entrar num clube privado pelo número respondia 403 (confirmava que existia); agora é 404, como um clube que não existe.
+- **`/assinaturas` aberta:** qualquer um criava pedidos anônimos. Agora exige login.
+- **Versões do Python fixas** em `backend/requirements.txt` (antes o deploy pegava a última de cada uma). `pip-audit`: nenhuma falha conhecida nas dependências do servidor. `npm audit fix` no app corrigiu o `node-forge`.
+- **CSP do app web ligada de vez** (ver abaixo). Nenhum segredo no histórico do Git (busca por chaves, tokens e senhas de banco).
+
+Além disso: cabeçalhos de segurança em toda resposta da API (`Blindagem`, em `app/protecao.py`: `nosniff`, `X-Frame-Options`, HSTS, CSP) e corpo de pedido limitado a 8 MB; no site (`vitrine/vercel.json`), política de conteúdo (CSP) que só deixa rodar código do próprio site, HSTS e proibição de abrir em moldura; no app web (`app/vercel.json`), os mesmos cabeçalhos, com a **CSP ligada de vez desde 2026-11-11** (antes era só relatório). Ela foi testada com a build de produção servida com a política ligada: entrada do Rondin, abas, perfil, configurações e a câmera (o detector do jsDelivr e o modelo do Google) sem nenhum bloqueio. O login do Google e da Apple ainda não foi testado com ela, porque os IDs ainda não existem: quando forem ligados, conferir no console do navegador se aparece "Refused to". Testes: `backend/tests/test_seguranca.py`.
 
 **Atenção no deploy:** confira no painel do Render que `JWT_SEGREDO` está definido com um valor longo e aleatório. Se estiver vazio, o deploy novo falha de propósito (a versão anterior continua no ar).
 
@@ -230,7 +238,7 @@ Pendente, código:
 - O arrastar dos popups foi testado só com mouse no navegador; falta conferir com o toque real no celular.
 - **API acordada:** o plano grátis do Render dorme depois de 15 minutos (o primeiro acesso levava uns 40 s). `.github/workflows/manter-api-acordada.yml` chama `/saude` a cada 10 minutos (cabe nas 750 horas grátis do Render). O GitHub desliga agendamentos de repositório sem commits por 60 dias: se isso acontecer, reativar na aba Actions. Para mais tráfego: plano pago no Render (aí o agendamento pode sair) e conferir o limite de conexões do pooler do Supabase.
 - A branch `yesteryou-main` do repositório pode ser apagada: `git push origin --delete yesteryou-main`.
-- **Segurança, falta:** conferir no painel do Supabase o limite de tamanho e os tipos aceitos no bucket `midia`; ligar de vez a política de conteúdo do app web (hoje em `Content-Security-Policy-Report-Only` em `app/vercel.json`) depois de confirmar que o login do Google e da Apple funciona com ela; as 5 dependências moderadas do app só somem trocando a versão do Expo.
+- **Segurança, falta:** conferir no painel do Supabase o limite de tamanho e os tipos aceitos no bucket `midia`; testar o login do Google e da Apple com a CSP ligada quando os IDs existirem; as dependências moderadas que sobram no app (`glob`, `minimatch`) são de ferramenta de build do Expo e só somem trocando a versão do Expo.
 - **Imagens:** no app, Treino e Dieta repetem a `serra-dia`. Com mais fotos do dono, dá para cada aba ter a sua.
 - **Rondin, falta:** a data de nascimento é dia/mês/ano nas três línguas (quem escreve em inglês pode esperar mês/dia); erros do servidor não mapeados aparecem como aviso genérico em inglês e espanhol; `assets/cenas/rondo-montanhas.webp` e `componentes/FundoBolhas.tsx` não são mais usados e podem ser apagados.
 - **Voz do Rondin:** não há áudios gerados; fala a voz do aparelho. Para a voz neural nas três línguas, rodar `npm run vozes` (precisa das chaves do Azure) e publicar `app/public/vozes`.

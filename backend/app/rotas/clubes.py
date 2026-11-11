@@ -11,6 +11,7 @@ from app.deps import usuario_atual
 from app.esquemas import StatusOut
 from app.esquemas_social import ClubeIn, ClubeOut, EntrarPorCodigoIn, PaginaClubes, PaginaPessoas
 from app.modelos import Clube, Membro, Post, Usuario
+from app.protecao import conta_travada, registrar_falha, zerar_falhas
 from app.rotas.social import apagar_posts
 from app.servicos.social import clube_visivel, clubes_out, limite_valido, pessoas_out
 
@@ -75,9 +76,15 @@ def criar(dados: ClubeIn, usuario: Usuario = Depends(usuario_atual), sessao: Ses
 
 @router.post("/entrar", response_model=ClubeOut)
 def entrar_por_codigo(dados: EntrarPorCodigoIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    # quem erra o código muitas vezes para por 15 minutos: não dá para sair testando códigos até achar um clube privado
+    chave = f"convite:{usuario.id}"
+    if conta_travada(chave):
+        raise HTTPException(429, "Muitos códigos errados. Espere 15 minutos e tente de novo.", headers={"Retry-After": "900"})
     clube = sessao.scalar(select(Clube).where(Clube.codigo == dados.codigo))
     if not clube:
+        registrar_falha(chave)
         raise HTTPException(404, "Código de convite inválido.")
+    zerar_falhas(chave)
     _adicionar(sessao, clube, usuario)
     return _saida(sessao, usuario.id, clube)
 
@@ -100,8 +107,8 @@ def ver(clube_id: int, usuario: Usuario = Depends(usuario_atual), sessao: Sessio
 def entrar(clube_id: int, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
     clube = sessao.get(Clube, clube_id)
     if not clube or (clube.privado and not sessao.get(Membro, (clube.id, usuario.id))):
-        # privado: nem confirma que existe; só o código abre a porta
-        raise HTTPException(404 if not clube else 403, "Clube não encontrado." if not clube else "Este clube é privado. Entre com o código de convite.")
+        # privado: a mesma resposta de "não existe" (antes um 403 confirmava que havia um clube privado com esse número)
+        raise HTTPException(404, "Clube não encontrado. Clube privado só abre com o código de convite.")
     _adicionar(sessao, clube, usuario)
     return _saida(sessao, usuario.id, clube)
 

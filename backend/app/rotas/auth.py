@@ -4,7 +4,7 @@ import logging
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -173,9 +173,21 @@ def cadastro_social(dados: CadastroSocialIn, sessao: Session = Depends(obter_ses
     return _login_out(usuario)
 
 
+def _mandar_codigo(para: str, nome: str, codigo: str) -> None:
+    try:
+        enviar(
+            para, "Seu código para redefinir a senha do RONDO",
+            f"Olá, {nome}!\n\nSeu código é: {codigo}\n\nEle vale por 15 minutos e só pode ser usado uma vez. "
+            "Se não foi você quem pediu, é só ignorar este e-mail: a sua senha continua a mesma.\n\nEquipe RONDO",
+        )
+    except EmailIndisponivel as e:
+        log.error("Não consegui mandar o código de redefinição: %s", e)
+
+
 @router.post("/esqueci-senha", response_model=StatusOut)
-def esqueci_senha(dados: EsqueciSenhaIn, sessao: Session = Depends(obter_sessao)):
-    """Manda um código de 6 dígitos para o e-mail. A resposta é sempre a mesma, exista a conta ou não: ninguém descobre quem tem conta."""
+def esqueci_senha(dados: EsqueciSenhaIn, tarefas: BackgroundTasks, sessao: Session = Depends(obter_sessao)):
+    """Manda um código de 6 dígitos para o e-mail. A resposta é sempre a mesma, exista a conta ou não: ninguém descobre quem tem conta.
+    O e-mail sai depois da resposta: antes a resposta demorava mais quando a conta existia, e o tempo entregava quem tem conta."""
     usuario = sessao.scalar(select(Usuario).where(Usuario.email == dados.email.lower()))
     if usuario:
         agora = datetime.now(timezone.utc)
@@ -185,14 +197,7 @@ def esqueci_senha(dados: EsqueciSenhaIn, sessao: Session = Depends(obter_sessao)
             codigo = f"{secrets.randbelow(10**6):06d}"
             sessao.add(RedefinicaoSenha(usuario_id=usuario.id, codigo_hash=_hash_codigo(codigo), expira_em=agora + VALIDADE_CODIGO))
             sessao.commit()
-            try:
-                enviar(
-                    usuario.email, "Seu código para redefinir a senha do RONDO",
-                    f"Olá, {usuario.nome.split()[0]}!\n\nSeu código é: {codigo}\n\nEle vale por 15 minutos e só pode ser usado uma vez. "
-                    "Se não foi você quem pediu, é só ignorar este e-mail: a sua senha continua a mesma.\n\nEquipe RONDO",
-                )
-            except EmailIndisponivel as e:
-                log.error("Não consegui mandar o código de redefinição: %s", e)
+            tarefas.add_task(_mandar_codigo, usuario.email, usuario.nome.split()[0], codigo)
     return StatusOut(status="ok")
 
 

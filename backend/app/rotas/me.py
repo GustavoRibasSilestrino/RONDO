@@ -74,7 +74,7 @@ def mudar_perfil(dados: PerfilIn, usuario: Usuario = Depends(usuario_atual), ses
     if "foto" in dados.model_fields_set:
         nova = (dados.foto or "").strip() or None
         # só aceita arquivo da pasta do próprio usuário no Storage (não um endereço qualquer)
-        if nova and not nova.startswith(f"{servico_midia.prefixo_publico()}{usuario.id}/"):
+        if nova and not servico_midia.url_da_pessoa(nova, usuario.id):
             raise HTTPException(422, "Foto inválida.")
         usuario.foto = nova
     try:
