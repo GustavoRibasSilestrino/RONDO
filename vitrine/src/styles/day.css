@@ -36,10 +36,10 @@
 
 /* trilho na lateral: você e, logo atrás, o seu ontem (acompanham a rolagem) */
 .rail { position: fixed; right: 14px; top: 50%; height: min(44vh, 400px); width: 1px; translate: 0 -50%; z-index: 40; pointer-events: none; background: var(--line-2); }
-.rail i { position: absolute; left: 50%; width: 9px; height: 9px; translate: -50% -50%; border-radius: 50%; }
-/* parado: os dois pontos ficam no lugar, não acompanham a rolagem */
-.rail-you { top: 50%; background: var(--accent-2); }
-.rail-ghost { top: 43%; border: 1px solid rgba(255, 255, 255, .55); background: var(--bg); }
+/* os pontos andam por transform (Backdrop.tsx escreve a posicao em pixels com fracao): liso, sem arredondar para pixel inteiro */
+.rail i { position: absolute; left: 50%; top: 0; width: 9px; height: 9px; border-radius: 50%; transform: translate3d(-50%, 0, 0) translateY(-50%); will-change: transform; }
+.rail-you { background: var(--accent-2); }
+.rail-ghost { border: 1px solid rgba(255, 255, 255, .55); background: var(--bg); }
 @media (max-width: 1200px) { .rail { display: none; } }
 
 /* ===== Um dia inteiro: abas com os horários e um momento por vez =====
