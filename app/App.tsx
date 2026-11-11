@@ -13,6 +13,7 @@ import { BotaoVoltar } from './src/componentes/BotaoVoltar';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
 import { Icone } from './src/componentes/Icone';
 import { MenuLateral } from './src/componentes/MenuLateral';
+import { contaPedida } from './src/lib/entrada';
 import { useMenuRecolhido } from './src/lib/largura';
 import { PainelLateral } from './src/componentes/PainelLateral';
 import { useLayoutLargo } from './src/lib/largura';
@@ -76,9 +77,10 @@ function Raiz() {
   }, [tela, antes, voltarPara]);
 
   if (!pronto) {
+    /* vindo do site para criar conta ou entrar: só o preto, sem o nome, porque a conversa com o RONDIN abre em seguida */
     return (
       <View style={st.centro}>
-        <T tam={30} peso="200" style={{ letterSpacing: 10 }}>RONDO</T>
+        {contaPedida ? null : <T tam={30} peso="200" style={{ letterSpacing: 10 }}>RONDO</T>}
       </View>
     );
   }
@@ -153,7 +155,8 @@ export default function App() {
             <Raiz />
           </AvisoProvider>
         </LojaProvider>
-        <Abertura />
+        {/* a abertura (tela preta com o nome) não aparece para quem vem do site criar conta ou entrar: vai direto ao RONDIN */}
+        {contaPedida ? null : <Abertura />}
         <StatusBar style="light" />
       </View>
     </SafeAreaProvider>

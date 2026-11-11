@@ -142,6 +142,6 @@ img, svg, video, canvas { max-width: 100%; }
 
 /* ---------- impressão: sem movimento, sem camadas fixas ---------- */
 @media print {
-  .sky, .rail, .nav, .mnav { display: none !important; }
+  .sky, .nav, .mnav { display: none !important; }
   .reveal { opacity: 1 !important; transform: none !important; }
 }

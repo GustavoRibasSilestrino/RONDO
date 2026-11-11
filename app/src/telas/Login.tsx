@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import type { Estado, Usuario } from '../tipos';
 import type { ResultadoSocial } from '../api/loginSocial';
+import { contaPedida } from '../lib/entrada';
 import { CadastroSocial } from './CadastroSocial';
 import { Inicio } from './Inicio';
 import { Rondin } from './Rondin';
@@ -14,16 +15,10 @@ export const SITE = 'https://userondo.vercel.app';
 
 type TelaLogin = 'inicio' | 'cadastro' | 'entrar';
 
-/* o modo pedido pelo endereço (só no navegador) */
-function telaDoEndereco(): TelaLogin {
-  if (Platform.OS !== 'web' || typeof window === 'undefined') return 'inicio';
-  try {
-    const conta = new URLSearchParams(window.location.search).get('conta');
-    return conta === 'criar' ? 'cadastro' : conta === 'entrar' ? 'entrar' : 'inicio';
-  } catch {
-    return 'inicio';
-  }
-}
+/* o modo pedido pelo endereço (só no navegador; lido uma vez em lib/entrada.ts). Vale para a primeira vez que esta tela
+   aparece: quem sair da conta depois, na mesma visita, volta para a tela inicial. */
+let pedidoUsado = false;
+const telaDoEndereco = (): TelaLogin => (pedidoUsado ? 'inicio' : contaPedida === 'criar' ? 'cadastro' : contaPedida === 'entrar' ? 'entrar' : 'inicio');
 
 export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario, extra?: Partial<Estado>) => void }) {
   const [tela, setTela] = useState<TelaLogin>(telaDoEndereco);
@@ -33,6 +28,7 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario, extra?: Parti
 
   /* o pedido do endereço vale uma vez: tira o `?conta=` para que recarregar a página volte à tela inicial */
   useEffect(() => {
+    pedidoUsado = true;
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     try {
       const url = new URL(window.location.href);

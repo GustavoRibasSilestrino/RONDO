@@ -9,25 +9,31 @@
   --corte: 38px;
   --regua: 17px;                   /* altura dos traços da régua */
   --piso: calc(27% + 58px);        /* a linha do chão, medida a partir do pé do painel: é onde os aparelhos pousam */
+  --forca-painel: .5;              /* quanto da cor da cena aparece no painel (o resto é o preto de baixo) */
+  --forca-fundo: .45;              /* e quanto aparece em volta dele, no fundo da página */
   position: relative; height: 480vh; border-top: 1px solid var(--line);
   display: grid; grid-template-rows: minmax(0, 1fr);
-  background: #170640;   /* a primeira cena escurecida; as camadas de .gym-fundo se dissolvem por cima */
+  background: var(--bg);   /* o preto da página; as cores das cenas entram por cima, a meia força */
 }
 /* o fundo: uma camada por cena, presa à tela; troca de cor mudando só a opacidade */
 .gym-fundo {
   grid-area: 1 / 1; align-self: start;
   position: sticky; top: 0; z-index: 0; height: 100vh; height: 100svh;
   overflow: hidden; pointer-events: none;
+  opacity: var(--forca-fundo);   /* o conjunto das camadas, não cada uma: a troca de cor continua limpa */
 }
 .gym-fundo i, .gym-cor { position: absolute; inset: 0; display: block; will-change: opacity; }
 .gym-stage {
   grid-area: 1 / 1; align-self: start;
   position: sticky; z-index: 1; top: calc(var(--nav-h) + 6px); height: calc(100vh - var(--nav-h) - 18px); height: calc(100svh - var(--nav-h) - 18px); overflow: hidden;
   margin-inline: clamp(8px, 2vw, 28px);
+  background: #07060b;   /* o painel é quase preto; a cor da cena entra por cima, a meia força */
   /* duas quinas cortadas, em diagonal, como na referência */
   clip-path: polygon(0 0, calc(100% - var(--corte)) 0, 100% var(--corte), 100% 100%, var(--corte) 100%, 0 calc(100% - var(--corte)));
 }
-.gym-cor { z-index: -1; }   /* atrás do véu e de tudo o mais; a de cima na ordem fica por cima */
+/* as cores do painel ficam juntas num grupo, atrás do véu e de tudo o mais; a opacidade é do grupo (a de cima na ordem fica
+   por cima e a troca de uma cor para a outra não deixa o preto vazar no meio do caminho) */
+.gym-cores { position: absolute; inset: 0; z-index: -1; opacity: var(--forca-painel); pointer-events: none; }
 /* um véu de luz no alto e fecho no fundo: profundidade, não brilho de enfeite */
 .gym-stage::before {
   content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;

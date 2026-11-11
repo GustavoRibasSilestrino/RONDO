@@ -43,7 +43,9 @@ const smooth = (t: number) => { const x = clamp(t, 0, 1); return x * x * (3 - 2 
 const GIRO_PLANO = 9;    // graus que o quadro ainda vira como um cartão nas pontas do caminho (o giro de verdade vem dos quadros)
 const ATRASO = 0.045;    // o quanto o "ontem" fica para trás do aparelho parado, em largura da tela
 const PLATO = 0.12;      // o aparelho fica parado no centro enquanto |d| < PLATO
-const FOLGA = 0.62;      // quanto ele anda para fora, em (largura da tela + a largura dele)
+const FOLGA = 0.84;      // quanto ele anda para fora, em (largura da tela + a largura dele)
+const ARRANQUE = 1.35;   // a saída do centro: 1 seria linha reta (tranco ao sair do repouso); acima de 1 ele ganha velocidade aos poucos
+const INERCIA = 0.87;    // quanto da distância até o alvo sobra a cada quadro de 60 Hz: mais perto de 1, mais macio
 const PERIODO = 120;     // distância entre os traços grandes da régua, em px
 
 export function GymScene() {
@@ -150,11 +152,13 @@ export function GymScene() {
     };
 
     /* d = quanto o aparelho está do centro: -1 chegando pela direita, 0 no meio, 1 saindo pela esquerda.
-       k = quanto ele já andou para fora: 0 enquanto |d| < PLATO (parado no centro, para dar tempo de ler) e, dali em diante, em linha reta até 1.
-       Linha reta de propósito: com a curva que quase parava no centro, o que sai e o que entra ficavam perto do meio ao mesmo tempo,
-       e no celular, onde cada aparelho ocupa quase a largura toda, um passava por cima do outro. Com FOLGA = 0,62 a distância entre
-       dois vizinhos em qualquer instante é maior que a soma das meias-larguras (conferido na medição), e em |d| = 1 ele já saiu inteiro. */
-    const k = (d: number) => clamp((Math.abs(d) - PLATO) / (1 - PLATO), 0, 1);
+       k = quanto ele já andou para fora: 0 enquanto |d| < PLATO (parado no centro, para dar tempo de ler) e, dali em diante, até 1.
+       Ele sai do repouso ganhando velocidade aos poucos (potência ARRANQUE) e chega do mesmo jeito, freando: em linha reta ele
+       arrancava e parava de uma vez, com um tranco na borda do platô. Uma curva forte demais deixaria o que sai e o que entra
+       perto do meio ao mesmo tempo (no celular, onde cada aparelho ocupa quase a largura toda, um passaria por cima do outro);
+       por isso a FOLGA subiu junto: no pior instante (d = 0,5) os dois vizinhos ficam a 0,54 × (2 larguras de tela + as larguras
+       deles) um do outro, um pouco mais do que na linha reta de antes, e em |d| = 1 ele já saiu inteiro. */
+    const k = (d: number) => Math.pow(clamp((Math.abs(d) - PLATO) / (1 - PLATO), 0, 1), ARRANQUE);
     const xDe = (d: number, i: number) => -Math.sign(d) * k(d) * (W + larg[i]) * FOLGA;
     const pose = (d: number, i: number, extra = 0) => {
       const a = k(d);
@@ -207,7 +211,7 @@ export function GymScene() {
     /* a rolagem define o alvo; o laço corre atrás dele com um pouco de inércia (rolar com a roda do mouse anda aos pulos)
        e dorme quando chega */
     const passo = (_t: number, dt: number) => {
-      atual += (alvo - atual) * (1 - Math.pow(0.84, dt));
+      atual += (alvo - atual) * (1 - Math.pow(INERCIA, dt));
       if (Math.abs(alvo - atual) < 0.0006) { atual = alvo; desliga?.(); desliga = null; }
       pintar(atual);
     };
@@ -255,7 +259,9 @@ export function GymScene() {
       </div>
 
       <div className="gym-stage" ref={palco}>
-        {CENAS.map((c, i) => <i key={c.nome} className="gym-cor" aria-hidden="true" ref={(el) => { cores.current[i] = el; }} style={{ background: painel(c), opacity: i === 0 ? 1 : 0 }} />)}
+        <div className="gym-cores" aria-hidden="true">
+          {CENAS.map((c, i) => <i key={c.nome} className="gym-cor" ref={(el) => { cores.current[i] = el; }} style={{ background: painel(c), opacity: i === 0 ? 1 : 0 }} />)}
+        </div>
 
         <div className="gym-words" aria-hidden="true">
           {CENAS.map((c, i) => <span key={c.nome} ref={(el) => { palavras.current[i] = el; }} className="gym-word"><span>{c.nome}</span></span>)}
