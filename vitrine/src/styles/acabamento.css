@@ -8,7 +8,7 @@ body { -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; f
 .display, .hero-title, .gym-title, .tool h3, .panel h3, .pro h3, .plan h3, .mini h3, .rec-q h3, .step b, .faq summary { text-wrap: balance; }
 p, .lead, li { text-wrap: pretty; }
 /* números que mudam ou ficam em coluna: algarismos da mesma largura, para não dançarem */
-.price, .big-num, .result b, .cmp-row b, .timer b, .rk .pt, .rk .pos, .pod span, .points li b, .gym-pager, .streak-count b, .set .f { font-variant-numeric: tabular-nums; }
+.price, .big-num, .result b, .cmp-row b, .timer b, .rk .pt, .rk .pos, .pod span, .points li b, .streak-count b, .set .f { font-variant-numeric: tabular-nums; }
 
 /* ---- divisória entre as seções: um fio que some nas pontas, no lugar da linha de fora a fora ---- */
 .section { border-top-color: transparent; }

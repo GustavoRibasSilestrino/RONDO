@@ -59,9 +59,6 @@ export function GymScene() {
   const fotos = useRef<(HTMLImageElement | null)[]>([]);
   const telas = useRef<(HTMLCanvasElement | null)[]>([]);
   const regua = useRef<HTMLDivElement>(null);
-  const etiquetas = useRef<(HTMLLIElement | null)[]>([]);
-  const indice = useRef<HTMLSpanElement>(null);
-  const trilha = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const sec = secao.current, stage = palco.current;
@@ -201,11 +198,8 @@ export function GymScene() {
       const nova = clamp(Math.round(q), 0, N - 1);
       if (nova !== ativa) {
         ativa = nova;
-        if (indice.current) indice.current.textContent = String(nova + 1).padStart(2, "0");
-        etiquetas.current.forEach((el, i) => el?.classList.toggle("on", i === nova));
         cuidar();
       }
-      poe(trilha.current, "transform", `scaleX(${(q / (N - 1)).toFixed(4)})`);
     }
 
     /* a rolagem define o alvo; o laço corre atrás dele com um pouco de inércia (rolar com a roda do mouse anda aos pulos)
@@ -286,9 +280,6 @@ export function GymScene() {
         </div>
         <div className="gym-grain" aria-hidden="true" />
 
-        <ul className="gym-etiquetas" aria-hidden="true">
-          {CENAS.map((c, i) => <li key={c.nome} ref={(el) => { etiquetas.current[i] = el; }} className={i === 0 ? "on" : ""}>[ {c.nome} ]</li>)}
-        </ul>
         <p className="gym-serie" aria-hidden="true">[ Série: aparelhos 04 ]</p>
 
         <div className="gym-base">
@@ -298,10 +289,6 @@ export function GymScene() {
               <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30" /><path d="M38 62 L64 36 M44 36 H64 V56" /></svg>
             </a>
             <div><b>Criar conta grátis</b><small>Cada aparelho abre com a carga de ontem e sugere a de hoje.</small></div>
-          </div>
-          <div className="gym-fim" aria-hidden="true">
-            <span className="gym-pager"><span ref={indice}>01</span><i><em ref={trilha} /></i><span>04</span></span>
-            <span className="gym-barras" />
           </div>
         </div>
       </div>
