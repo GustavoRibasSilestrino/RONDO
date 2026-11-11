@@ -3,8 +3,8 @@
    campo para responder. No cadastro, as respostas viram o perfil da conta (altura, peso, objetivo, rotina...) e são
    salvas no servidor junto com ela. O roteiro está em lib/rondinRoteiro.ts e a voz em lib/rondinVoz.ts.
 
-   A tela é limpa: o orbe dentro da moldura de instrumento (componentes/Orbe), a pergunta, as respostas e, no cadastro, o
-   progresso ("ETAPA 03 · 16"). Não há espera entre as perguntas: as respostas aparecem junto com a pergunta, enquanto ele
+   A tela é limpa: o orbe dentro da moldura de instrumento (componentes/Orbe), a pergunta, as respostas e, no cadastro, um
+   contador discreto no alto ("3 / 16"). Não há espera entre as perguntas: as respostas aparecem junto com a pergunta, enquanto ele
    ainda fala, e responder corta a fala. Uma seta no canto de cima, à esquerda, volta para a pergunta anterior. E ela responde:
    o orbe acompanha o cursor e solta uma onda a cada tecla; tocar nele pula a fala ou repete a pergunta; no computador as
    opções têm atalho de teclado (1 a 9, e Enter para continuar).
@@ -133,9 +133,12 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   /* no navegador, a coluna inteira (letras, orbe, opções, campos) escala com a janela: 1 = um celular de 390 px. Encolhe em
-     tela estreita ou baixa, para caber, e cresce só um pouco em tela grande (antes ia até 1,8 e as opções ficavam enormes). */
+     tela estreita ou baixa, para caber. No computador ela cresce mais (até 1,4), e quem manda é a altura da janela: a coluna
+     precisa de umas 640 unidades de altura para a pergunta mais comprida caber sem rolar. */
   const { largo } = useLayoutLargo();
-  const k = Platform.OS === 'web' ? Math.min(1.12, Math.max(0.78, Math.min(width / 390, height / 720))) : 1;
+  const k = Platform.OS !== 'web' ? 1
+    : largo ? Math.min(1.4, Math.max(0.9, Math.min(width / 390, height / 640)))
+      : Math.min(1.12, Math.max(0.78, Math.min(width / 390, height / 720)));
 
   const [resp, setResp] = useState<Respostas>({});
   const respRef = useRef<Respostas>({});
@@ -182,7 +185,6 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
 
   const passo = passos.find((p) => p.id === idAtual) ?? passos[0];
   const indice = passos.findIndex((p) => p.id === passo.id);
-  const progresso = modo === 'cadastro' ? Math.min(1, indice / (passos.length - 1)) : 0;
 
   /* ---------- falar: legenda e voz andam juntas; `depois` roda quando as duas terminam. As respostas não esperam por isso:
      ficam na tela desde o começo da fala (só somem enquanto o servidor trabalha) ---------- */
@@ -390,12 +392,12 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
   const campoAberto = respondendo && (passo.tipo === 'campo' || passo.tipo === 'entrar');
   const opcoesAbertas = respondendo && (passo.tipo === 'idioma' || passo.tipo === 'opcoes' || passo.tipo === 'multi');   // sobra pouca altura: o orbe encolhe para as opções caberem
   /* com o zoom, a janela "cabe" menos unidades: as contas usam a janela já dividida por k. O tamanho já inclui a moldura do orbe. */
-  const orbe = Math.round(Math.max(130, Math.min(campoAberto ? 176 : opcoesAbertas ? 196 : 276, (width / k) * (campoAberto ? 0.5 : 0.72), (height / k) * 0.32)));
+  const teto = largo ? (campoAberto ? 210 : opcoesAbertas ? 230 : 300) : (campoAberto ? 176 : opcoesAbertas ? 196 : 276);   // no computador o orbe é maior
+  const orbe = Math.round(Math.max(130, Math.min(teto, (width / k) * (campoAberto ? 0.5 : 0.72), (height / k) * (largo ? 0.36 : 0.32))));
   useEffect(() => { const id = setTimeout(medirOrbe, 60); return () => clearTimeout(id); }, [medirOrbe, width, height, orbe, modo, fase]);
   /* a etapa em que a conversa está, contando só as perguntas */
   const perguntas = passos.filter((p) => p.tipo !== 'fala' && p.tipo !== 'criar');
   const etapa = Math.max(1, passos.slice(0, indice + 1).filter((p) => p.tipo !== 'fala' && p.tipo !== 'criar').length);
-  const doisDigitos = (n: number) => String(n).padStart(2, '0');
 
   if (recuperando) {
     return <RecuperarSenha idioma={idioma} emailInicial={email} aoVoltar={() => setRecuperando(false)} aoConcluir={(e) => { setEmail(e); setSenha(''); setErro(''); setRecuperando(false); }} />;
@@ -411,19 +413,16 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
           contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: insets.top + 12, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
         >
           <View style={[st.coluna, largo ? st.colunaLarga : null, k !== 1 ? ({ zoom: k } as object) : null]}>
-            {/* o lugar da seta de voltar, que fica presa no canto de cima da tela (mais abaixo) */}
-            <View style={st.topo} />
-            {modo === 'cadastro' ? (
-              <View>
-                <View style={st.etapa}>
-                  <T tam={10.5} mono cor={cores.texto3} style={{ letterSpacing: 2 }}>{ui.criarConta}</T>
-                  <T tam={10.5} mono cor={cores.destaque2} style={{ letterSpacing: 2 }}>{ui.etapa} {doisDigitos(etapa)} · {doisDigitos(perguntas.length)}</T>
+            {/* a linha do alto: no cadastro, só o número da pergunta ("3 / 16"), no centro. A seta de voltar fica presa no canto
+                de cima da tela (mais abaixo), fora da coluna */}
+            <View style={st.topo}>
+              {modo === 'cadastro' ? (
+                <View accessible accessibilityRole="text" accessibilityLabel={`${ui.etapa} ${etapa} / ${perguntas.length}`} style={st.contador}>
+                  <T tam={13} peso="500" cor={cores.texto}>{etapa}</T>
+                  <T tam={13} cor={cores.texto3}>/ {perguntas.length}</T>
                 </View>
-                <View style={st.trilho} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(progresso * 100) }}>
-                  <View style={[st.trilhoCheio, { width: `${Math.max(3, progresso * 100)}%` }]} />
-                </View>
-              </View>
-            ) : null}
+              ) : null}
+            </View>
 
             <View style={{ alignItems: 'center', marginTop: 6 }}>
               <View ref={orbeRef} collapsable={false} onLayout={medirOrbe}>
@@ -567,11 +566,9 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
 const st = estilos(() => StyleSheet.create({
   coluna: { width: '100%', maxWidth: 440, alignSelf: 'center' },
   colunaLarga: { maxWidth: 520, paddingHorizontal: 26, paddingBottom: 24, borderRadius: 4 },   // sem fundo próprio: as ondas passam por trás
-  topo: { height: 44 },
+  topo: { height: 44, alignItems: 'center', justifyContent: 'center' },
+  contador: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
   setaCanto: { position: 'absolute', width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  etapa: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 },
-  trilho: { height: 2, borderRadius: 1, backgroundColor: cores.linha },
-  trilhoCheio: { height: 2, borderRadius: 1, backgroundColor: cores.destaque2, boxShadow: '0 0 8px rgba(196,168,255,0.9)' },
   legenda: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, minHeight: 88, paddingHorizontal: 4 },
   opcoes: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
   pilula: {
