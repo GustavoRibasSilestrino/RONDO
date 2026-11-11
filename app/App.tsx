@@ -3,7 +3,7 @@
 import { Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
-import { BackHandler, Pressable, StyleSheet, View } from 'react-native';
+import { BackHandler, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Abertura } from './src/componentes/Abertura';
 import { AvisoNivel } from './src/componentes/AvisoNivel';
@@ -13,7 +13,6 @@ import { BotaoVoltar } from './src/componentes/BotaoVoltar';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
 import { Icone } from './src/componentes/Icone';
 import { MenuLateral } from './src/componentes/MenuLateral';
-import { contaPedida } from './src/lib/entrada';
 import { useMenuRecolhido } from './src/lib/largura';
 import { PainelLateral } from './src/componentes/PainelLateral';
 import { useLayoutLargo } from './src/lib/largura';
@@ -36,6 +35,8 @@ import { Social } from './src/telas/Social';
 import { Treino } from './src/telas/Treino';
 import { nivelDe, xpTotal } from './src/lib/nivel';
 import { cores, estilos } from './src/tema';
+
+const NO_CELULAR = Platform.OS !== 'web';
 
 /* o app abre no Início (o feed), e o botão voltar do Android leva para ele */
 const INICIO = 'home';
@@ -77,10 +78,10 @@ function Raiz() {
   }, [tela, antes, voltarPara]);
 
   if (!pronto) {
-    /* vindo do site para criar conta ou entrar: só o preto, sem o nome, porque a conversa com o RONDIN abre em seguida */
+    /* o nome na tela preta é a abertura do app do celular; no navegador fica só o preto, até a tela aparecer */
     return (
       <View style={st.centro}>
-        {contaPedida ? null : <T tam={30} peso="200" style={{ letterSpacing: 10 }}>RONDO</T>}
+        {NO_CELULAR ? <T tam={30} peso="200" style={{ letterSpacing: 10 }}>RONDO</T> : null}
       </View>
     );
   }
@@ -155,8 +156,8 @@ export default function App() {
             <Raiz />
           </AvisoProvider>
         </LojaProvider>
-        {/* a abertura (tela preta com o nome) não aparece para quem vem do site criar conta ou entrar: vai direto ao RONDIN */}
-        {contaPedida ? null : <Abertura />}
+        {/* a abertura (tela preta com o nome RONDO em branco) é só do app do celular, quando ele abre; no navegador não aparece */}
+        {NO_CELULAR ? <Abertura /> : null}
         <StatusBar style="light" />
       </View>
     </SafeAreaProvider>

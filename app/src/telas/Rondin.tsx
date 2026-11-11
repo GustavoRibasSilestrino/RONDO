@@ -3,8 +3,9 @@
    campo para responder. No cadastro, as respostas viram o perfil da conta (altura, peso, objetivo, rotina...) e são
    salvas no servidor junto com ela. O roteiro está em lib/rondinRoteiro.ts e a voz em lib/rondinVoz.ts.
 
-   A tela tem cara de painel de assistente (um "Jarvis"): o orbe fica dentro de uma moldura de instrumento (componentes/Orbe),
-   uma etiqueta diz o que ele está fazendo (falando, ouvindo, processando) e o progresso vira "ETAPA 03 · 14". E ela responde:
+   A tela é limpa: o orbe dentro da moldura de instrumento (componentes/Orbe), a pergunta, as respostas e, no cadastro, o
+   progresso ("ETAPA 03 · 16"). Não há espera entre as perguntas: as respostas aparecem junto com a pergunta, enquanto ele
+   ainda fala, e responder corta a fala. Uma seta no canto de cima, à esquerda, volta para a pergunta anterior. E ela responde:
    o orbe acompanha o cursor e solta uma onda a cada tecla; tocar nele pula a fala ou repete a pergunta; no computador as
    opções têm atalho de teclado (1 a 9, e Enter para continuar).
    Tamanho: no navegador a coluna inteira escala com a janela (`k`), para caber sem rolar e nunca ficar gigante.
@@ -13,6 +14,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cadastrar, entrar, nomeEstaLivre } from '../api/conta';
+import type { ResultadoSocial } from '../api/loginSocial';
+import { BotoesSociais } from '../componentes/BotoesSociais';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
 import { FundoRondin } from '../componentes/FundoRondin';
 import { Icone } from '../componentes/Icone';
@@ -119,19 +122,14 @@ function Pilula({ opcao, marcada, aoPressionar, tecla }: { opcao: Opcao; marcada
   );
 }
 
-/* ---------- os quatro cantos da moldura do painel, só no computador ---------- */
-function Cantos() {
-  return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <View style={[st.canto, { top: 0, left: 0, borderTopWidth: 1, borderLeftWidth: 1 }]} />
-      <View style={[st.canto, { top: 0, right: 0, borderTopWidth: 1, borderRightWidth: 1 }]} />
-      <View style={[st.canto, { bottom: 0, left: 0, borderBottomWidth: 1, borderLeftWidth: 1 }]} />
-      <View style={[st.canto, { bottom: 0, right: 0, borderBottomWidth: 1, borderRightWidth: 1 }]} />
-    </View>
-  );
-}
+type Props = {
+  modo: Modo; aoEntrar: AoEntrar;
+  aoVoltar: () => void;                          // a seta, na primeira pergunta
+  aoSocial?: (r: ResultadoSocial) => void;       // entrar com Google ou Apple (aparece junto dos campos de entrada)
+  aoTrocarModo?: () => void;                     // de "entrar" para "criar conta", para quem ainda não tem conta
+};
 
-export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoEntrar; aoVoltar: () => void }) {
+export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Props) {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   /* no navegador, a coluna inteira (letras, orbe, opções, campos) escala com a janela: 1 = um celular de 390 px. Encolhe em
@@ -186,7 +184,8 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   const indice = passos.findIndex((p) => p.id === passo.id);
   const progresso = modo === 'cadastro' ? Math.min(1, indice / (passos.length - 1)) : 0;
 
-  /* ---------- falar: legenda e voz andam juntas; o que vem depois só roda quando as duas terminam ---------- */
+  /* ---------- falar: legenda e voz andam juntas; `depois` roda quando as duas terminam. As respostas não esperam por isso:
+     ficam na tela desde o começo da fala (só somem enquanto o servidor trabalha) ---------- */
   const checar = useCallback((id: number) => {
     const c = ctrl.current;
     if (c.id !== id || !c.voz || !c.leg || !c.depois) return;
@@ -219,7 +218,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   /* tocar no orbe: enquanto ele fala, pula a fala; esperando a resposta, ele repete a pergunta em voz alta */
   const tocarNoOrbe = () => {
     if (fase === 'falando' && !completa) pular();
-    else if (fase === 'pergunta' && trechosRef.current.length) falar(trechosRef.current, sotaqueRef.current, () => undefined);
+    else if (trechosRef.current.length) falar(trechosRef.current, sotaqueRef.current, () => undefined);
   };
 
   const irPara = useCallback((id: string) => {
@@ -244,9 +243,9 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
     prefixo.current = null;
     dizer(partes, () => {
       if (p.tipo === 'fala') avancar();
-      else if (p.tipo === 'criar') void criarConta();
-      else setFase('pergunta');
-    }, sotaqueRef.current, p.tipo === 'fala' || p.tipo === 'criar' ? 3500 : 500);
+      else if (p.tipo !== 'criar') setFase('pergunta');
+    }, sotaqueRef.current, 500);
+    if (p.tipo === 'criar') void criarConta();   // a conta começa a ser criada já, enquanto ele fala
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idAtual]);
   useEffect(() => () => parar(), []);
@@ -270,14 +269,14 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
     sotaqueRef.current = s;
     setSotaque(s);
     guardar('idioma', s.id);
-    setFase('trabalhando');
+    /* ele se apresenta na língua escolhida, já junto da primeira pergunta (sem uma fala à parte, que fazia esperar) */
+    if (modo === 'cadastro') prefixo.current = TEXTOS[s.idioma].fala.apresentacao;
     avancar();
   };
 
   const escolher = (p: Extract<Passo, { tipo: 'opcoes' }>, o: Opcao) => {
     const barrado = p.barra?.(o.id);
-    if (barrado) {   // ele explica e a pessoa escolhe de novo
-      setFase('trabalhando');
+    if (barrado) {   // ele explica e a pessoa escolhe de novo (as opções continuam na tela)
       dizer([barrado], () => setFase('pergunta'), sotaqueRef.current, 500);
       return;
     }
@@ -287,13 +286,15 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   const enviarCampo = async (p: Extract<Passo, { tipo: 'campo' }>) => {
     const valor = p.campo === 'senha' ? texto : texto.trim();
     const problema = p.validar(valor, respRef.current);
-    if (problema) { setErro(problema); setFase('trabalhando'); dizer([problema], () => { setFase('pergunta'); setTimeout(() => campoRef.current?.focus(), 50); }, sotaqueRef.current, 500); return; }
+    /* resposta que não serve: ele avisa e o campo continua na tela, já com o cursor */
+    const avisar = (aviso: string) => { setErro(aviso); dizer([aviso], () => setFase('pergunta'), sotaqueRef.current, 500); campoRef.current?.focus(); };
+    if (problema) { avisar(problema); return; }
     /* o nome precisa ser único: pergunta ao servidor já aqui, antes de a pessoa responder todo o resto */
     if (modo === 'cadastro' && p.id === 'nome') {
       setEnviando(true);
       const livre = await nomeEstaLivre(valor);
       setEnviando(false);
-      if (!livre) { const aviso = falasDe(idioma).nomeJaTem; setErro(aviso); setFase('trabalhando'); dizer([aviso], () => { setFase('pergunta'); setTimeout(() => campoRef.current?.focus(), 50); }, sotaqueRef.current, 500); return; }
+      if (!livre) { avisar(falasDe(idioma).nomeJaTem); return; }
     }
     responder(valor, p.comentario?.(valor, respRef.current));
   };
@@ -323,8 +324,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
         aceita: true, marketing: false,
         responsavel: menor ? { nome: String(r.respNome), email: String(r.respEmail), autoriza: true } : null,
       });
-      const perfil = montarPerfil(r, sotaqueRef.current.id);
-      dizer([falasDe(sotaqueRef.current.idioma).contaCriada], () => aoEntrar(usuario, perfil));
+      aoEntrar(usuario, montarPerfil(r, sotaqueRef.current.id));   // conta criada: entra no app na hora
     } catch (e) {
       const bruta = e instanceof Error ? e.message : 'Não foi possível criar a conta agora.';
       const lang = sotaqueRef.current.idioma, falas = falasDe(lang);
@@ -369,23 +369,26 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 
   /* ---------- atalhos de teclado (navegador): 1 a 9 escolhem a opção; Enter continua nas perguntas de várias respostas ---------- */
   useEffect(() => {
-    if (Platform.OS !== 'web' || fase !== 'pergunta') return undefined;
+    if (Platform.OS !== 'web' || fase === 'trabalhando') return undefined;
     const aoTeclar = (e: KeyboardEvent) => {
       const alvo = e.target as HTMLElement | null;
       if ((alvo && /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName)) || e.ctrlKey || e.metaKey || e.altKey) return;
       const n = /^[1-9]$/.test(e.key) ? Number(e.key) : 0;
-      if (passo.tipo === 'idioma' && n && n <= SOTAQUES.length) escolherIdioma(SOTAQUES[n - 1]);
-      else if (passo.tipo === 'opcoes' && n && n <= passo.opcoes.length) escolher(passo, passo.opcoes[n - 1]);
-      else if (passo.tipo === 'multi' && n && n <= passo.opcoes.length) alternar(passo, passo.opcoes[n - 1]);
-      else if (passo.tipo === 'multi' && e.key === 'Enter' && marcadas.length) responder(marcadas);
+      /* a tecla do atalho não pode cair no campo da pergunta seguinte, que já nasce com o cursor (o "1" virava a primeira letra do nome) */
+      const feito = () => e.preventDefault();
+      if (passo.tipo === 'idioma' && n && n <= SOTAQUES.length) { feito(); escolherIdioma(SOTAQUES[n - 1]); }
+      else if (passo.tipo === 'opcoes' && n && n <= passo.opcoes.length) { feito(); escolher(passo, passo.opcoes[n - 1]); }
+      else if (passo.tipo === 'multi' && n && n <= passo.opcoes.length) { feito(); alternar(passo, passo.opcoes[n - 1]); }
+      else if (passo.tipo === 'multi' && e.key === 'Enter' && marcadas.length) { feito(); responder(marcadas); }
     };
     window.addEventListener('keydown', aoTeclar);
     return () => window.removeEventListener('keydown', aoTeclar);
   });
 
   /* ---------- tamanhos ---------- */
-  const campoAberto = fase === 'pergunta' && (passo.tipo === 'campo' || passo.tipo === 'entrar');
-  const opcoesAbertas = fase === 'pergunta' && (passo.tipo === 'idioma' || passo.tipo === 'opcoes' || passo.tipo === 'multi');   // sobra pouca altura: o orbe encolhe para as opções caberem
+  const respondendo = fase !== 'trabalhando';   // as respostas ficam na tela desde o começo da fala
+  const campoAberto = respondendo && (passo.tipo === 'campo' || passo.tipo === 'entrar');
+  const opcoesAbertas = respondendo && (passo.tipo === 'idioma' || passo.tipo === 'opcoes' || passo.tipo === 'multi');   // sobra pouca altura: o orbe encolhe para as opções caberem
   /* com o zoom, a janela "cabe" menos unidades: as contas usam a janela já dividida por k. O tamanho já inclui a moldura do orbe. */
   const orbe = Math.round(Math.max(130, Math.min(campoAberto ? 176 : opcoesAbertas ? 196 : 276, (width / k) * (campoAberto ? 0.5 : 0.72), (height / k) * 0.32)));
   useEffect(() => { const id = setTimeout(medirOrbe, 60); return () => clearTimeout(id); }, [medirOrbe, width, height, orbe, modo, fase]);
@@ -408,17 +411,8 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
           contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: insets.top + 12, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
         >
           <View style={[st.coluna, largo ? st.colunaLarga : null, k !== 1 ? ({ zoom: k } as object) : null]}>
-            {largo ? <Cantos /> : null}
-            {/* topo: voltar e o progresso */}
-            <View style={st.topo}>
-              {largo ? <View style={st.botaoTopo} /> : (
-                <Pressable accessibilityRole="button" accessibilityLabel={indice <= 0 ? ui.voltarInicio : ui.voltarPergunta} onPress={voltar} hitSlop={8} style={st.botaoTopo}>
-                  <Icone nome="voltar" tamanho={22} cor="#ffffff" />
-                </Pressable>
-              )}
-              <View style={{ flex: 1 }} />
-              <View style={st.botaoTopo} />
-            </View>
+            {/* o lugar da seta de voltar, que fica presa no canto de cima da tela (mais abaixo) */}
+            <View style={st.topo} />
             {modo === 'cadastro' ? (
               <View>
                 <View style={st.etapa}>
@@ -438,23 +432,12 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                   rotulo={fase === 'falando' && !completa ? ui.orbePular : ui.orbeRepetir}
                 />
               </View>
-              <View style={st.estado}>
-                <T tam={12.5} peso="500" cor={cores.destaque2} style={{ letterSpacing: 3 }}>RONDIN</T>
-                <View style={st.estadoFio} />
-                <View style={[st.estadoPonto, { backgroundColor: estadoOrbe === 'falando' ? cores.destaque2 : estadoOrbe === 'ouvindo' ? cores.bom : cores.alerta }]} />
-                <T tam={10.5} mono cor={cores.texto2} style={{ letterSpacing: 2 }}>{ui.estado[estadoOrbe]}</T>
-              </View>
             </View>
 
             <Legenda largo={largo} texto={fala} chave={chave} taxa={sotaque.taxa} duracaoMs={duracaoMs} indiceVoz={indiceVoz} completa={completa} aoCompletar={aoCompletarLegenda} />
-            {fase === 'falando' && !completa ? (
-              <Pressable accessibilityRole="button" accessibilityLabel={ui.pular} onPress={pular} style={{ alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 14 }}>
-                <T tam={12.5} cor={cores.texto3}>{ui.pular}</T>
-              </Pressable>
-            ) : null}
 
-            {/* as respostas */}
-            {fase === 'pergunta' ? (
+            {/* as respostas: aparecem junto com a pergunta, sem esperar a fala acabar */}
+            {respondendo ? (
               <View style={{ marginTop: 14, width: '100%' }}>
                 {passo.tipo === 'idioma' ? (
                   <View style={st.grade}>
@@ -550,6 +533,12 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                     <Pressable accessibilityRole="button" onPress={() => { parar(); setRecuperando(true); }} style={{ alignSelf: 'center', paddingVertical: 10 }}>
                       <T tam={13.5} cor={cores.destaque2} style={{ textDecorationLine: 'underline' }}>{ui.esqueci}</T>
                     </Pressable>
+                    {aoSocial ? <BotoesSociais aoResultado={aoSocial} /> : null}
+                    {aoTrocarModo ? (
+                      <Pressable accessibilityRole="button" onPress={() => { parar(); aoTrocarModo(); }} style={{ alignSelf: 'center', paddingVertical: 10 }}>
+                        <T tam={13.5} cor={cores.texto2} style={{ textDecorationLine: 'underline' }}>{ui.semConta}</T>
+                      </Pressable>
+                    ) : null}
                   </View>
                 ) : null}
 
@@ -564,15 +553,13 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-      {/* computador: a seta fica no canto esquerdo da tela, grande */}
-      {largo ? (
-        <Pressable
-          accessibilityRole="button" accessibilityLabel={indice <= 0 ? ui.voltarInicio : ui.voltarPergunta} onPress={voltar} hitSlop={8}
-          style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.setaCanto, { top: insets.top + 24 }, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}
-        >
-          <Icone nome="voltar" tamanho={24} cor="#ffffff" />
-        </Pressable>
-      ) : null}
+      {/* a seta de voltar, no canto de cima à esquerda da tela, no celular e no computador: volta uma pergunta */}
+      <Pressable
+        accessibilityRole="button" accessibilityLabel={indice <= 0 ? ui.voltarInicio : ui.voltarPergunta} onPress={voltar} hitSlop={8}
+        style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.setaCanto, largo ? { top: insets.top + 24, left: 24 } : { top: insets.top + 8, left: 10 }, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}
+      >
+        <Icone nome="voltar" tamanho={24} cor="#ffffff" />
+      </Pressable>
     </View>
   );
 }
@@ -580,16 +567,11 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 const st = estilos(() => StyleSheet.create({
   coluna: { width: '100%', maxWidth: 440, alignSelf: 'center' },
   colunaLarga: { maxWidth: 520, paddingHorizontal: 26, paddingBottom: 24, borderRadius: 4 },   // sem fundo próprio: as ondas passam por trás
-  canto: { position: 'absolute', width: 18, height: 18, borderColor: 'rgba(196,168,255,0.45)' },
-  topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 44 },
-  setaCanto: { position: 'absolute', left: 24, width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  botaoTopo: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  topo: { height: 44 },
+  setaCanto: { position: 'absolute', width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   etapa: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 },
   trilho: { height: 2, borderRadius: 1, backgroundColor: cores.linha },
   trilhoCheio: { height: 2, borderRadius: 1, backgroundColor: cores.destaque2, boxShadow: '0 0 8px rgba(196,168,255,0.9)' },
-  estado: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 },
-  estadoFio: { width: 18, height: 1, backgroundColor: cores.linha2, marginHorizontal: 2 },
-  estadoPonto: { width: 6, height: 6, borderRadius: 3 },
   legenda: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, minHeight: 88, paddingHorizontal: 4 },
   opcoes: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
   pilula: {

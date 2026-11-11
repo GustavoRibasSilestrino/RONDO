@@ -88,7 +88,6 @@ export function passosCadastro(r: Respostas, idioma: Idioma): Passo[] {
   const t = TEXTOS[idioma], f = t.fala, e = t.erro;
   const p: Passo[] = [
     { id: 'idioma', tipo: 'idioma', fala: () => f.idioma },
-    { id: 'apresentacao', tipo: 'fala', fala: () => f.apresentacao },
     {
       id: 'nome', tipo: 'campo', campo: 'texto', rotulo: t.campo.nome, fala: () => f.nome,
       validar: (v) => (v.trim().length < 2 ? e.nome : undefined),
@@ -210,6 +209,7 @@ export function listarFalas(idioma: Idioma): string[] {
       if (p.tipo === 'campo') for (const teste of ['', 'x', '0', '1', '999', 'a@', '31/02/2020']) add(p.validar(teste, {}));
     }
   }
+  add(t.fala.apresentacao);   // a apresentação vai na frente da primeira pergunta do cadastro
   Object.values(t.falas).forEach(add);
   Object.values(t.srv).forEach(add);
   add(t.erro.email); add(t.erro.senhaLogin);

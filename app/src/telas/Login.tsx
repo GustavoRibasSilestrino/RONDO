@@ -1,7 +1,8 @@
-/* Entrar ou criar conta, antes de usar o app, é só pelo RONDIN: a tela inicial (telas/Inicio.tsx) tem as duas opções e
-   cada uma abre a conversa (telas/Rondin.tsx). Não há mais formulário comum de entrar nem de cadastrar.
-   Vindo do site, o botão "Criar conta" ou "Entrar" traz `?conta=criar` ou `?conta=entrar` no endereço: aí a conversa com o
-   RONDIN abre direto, sem passar pela tela inicial. */
+/* Entrar ou criar conta, antes de usar o app, é só pelo RONDIN (telas/Rondin.tsx). Não há formulário comum.
+   No app do celular, a tela inicial (telas/Inicio.tsx) tem as duas opções e cada uma abre a conversa.
+   No navegador não existe tela inicial: a pessoa já escolheu no site. O botão "Criar conta" ou "Entrar" traz `?conta=criar`
+   ou `?conta=entrar` no endereço e a conversa abre direto nesse modo (sem o pedido, abre em "entrar"). A seta da primeira
+   pergunta volta para o site. */
 import React, { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import type { Estado, Usuario } from '../tipos';
@@ -15,10 +16,11 @@ export const SITE = 'https://userondo.vercel.app';
 
 type TelaLogin = 'inicio' | 'cadastro' | 'entrar';
 
-/* o modo pedido pelo endereço (só no navegador; lido uma vez em lib/entrada.ts). Vale para a primeira vez que esta tela
-   aparece: quem sair da conta depois, na mesma visita, volta para a tela inicial. */
+const NA_WEB = Platform.OS === 'web';
+/* onde esta tela começa. No celular, na tela inicial. No navegador, direto na conversa: no modo pedido pelo endereço (lido uma
+   vez em lib/entrada.ts) na primeira vez, e em "entrar" depois (ex.: quem saiu da conta na mesma visita). */
 let pedidoUsado = false;
-const telaDoEndereco = (): TelaLogin => (pedidoUsado ? 'inicio' : contaPedida === 'criar' ? 'cadastro' : contaPedida === 'entrar' ? 'entrar' : 'inicio');
+const telaDoEndereco = (): TelaLogin => (!NA_WEB ? 'inicio' : contaPedida === 'criar' && !pedidoUsado ? 'cadastro' : 'entrar');
 
 export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario, extra?: Partial<Estado>) => void }) {
   const [tela, setTela] = useState<TelaLogin>(telaDoEndereco);
@@ -41,6 +43,13 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario, extra?: Parti
 
   if (pendente) return <CadastroSocial tokenSocial={pendente.tokenSocial} nome={pendente.nome} email={pendente.email} aoVoltar={() => setPendente(null)} aoConcluir={aoEntrar} />;
   if (tela === 'inicio') return <Inicio aoCriar={() => setTela('cadastro')} aoEntrar={() => setTela('entrar')} aoSocial={aoSocial} />;
-  /* a seta de voltar do RONDIN leva de volta ao menu com as duas opções */
-  return <Rondin key={tela} modo={tela} aoEntrar={aoEntrar} aoVoltar={() => setTela('inicio')} />;
+  /* a seta da primeira pergunta: no celular volta ao menu com as duas opções; no navegador, ao site */
+  const aoVoltar = NA_WEB ? () => { window.location.assign(SITE); } : () => setTela('inicio');
+  return (
+    <Rondin
+      key={tela} modo={tela} aoEntrar={aoEntrar} aoVoltar={aoVoltar}
+      aoSocial={NA_WEB ? aoSocial : undefined}   /* no navegador os botões do Google e da Apple ficam junto dos campos de entrada */
+      aoTrocarModo={NA_WEB && tela === 'entrar' ? () => setTela('cadastro') : undefined}
+    />
+  );
 }
