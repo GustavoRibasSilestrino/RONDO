@@ -14,7 +14,9 @@ export function Hero() {
       gsap.timeline({ defaults: { ease: "power3.out" } })
         .from(".hero-title .ln", { yPercent: 40, opacity: 0, duration: 1, stagger: 0.14, clearProps: "transform,opacity" }, 0.15)
         .from(".hero-texto .lead", { y: 24, opacity: 0, duration: 0.9, clearProps: "transform,opacity" }, 0.55)
-        .from(".hero-cta .btn", { y: 20, opacity: 0, duration: 0.8, stagger: 0.1, clearProps: "transform,opacity" }, 0.7);
+        /* os botões já nascem no lugar certo, os dois juntos: só clareiam (antes subiam 20 px um depois do outro, e o
+           "Ver o app" aparecia mais baixo que o vizinho até chegar) */
+        .from(".hero-cta .btn", { opacity: 0, duration: 0.6, clearProps: "opacity" }, 0.7);
     }, raiz);
     return () => ctx.revert();
   }, []);
