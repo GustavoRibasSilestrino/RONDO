@@ -14,15 +14,18 @@ import { BENEFICIOS } from '../../lib/beneficios';
 import { progressoNivel, xpTotal } from '../../lib/nivel';
 import { cores, estilos, larguraMax } from '../../tema';
 import { SITE } from '../Login';
+import { ComunidadeSeguranca, FilaDenuncias } from './Comunidade';
 import { ContaSeguranca } from './ContaSeguranca';
 import { Privacidade } from './Privacidade';
 import { SeusDados } from './SeusDados';
 
-type Secao = 'dados' | 'beneficios' | 'privacidade' | 'conta';
+type Secao = 'dados' | 'beneficios' | 'comunidade' | 'denuncias' | 'privacidade' | 'conta';
 
 const ITENS: { id: Secao; titulo: string; sub: string; icone: NomeIcone }[] = [
   { id: 'dados', titulo: 'Seus dados', sub: 'Medidas, atividade e objetivo', icone: 'perfil' },
   { id: 'beneficios', titulo: 'Benefícios por nível', sub: 'O que cada nível libera', icone: 'estrela' },
+  { id: 'comunidade', titulo: 'Comunidade e segurança', sub: 'Regras, pessoas bloqueadas e contato', icone: 'alerta' },
+  { id: 'denuncias', titulo: 'Denúncias', sub: 'Só você vê: analisar e decidir', icone: 'alerta' },
   { id: 'privacidade', titulo: 'Privacidade e dados', sub: 'E-mails, baixar seus dados e documentos', icone: 'olho' },
   { id: 'conta', titulo: 'Conta e segurança', sub: 'Senha, e-mail, sair e apagar', icone: 'cadeado' },
 ];
@@ -73,7 +76,7 @@ export function Configuracoes({ aberto, aoFechar }: Props) {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 40, paddingTop: 8 }}>
             {secao === null ? (
               <View style={{ gap: 10 }}>
-                {ITENS.map((i) => (
+                {ITENS.filter((i) => i.id !== 'denuncias' || estado.usuario?.papel === 'dono').map((i) => (
                   <Pressable key={i.id} accessibilityRole="button" accessibilityLabel={i.titulo} onPress={() => setSecao(i.id)} style={({ pressed }) => [st.linha, pressed && { opacity: 0.85 }]}>
                     <View style={st.icone}><Icone nome={i.icone} tamanho={20} cor="#ffffff" /></View>
                     <View style={{ flex: 1 }}>
@@ -104,6 +107,8 @@ export function Configuracoes({ aberto, aoFechar }: Props) {
               </View>
             ) : null}
 
+            {secao === 'comunidade' ? <ComunidadeSeguranca /> : null}
+            {secao === 'denuncias' ? <FilaDenuncias /> : null}
             {secao === 'privacidade' ? <Privacidade /> : null}
 
             {secao === 'conta' ? (

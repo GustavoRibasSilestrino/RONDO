@@ -87,7 +87,7 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
                   {/* contínuo, sem caixas: as publicações vão de ponta a ponta da tela, separadas só por uma linha fina */}
                   <View style={st.lista}>
                     {posts.map((p) => (
-                      <CartaoPost key={p.id} timeline sangrar post={p} aoAbrirGrupo={p.clube ? () => setGrupoAberto(p.clube!.id) : undefined} aoAbrirMidia={abrirMidia} aoAbrirPerfil={abrirPerfil} aoApagar={(id) => feed.mudar((l) => l.filter((x) => x.id !== id))} />
+                      <CartaoPost key={p.id} timeline sangrar post={p} aoAbrirGrupo={p.clube ? () => setGrupoAberto(p.clube!.id) : undefined} aoAbrirMidia={abrirMidia} aoAbrirPerfil={abrirPerfil} aoApagar={(id) => feed.mudar((l) => l.filter((x) => x.id !== id))} aoBloquear={(aid) => feed.mudar((l) => l.filter((x) => x.autor.id !== aid))} />
                     ))}
                   </View>
                   {feed.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais" aoPressionar={feed.maisItens} carregando={feed.carregando} style={{ marginTop: 14 }} /> : null}

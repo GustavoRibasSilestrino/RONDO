@@ -1,0 +1,27 @@
+# Mantém a API do RONDO acordada. O plano grátis do Render desliga o servidor depois de 15 minutos sem uso, e o primeiro
+# acesso depois disso leva uns 40 segundos (quem abre o app, ou o revisor da loja, fica esperando no login).
+# Aqui o GitHub chama /saude a cada 10 minutos. Um servidor ligado o mês todo cabe nas 750 horas grátis do Render.
+# Para parar: apagar este arquivo, ou trocar o Render para um plano pago (aí isto não é mais necessário).
+name: Manter a API acordada
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  cutucar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Chamar /saude
+        run: |
+          for tentativa in 1 2 3; do
+            codigo=$(curl -s -o /dev/null -w "%{http_code}" -m 90 https://rondo-api-mt29.onrender.com/saude) || codigo=000
+            echo "tentativa $tentativa: $codigo"
+            [ "$codigo" = "200" ] && exit 0
+            sleep 10
+          done
+          exit 1

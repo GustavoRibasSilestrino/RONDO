@@ -1,6 +1,8 @@
-/* Recursos pagos: o selo com a estrela (SeloPro) e o aviso que explica o plano PRO (AvisoPro). A assinatura é feita no site. */
+/* Recursos pagos: o selo com a estrela (SeloPro) e o aviso que explica o plano PRO (AvisoPro).
+   No navegador o aviso leva aos planos no site. No app instalado não há link nem preço: a Apple e o Google recusam app que
+   manda a pessoa pagar fora da loja; quando o PRO for vendido, no celular será pela compra dentro do app. */
 import React from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { Linking, Platform, StyleSheet, View } from 'react-native';
 import { useLoja } from '../estado/loja';
 import { cores, estilos } from '../tema';
 import { Folha } from './Estrutura';
@@ -16,6 +18,8 @@ export function SeloPro() {
     </View>
   );
 }
+
+const NO_SITE = Platform.OS === 'web';
 
 type Props = { aberto: boolean; aoFechar: () => void; recurso: string; site: string };
 
@@ -38,10 +42,12 @@ export function AvisoPro({ aberto, aoFechar, recurso, site }: Props) {
       <View style={{ alignItems: 'center', gap: 12, paddingBottom: 6 }}>
         <View style={st.grande}><Icone nome="estrela" tamanho={30} cor="#ffffff" espessura={2} /></View>
         <T tam={16} peso="500" centro>{recurso}</T>
-        <T tam={14} centro style={{ lineHeight: 21 }}>Este recurso faz parte do plano PRO. A assinatura é feita no site da RONDO.</T>
+        <T tam={14} centro style={{ lineHeight: 21 }}>
+          {NO_SITE ? 'Este recurso faz parte do plano PRO. A assinatura é feita no site da RONDO.' : 'Este recurso faz parte do plano PRO, que ainda não está disponível.'}
+        </T>
         <View style={{ alignSelf: 'stretch', gap: 10, marginTop: 6 }}>
-          <Botao icone="estrela" titulo="Ver os planos no site" aoPressionar={() => { Linking.openURL(site); aoFechar(); }} />
-          <Botao tipo="discreto" titulo="Agora não" aoPressionar={aoFechar} />
+          {NO_SITE ? <Botao icone="estrela" titulo="Ver os planos no site" aoPressionar={() => { Linking.openURL(site); aoFechar(); }} /> : null}
+          <Botao tipo="discreto" titulo={NO_SITE ? 'Agora não' : 'Entendi'} aoPressionar={aoFechar} />
         </View>
       </View>
     </Folha>

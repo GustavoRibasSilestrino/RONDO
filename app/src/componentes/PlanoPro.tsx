@@ -1,6 +1,7 @@
-/* O plano PRO: o que vai incluir. Os planos pagos ainda não estão à venda: nada aqui promete o que não existe. */
+/* O plano PRO: o que vai incluir. Os planos pagos ainda não estão à venda: nada aqui promete o que não existe.
+   O link e o preço só aparecem no navegador: no app instalado, as lojas não aceitam mandar a pessoa pagar fora delas. */
 import React from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { Linking, Platform, StyleSheet, View } from 'react-native';
 import { useLoja } from '../estado/loja';
 import { SITE } from '../telas/Login';
 import { cores, estilos } from '../tema';
@@ -39,13 +40,20 @@ export function PlanoPro({ aberto, aoFechar }: { aberto: boolean; aoFechar: () =
         ))}
       </View>
 
-      <View style={{ gap: 10, marginTop: 18 }}>
-        <Botao icone="estrela" titulo="Ver os planos no site" aoPressionar={abrirSite} />
-        <T tam={12} centro style={{ opacity: 0.85, lineHeight: 17 }}>
-          {ativo ? 'O seu plano PRO está ativo.' : 'Os planos pagos ainda não estão à venda: nada é cobrado hoje.'} Quando abrirem: R$ 14,90 por mês,
-          renovação automática avisada antes, cancelamento a qualquer momento e reembolso em até 7 dias.
+      {Platform.OS === 'web' ? (
+        <View style={{ gap: 10, marginTop: 18 }}>
+          <Botao icone="estrela" titulo="Ver os planos no site" aoPressionar={abrirSite} />
+          <T tam={12} centro style={{ opacity: 0.85, lineHeight: 17 }}>
+            {ativo ? 'O seu plano PRO está ativo.' : 'Os planos pagos ainda não estão à venda: nada é cobrado hoje.'} Quando abrirem: R$ 14,90 por mês,
+            renovação automática avisada antes, cancelamento a qualquer momento e reembolso em até 7 dias.
+          </T>
+        </View>
+      ) : (
+        /* no app instalado: sem link para pagar fora e sem preço (regra da App Store e do Google Play) */
+        <T tam={12.5} centro style={{ opacity: 0.85, lineHeight: 18, marginTop: 18 }}>
+          {ativo ? 'O seu plano PRO está ativo.' : 'O plano PRO ainda não está disponível. Quando chegar, você assina por aqui mesmo, pelo app.'}
         </T>
-      </View>
+      )}
     </Folha>
   );
 }

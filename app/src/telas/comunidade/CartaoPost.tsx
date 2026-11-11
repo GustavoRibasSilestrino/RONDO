@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, Pressable, Share, StyleSheet, TextInput, View } from 'react-native';
 import { apagarComentario, apagarPost, comentar, darCheers, lerComentarios, tirarCheers } from '../../api/social';
 import type { ComentarioSocial, Pessoa, PostSocial } from '../../api/social';
+import { MenuDenunciar, type AlvoDenuncia } from '../../componentes/Denunciar';
 import { Folha, useAviso } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
 import { Botao, Cartao, T } from '../../componentes/Ui';
@@ -23,7 +24,8 @@ type Props = {
   aoAbrirGrupo?: () => void;
   aoAbrirMidia: (itens: Midia[], indice: number) => void;
   aoAbrirPerfil?: (autor: Pessoa) => void;
-  aoApagar?: (id: number) => void;           // avisa a tela que a publicação saiu do servidor
+  aoApagar?: (id: number) => void;           // avisa a tela que a publicação saiu do servidor (ou foi denunciada: some para quem denunciou)
+  aoBloquear?: (autorId: number) => void;    // a pessoa bloqueou o autor: a tela tira tudo dele da lista
   insta?: boolean;                           // estilo Instagram web: sem cartão, cabeçalho, foto grande, ações e legenda
   timeline?: boolean;                        // sem cartão: foto do autor à esquerda, conteúdo à direita e uma linha entre as publicações
   sangrar?: boolean;                         // dentro de uma lista de ponta a ponta da tela: dá a margem lateral ao conteúdo
@@ -65,12 +67,13 @@ function PuloCheers({ disparo }: { disparo: number }) {
   );
 }
 
-export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, aoApagar, timeline, insta, sangrar }: Props) {
+export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, aoApagar, aoBloquear, timeline, insta, sangrar }: Props) {
   const { estado, commit, atualizarSocial } = useLoja();
   const { limites } = useConta();
   const avisar = useAviso();
   const [comentando, setComentando] = useState(false);
   const [apagando, setApagando] = useState(false);
+  const [denunciando, setDenunciando] = useState(false);   // o menu de denunciar e bloquear (publicação de outra pessoa)
   const [disparo, setDisparo] = useState(0);   // sobe a cada cheers dado: dispara a animação
   const pop = useRef(new Animated.Value(1)).current;
 
@@ -133,6 +136,22 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
     avisar('Publicação apagada.');
   };
 
+  const deOutro = (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+      <BotaoSeguir pessoa={post.autor} />
+      <Pressable accessibilityRole="button" accessibilityLabel="Denunciar ou bloquear" onPress={() => setDenunciando(true)} hitSlop={8} style={st.botaoIcone}>
+        <Icone nome="pontos" tamanho={18} cor={cores.texto2} />
+      </Pressable>
+    </View>
+  );
+  const alvo: AlvoDenuncia | null = denunciando ? { tipo: 'post', id: post.id, pessoa: post.autor } : null;
+  const menuDenunciar = (
+    <MenuDenunciar
+      alvo={alvo} aoFechar={() => setDenunciando(false)}
+      aoEsconder={({ bloqueou }) => { if (bloqueou && aoBloquear) aoBloquear(post.autor.id); else aoApagar?.(post.id); }}
+    />
+  );
+
   const acoes = (
     <View style={st.acoes}>
       <View style={{ zIndex: 2 }}>
@@ -163,6 +182,7 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
   const folhas = (
     <>
         <Comentarios aberto={comentando} aoFechar={() => setComentando(false)} postId={post.id} aoMudarTotal={setNComentarios} />
+        {menuDenunciar}
 
         <Folha aberta={apagando} aoFechar={() => setApagando(false)} titulo="Sua publicação">
           <Botao
@@ -211,9 +231,7 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
             <Pressable accessibilityRole="button" accessibilityLabel="Mais opções da publicação" onPress={() => setApagando(true)} hitSlop={8} style={st.botaoIcone}>
               <Icone nome="pontos" tamanho={20} cor={cores.texto2} />
             </Pressable>
-          ) : (
-            <BotaoSeguir pessoa={post.autor} />
-          )}
+          ) : deOutro}
         </View>
 
         {midia.length ? (
@@ -264,9 +282,7 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
                 <Pressable accessibilityRole="button" accessibilityLabel="Mais opções da publicação" onPress={() => setApagando(true)} hitSlop={8}>
                   <Icone nome="pontos" tamanho={18} cor={cores.texto2} />
                 </Pressable>
-              ) : (
-                <BotaoSeguir pessoa={post.autor} />
-              )}
+              ) : deOutro}
             </View>
           </View>
           {nomeGrupo ? (
@@ -311,9 +327,7 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
           <Pressable accessibilityRole="button" accessibilityLabel="Mais opções da publicação" onPress={() => setApagando(true)} hitSlop={8} style={st.botaoIcone}>
             <Icone nome="pontos" tamanho={20} cor={cores.texto2} />
           </Pressable>
-        ) : (
-          <BotaoSeguir pessoa={post.autor} />
-        )}
+        ) : deOutro}
       </View>
 
       {post.texto ? <T tam={15} style={{ marginTop: 12, lineHeight: 22 }}>{post.texto}</T> : null}
@@ -331,6 +345,7 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
       {acoes}
 
       <Comentarios aberto={comentando} aoFechar={() => setComentando(false)} postId={post.id} aoMudarTotal={setNComentarios} />
+      {menuDenunciar}
 
       <Folha aberta={apagando} aoFechar={() => setApagando(false)} titulo="Sua publicação">
         <Botao
@@ -364,6 +379,13 @@ function Comentarios({ aberto, aoFechar, postId, aoMudarTotal }: { aberto: boole
   const [enviando, setEnviando] = useState(false);
   const lista = useLista<ComentarioSocial>((cursor) => lerComentarios(postId, cursor), [postId], aberto);
   const itens = lista.itens;
+  const [alvo, setAlvo] = useState<AlvoDenuncia | null>(null);   // o comentário de outra pessoa que está sendo denunciado
+  const esconder = (bloqueou: boolean) => {
+    if (!alvo) return;
+    const fica = itens.filter((x) => (bloqueou ? x.autor.id !== alvo.pessoa.id : x.id !== alvo.id));
+    lista.mudar(() => fica);
+    aoMudarTotal(fica.length);
+  };
 
   const enviar = async () => {
     const t = texto.trim();
@@ -410,7 +432,11 @@ function Comentarios({ aberto, aoFechar, postId, aoMudarTotal }: { aberto: boole
                     <Pressable accessibilityRole="button" accessibilityLabel="Apagar o seu comentário" onPress={() => apagarC(c)} hitSlop={8} style={{ marginLeft: 'auto' }}>
                       <Icone nome="lixo" tamanho={15} cor={cores.texto3} />
                     </Pressable>
-                  ) : null}
+                  ) : (
+                    <Pressable accessibilityRole="button" accessibilityLabel={`Denunciar ou bloquear: comentário de ${c.autor.nome}`} onPress={() => setAlvo({ tipo: 'comentario', id: c.id, pessoa: c.autor })} hitSlop={8} style={{ marginLeft: 'auto' }}>
+                      <Icone nome="pontos" tamanho={15} cor={cores.texto3} />
+                    </Pressable>
+                  )}
                 </View>
                 <T tam={14.5} style={{ marginTop: 2, lineHeight: 21 }}>{c.texto}</T>
               </View>
@@ -436,6 +462,7 @@ function Comentarios({ aberto, aoFechar, postId, aoMudarTotal }: { aberto: boole
           <Icone nome="enviar" tamanho={20} cor="#ffffff" />
         </Pressable>
       </View>
+      <MenuDenunciar alvo={alvo} aoFechar={() => setAlvo(null)} aoEsconder={({ bloqueou }) => esconder(bloqueou)} />
     </Folha>
   );
 }

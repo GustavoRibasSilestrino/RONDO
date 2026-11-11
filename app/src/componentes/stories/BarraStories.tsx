@@ -78,6 +78,7 @@ export function BarraStories({ aoAbrirPerfil }: { aoAbrirPerfil?: (pessoa: Pesso
         }}
         aoExcluir={excluir}
         aoAbrirPerfil={aoAbrirPerfil}
+        aoEsconder={() => { recarregar().catch(() => {}); }}
       />
     </View>
   );

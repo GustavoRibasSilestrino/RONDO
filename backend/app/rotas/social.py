@@ -18,7 +18,7 @@ from app.modelos import Clube, Comentario, Curtida, Membro, Notificacao, Post, S
 from app.servicos import conta as servico_conta
 from app.servicos import midia as servico_midia
 from app.servicos.social import (
-    TEXTOS, clube_visivel, condicao_post_visivel, limite_valido, montar_posts, ms, notificar, pagina_de_posts,
+    TEXTOS, bloqueados, clube_visivel, denunciados, condicao_post_visivel, limite_valido, montar_posts, ms, notificar, pagina_de_posts,
     pessoas_out, post_visivel,
 )
 
@@ -148,7 +148,7 @@ def listar_comentarios(
     """Do mais antigo para o mais novo; `depois` é o id do último comentário já recebido."""
     post_visivel(sessao, usuario.id, post_id)
     limite = limite_valido(limite)
-    consulta = select(Comentario).where(Comentario.post_id == post_id)
+    consulta = select(Comentario).where(Comentario.post_id == post_id, Comentario.autor_id.not_in(bloqueados(usuario.id)), Comentario.id.not_in(denunciados(usuario.id, "comentario")))
     if depois:
         consulta = consulta.where(Comentario.id > depois)
     linhas = list(sessao.scalars(consulta.order_by(Comentario.id).limit(limite + 1)))
@@ -270,7 +270,7 @@ def stories_no_ar(usuario: Usuario = Depends(usuario_atual), sessao: Session = D
     desde = datetime.now(timezone.utc) - DURACAO_STORY
     sigo = select(Seguidor.seguido_id).where(Seguidor.seguidor_id == usuario.id)
     linhas = list(sessao.scalars(
-        select(Story).where(Story.criado_em >= desde, or_(Story.autor_id == usuario.id, Story.autor_id.in_(sigo))).order_by(Story.id)
+        select(Story).where(Story.criado_em >= desde, or_(Story.autor_id == usuario.id, Story.autor_id.in_(sigo)), Story.autor_id.not_in(bloqueados(usuario.id)), Story.id.not_in(denunciados(usuario.id, "story"))).order_by(Story.id)
     ))
     por_autor: dict[int, list[Story]] = {}
     for s in linhas:

@@ -9,19 +9,23 @@ from app.esquemas import StatusOut
 from app.esquemas_social import ClubeResumo, PaginaPessoas, PaginaPosts, PerfilOut
 from app.modelos import Clube, Membro, Post, Seguidor, Usuario
 from app.servicos.busca import normalizar, pontuar
-from app.servicos.social import condicao_post_visivel, limite_valido, notificar, pagina_de_posts, pessoas_out
+from app.servicos.social import bloqueados, condicao_post_visivel, ha_bloqueio, limite_valido, notificar, pagina_de_posts, pessoas_out
 
 router = APIRouter(prefix="/pessoas", tags=["pessoas"])
 
 
-def _usuario(sessao: Session, pessoa_id: int) -> Usuario:
+def _usuario(sessao: Session, pessoa_id: int, uid: int | None = None) -> Usuario:
+    """A pessoa; 404 se não existe ou se há bloqueio entre ela e quem pede (`uid`): quem bloqueou some para o outro."""
     u = sessao.get(Usuario, pessoa_id)
-    if not u:
+    if not u or (uid is not None and u.id != uid and ha_bloqueio(sessao, uid, u.id)):
         raise HTTPException(404, "Pessoa não encontrada.")
     return u
 
 
 def _pagina(sessao: Session, uid: int, ids: list[int], proximo: int | None) -> PaginaPessoas:
+    if ids:
+        fora = set(sessao.scalars(bloqueados(uid)))
+        ids = [i for i in ids if i not in fora]
     pessoas = pessoas_out(sessao, uid, set(ids))
     return PaginaPessoas(itens=[pessoas[i] for i in ids if i in pessoas], proximo=proximo)
 
@@ -61,7 +65,7 @@ def buscar(
 
 @router.get("/{pessoa_id}", response_model=PerfilOut)
 def perfil(pessoa_id: int, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
-    u = _usuario(sessao, pessoa_id)
+    u = _usuario(sessao, pessoa_id, usuario.id)
     p = pessoas_out(sessao, usuario.id, {u.id})[u.id]
     posts = sessao.scalar(select(func.count()).select_from(Post).where(Post.autor_id == u.id, condicao_post_visivel(usuario.id))) or 0
     seguidores = sessao.scalar(select(func.count()).select_from(Seguidor).where(Seguidor.seguido_id == u.id)) or 0
@@ -85,7 +89,7 @@ def posts_da_pessoa(
     usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_sessao),
 ):
-    u = _usuario(sessao, pessoa_id)
+    u = _usuario(sessao, pessoa_id, usuario.id)
     consulta = select(Post).where(Post.autor_id == u.id, condicao_post_visivel(usuario.id))
     itens, proximo = pagina_de_posts(sessao, usuario.id, consulta, antes, limite)
     return PaginaPosts(itens=itens, proximo=proximo)
@@ -114,7 +118,7 @@ def seguindo(
 
 
 def _lista_de_conexoes(sessao, usuario, pessoa_id, coluna_pessoa, coluna_dono, antes, limite) -> PaginaPessoas:
-    _usuario(sessao, pessoa_id)
+    _usuario(sessao, pessoa_id, usuario.id)
     limite = limite_valido(limite)
     consulta = select(coluna_pessoa).where(coluna_dono == pessoa_id)
     if antes:
@@ -126,7 +130,7 @@ def _lista_de_conexoes(sessao, usuario, pessoa_id, coluna_pessoa, coluna_dono, a
 
 @router.put("/{pessoa_id}/seguir", response_model=StatusOut)
 def seguir(pessoa_id: int, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
-    u = _usuario(sessao, pessoa_id)
+    u = _usuario(sessao, pessoa_id, usuario.id)
     if u.id == usuario.id:
         raise HTTPException(422, "Você não pode seguir a si mesmo.")
     if not sessao.get(Seguidor, (usuario.id, u.id)):

@@ -2,11 +2,11 @@
 from datetime import datetime, timezone
 
 from fastapi import HTTPException
-from sqlalchemy import false, func, or_, select
+from sqlalchemy import and_, false, func, or_, select, union
 from sqlalchemy.orm import Session
 
 from app.esquemas_social import ClubeOut, ClubeResumo, PessoaOut, PostOut
-from app.modelos import Clube, Comentario, Curtida, Membro, Notificacao, Post, Seguidor, Usuario
+from app.modelos import Bloqueio, Clube, Denuncia, Comentario, Curtida, Membro, Notificacao, Post, Seguidor, Usuario
 
 LIMITE_PADRAO = 20
 LIMITE_MAX = 50
@@ -22,12 +22,35 @@ def limite_valido(n: int) -> int:
     return max(1, min(n, LIMITE_MAX))
 
 
+def bloqueados(uid: int):
+    """Os ids de quem a pessoa bloqueou e de quem a bloqueou (o bloqueio esconde nos dois sentidos), como subconsulta."""
+    return union(
+        select(Bloqueio.bloqueado_id).where(Bloqueio.quem_id == uid),
+        select(Bloqueio.quem_id).where(Bloqueio.bloqueado_id == uid),
+    )
+
+
+def denunciados(uid: int, tipo: str):
+    """Os ids do que a pessoa denunciou e ainda existe (some só para ela), como subconsulta. O que a moderação já tirou do ar
+    não entra: o conteúdo não existe mais, e um id reaproveitado não pode sumir por engano."""
+    return select(Denuncia.alvo_id).where(Denuncia.denunciante_id == uid, Denuncia.tipo == tipo, Denuncia.situacao != "removido")
+
+
+def ha_bloqueio(sessao: Session, a: int, b: int) -> bool:
+    return bool(sessao.get(Bloqueio, (a, b)) or sessao.get(Bloqueio, (b, a)))
+
+
 def condicao_post_visivel(uid: int):
-    """Post do feed geral, de clube público ou de clube em que a pessoa está. Clube privado nunca vaza."""
-    return or_(
-        Post.clube_id.is_(None),
-        Post.clube_id.in_(select(Clube.id).where(Clube.privado == false())),
-        Post.clube_id.in_(select(Membro.clube_id).where(Membro.usuario_id == uid)),
+    """Post do feed geral, de clube público ou de clube em que a pessoa está, de quem não tem bloqueio com ela.
+    Clube privado nunca vaza."""
+    return and_(
+        or_(
+            Post.clube_id.is_(None),
+            Post.clube_id.in_(select(Clube.id).where(Clube.privado == false())),
+            Post.clube_id.in_(select(Membro.clube_id).where(Membro.usuario_id == uid)),
+        ),
+        Post.autor_id.not_in(bloqueados(uid)),
+        Post.id.not_in(denunciados(uid, "post")),
     )
 
 
@@ -104,7 +127,7 @@ def clubes_out(sessao: Session, uid: int, clubes: list[Clube]) -> list[ClubeOut]
 
 
 def notificar(sessao: Session, destino_id: int, ator: Usuario, tipo: str, post_id: int | None = None) -> None:
-    if destino_id == ator.id:
+    if destino_id == ator.id or ha_bloqueio(sessao, destino_id, ator.id):
         return
     sessao.add(Notificacao(usuario_id=destino_id, ator_id=ator.id, tipo=tipo, post_id=post_id))
 

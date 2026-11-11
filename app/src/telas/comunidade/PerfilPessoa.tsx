@@ -6,6 +6,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { lerPerfil, lerPostsDaPessoa, lerSeguidores, lerSeguindo } from '../../api/social';
 import type { PerfilPublico } from '../../api/social';
+import { MenuDenunciar } from '../../componentes/Denunciar';
 import { Folha } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
 import { Botao, Cartao, T } from '../../componentes/Ui';
@@ -27,6 +28,7 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
   /* ao abrir alguém da lista de seguidores, o perfil dele entra numa pilha: o voltar desfaz um de cada vez, até fechar */
   const [pilha, setPilha] = useState<number[]>([]);
   const [conexoes, setConexoes] = useState<'seguidores' | 'seguindo' | null>(null);
+  const [denunciando, setDenunciando] = useState(false);   // o menu de denunciar e bloquear este perfil
   useEffect(() => { setPilha([]); setConexoes(null); }, [id]);
   const atual = pilha.length ? pilha[pilha.length - 1] : id;
   const lista = useLista((cursor) => lerPostsDaPessoa(atual ?? 0, cursor), [atual], atual !== null);
@@ -54,6 +56,11 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
               <Icone nome="voltar" tamanho={22} cor="#ffffff" />
             </Pressable>
             <T tam={16} peso="500" style={{ flex: 1 }} linhas={1}>{perfil ? `@${perfil.arroba ?? arrobaDe(nome)}` : erro ? "Perfil" : ""}</T>
+            {perfil && !perfil.voce ? (
+              <Pressable accessibilityRole="button" accessibilityLabel={`Denunciar ou bloquear ${nome}`} onPress={() => setDenunciando(true)} style={st.voltar}>
+                <Icone nome="pontos" tamanho={22} cor="#ffffff" />
+              </Pressable>
+            ) : null}
           </View>
 
           <ScrollView key={atual} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 40 }}>
@@ -100,7 +107,7 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
             <View style={st.divisor}><Icone nome="grade" tamanho={20} cor="#ffffff" /><T tam={13} peso="500">Publicações</T></View>
             {posts.length ? (
               <View style={{ gap: 14 }}>
-                {posts.map((p) => <CartaoPost key={p.id} post={p} timeline aoAbrirMidia={aoAbrirMidia} aoApagar={(pid) => lista.mudar((l) => l.filter((x) => x.id !== pid))} />)}
+                {posts.map((p) => <CartaoPost key={p.id} post={p} timeline aoAbrirMidia={aoAbrirMidia} aoApagar={(pid) => lista.mudar((l) => l.filter((x) => x.id !== pid))} aoBloquear={() => voltar()} />)}
                 {lista.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais" aoPressionar={lista.maisItens} carregando={lista.carregando} /> : null}
               </View>
             ) : (
@@ -111,6 +118,11 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
       </View>
 
       {/* a lista de quem segue essa pessoa, ou de quem ela segue */}
+      <MenuDenunciar
+        alvo={denunciando && perfil ? { tipo: 'pessoa', id: perfil.id, pessoa: perfil } : null}
+        aoFechar={() => setDenunciando(false)}
+        aoEsconder={({ bloqueou }) => { if (bloqueou) voltar(); }}
+      />
       <Folha aberta={conexoes !== null} aoFechar={() => setConexoes(null)} titulo={conexoes === 'seguidores' ? `Seguidores de ${primeiro}` : `Quem ${primeiro} segue`}>
         {pessoas.itens.length ? (
           <View style={{ gap: 14 }}>

@@ -9,6 +9,7 @@ import { DURACAO_STORY_MS, emojiDe, FUNDOS_STORY, REACOES_STORY, StoryVista, tem
 import { useUriMidia } from '../../lib/midia';
 import { cores, estilos, larguraMax } from '../../tema';
 import { Avatar } from '../../telas/comunidade/Avatar';
+import { MenuDenunciar } from '../Denunciar';
 import { Folha } from '../Estrutura';
 import { Icone } from '../Icone';
 import { T } from '../Ui';
@@ -23,6 +24,7 @@ type Props = {
   aoVer?: (s: StoryVista) => void;              // um story de outra pessoa foi mostrado
   aoExcluir?: (s: StoryVista) => void;          // só nos seus stories
   aoAbrirPerfil?: (pessoa: Pessoa) => void;     // tocar em quem postou: fecha o story e abre o perfil dela
+  aoEsconder?: () => void;                      // a pessoa denunciou o story ou bloqueou o autor: fecha e recarrega
 };
 
 function Foto({ id, url }: { id: string; url?: string }) {
@@ -30,7 +32,7 @@ function Foto({ id, url }: { id: string; url?: string }) {
   return uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} resizeMode="contain" accessibilityIgnoresInvertColors /> : null;
 }
 
-export function VisorStory({ aberto, listas, inicio = 0, aoFechar, aoVer, aoExcluir, aoAbrirPerfil }: Props) {
+export function VisorStory({ aberto, listas, inicio = 0, aoFechar, aoVer, aoExcluir, aoAbrirPerfil, aoEsconder }: Props) {
   const insets = useSafeAreaInsets();
   const [g, setG] = useState(inicio);
   const [i, setI] = useState(0);
@@ -39,6 +41,7 @@ export function VisorStory({ aberto, listas, inicio = 0, aoFechar, aoVer, aoExcl
   const [quemViu, setQuemViu] = useState<{ total: number; itens: Visualizacao[] } | null>(null);   // a folha com a lista de quem viu
   const [erroLista, setErroLista] = useState('');
   const [menu, setMenu] = useState(false);   // o menu das reações, aberto pelo emoji do canto
+  const [denunciando, setDenunciando] = useState(false);   // o menu de denunciar e bloquear (story de outra pessoa)
 
   /* ao abrir, começa pela lista pedida */
   useEffect(() => { if (aberto) { setG(inicio); setI(0); setReacoes({}); setQuemViu(null); } }, [aberto, inicio]);
@@ -63,12 +66,12 @@ export function VisorStory({ aberto, listas, inicio = 0, aoFechar, aoVer, aoExcl
     if (!aberto || !story) return undefined;
     p.setValue(0);
     if (!story.meu && aoVer) aoVer(story);
-    if (quemViu || erroLista || menu) return undefined;   // lista de quem viu ou menu de reações aberto: o story espera
+    if (quemViu || erroLista || menu || denunciando) return undefined;   // lista de quem viu ou menu de reações aberto: o story espera
     const a = Animated.timing(p, { toValue: 1, duration: DURACAO_STORY_MS, easing: Easing.linear, useNativeDriver: false });
     a.start(({ finished }) => { if (finished) avancar(); });
     return () => a.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [aberto, g, i, story?.id, !!quemViu, menu]);
+  }, [aberto, g, i, story?.id, !!quemViu, menu, denunciando]);
   useEffect(() => { setMenu(false); }, [story?.id]);
 
   if (!aberto || !lista || !story) return null;
@@ -125,6 +128,11 @@ export function VisorStory({ aberto, listas, inicio = 0, aoFechar, aoVer, aoExcl
                   <T tam={12}>{tempoStory(story.criado)}</T>
                 </View>
               </Pressable>
+              {!story.meu && lista.pessoa ? (
+                <Pressable accessibilityRole="button" accessibilityLabel={`Denunciar ou bloquear: story de ${lista.autor}`} onPress={() => setDenunciando(true)} hitSlop={10} style={st.fechar}>
+                  <Icone nome="pontos" tamanho={22} cor="#ffffff" />
+                </Pressable>
+              ) : null}
               <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={aoFechar} hitSlop={10} style={st.fechar}>
                 <Icone nome="fechar" tamanho={22} cor="#ffffff" />
               </Pressable>
@@ -178,6 +186,11 @@ export function VisorStory({ aberto, listas, inicio = 0, aoFechar, aoVer, aoExcl
         </View>
       </View>
 
+      <MenuDenunciar
+        alvo={denunciando && lista.pessoa ? { tipo: 'story', id: Number(story.id), pessoa: lista.pessoa } : null}
+        aoFechar={() => setDenunciando(false)}
+        aoEsconder={() => { setDenunciando(false); aoFechar(); aoEsconder?.(); }}
+      />
       {/* a lista de quem viu o seu story, com a reação de cada pessoa */}
       <Folha aberta={quemViu !== null} aoFechar={() => setQuemViu(null)} titulo={`Visualizações (${quemViu?.total ?? 0})`}>
         {quemViu && quemViu.itens.length === 0 ? <T tam={14} style={{ lineHeight: 20 }}>{quemViu.total === 0 ? 'Ninguém viu ainda.' : 'Carregando…'}</T> : (

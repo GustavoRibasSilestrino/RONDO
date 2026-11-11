@@ -8,7 +8,7 @@ import { Mark } from "./ui";
 
 export const CONTATO = "rondooficial.dev@gmail.com";
 export const RESPONSAVEL = "Gustavo Ribas Silestrino";
-const ATUALIZADO = "5 de novembro de 2026";
+const ATUALIZADO = "11 de novembro de 2026";
 
 const Email = () => <a href={`mailto:${CONTATO}`}>{CONTATO}</a>;
 
@@ -74,6 +74,10 @@ function Privacidade() {
         <li>Perfil público: nome, @, bio e o selo, se houver.</li>
         <li>O que você publica: posts, fotos, comentários, cheers, stories, clubes, quem você segue e quem segue você.</li>
         <li>Avisos do app (quem deu cheers, comentou ou começou a seguir você).</li>
+        <li>
+          Segurança da comunidade: quem você bloqueou e as denúncias que você fez (o que foi denunciado, uma cópia do texto, o
+          motivo e o que você escreveu). Quem foi denunciado não fica sabendo quem denunciou.
+        </li>
       </ul>
       <h3>O que fica só no seu aparelho</h3>
       <ul>
@@ -127,6 +131,7 @@ function Privacidade() {
           <tr><td>Conta, dados do app e publicações</td><td>Enquanto a conta existir. Ao apagar a conta, tudo sai do banco na hora.</td></tr>
           <tr><td>Stories</td><td>24 horas; depois são apagados do banco, com a foto.</td></tr>
           <tr><td>Avisos do app</td><td>180 dias.</td></tr>
+          <tr><td>Bloqueios e denúncias que você fez</td><td>Enquanto a conta existir. Denúncias contra uma conta apagada ficam, sem ligação com ela, como histórico da moderação.</td></tr>
           <tr><td>Registro dos aceites</td><td>Enquanto a conta existir.</td></tr>
           <tr><td>Cadastro de profissional</td><td>Até você pedir a exclusão.</td></tr>
           <tr><td>Recados de voz</td><td>Só no seu aparelho, até você apagar.</td></tr>
@@ -215,6 +220,12 @@ function Termos() {
         <li>Fingir ser outra pessoa ou profissional, ou trapacear no ranking.</li>
         <li>Tentar invadir, sobrecarregar ou copiar o serviço de forma automatizada.</li>
       </ul>
+      <p>
+        <b>Tolerância zero</b> com conteúdo ofensivo, de ódio, assédio, nudez, violência ou golpe, e com quem abusa de outras
+        pessoas. Toda publicação, comentário, story e perfil tem a opção de <b>denunciar</b> e de <b>bloquear</b> quem publicou
+        (nos três pontinhos). A equipe do RONDO analisa as denúncias em até 24 horas, tira do ar o que viola estes termos e pode
+        remover a conta de quem os violou. Contato da equipe: {CONTATO}.
+      </p>
 
       <h2>5. O seu conteúdo</h2>
       <p>

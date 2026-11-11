@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_STORIES
 from app.modelos import (
-    Assinatura, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Membro, Notificacao, Post, RedefinicaoSenha, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
+    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Membro, Notificacao, Post, RedefinicaoSenha, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
 )
 from app.servicos import midia as servico_midia
 from app.servicos.busca import normalizar
@@ -86,6 +86,10 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
     sessao.execute(delete(DadoUsuario).where(DadoUsuario.usuario_id == uid))
     sessao.execute(delete(Consentimento).where(Consentimento.usuario_id == uid))
     sessao.execute(delete(RedefinicaoSenha).where(RedefinicaoSenha.usuario_id == uid))
+    sessao.execute(delete(Bloqueio).where(or_(Bloqueio.quem_id == uid, Bloqueio.bloqueado_id == uid)))
+    sessao.execute(delete(Denuncia).where(Denuncia.denunciante_id == uid))
+    # as denúncias contra a pessoa ficam (para o histórico da moderação), sem apontar para a conta apagada
+    sessao.execute(update(Denuncia).where(Denuncia.autor_id == uid).values(autor_id=None))
     # pedidos de assinatura ficam sem dono (sem dado pessoal): o histórico de cobrança pode ser exigido por lei
     sessao.execute(update(Assinatura).where(Assinatura.usuario_id == uid).values(usuario_id=None))
     sessao.delete(u)

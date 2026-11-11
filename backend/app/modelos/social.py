@@ -123,3 +123,38 @@ class StoryReacao(Base):
     usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), primary_key=True, index=True)
     tipo: Mapped[str] = mapped_column(String(10))
     em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_agora)
+
+
+class Bloqueio(Base):
+    """Quem bloqueou quem. O bloqueio vale nos dois sentidos: nenhum dos dois vê o outro (publicações, comentários, stories,
+    perfil, busca) nem recebe aviso dele, e quem se seguia deixa de se seguir."""
+
+    __tablename__ = "bloqueios"
+    __table_args__ = (CheckConstraint("quem_id <> bloqueado_id", name="ck_nao_bloquear_a_si"),)
+
+    quem_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), primary_key=True)
+    bloqueado_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), primary_key=True, index=True)
+    em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_agora)
+
+
+class Denuncia(Base):
+    """Uma denúncia de publicação, comentário, story ou pessoa. Fica `pendente` até o dono do RONDO decidir: `removido`
+    (o conteúdo sai do ar) ou `mantido`. O texto denunciado é copiado para a análise não depender de o conteúdo ainda existir."""
+
+    __tablename__ = "denuncias"
+    __table_args__ = (
+        Index("ix_denuncias_situacao_id", "situacao", "id"),
+        Index("ux_denuncia_unica", "denunciante_id", "tipo", "alvo_id", unique=True),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    denunciante_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), index=True)
+    tipo: Mapped[str] = mapped_column(String(12))            # post | comentario | story | pessoa
+    alvo_id: Mapped[int] = mapped_column(Integer)
+    autor_id: Mapped[int | None] = mapped_column(ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True, index=True)
+    motivo: Mapped[str] = mapped_column(String(16))          # spam | ofensa | odio | nudez | violencia | golpe | outro
+    detalhe: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    trecho: Mapped[str | None] = mapped_column(String(600), nullable=True)
+    situacao: Mapped[str] = mapped_column(String(10), default="pendente", server_default="pendente")
+    criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_agora)
+    resolvido_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
