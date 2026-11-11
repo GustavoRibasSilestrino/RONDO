@@ -1,6 +1,7 @@
 /* Treino: escolher a rotina, registrar série a série, descansar, bater recordes e finalizar. */
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { AnaliseExecucao } from '../componentes/AnaliseExecucao';
 import { CalendarioMes } from '../componentes/CalendarioMes';
 import { CorpoMusculos } from '../componentes/CorpoMusculos';
 import { EditorTreino, type Rascunho } from '../componentes/EditorTreino';
@@ -38,6 +39,7 @@ function Lista() {
   const { estado, commit } = useLoja();
   const { width } = useWindowDimensions();
   const [calendario, setCalendario] = useState(false);
+  const [analise, setAnalise] = useState(false);   // a câmera que analisa a execução
   const avisar = useAviso();
   const [todos, setTodos] = useState(false);
   const [editor, setEditor] = useState<{ inicial: Rascunho } | null>(null);   // o editor aberto, para mudar um treino próprio
@@ -109,6 +111,10 @@ function Lista() {
   return (
     <Tela>
       <View style={{ justifyContent: 'center' }}>
+        {/* a câmera que analisa a execução: no canto, do lado oposto ao calendário, sem ocupar a tela */}
+        <Pressable accessibilityRole="button" accessibilityLabel="Analisar a execução com a câmera" onPress={() => setAnalise(true)} hitSlop={8} style={[st.botaoCalendario, st.botaoCamera]}>
+          <Icone nome="camera" tamanho={20} cor="#ffffff" />
+        </Pressable>
         <T tam={15} peso="400" centro>Treino</T>
         <Pressable accessibilityRole="button" accessibilityLabel="Abrir o calendário de constância" onPress={() => setCalendario(true)} hitSlop={8} style={st.botaoCalendario}>
           <Icone nome="calendario" tamanho={20} cor="#ffffff" />
@@ -190,6 +196,7 @@ function Lista() {
       <Folha aberta={calendario} aoFechar={() => setCalendario(false)} titulo="Constância">
         <CalendarioMes />
       </Folha>
+      <AnaliseExecucao aberta={analise} aoFechar={() => setAnalise(false)} />
     </Tela>
   );
 }
@@ -449,6 +456,7 @@ const st = estilos(() => StyleSheet.create({
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
   linhaEx: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   numero: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
+  botaoCamera: { right: undefined, left: 0 },
   botaoCalendario: { position: 'absolute', right: 0, top: -9, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
   grafico: { marginTop: 14, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
   alternar: { flexDirection: 'row', padding: 4, borderRadius: 999, backgroundColor: cores.cartao2 },

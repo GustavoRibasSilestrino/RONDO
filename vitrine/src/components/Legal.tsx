@@ -79,6 +79,7 @@ function Privacidade() {
       <ul>
         <li>Os áudios dos recados de voz. Eles não vão para o nosso servidor. O servidor guarda só a lista: a pergunta, a duração, as datas e o caminho do arquivo dentro do seu aparelho.</li>
         <li>Fotos que você escolheu mas não publicou.</li>
+        <li>A imagem da câmera na análise da execução. O vídeo é analisado no próprio aparelho, quadro a quadro, e não é gravado nem enviado a ninguém. Para a análise funcionar, o aparelho baixa uma vez o programa que reconhece o corpo, do jsDelivr (cdn.jsdelivr.net) e do Google (storage.googleapis.com); esses serviços recebem o seu endereço de internet nesse download, como em qualquer página.</li>
       </ul>
       <h3>Cadastro de profissional</h3>
       <p>Nome, e-mail, conselho (CRN ou CREF), número do registro e UF, para conferir o registro na consulta pública do conselho.</p>

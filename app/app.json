@@ -106,7 +106,8 @@
     "android": {
       "package": "br.com.rondo.app",
       "permissions": [
-        "RECORD_AUDIO"
+        "RECORD_AUDIO",
+        "CAMERA"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#000000",
@@ -134,7 +135,7 @@
         "expo-image-picker",
         {
           "photosPermission": "O RONDO acessa as suas fotos e vídeos para você publicar na comunidade.",
-          "cameraPermission": "O RONDO usa a câmera para você tirar fotos e gravar vídeos para a comunidade.",
+          "cameraPermission": "O RONDO usa a câmera para você tirar fotos e gravar vídeos para a comunidade e para analisar a execução dos exercícios.",
           "microphonePermission": "O RONDO usa o microfone para gravar o som dos vídeos que você publica."
         }
       ],

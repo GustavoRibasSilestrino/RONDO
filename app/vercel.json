@@ -54,7 +54,7 @@
         },
         {
           "key": "Content-Security-Policy-Report-Only",
-          "value": "default-src 'self'; script-src 'self' https://accounts.google.com https://appleid.cdn-apple.com; style-src 'self' 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com; font-src 'self' data:; connect-src 'self' https://rondo-api-mt29.onrender.com https://*.supabase.co https://accounts.google.com https://appleid.apple.com; media-src 'self' blob: data: https://rondo-api-mt29.onrender.com https://*.supabase.co; frame-src https://accounts.google.com https://appleid.apple.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self' https://appleid.apple.com; frame-ancestors 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://accounts.google.com https://appleid.cdn-apple.com; style-src 'self' 'unsafe-inline' https://accounts.google.com; img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com; font-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com https://rondo-api-mt29.onrender.com https://*.supabase.co https://accounts.google.com https://appleid.apple.com; media-src 'self' blob: data: mediastream: https://rondo-api-mt29.onrender.com https://*.supabase.co; frame-src https://accounts.google.com https://appleid.apple.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self' https://appleid.apple.com; frame-ancestors 'none'; upgrade-insecure-requests"
         }
       ]
     }

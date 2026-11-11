@@ -14,7 +14,6 @@ type Props = {
   itens: ItemAba[]; atual: string; aoEscolher: (id: string) => void;
   recolhido: boolean; aoAlternar: () => void;
   naoLidas: number; notificacoesAbertas: boolean; aoAbrirNotificacoes: () => void;
-  aoAbrirPro: () => void;
   nome: string; nivel: number; aoAbrirConta: () => void;
 };
 
@@ -46,7 +45,7 @@ function Item({ icone, rotulo, recolhido, ativo, selo, papel = 'tab', aoPression
   );
 }
 
-export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, naoLidas, notificacoesAbertas, aoAbrirNotificacoes, aoAbrirPro, nome, nivel, aoAbrirConta }: Props) {
+export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, naoLidas, notificacoesAbertas, aoAbrirNotificacoes, nome, nivel, aoAbrirConta }: Props) {
   const reduzido = useMovimentoReduzido();
   const largura = useRef(new Animated.Value(recolhido ? LARGURA_MENU_FECHADO : LARGURA_MENU)).current;
   useEffect(() => {
@@ -84,7 +83,6 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
 
       <View style={st.rodape}>
         <Item papel="button" icone="sino" rotulo="Notificações" recolhido={recolhido} ativo={notificacoesAbertas} selo={naoLidas} aoPressionar={aoAbrirNotificacoes} />
-        <Item papel="button" icone="estrela" rotulo="Plano PRO" recolhido={recolhido} aoPressionar={aoAbrirPro} />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Sua conta: ${nome}, nível ${nivel}`}

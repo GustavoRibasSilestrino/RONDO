@@ -1,4 +1,4 @@
-/* Perfil, no estilo do Instagram: nome de usuário e ações no alto, foto com anel de story e as contagens ao lado, descrição,
+/* Perfil, no estilo do Instagram: nome de usuário e ações no alto (o plano PRO, os recados, editar e configurações), foto com anel de story e as contagens ao lado, descrição,
    e abaixo duas abas: Publicações (em grade) e Conquistas (patente, nível e medalhas). O resto fica em Configurações (o ícone ☰). */
 import React, { useEffect, useState } from 'react';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
@@ -9,6 +9,7 @@ import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
 import { Selo, tipoDeSelo } from '../componentes/Selos';
 import { Medalha3D } from '../componentes/Medalha3D';
+import { PlanoPro } from '../componentes/PlanoPro';
 import { AnelStory } from '../componentes/stories/AnelStory';
 import { CriarStory } from '../componentes/stories/CriarStory';
 import { VisorStory } from '../componentes/stories/VisorStory';
@@ -47,6 +48,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const [aba, setAba] = useState<'posts' | 'conquistas'>('posts');
   const [editando, setEditando] = useState(false);
   const [config, setConfig] = useState(false);
+  const [plano, setPlano] = useState(false);   // a folha do plano PRO, aberta pela estrela do topo
   const [criandoStory, setCriandoStory] = useState(false);
   const [verStory, setVerStory] = useState(false);
   const [postAberto, setPostAberto] = useState<PostSocial | null>(null);
@@ -149,6 +151,9 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       {/* topo: @usuário e as ações */}
       <View style={st.barra}>
         <T tam={17} peso="500" linhas={1} style={{ flex: 1 }}>@{arrobaAtual}</T>
+        <Pressable accessibilityRole="button" accessibilityLabel={estado.pro ? 'Seu plano: PRO' : 'Plano PRO: conhecer o plano'} onPress={() => setPlano(true)} style={({ pressed }) => [st.redondo, st.pro, pressed && { opacity: 0.8 }]}>
+          <Icone nome="estrela" tamanho={19} cor="#ffffff" />
+        </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Recados de voz" onPress={() => ir('recado')} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
           <Icone nome="recado" tamanho={19} cor="#ffffff" />
         </Pressable>
@@ -300,6 +305,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       </Folha>
 
       <Configuracoes aberto={config} aoFechar={() => setConfig(false)} />
+      <PlanoPro aberto={plano} aoFechar={() => setPlano(false)} />
       <EditarTitulos aberta={editandoTitulos} aoFechar={() => setEditandoTitulos(false)} />
       <CriarStory aberto={criandoStory} aoFechar={() => setCriandoStory(false)} aoPublicar={() => { recarregarStories().catch(() => {}); }} />
       <VisorStory aberto={verStory} listas={[{ autor: 'Você', itens: stories }]} aoFechar={() => setVerStory(false)} aoExcluir={(s) => excluirStory(s.id)} />
@@ -321,6 +327,7 @@ function Contagem({ n, rotulo, aoTocar }: { n: number; rotulo: string; aoTocar?:
 const st = estilos(() => StyleSheet.create({
   barra: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
   redondo: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
+  pro: { backgroundColor: cores.destaqueForte, borderColor: 'rgba(214,196,255,0.45)' },   // o plano em roxo: o único botão do topo que é um convite
   cabeca: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   contagens: { flex: 1, minWidth: 0, flexDirection: 'row', justifyContent: 'space-around' },
   contagem: { alignItems: 'center', flex: 1, minWidth: 0, minHeight: 44, justifyContent: 'center' },

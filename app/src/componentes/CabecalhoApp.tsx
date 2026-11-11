@@ -1,4 +1,5 @@
-/* Cabeçalho fixo do app. No canto de cima à esquerda, a joia da sequência (em todas as telas), seguida do plano PRO e das notificações;
+/* Cabeçalho fixo do app. No canto de cima à esquerda, a chama da sequência (em todas as telas), seguida das notificações (o plano PRO
+   mora no Perfil, no botão de estrela do topo);
    no meio, o nome RONDO (só no feed); no canto de cima à direita, só a busca (só no feed). Fundo preto sólido, para a tela rolar por baixo. */
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
@@ -15,9 +16,9 @@ export const ALTURA_CABECALHO = 56;
 const NOME = 100, NOME_JUSTO = 74, RESPIRO = 8;
 const DIREITA = 50;   // o espaço que a busca ocupa no canto direito
 
-type Props = { aoBuscar?: () => void; aoAbrirPro: () => void; mostrarNome: boolean; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
+type Props = { aoBuscar?: () => void; mostrarNome: boolean; naoLidas: number; aberto: boolean; aoAbrirNotificacoes: () => void };
 
-export function CabecalhoApp({ aoBuscar, aoAbrirPro, mostrarNome, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
+export function CabecalhoApp({ aoBuscar, mostrarNome, naoLidas, aberto, aoAbrirNotificacoes }: Props) {
   const insets = useSafeAreaInsets();
   const rolada = useRolada();   // com a tela rolada, só o nome some; as outras opções ficam
   /* o nome fica no centro exato da barra. Em tela estreita, o grupo da esquerda chega perto dele: então o nome aperta; se ainda
@@ -33,9 +34,6 @@ export function CabecalhoApp({ aoBuscar, aoAbrirPro, mostrarNome, naoLidas, aber
       <View style={st.linha} onLayout={(e) => setLargura(e.nativeEvent.layout.width)}>
         <View style={st.esquerda} onLayout={(e) => setFimEsquerda(e.nativeEvent.layout.x + e.nativeEvent.layout.width)}>
           <View style={st.joia}><SeloSequencia /></View>
-          <Pressable accessibilityRole="button" accessibilityLabel="Plano PRO: assinar ou aumentar o plano" onPress={aoAbrirPro} hitSlop={2} style={st.sino}>
-            <Icone nome="estrela" tamanho={24} cor="#ffffff" />
-          </Pressable>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={naoLidas > 0 ? `Notificações: ${naoLidas} novas` : 'Notificações'}

@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { BackHandler, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Abertura } from './src/componentes/Abertura';
+import { AnaliseExecucao } from './src/componentes/AnaliseExecucao';
 import { AvisoNivel } from './src/componentes/AvisoNivel';
 import { FundoCena, cenaDaTela } from './src/componentes/FundoCena';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
@@ -16,7 +17,6 @@ import { MenuLateral } from './src/componentes/MenuLateral';
 import { useMenuRecolhido } from './src/lib/largura';
 import { PainelLateral } from './src/componentes/PainelLateral';
 import { useLayoutLargo } from './src/lib/largura';
-import { PlanoPro } from './src/componentes/PlanoPro';
 import { SeloSequencia } from './src/componentes/SeloSequencia';
 import { AvisoProvider } from './src/componentes/Estrutura';
 import { T } from './src/componentes/Ui';
@@ -58,7 +58,6 @@ function Raiz() {
   const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
   const pronto = dadosProntos && fontes;   // espera a fonte, para o texto não aparecer trocado
   const [tela, setTela] = useState(INICIO);
-  const [planoAberto, setPlanoAberto] = useState(false);   // a folha do plano PRO, aberta pela estrela do topo
   const [antes, setAntes] = useState(INICIO);   // a aba em que a pessoa estava ao abrir as notificações: o sino volta para ela
   const [voltarPara, setVoltarPara] = useState('perfil');   // de onde a pessoa veio ao abrir Hoje, Evolução, Recado ou Coleções: o voltar leva para lá (o recado do feed volta para o feed)
   const [buscando, setBuscando] = useState(false);   // a busca de pessoas, aberta pela lupa (no alto do app, ou no canto do feed no computador)
@@ -114,7 +113,7 @@ function Raiz() {
   const escolher = (id: string) => { if (id !== tela) setTela(id); };
   return (
     <View style={{ flex: 1, flexDirection: largo ? 'row' : 'column' }}>
-      {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} recolhido={menuRecolhido} aoAlternar={alternarMenu} nome={estado.usuario?.nome ?? ""} nivel={nivelDe(xpTotal(estado))} aoAbrirConta={() => setTela("perfil")} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} aoAbrirPro={() => setPlanoAberto(true)} /> : null}
+      {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} recolhido={menuRecolhido} aoAlternar={alternarMenu} nome={estado.usuario?.nome ?? ""} nivel={nivelDe(xpTotal(estado))} aoAbrirConta={() => setTela("perfil")} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} /> : null}
       <View style={{ flex: 1 }}>
       {/* a paisagem ilustrada da tela (as bolhas roxas saíram: tingiam o desenho todo de roxo) */}
       <FundoCena cena={cenaDaTela(tela)} />
@@ -129,7 +128,7 @@ function Raiz() {
       {tela === 'notificacoes' && <Notificacoes />}
       {tela === 'perfil' && <Perfil ir={irPara} />}
       {DO_PERFIL.includes(tela) ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
-      {largo ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} aoAbrirPro={() => setPlanoAberto(true)} mostrarNome={tela === 'home'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
+      {largo ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} mostrarNome={tela === 'home'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
       {largo ? null : <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />}
       {/* computador: a joia da sequência fica no canto de cima, à esquerda da área (no celular ela mora no cabeçalho) */}
       {largo ? <View pointerEvents="box-none" style={st.seloCanto}><SeloSequencia /></View> : null}
@@ -141,13 +140,27 @@ function Raiz() {
       ) : null}
       </View>
       {comPainel ? <PainelLateral ir={setTela} /> : null}
-      <PlanoPro aberto={planoAberto} aoFechar={() => setPlanoAberto(false)} />
       <AvisoNivel />
     </View>
   );
 }
 
+/* /app/?camera=1: só a análise da execução, em tela cheia. É o que o app instalado abre no WebView depois de o celular
+   liberar a câmera (componentes/AnaliseExecucao.tsx); o X da página avisa o app para fechar a tela. */
+const SO_CAMERA = Platform.OS === 'web' && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('camera') === '1';
+
+function SoCamera() {
+  const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
+  if (!fontes) return <View style={st.centro} />;
+  const fechar = () => {
+    const rn = (window as unknown as { ReactNativeWebView?: { postMessage: (m: string) => void } }).ReactNativeWebView;
+    if (rn) rn.postMessage('fechar'); else window.location.replace(window.location.pathname);
+  };
+  return <AnaliseExecucao aberta aoFechar={fechar} />;
+}
+
 export default function App() {
+  if (SO_CAMERA) return <SoCamera />;
   return (
     <SafeAreaProvider>
       <View style={st.raiz}>
