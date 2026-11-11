@@ -1,5 +1,5 @@
-/* O RONDIN: um agente que conversa com a pessoa para entrar ou criar a conta. Ele se apresenta, pergunta o sotaque,
-   fala cada pergunta em voz alta (a legenda vai surgindo palavra por palavra embaixo do orbe) e mostra as opções ou o
+/* O RONDIN: um agente que conversa com a pessoa para entrar ou criar a conta. Ele começa perguntando a língua (português,
+   inglês ou espanhol) e conversa nela até o fim, fala cada pergunta em voz alta (a legenda vai surgindo palavra por palavra embaixo do orbe) e mostra as opções ou o
    campo para responder. No cadastro, as respostas viram o perfil da conta (altura, peso, objetivo, rotina...) e são
    salvas no servidor junto com ela. O roteiro está em lib/rondinRoteiro.ts e a voz em lib/rondinVoz.ts.
 
@@ -7,21 +7,22 @@
    uma etiqueta diz o que ele está fazendo (falando, ouvindo, processando) e o progresso vira "ETAPA 03 · 14". E ela responde:
    o orbe acompanha o cursor e solta uma onda a cada tecla; tocar nele pula a fala ou repete a pergunta; no computador as
    opções têm atalho de teclado (1 a 9, e Enter para continuar).
-   Tamanho: no navegador a coluna inteira escala com a janela (`k`), para caber sem rolar e nunca ficar gigante. */
+   Tamanho: no navegador a coluna inteira escala com a janela (`k`), para caber sem rolar e nunca ficar gigante.
+   O fundo é preto, com ondas de voz que nascem no orbe, poeira de luz e névoas roxas (componentes/FundoRondin). */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cadastrar, entrar, nomeEstaLivre } from '../api/conta';
-import { LinearGradient } from 'expo-linear-gradient';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
-import { FundoCena, posicaoDoNome } from '../componentes/FundoCena';
+import { FundoRondin } from '../componentes/FundoRondin';
 import { Icone } from '../componentes/Icone';
 import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
 import { useLayoutLargo } from '../lib/largura';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { EstadoOrbe, ROTULO_ESTADO } from '../lib/orbe';
-import { Dita, FALAS, Opcao, Passo, Respostas, emailValido, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar, primeiroNome, trechosDe } from '../lib/rondinRoteiro';
+import { EstadoOrbe } from '../lib/orbe';
+import { Dita, Opcao, Passo, Respostas, emailValido, falasDe, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar, primeiroNome, trechosDe } from '../lib/rondinRoteiro';
+import { TEXTOS, traduzirErro } from '../lib/rondinTextos';
 import { SOTAQUES, Sotaque, falar, parar, sotaquePadrao } from '../lib/rondinVoz';
 import { cores, estilos } from '../tema';
 import type { Estado, Usuario } from '../tipos';
@@ -140,10 +141,14 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 
   const [resp, setResp] = useState<Respostas>({});
   const respRef = useRef<Respostas>({});
+  /* a voz e a língua da conversa: começa pela língua do aparelho só para a primeira pergunta; depois vale a escolha da pessoa */
   const [sotaque, setSotaque] = useState<Sotaque>(sotaquePadrao());
   const sotaqueRef = useRef<Sotaque>(sotaque);
-  const passos = useMemo<Passo[]>(() => (modo === 'cadastro' ? passosCadastro(resp) : passosEntrar()), [modo, resp]);
-  const [idAtual, setIdAtual] = useState('apresentacao');
+  const idioma = sotaque.idioma;
+  const tx = TEXTOS[idioma];
+  const ui = tx.ui;
+  const passos = useMemo<Passo[]>(() => (modo === 'cadastro' ? passosCadastro(resp, idioma) : passosEntrar(idioma)), [modo, resp, idioma]);
+  const [idAtual, setIdAtual] = useState('idioma');
   const [fase, setFase] = useState<'falando' | 'pergunta' | 'trabalhando'>('falando');
   const [fala, setFala] = useState('');
   const [chave, setChave] = useState(0);
@@ -166,6 +171,16 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   const campoRef = useRef<CampoRef>(null), senhaRef = useRef<CampoRef>(null);
   const [teclas, setTeclas] = useState(0);            // cada tecla digitada solta uma onda no orbe
   const trechosRef = useRef<Parameters<typeof falar>[0]>([]);   // o áudio da última fala, para repetir ao tocar no orbe
+  /* o centro do orbe na janela: as ondas do fundo nascem dele */
+  const orbeRef = useRef<React.ComponentRef<typeof View>>(null);
+  const [centro, setCentro] = useState<{ x: number; y: number } | null>(null);
+  const medirOrbe = useCallback(() => {
+    orbeRef.current?.measureInWindow((x, y, w, h) => {
+      if (!(w > 0 && h > 0)) return;
+      const nx = x + w / 2, ny = y + h / 2;
+      setCentro((c) => (c && Math.abs(c.x - nx) < 1 && Math.abs(c.y - ny) < 1 ? c : { x: nx, y: ny }));
+    });
+  }, []);
 
   const passo = passos.find((p) => p.id === idAtual) ?? passos[0];
   const indice = passos.findIndex((p) => p.id === passo.id);
@@ -183,7 +198,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
      termina falando; nas outras falas (apresentação, amostra do sotaque) espera a voz acabar para não cortar. */
   const dizer = useCallback((partes: Fala[], depois: () => void, com: Sotaque = sotaqueRef.current, graca = 3500) => {
     /* a legenda mostra o texto inteiro; o áudio vai em trechos (as partes fixas são mp3 pronto, o nome e os números vêm do servidor) */
-    const nome = primeiroNome(respRef.current);
+    const nome = primeiroNome(respRef.current, sotaqueRef.current.idioma);
     const itens = partes.map((p) => (typeof p === 'string' ? trechosDe(p, { nome }) : trechosDe(p.modelo, { nome, ...p.valores })));
     const t = itens.map((i) => i.exibir).join(' ');
     const trechos = itens.flatMap((i) => i.audio);
@@ -212,7 +227,8 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
     setIdAtual(id);
   }, []);
   const avancar = useCallback(() => {
-    const lista = modo === 'cadastro' ? passosCadastro(respRef.current) : passosEntrar();
+    const lang = sotaqueRef.current.idioma;
+    const lista = modo === 'cadastro' ? passosCadastro(respRef.current, lang) : passosEntrar(lang);
     const i = lista.findIndex((p) => p.id === idAtualRef.current);
     if (i >= 0 && i + 1 < lista.length) irPara(lista[i + 1].id);
   }, [modo, irPara]);
@@ -221,7 +237,8 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 
   /* ---------- ao chegar numa etapa: ele fala a pergunta (com o comentário da resposta anterior na frente) ---------- */
   useEffect(() => {
-    const p = (modo === 'cadastro' ? passosCadastro(respRef.current) : passosEntrar()).find((x) => x.id === idAtual);
+    const lang = sotaqueRef.current.idioma;
+    const p = (modo === 'cadastro' ? passosCadastro(respRef.current, lang) : passosEntrar(lang)).find((x) => x.id === idAtual);
     if (!p) return;
     const partes: Fala[] = [...(prefixo.current ? [prefixo.current] : []), p.fala(respRef.current)];
     prefixo.current = null;
@@ -248,12 +265,13 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
     avancar();
   };
 
-  const escolherSotaque = (s: Sotaque) => {
+  /* a língua escolhida vale da próxima pergunta em diante: perguntas, opções, comentários e avisos */
+  const escolherIdioma = (s: Sotaque) => {
     sotaqueRef.current = s;
     setSotaque(s);
-    guardar('sotaque', s.id);
+    guardar('idioma', s.id);
     setFase('trabalhando');
-    dizer([s.amostra], avancar, s);   // a amostra já sai no sotaque escolhido
+    avancar();
   };
 
   const escolher = (p: Extract<Passo, { tipo: 'opcoes' }>, o: Opcao) => {
@@ -275,7 +293,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
       setEnviando(true);
       const livre = await nomeEstaLivre(valor);
       setEnviando(false);
-      if (!livre) { setErro(FALAS.nomeJaTem); setFase('trabalhando'); dizer([FALAS.nomeJaTem], () => { setFase('pergunta'); setTimeout(() => campoRef.current?.focus(), 50); }, sotaqueRef.current, 500); return; }
+      if (!livre) { const aviso = falasDe(idioma).nomeJaTem; setErro(aviso); setFase('trabalhando'); dizer([aviso], () => { setFase('pergunta'); setTimeout(() => campoRef.current?.focus(), 50); }, sotaqueRef.current, 500); return; }
     }
     responder(valor, p.comentario?.(valor, respRef.current));
   };
@@ -284,7 +302,14 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   const alternar = (p: Extract<Passo, { tipo: 'multi' }>, o: Opcao) => setMarcadas((m) => {
     if (o.id === p.exclusiva) return m.includes(o.id) ? [] : [o.id];
     const sem = m.filter((x) => x !== p.exclusiva);
-    return sem.includes(o.id) ? sem.filter((x) => x !== o.id) : [...sem, o.id];
+    const outras = p.opcoes.filter((x) => x.id !== p.todas && x.id !== p.exclusiva).map((x) => x.id);
+    /* a opção "todas" (Corpo todo): marca todas as anteriores; tocar de novo desmarca tudo */
+    if (p.todas && o.id === p.todas) return sem.includes(o.id) ? [] : [...outras, p.todas];
+    const novo = sem.includes(o.id) ? sem.filter((x) => x !== o.id) : [...sem, o.id];
+    if (!p.todas) return novo;
+    /* e ela acompanha as outras: com todas marcadas ela também fica marcada; tirando uma, ela sai */
+    const sem2 = novo.filter((x) => x !== p.todas);
+    return outras.every((id) => sem2.includes(id)) ? [...sem2, p.todas] : sem2;
   });
 
   /* ---------- criar a conta com tudo o que foi respondido ---------- */
@@ -295,22 +320,24 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
       const menor = typeof r.respNome === 'string';
       const usuario = await cadastrar({
         nome: String(r.nome), email: String(r.email), senha: String(r.senha), nascimento: lerData(String(r.nascimento))!,
-        aceita: true, marketing: r.marketing === 'sim',
+        aceita: true, marketing: false,
         responsavel: menor ? { nome: String(r.respNome), email: String(r.respEmail), autoriza: true } : null,
       });
       const perfil = montarPerfil(r, sotaqueRef.current.id);
-      dizer([FALAS.contaCriada], () => aoEntrar(usuario, perfil));
+      dizer([falasDe(sotaqueRef.current.idioma).contaCriada], () => aoEntrar(usuario, perfil));
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Não foi possível criar a conta agora.';
-      if (/já existe uma conta com esse nome/i.test(msg)) {   // por garantia: outra pessoa pegou o nome enquanto a conversa seguia
-        prefixo.current = FALAS.nomeJaTem;
+      const bruta = e instanceof Error ? e.message : 'Não foi possível criar a conta agora.';
+      const lang = sotaqueRef.current.idioma, falas = falasDe(lang);
+      if (/já existe uma conta com esse nome/i.test(bruta)) {   // por garantia: outra pessoa pegou o nome enquanto a conversa seguia
+        prefixo.current = falas.nomeJaTem;
         irPara('nome');
-      } else if (/e-mail já tem conta/i.test(msg)) {
-        prefixo.current = FALAS.emailJaTem;
+      } else if (/e-mail já tem conta/i.test(bruta)) {
+        prefixo.current = falas.emailJaTem;
         irPara('email');
       } else {
+        const msg = traduzirErro(bruta, lang);
         setErro(msg); setFalhou(true);
-        dizer([FALAS.falhaCriar, msg], () => setFase('pergunta'));
+        dizer([falas.falhaCriar, msg], () => setFase('pergunta'));
       }
     }
   };
@@ -318,15 +345,15 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
   /* ---------- entrar numa conta que já existe ---------- */
   const fazerLogin = async () => {
     if (enviando) return;
-    if (!emailValido(email)) { setErro('Digite um e-mail válido.'); return; }
-    if (senha.length < 6) { setErro('A senha tem pelo menos 6 caracteres.'); return; }
+    if (!emailValido(email)) { setErro(tx.erro.email); return; }
+    if (senha.length < 6) { setErro(tx.erro.senhaLogin); return; }
     setErro(''); setEnviando(true);
     try {
       const usuario = await entrar(email.trim(), senha);
       setFase('trabalhando');
-      dizer([{ modelo: FALAS.deVolta, valores: { nome: usuario.nome.trim().split(/\s+/)[0] || 'campeão' } }], () => aoEntrar(usuario));
+      dizer([{ modelo: falasDe(idioma).deVolta, valores: { nome: usuario.nome.trim().split(/\s+/)[0] || tx.campeao } }], () => aoEntrar(usuario));
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Não foi possível entrar. Tente de novo.';
+      const msg = traduzirErro(e instanceof Error ? e.message : 'Não foi possível entrar. Tente de novo.', idioma);
       setErro(msg); setEnviando(false);
       falar([msg], sotaqueRef.current, () => undefined);   // ele avisa em voz alta, sem esconder os campos
     }
@@ -347,7 +374,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
       const alvo = e.target as HTMLElement | null;
       if ((alvo && /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName)) || e.ctrlKey || e.metaKey || e.altKey) return;
       const n = /^[1-9]$/.test(e.key) ? Number(e.key) : 0;
-      if (passo.tipo === 'sotaque' && n && n <= SOTAQUES.length) escolherSotaque(SOTAQUES[n - 1]);
+      if (passo.tipo === 'idioma' && n && n <= SOTAQUES.length) escolherIdioma(SOTAQUES[n - 1]);
       else if (passo.tipo === 'opcoes' && n && n <= passo.opcoes.length) escolher(passo, passo.opcoes[n - 1]);
       else if (passo.tipo === 'multi' && n && n <= passo.opcoes.length) alternar(passo, passo.opcoes[n - 1]);
       else if (passo.tipo === 'multi' && e.key === 'Enter' && marcadas.length) responder(marcadas);
@@ -358,34 +385,34 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 
   /* ---------- tamanhos ---------- */
   const campoAberto = fase === 'pergunta' && (passo.tipo === 'campo' || passo.tipo === 'entrar');
-  const opcoesAbertas = fase === 'pergunta' && (passo.tipo === 'sotaque' || passo.tipo === 'opcoes' || passo.tipo === 'multi');   // sobra pouca altura: o orbe encolhe para as opções caberem
+  const opcoesAbertas = fase === 'pergunta' && (passo.tipo === 'idioma' || passo.tipo === 'opcoes' || passo.tipo === 'multi');   // sobra pouca altura: o orbe encolhe para as opções caberem
   /* com o zoom, a janela "cabe" menos unidades: as contas usam a janela já dividida por k. O tamanho já inclui a moldura do orbe. */
-  const orbe = Math.round(Math.max(130, Math.min(campoAberto ? 176 : opcoesAbertas ? 196 : 276, (width / k) * (campoAberto ? 0.5 : 0.72), ((height - posicaoDoNome(width, height).base) / k) * 0.34)));
+  const orbe = Math.round(Math.max(130, Math.min(campoAberto ? 176 : opcoesAbertas ? 196 : 276, (width / k) * (campoAberto ? 0.5 : 0.72), (height / k) * 0.32)));
+  useEffect(() => { const id = setTimeout(medirOrbe, 60); return () => clearTimeout(id); }, [medirOrbe, width, height, orbe, modo, fase]);
   /* a etapa em que a conversa está, contando só as perguntas */
   const perguntas = passos.filter((p) => p.tipo !== 'fala' && p.tipo !== 'criar');
   const etapa = Math.max(1, passos.slice(0, indice + 1).filter((p) => p.tipo !== 'fala' && p.tipo !== 'criar').length);
   const doisDigitos = (n: number) => String(n).padStart(2, '0');
 
   if (recuperando) {
-    return <RecuperarSenha emailInicial={email} aoVoltar={() => setRecuperando(false)} aoConcluir={(e) => { setEmail(e); setSenha(''); setErro(''); setRecuperando(false); }} />;
+    return <RecuperarSenha idioma={idioma} emailInicial={email} aoVoltar={() => setRecuperando(false)} aoConcluir={(e) => { setEmail(e); setSenha(''); setErro(''); setRecuperando(false); }} />;
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: '#000000' }}>
-      {/* a mesma serra com o nome RONDO da tela inicial, um pouco mais apagada: aqui quem manda é a conversa */}
-      <FundoCena cena="rondo" forca={1} veu={false} />
-      <LinearGradient pointerEvents="none" colors={['rgba(0,0,0,0.35)', 'rgba(8,4,20,0)', 'rgba(8,4,20,0.36)', 'rgba(8,4,20,0.5)', '#000000']} locations={[0, 0.12, 0.5, 0.82, 1]} style={StyleSheet.absoluteFill} />
+      {/* preto com ondas de voz que nascem no orbe, poeira de luz e névoas roxas; o estado do orbe regula a força das ondas */}
+      <FundoRondin estado={estadoOrbe} cx={centro?.x} cy={centro?.y} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView
           style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: Math.max(insets.top + 12, posicaoDoNome(width, height).base + 10), paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
+          contentContainerStyle={{ flexGrow: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: insets.top + 12, paddingBottom: insets.bottom + 28, paddingHorizontal: 20 }}
         >
           <View style={[st.coluna, largo ? st.colunaLarga : null, k !== 1 ? ({ zoom: k } as object) : null]}>
             {largo ? <Cantos /> : null}
             {/* topo: voltar e o progresso */}
             <View style={st.topo}>
               {largo ? <View style={st.botaoTopo} /> : (
-                <Pressable accessibilityRole="button" accessibilityLabel={indice <= 0 ? 'Voltar para o início' : 'Voltar uma pergunta'} onPress={voltar} hitSlop={8} style={st.botaoTopo}>
+                <Pressable accessibilityRole="button" accessibilityLabel={indice <= 0 ? ui.voltarInicio : ui.voltarPergunta} onPress={voltar} hitSlop={8} style={st.botaoTopo}>
                   <Icone nome="voltar" tamanho={22} cor="#ffffff" />
                 </Pressable>
               )}
@@ -395,8 +422,8 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
             {modo === 'cadastro' ? (
               <View>
                 <View style={st.etapa}>
-                  <T tam={10.5} mono cor={cores.texto3} style={{ letterSpacing: 2 }}>CRIAR CONTA</T>
-                  <T tam={10.5} mono cor={cores.destaque2} style={{ letterSpacing: 2 }}>ETAPA {doisDigitos(etapa)} · {doisDigitos(perguntas.length)}</T>
+                  <T tam={10.5} mono cor={cores.texto3} style={{ letterSpacing: 2 }}>{ui.criarConta}</T>
+                  <T tam={10.5} mono cor={cores.destaque2} style={{ letterSpacing: 2 }}>{ui.etapa} {doisDigitos(etapa)} · {doisDigitos(perguntas.length)}</T>
                 </View>
                 <View style={st.trilho} accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: 100, now: Math.round(progresso * 100) }}>
                   <View style={[st.trilhoCheio, { width: `${Math.max(3, progresso * 100)}%` }]} />
@@ -405,38 +432,40 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
             ) : null}
 
             <View style={{ alignItems: 'center', marginTop: 6 }}>
-              <Orbe
-                hud tamanho={orbe} estado={estadoOrbe} pulso={teclas} aoPressionar={tocarNoOrbe}
-                rotulo={fase === 'falando' && !completa ? 'RONDIN. Tocar para pular a fala' : 'RONDIN. Tocar para ouvir a pergunta de novo'}
-              />
+              <View ref={orbeRef} collapsable={false} onLayout={medirOrbe}>
+                <Orbe
+                  hud tamanho={orbe} estado={estadoOrbe} pulso={teclas} aoPressionar={tocarNoOrbe}
+                  rotulo={fase === 'falando' && !completa ? ui.orbePular : ui.orbeRepetir}
+                />
+              </View>
               <View style={st.estado}>
                 <T tam={12.5} peso="500" cor={cores.destaque2} style={{ letterSpacing: 3 }}>RONDIN</T>
                 <View style={st.estadoFio} />
                 <View style={[st.estadoPonto, { backgroundColor: estadoOrbe === 'falando' ? cores.destaque2 : estadoOrbe === 'ouvindo' ? cores.bom : cores.alerta }]} />
-                <T tam={10.5} mono cor={cores.texto2} style={{ letterSpacing: 2 }}>{ROTULO_ESTADO[estadoOrbe]}</T>
+                <T tam={10.5} mono cor={cores.texto2} style={{ letterSpacing: 2 }}>{ui.estado[estadoOrbe]}</T>
               </View>
             </View>
 
             <Legenda largo={largo} texto={fala} chave={chave} taxa={sotaque.taxa} duracaoMs={duracaoMs} indiceVoz={indiceVoz} completa={completa} aoCompletar={aoCompletarLegenda} />
             {fase === 'falando' && !completa ? (
-              <Pressable accessibilityRole="button" accessibilityLabel="Pular a fala" onPress={pular} style={{ alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 14 }}>
-                <T tam={12.5} cor={cores.texto3}>Pular fala</T>
+              <Pressable accessibilityRole="button" accessibilityLabel={ui.pular} onPress={pular} style={{ alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 14 }}>
+                <T tam={12.5} cor={cores.texto3}>{ui.pular}</T>
               </Pressable>
             ) : null}
 
             {/* as respostas */}
             {fase === 'pergunta' ? (
               <View style={{ marginTop: 14, width: '100%' }}>
-                {passo.tipo === 'sotaque' ? (
+                {passo.tipo === 'idioma' ? (
                   <View style={st.grade}>
                     {SOTAQUES.map((s, i) => (
                       <Pressable
-                        key={s.id} accessibilityRole="button" accessibilityLabel={`${s.nome}, ${s.nota}`} onPress={() => escolherSotaque(s)}
-                        style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.cartaoSotaque, largo && st.cartaoSotaqueLargo, hovered && st.pilulaSobre, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
+                        key={s.id} accessibilityRole="button" accessibilityLabel={`${s.nome}, ${s.nota}`} onPress={() => escolherIdioma(s)}
+                        style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.cartaoIdioma, largo && st.cartaoIdiomaLargo, hovered && st.pilulaSobre, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
                       >
-                        {largo && i < 9 ? <View style={st.tecla}><T tam={10.5} peso="500" cor={cores.destaque2}>{i + 1}</T></View> : <Icone nome={s.mudo ? 'comentario' : 'tocar'} tamanho={15} cor={cores.destaque2} />}
+                        {largo ? <View style={st.tecla}><T tam={10.5} peso="500" cor={cores.destaque2}>{i + 1}</T></View> : null}
                         <View style={{ flex: 1 }}>
-                          <T tam={13.5} peso="500">{s.nome}</T>
+                          <T tam={15.5} peso="500">{s.nome}</T>
                           <T tam={11.5} cor={cores.texto3} style={{ marginTop: 1 }}>{s.nota}</T>
                         </View>
                       </Pressable>
@@ -449,8 +478,8 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                     {passo.opcoes.map((o, i) => <Pilula key={o.id} opcao={o} tecla={largo && i < 9 ? i + 1 : undefined} aoPressionar={() => escolher(passo, o)} />)}
                     {passo.links ? (
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16, width: '100%', justifyContent: 'center', marginTop: 4 }}>
-                        {[['Termos de Uso', '/termos'], ['Política de Privacidade', '/privacidade']].map(([t, c]) => (
-                          <Pressable key={c} accessibilityRole="link" accessibilityLabel={`${t}, abre no navegador`} onPress={() => Linking.openURL(`${SITE}${c}`)} style={{ paddingVertical: 8 }}>
+                        {[[ui.termos, '/termos'], [ui.privacidade, '/privacidade']].map(([t, c]) => (
+                          <Pressable key={c} accessibilityRole="link" accessibilityLabel={`${t}, ${ui.abreNoNavegador}`} onPress={() => Linking.openURL(`${SITE}${c}`)} style={{ paddingVertical: 8 }}>
                             <T tam={13} cor={cores.destaque2} style={{ textDecorationLine: 'underline' }}>{t}</T>
                           </Pressable>
                         ))}
@@ -467,7 +496,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                       ))}
                     </View>
                     <View style={{ marginTop: 18 }}>
-                      <Botao orbita titulo="Continuar" desabilitado={marcadas.length === 0} aoPressionar={() => responder(marcadas)} />
+                      <Botao orbita titulo={ui.continuar} desabilitado={marcadas.length === 0} aoPressionar={() => responder(marcadas)} />
                     </View>
                   </View>
                 ) : null}
@@ -486,27 +515,27 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                       maxLength={passo.campo === 'data' ? 10 : passo.campo === 'numero' ? 6 : 128}
                       returnKeyType="go" onSubmitEditing={() => enviarCampo(passo)}
                       direita={passo.campo === 'senha' ? (
-                        <Pressable accessibilityRole="button" accessibilityLabel={verSenha ? 'Esconder senha' : 'Mostrar senha'} hitSlop={6} onPress={() => setVerSenha((v) => !v)} style={st.olho}>
+                        <Pressable accessibilityRole="button" accessibilityLabel={verSenha ? ui.esconderSenha : ui.verSenha} hitSlop={6} onPress={() => setVerSenha((v) => !v)} style={st.olho}>
                           <Icone nome={verSenha ? 'olhoFechado' : 'olho'} tamanho={20} cor={verSenha ? cores.destaque2 : cores.texto3} />
                         </Pressable>
                       ) : passo.sufixo ? <T tam={14} cor={cores.texto2} style={{ paddingRight: 16 }}>{passo.sufixo}</T> : undefined}
                     />
-                    <Botao orbita titulo="Continuar" icone="setaDireita" aoPressionar={() => enviarCampo(passo)} />
+                    <Botao orbita titulo={ui.continuar} icone="setaDireita" aoPressionar={() => enviarCampo(passo)} />
                   </View>
                 ) : null}
 
                 {passo.tipo === 'entrar' ? (
                   <View style={{ gap: 14 }}>
                     <CampoFlutuante
-                      ref={campoRef} rotulo="E-mail" icone="email" value={email} onChangeText={(v) => { setEmail(v); setErro(''); setTeclas((n) => n + 1); }} autoFocus={Platform.OS === 'web'}
+                      ref={campoRef} rotulo={ui.email} icone="email" value={email} onChangeText={(v) => { setEmail(v); setErro(''); setTeclas((n) => n + 1); }} autoFocus={Platform.OS === 'web'}
                       valido={emailValido(email)} autoCapitalize="none" autoCorrect={false} autoComplete="email" keyboardType="email-address" textContentType="emailAddress"
                       returnKeyType="next" submitBehavior="submit" onSubmitEditing={() => senhaRef.current?.focus()}
                     />
                     <CampoFlutuante
-                      ref={senhaRef} rotulo="Senha" icone="cadeado" value={senha} onChangeText={(v) => { setSenha(v); setErro(''); setTeclas((n) => n + 1); }} secureTextEntry={!verSenha}
+                      ref={senhaRef} rotulo={ui.senha} icone="cadeado" value={senha} onChangeText={(v) => { setSenha(v); setErro(''); setTeclas((n) => n + 1); }} secureTextEntry={!verSenha}
                       autoCapitalize="none" autoCorrect={false} autoComplete="current-password" textContentType="password" returnKeyType="go" onSubmitEditing={fazerLogin}
                       direita={
-                        <Pressable accessibilityRole="button" accessibilityLabel={verSenha ? 'Esconder senha' : 'Mostrar senha'} hitSlop={6} onPress={() => setVerSenha((v) => !v)} style={st.olho}>
+                        <Pressable accessibilityRole="button" accessibilityLabel={verSenha ? ui.esconderSenha : ui.verSenha} hitSlop={6} onPress={() => setVerSenha((v) => !v)} style={st.olho}>
                           <Icone nome={verSenha ? 'olhoFechado' : 'olho'} tamanho={20} cor={verSenha ? cores.destaque2 : cores.texto3} />
                         </Pressable>
                       }
@@ -517,9 +546,9 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                         <T tam={13.5} cor={cores.erro} style={{ flex: 1, lineHeight: 19 }}>{erro}</T>
                       </View>
                     ) : null}
-                    <Botao orbita carregando={enviando} titulo={enviando ? 'Entrando…' : 'Entrar'} aoPressionar={fazerLogin} />
+                    <Botao orbita carregando={enviando} titulo={enviando ? ui.entrando : ui.entrar} aoPressionar={fazerLogin} />
                     <Pressable accessibilityRole="button" onPress={() => { parar(); setRecuperando(true); }} style={{ alignSelf: 'center', paddingVertical: 10 }}>
-                      <T tam={13.5} cor={cores.destaque2} style={{ textDecorationLine: 'underline' }}>Esqueci a minha senha</T>
+                      <T tam={13.5} cor={cores.destaque2} style={{ textDecorationLine: 'underline' }}>{ui.esqueci}</T>
                     </Pressable>
                   </View>
                 ) : null}
@@ -527,7 +556,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
                 {passo.tipo === 'criar' && falhou ? (
                   <View style={{ gap: 12 }}>
                     {erro ? <T tam={13.5} cor={cores.erro} centro style={{ lineHeight: 19 }}>{erro}</T> : null}
-                    <Botao orbita titulo="Tentar de novo" aoPressionar={() => void criarConta()} />
+                    <Botao orbita titulo={ui.tentar} aoPressionar={() => void criarConta()} />
                   </View>
                 ) : null}
               </View>
@@ -538,7 +567,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
       {/* computador: a seta fica no canto esquerdo da tela, grande */}
       {largo ? (
         <Pressable
-          accessibilityRole="button" accessibilityLabel={indice <= 0 ? 'Voltar para o início' : 'Voltar uma pergunta'} onPress={voltar} hitSlop={8}
+          accessibilityRole="button" accessibilityLabel={indice <= 0 ? ui.voltarInicio : ui.voltarPergunta} onPress={voltar} hitSlop={8}
           style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.setaCanto, { top: insets.top + 24 }, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}
         >
           <Icone nome="voltar" tamanho={24} cor="#ffffff" />
@@ -550,7 +579,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar }: { modo: Modo; aoEntrar: AoE
 
 const st = estilos(() => StyleSheet.create({
   coluna: { width: '100%', maxWidth: 440, alignSelf: 'center' },
-  colunaLarga: { maxWidth: 520, paddingHorizontal: 26, paddingBottom: 24, backgroundColor: 'rgba(8,5,18,0.72)', borderRadius: 4 },
+  colunaLarga: { maxWidth: 520, paddingHorizontal: 26, paddingBottom: 24, borderRadius: 4 },   // sem fundo próprio: as ondas passam por trás
   canto: { position: 'absolute', width: 18, height: 18, borderColor: 'rgba(196,168,255,0.45)' },
   topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 44 },
   setaCanto: { position: 'absolute', left: 24, width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
@@ -571,11 +600,11 @@ const st = estilos(() => StyleSheet.create({
   pilulaMarcada: { backgroundColor: cores.destaqueForte, borderColor: cores.destaque2, boxShadow: '0 0 18px -6px rgba(139,92,246,0.95)' },
   tecla: { width: 20, height: 20, borderRadius: 5, borderWidth: 1, borderColor: 'rgba(196,168,255,0.4)', alignItems: 'center', justifyContent: 'center' },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  cartaoSotaque: {
-    flexGrow: 1, flexBasis: '47%', minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, paddingHorizontal: 12,
+  cartaoIdioma: {
+    flexGrow: 1, flexBasis: '100%', minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9, paddingHorizontal: 16,
     borderRadius: 12, borderWidth: 1, borderColor: cores.linha2, backgroundColor: `rgba(${cores.tom},0.07)`,
   },
-  cartaoSotaqueLargo: { flexBasis: '30%', minWidth: 140 },   // computador: as duas vozes lado a lado
+  cartaoIdiomaLargo: { flexBasis: '30%', minWidth: 140 },   // computador: as três línguas lado a lado; no celular, uma embaixo da outra
   olho: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   banner: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 12,

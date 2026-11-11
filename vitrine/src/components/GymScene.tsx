@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { onFrame } from "../lib/frame";
+import { APP_CRIAR } from "../lib/rotas";
 import { clamp, reduceMotion, vars } from "../lib/util";
 import { FOLHAS, QUADROS } from "./gymQuadros";
 
@@ -287,7 +288,7 @@ export function GymScene() {
         <div className="gym-base">
           <h2 id="gym-titulo" className="gym-title"><span>Carga de ontem.</span><span>Passo de hoje.</span><span>Recorde de amanhã.</span></h2>
           <div className="gym-meio">
-            <a className="gym-hex" href="#cadastro" aria-label="Criar conta grátis">
+            <a className="gym-hex" href={APP_CRIAR} aria-label="Criar conta grátis">
               <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="30,4 70,4 96,30 96,70 70,96 30,96 4,70 4,30" /><path d="M38 62 L64 36 M44 36 H64 V56" /></svg>
             </a>
             <div><b>Criar conta grátis</b><small>Cada aparelho abre com a carga de ontem e sugere a de hoje.</small></div>

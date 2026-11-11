@@ -92,7 +92,6 @@ async function main() {
   if (!simular && !dry && (!chave() || !regiao())) throw new Error('Defina AZURE_SPEECH_KEY e AZURE_SPEECH_REGION (variáveis de ambiente ou arquivo app/.env).');
   if (tem('--listar')) { if (!chave() || !regiao()) throw new Error('Defina AZURE_SPEECH_KEY e AZURE_SPEECH_REGION (ou app/.env).'); return listar(); }
 
-  const falas = listarFalas();
   const escolhido = valor('--sotaque');
   const ids = Object.keys(config.sotaques).filter((id) => !escolhido || id === escolhido);
   if (escolhido && !ids.length) throw new Error(`Sotaque desconhecido: ${escolhido}.`);
@@ -105,7 +104,7 @@ async function main() {
     const cfg = config.sotaques[id];
     const so = SOTAQUES.find((s) => s.id === id);
     if (!so) throw new Error(`O sotaque "${id}" do config não existe em rondinSotaques.ts.`);
-    const frases = [...new Set([...falas, so.amostra])];   // a amostra só existe na voz do próprio sotaque
+    const frases = listarFalas(so.idioma);   // cada voz fala só as frases da sua língua
     if (!dry) mkdirSync(join(pasta, id), { recursive: true });
     manifesto[id] ??= {};
     for (const texto of frases) {

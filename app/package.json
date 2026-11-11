@@ -36,7 +36,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "export:web": "expo export --platform web",
-    "vozes": "node --experimental-strip-types --no-warnings scripts/gerar-vozes.mjs"
+    "vozes": "node --experimental-strip-types --no-warnings scripts/gerar-vozes.mjs",
+    "textos": "node --experimental-strip-types --no-warnings scripts/conferir-textos.mjs"
   },
   "private": true
 }

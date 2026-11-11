@@ -1,5 +1,6 @@
 import { CadastroProfissional } from "./Cadastro";
 import { abrirPreferenciasCookies } from "../lib/consentimento";
+import { APP_CRIAR, APP_ENTRAR } from "../lib/rotas";
 import { Btn, Mark, Reveal, Section, Spot, Title } from "./ui";
 
 /* ---------- clube ---------- */
@@ -116,7 +117,7 @@ export function Planos() {
               <h3>{p.nome}{"breve" in p && p.breve ? <span className="chip" style={{ marginLeft: ".6rem", verticalAlign: "middle" }}>em breve</span> : null}</h3>
               <div className="price">{p.preco}{p.per && <small>{p.per}</small>}</div>
               <ul>{p.itens.map((i) => <li key={i}>{i}</li>)}</ul>
-              <Btn href={p.href ?? "#cadastro"} kind={p.kind}>{p.cta}</Btn>
+              <Btn href={p.href ?? APP_CRIAR} kind={p.kind}>{p.cta}</Btn>
             </Reveal>
           ))}
         </div>
@@ -155,8 +156,7 @@ export function Faq() {
   );
 }
 
-/* ---------- chamada final: usar o app agora (o cadastro fica no botão "Criar conta" do topo) ---------- */
-const APP_WEB = "/app";   // o app web mora no mesmo endereço do site
+/* ---------- chamada final: usar o app agora (criar conta e entrar abrem a conversa com o RONDIN, no app) ---------- */
 const PASSOS_APP = [
   ["1", "Abra no celular", "O app roda direto no navegador, sem instalar nada."],
   ["2", "Adicione à tela inicial", "No menu do navegador, toque em \"Adicionar à tela inicial\" e ele vira um ícone."],
@@ -175,8 +175,8 @@ export function Entrar() {
           ))}
         </ol>
         <div className="cta-acoes">
-          <a className="btn btn-primary" href={APP_WEB}>Abrir o app <span className="arrow">→</span></a>
-          <a className="btn btn-ghost" href={APP_WEB}>Já tenho conta: entrar</a>
+          <a className="btn btn-primary" href={APP_CRIAR}>Abrir o app <span className="arrow">→</span></a>
+          <a className="btn btn-ghost" href={APP_ENTRAR}>Já tenho conta: entrar</a>
         </div>
       </Reveal>
     </section>

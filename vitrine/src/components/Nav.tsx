@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { MENU } from "../data/menu";
 import { SECTIONS, type Sec } from "../data/sections";
 import { goMoment } from "../lib/bus";
+import { APP_CRIAR, APP_ENTRAR } from "../lib/rotas";
 import { reduceMotion, vars } from "../lib/util";
 import { Btn, Mark } from "./ui";
 
@@ -64,8 +65,8 @@ function MobileMenu({ open, current, onClose }: { open: boolean; current: number
         ))}
       </nav>
       <div className="mnav-cta" style={vars({ "--i": LINKS.length })} onClick={() => { document.body.style.overflow = ""; onClose(); }}>
-        <Btn href="#cadastro">Criar conta</Btn>
-        <Btn href="/app" kind="ghost">Já tenho conta: entrar</Btn>
+        <Btn href={APP_CRIAR}>Criar conta</Btn>
+        <Btn href={APP_ENTRAR} kind="ghost">Já tenho conta: entrar</Btn>
       </div>
     </div>
   );
@@ -156,7 +157,7 @@ export function Nav() {
               </div>
             ))}
           </nav>
-          <div className="nav-end"><Btn href="/app" kind="ghost" small>Entrar</Btn><Btn href="#cadastro" small>Criar conta</Btn></div>
+          <div className="nav-end"><Btn href={APP_ENTRAR} kind="ghost" small>Entrar</Btn><Btn href={APP_CRIAR} small>Criar conta</Btn></div>
           <button className="burger" type="button" aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen} aria-controls="mnav"
             onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o); }}>
             <span aria-hidden="true"><i /><i /><i /></span>

@@ -80,7 +80,7 @@ h1, h2, h3, h4, h5, h6 { font-weight: 400; }
 b, strong { font-weight: 500; }
 /* títulos: Modak, uma letra de cartaz gorda e arredondada (só existe em um peso, por isso 400 e sem engrossar por conta própria).
    As páginas legais continuam na Bricolage em extra-negrito: documento pede letra sóbria. */
-.display, .hero-title, .gym-title, .gym-word, .moment h3, .modal h2 {
+.display, .hero-title, .gym-title, .gym-word, .moment h3 {
   font-family: var(--font-titulo); font-weight: 400; font-synthesis: none; letter-spacing: .004em;
 }
 .legal h1, .legal h2 { font-family: var(--font-display); font-weight: 800; font-synthesis: none; letter-spacing: -.025em; }

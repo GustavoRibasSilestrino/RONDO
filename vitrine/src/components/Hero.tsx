@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { gsap } from "../lib/gsap";
+import { APP_CRIAR } from "../lib/rotas";
 import { reduceMotion } from "../lib/util";
 import { Btn } from "./ui";
 
@@ -29,7 +30,7 @@ export function Hero() {
           </h1>
           <p className="lead">Treino, dieta, constância e comunidade em um só app, e recados de voz para o seu eu do futuro.</p>
           <div className="hero-cta">
-            <Btn href="#cadastro">Criar conta grátis <span className="arrow">→</span></Btn>
+            <Btn href={APP_CRIAR}>Criar conta grátis <span className="arrow">→</span></Btn>
             <Btn href="#recursos" kind="ghost">Ver o app</Btn>
           </div>
         </div>
