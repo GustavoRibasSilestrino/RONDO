@@ -1,6 +1,6 @@
 /* O orbe do RONDIN no celular: SVG com menos pontos e quadros espaçados, para não pesar. No navegador usa Orbe.web.tsx.
-   Com `hud`, ganha a moldura de instrumento em versão leve: um anel que engrossa com a voz, um anel de arcos girando e um
-   anel de marcações. Tocar nele chama `aoPressionar`. */
+   Só a esfera de pontos (a moldura de instrumento saiu em 2026-11-12); com `hud`, a auréola de luz roxa atrás.
+   Tocar nele chama `aoPressionar`. */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable } from 'react-native';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
@@ -41,7 +41,7 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
 
   const c = tamanho / 2;
   const a = reduzido ? 0.06 : amp.current;
-  quadro(pts, t.current, a, tamanho * (hud ? 0.3 : 0.36), c, c, saida);
+  quadro(pts, t.current, a, tamanho * 0.36, c, c, saida);   // sem a moldura (tirada em 2026-11-12): só a esfera
   const bolinhas: React.ReactElement[] = [];
   for (const passe of [0, 1]) {
     for (let i = 0; i < N; i += 1) {
@@ -53,10 +53,6 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
     }
   }
 
-  /* a moldura: três círculos de traço, girados pelo mesmo relógio da esfera (nenhum laço a mais) */
-  const fio = Math.max(1, tamanho / 210);
-  const rEspectro = tamanho * 0.385, rArcos = tamanho * 0.436, rMarcas = tamanho * 0.47;
-  const voltaArcos = 2 * Math.PI * rArcos, voltaMarcas = 2 * Math.PI * rMarcas;
   /* o destaque: uma auréola de luz roxa atrás da esfera, que cresce quando ele fala */
   const halo = hud ? (
     <>
@@ -70,15 +66,8 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
       <Circle cx={c} cy={c} r={c} fill="url(#halo-rondin)" />
     </>
   ) : null;
-  const moldura = hud ? (
-    <>
-      <Circle cx={c} cy={c} r={rEspectro} fill="none" stroke="#c4a8ff" strokeOpacity={0.25 + 0.5 * a} strokeWidth={fio + a * tamanho * 0.035} strokeDasharray={`${fio * 1.4} ${fio * 2.6}`} />
-      <Circle cx={c} cy={c} r={rArcos} fill="none" stroke="#c4a8ff" strokeOpacity={0.55} strokeWidth={fio * 1.5} strokeDasharray={`${voltaArcos * 0.19} ${voltaArcos * (1 / 3 - 0.19)}`} rotation={(t.current * 14) % 360} origin={`${c}, ${c}`} />
-      <Circle cx={c} cy={c} r={rMarcas} fill="none" stroke="#c4a8ff" strokeOpacity={0.3} strokeWidth={fio * 4} strokeDasharray={`${fio} ${voltaMarcas / 72 - fio}`} rotation={(-t.current * 3.4) % 360} origin={`${c}, ${c}`} />
-    </>
-  ) : null;
 
-  const desenho = <Svg width={tamanho} height={tamanho} viewBox={`0 0 ${tamanho} ${tamanho}`}>{halo}{bolinhas}{moldura}</Svg>;
+  const desenho = <Svg width={tamanho} height={tamanho} viewBox={`0 0 ${tamanho} ${tamanho}`}>{halo}{bolinhas}</Svg>;
   if (!aoPressionar) return desenho;
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={aoPressionar} style={({ pressed }) => ({ width: tamanho, height: tamanho, borderRadius: tamanho / 2, opacity: pressed ? 0.85 : 1 })}>

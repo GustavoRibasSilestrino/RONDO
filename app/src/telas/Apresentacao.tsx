@@ -2,15 +2,13 @@
    abertura (a tela preta com o nome RONDO); no navegador, quando a pessoa clica em "Entrar" ou "Criar conta" no site.
    O RONDIN (3D) nasce no meio da tela e se apresenta sozinho, falando; a frase surge palavra por palavra, esmaecendo, com a
    mesma legenda das perguntas (Legenda, de telas/Rondin.tsx). No canto, o alto-falante desliga a voz (fica guardado).
-   Quando a frase termina, aparece o botão para seguir. A frase fica em lib/rondinTextos.ts (fala.boasVindas). */
-import { LinearGradient } from 'expo-linear-gradient';
+   Quando a frase termina, aparece o botão para seguir (o botão principal do app, componentes/Ui.tsx). A frase fica em lib/rondinTextos.ts (fala.boasVindas). */
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
+import { Animated, Easing, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BotaoVoz } from '../componentes/BotaoVoz';
-import { Icone } from '../componentes/Icone';
 import { Orbe } from '../componentes/Orbe';
-import { T } from '../componentes/Ui';
+import { Botao, T } from '../componentes/Ui';
 import { useMovimentoReduzido } from '../lib/movimento';
 import type { EstadoOrbe } from '../lib/orbe';
 import { TEXTOS as FALAS } from '../lib/rondinTextos';
@@ -86,29 +84,9 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
         pointerEvents={pronto ? 'auto' : 'none'}
         style={[st.base, { opacity: botao, transform: [{ translateY: botao.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }]}
       >
-        <BotaoSeguir titulo={BOTAO[sotaque.idioma]} aoPressionar={seguir} />
+        <Botao titulo={BOTAO[sotaque.idioma]} aoPressionar={seguir} style={{ minHeight: 56 }} />
       </Animated.View>
     </View>
-  );
-}
-
-/* o botão de seguir: uma pílula roxa com luz em cima, sombra de volume embaixo, brilho suave por baixo e a seta num círculo.
-   Ao tocar, só a seta anda e o brilho muda (nada muda de tamanho, a tela não pula). */
-function BotaoSeguir({ titulo, aoPressionar }: { titulo: string; aoPressionar: () => void }) {
-  return (
-    <Pressable accessibilityRole="button" accessibilityLabel={titulo} onPress={aoPressionar} style={st.pilulaCaixa}>
-      {({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => (
-        <View style={[st.pilula, (hovered || pressed) && st.pilulaAcesa, pressed && { opacity: 0.92 }]}>
-          <LinearGradient pointerEvents="none" colors={['#9b6bff', '#7c3aed', '#5b21b6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-          <LinearGradient pointerEvents="none" colors={[hovered ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.6 }} style={StyleSheet.absoluteFill} />
-          <LinearGradient pointerEvents="none" colors={['rgba(20,0,60,0)', 'rgba(20,0,60,0.3)']} start={{ x: 0, y: 0.5 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
-          <T tam={16.5} peso="500" style={st.pilulaTexto}>{titulo}</T>
-          <View style={[st.seta, (hovered || pressed) && { transform: [{ translateX: 3 }] }]}>
-            <Icone nome="setaDireita" tamanho={18} cor="#ffffff" espessura={2} />
-          </View>
-        </View>
-      )}
-    </Pressable>
   );
 }
 
@@ -119,9 +97,4 @@ const st = StyleSheet.create({
   nome: { letterSpacing: 5, color: '#c4a8ff', marginTop: 2, opacity: 0.9 },
   fala: { width: '100%', maxWidth: 460, minHeight: 100 },
   base: { width: '100%', maxWidth: 340, alignItems: 'stretch' },
-  pilulaCaixa: { borderRadius: 30, ...(Platform.OS === 'web' ? ({ boxShadow: '0 10px 32px -8px rgba(124,58,237,0.75), 0 0 0 1px rgba(196,168,255,0.28)' } as object) : { shadowColor: '#7c3aed', shadowOpacity: 0.6, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 10 }) },
-  pilula: { height: 58, borderRadius: 30, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingLeft: 28, paddingRight: 8 },
-  pilulaAcesa: { ...(Platform.OS === 'web' ? ({ filter: 'brightness(1.08)' } as object) : {}) },
-  pilulaTexto: { flex: 1, textAlign: 'center', letterSpacing: 0.3, marginLeft: 34, color: '#ffffff' },
-  seta: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)' },
 });

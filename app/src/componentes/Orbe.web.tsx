@@ -1,18 +1,15 @@
 /* O orbe do RONDIN no navegador: canvas, com ~1.100 pontos a 60 quadros por segundo. No celular usa Orbe.tsx (SVG).
-   Com `hud`, o orbe ganha a moldura de instrumento (a cara de "Jarvis"): um espectro de voz em volta da esfera, que sobe
-   quando ele fala; um anel de arcos girando; um anel de marcações girando ao contrário; e um feixe que varre o anel de fora.
-   E fica vivo: a esfera se inclina na direção do cursor, tudo acende quando o cursor passa por cima e cada toque (ou cada
-   tecla, pela prop `pulso`) solta uma onda. Tudo é desenhado no mesmo canvas, num laço só.
+   Só a esfera de pontos (a moldura de instrumento em volta saiu em 2026-11-12, a pedido do dono). Com `hud`, ganha a
+   auréola de luz roxa atrás, inclina na direção do cursor, acende com o cursor em cima e cada toque (ou cada tecla, pela
+   prop `pulso`) solta uma onda em volta. Tudo é desenhado no mesmo canvas, num laço só.
    Os pontos se desfazem com o cursor: quanto mais perto do centro, mais eles se soltam e se espalham (os que estão perto
    do cursor fogem dele); afastando o cursor, cada ponto volta no seu ritmo e a esfera se monta de novo. Com o dedo vale o
    mesmo enquanto ele arrasta; soltou, a esfera se refaz. Parado para quem pede menos movimento. */
 import React, { useEffect, useMemo, useRef } from 'react';
-import { CAMPOS, EstadoOrbe, amplitude, barraDoEspectro, corDoPonto, esfera, quadro } from '../lib/orbe';
+import { CAMPOS, EstadoOrbe, amplitude, corDoPonto, esfera, quadro } from '../lib/orbe';
 import { useMovimentoReduzido } from '../lib/movimento';
 
 const N = 1100;
-const BARRAS = 72;       // barras do espectro de voz
-const MARCAS = 72;       // marcações do anel de fora
 const DURACAO_ONDA = 0.75;   // segundos que a onda de um toque leva para sumir
 
 type Props = {
@@ -60,10 +57,9 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
       fugaV[i] = 1.6 + rnd() * 3.4;
     }
     const c = tamanho / 2;
-    const R = tamanho * (hud ? 0.3 : 0.36);
-    const rEspectro = tamanho * 0.372, rArcos = tamanho * 0.436, rMarcas = tamanho * 0.476;
+    const R = tamanho * 0.36;   // sem a moldura de instrumento (tirada em 2026-11-12): só a esfera
     const fio = Math.max(1, tamanho / 210);   // espessura dos traços, proporcional ao tamanho
-    let amp = 0, anterior = 0, quadroId = 0, brilho = 0, mx = 0, my = 0, varre = 0;
+    let amp = 0, anterior = 0, quadroId = 0, brilho = 0, mx = 0, my = 0;
     const t0 = performance.now();
 
     /* o cursor: a esfera se inclina na direção dele, de qualquer lugar da janela; perto dela, os pontos se soltam */
@@ -96,55 +92,11 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
       ctx.beginPath(); ctx.arc(c, c, r, de, ate); ctx.stroke();
     };
 
-    const desenharHud = (t: number, agora: number) => {
-      const e = estadoRef.current;
-      const viva = 1 + 0.35 * brilho;   // com o cursor em cima, os traços acendem
-      ctx.lineCap = 'round';
-
-      /* espectro de voz: barras em volta da esfera, que sobem com a fala */
-      for (let i = 0; i < BARRAS; i += 1) {
-        const a = (i / BARRAS) * Math.PI * 2 - Math.PI / 2;
-        const nivel = barraDoEspectro(i, t, amp);
-        const alto = fio * 1.2 + nivel * tamanho * 0.05;
-        const ca = Math.cos(a), sa = Math.sin(a);
-        ctx.strokeStyle = lilas(Math.min(1, (0.22 + 0.7 * nivel) * viva));
-        ctx.lineWidth = fio * 1.35;
-        ctx.beginPath();
-        ctx.moveTo(c + ca * rEspectro, c + sa * rEspectro);
-        ctx.lineTo(c + ca * (rEspectro + alto), c + sa * (rEspectro + alto));
-        ctx.stroke();
-      }
-
-      /* anel de arcos: três arcos largos girando, e dois curtos e claros no sentido contrário */
-      ctx.lineCap = 'butt';
-      arco(rArcos, 0, Math.PI * 2, lilas(0.1 * viva), fio * 0.8);
-      const g1 = t * (e === 'pensando' ? 0.9 : 0.24);
-      for (let k = 0; k < 3; k += 1) arco(rArcos, g1 + (k * Math.PI * 2) / 3, g1 + (k * Math.PI * 2) / 3 + 1.2, lilas(0.55 * viva), fio * 1.5);
-      const g2 = -t * 0.42;
-      for (let k = 0; k < 2; k += 1) arco(rArcos - fio * 4.5, g2 + k * Math.PI, g2 + k * Math.PI + 0.42, `rgba(255,255,255,${(0.6 * viva).toFixed(3)})`, fio);
-
-      /* anel de marcações, como o de um instrumento: gira devagar */
-      const g3 = -t * 0.06;
-      for (let i = 0; i < MARCAS; i += 1) {
-        const a = g3 + (i / MARCAS) * Math.PI * 2;
-        const longa = i % 6 === 0;
-        const ca = Math.cos(a), sa = Math.sin(a);
-        ctx.strokeStyle = lilas((longa ? 0.55 : 0.24) * viva);
-        ctx.lineWidth = fio * (longa ? 1.3 : 1);
-        ctx.beginPath();
-        ctx.moveTo(c + ca * (rMarcas - (longa ? fio * 5 : fio * 2.4)), c + sa * (rMarcas - (longa ? fio * 5 : fio * 2.4)));
-        ctx.lineTo(c + ca * rMarcas, c + sa * rMarcas);
-        ctx.stroke();
-      }
-
-      /* o feixe que varre o anel de fora: uma cauda que vai apagando. Corre mais quando ele ouve ou pensa. */
-      for (let k = 0; k < 7; k += 1) arco(rMarcas + fio * 2.2, varre - (k + 1) * 0.085, varre - k * 0.085, `rgba(255,255,255,${(0.85 * (1 - k / 7) * viva).toFixed(3)})`, fio * 1.4);
-
-      /* as ondas dos toques e das teclas: um anel que cresce e some */
+    const desenharOndas = (agora: number) => {
       ondas.current = ondas.current.filter((inicio) => agora - inicio < DURACAO_ONDA * 1000);
       for (const inicio of ondas.current) {
         const p = (agora - inicio) / (DURACAO_ONDA * 1000), suave = 1 - (1 - p) * (1 - p);
-        arco(R * 1.02 + (rMarcas * 1.02 - R) * suave, 0, Math.PI * 2, lilas(0.7 * (1 - p)), fio * 1.6);
+        arco(R * 1.02 + (tamanho * 0.47 - R) * suave, 0, Math.PI * 2, lilas(0.6 * (1 - p)), fio * 1.4);
       }
     };
 
@@ -158,7 +110,6 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
       amp += (alvo - amp) * Math.min(1, dt * 9);   // suaviza: o orbe não pula de um estado a outro
       mx += (mira.current.x - mx) * Math.min(1, dt * 4);
       my += (mira.current.y - my) * Math.min(1, dt * 4);
-      varre += dt * (e === 'ouvindo' ? 1.5 : e === 'pensando' ? 3.2 : 0.7);
       quadro(pts, t, amp, R, c, c, saida, 0.42 + my * 0.5, mx * 0.9);
       /* os pontos se soltam: cada um vai para a sua direção (com um redemoinho leve) e foge do cursor; voltando, cada um no seu ritmo */
       const alvoSolto = reduzido ? 0 : mira.current.desfaz;
@@ -201,7 +152,8 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
         }
       }
       ctx.globalAlpha = 1;
-      if (hud) desenharHud(t, agora);
+      /* a moldura de instrumento saiu (pedido do dono): só as ondas dos toques continuam, em volta da esfera */
+      if (hud) desenharOndas(agora);
       if (!reduzido) quadroId = requestAnimationFrame(desenhar);
     };
     quadroId = requestAnimationFrame(desenhar);

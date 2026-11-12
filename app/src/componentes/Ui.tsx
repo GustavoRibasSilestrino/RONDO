@@ -2,9 +2,10 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { cores, DEGRADE, FIM_DIAGONAL, FONTE, INICIO_DIAGONAL, PesoFonte, raio, estilos } from '../tema';
+import { Faiscas } from './Faiscas';
 import { Icone, NomeIcone } from './Icone';
 
 /* ---------- texto ---------- */
@@ -50,7 +51,45 @@ export function Cartao({ children, style, destaque }: { children: React.ReactNod
   );
 }
 
-/* ---------- botão ---------- */
+/* ---------- botão ----------
+   O principal segue a referência do dono (2026-11-12): pílula violeta elétrica, borda fina clara, halo de luz em volta, um
+   brilho lilás que passeia devagar na parte de baixo e três estrelinhas piscando antes do texto (Faiscas), quando o botão
+   não tem ícone próprio. Os outros tipos ficam discretos, mas com o mesmo formato de pílula. */
+
+/* o brilho que passeia na parte de baixo do botão principal, de um lado para o outro */
+function BrilhoAndante({ forte }: { forte: boolean }) {
+  const reduzido = useMovimentoReduzido();
+  const [w, setW] = useState(0);
+  const x = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (reduzido || !w) return undefined;
+    const nativo = Platform.OS !== 'web';
+    const laco = Animated.loop(Animated.sequence([
+      Animated.timing(x, { toValue: 1, duration: 2600, easing: Easing.inOut(Easing.sin), useNativeDriver: nativo }),
+      Animated.timing(x, { toValue: 0, duration: 2600, easing: Easing.inOut(Easing.sin), useNativeDriver: nativo }),
+    ]));
+    laco.start();
+    return () => laco.stop();
+  }, [reduzido, w, x]);
+  const larg = Math.max(60, w * 0.62);
+  return (
+    <View pointerEvents="none" style={StyleSheet.absoluteFill} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
+      {w ? (
+        <Animated.View style={{ position: 'absolute', bottom: '-55%', height: '120%', width: larg, left: (w - larg) / 2, transform: [{ translateX: x.interpolate({ inputRange: [0, 1], outputRange: [-w * 0.24, w * 0.24] }) }] }}>
+          <Svg width="100%" height="100%" viewBox="0 0 100 50" preserveAspectRatio="none">
+            <Defs>
+              <RadialGradient id="brilhoAndante" cx="50%" cy="50%" r="50%">
+                <Stop offset="0" stopColor="#e6c8ff" stopOpacity={forte ? 0.75 : 0.55} />
+                <Stop offset="1" stopColor="#c58cff" stopOpacity={0} />
+              </RadialGradient>
+            </Defs>
+            <Ellipse cx="50" cy="25" rx="50" ry="25" fill="url(#brilhoAndante)" />
+          </Svg>
+        </Animated.View>
+      ) : null}
+    </View>
+  );
+}
 type BotaoProps = {
   titulo: string;
   aoPressionar: () => void;
@@ -67,8 +106,8 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
   const inativo = !!desabilitado || !!carregando;
   const conteudo = (
     <View style={[st.botaoMiolo, pequeno && st.botaoMioloPequeno]}>
-      {carregando ? <ActivityIndicator size="small" color={cor} /> : icone ? <Icone nome={icone} tamanho={pequeno ? 16 : 18} cor={cor} /> : null}
-      <T tam={pequeno ? 13 : 15} peso="500" cor={cor} style={{ letterSpacing: 0.2 }}>{titulo}</T>
+      {carregando ? <ActivityIndicator size="small" color={cor} /> : icone ? <Icone nome={icone} tamanho={pequeno ? 16 : 18} cor={cor} /> : tipo === 'primario' ? <Faiscas tamanho={pequeno ? 16 : 21} /> : null}
+      <T tam={pequeno ? 13.5 : tipo === 'primario' ? 16 : 15} peso="500" cor={cor} style={{ letterSpacing: 0.2 }}>{titulo}</T>
     </View>
   );
   /* ao tocar, o botão afunda um pouco e volta com mola */
@@ -98,7 +137,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
       onPressIn={() => mola(0.97)}
       onPressOut={() => mola(1)}
       style={({ hovered }: { pressed: boolean; hovered?: boolean }) => [
-        st.botao, comOrbita && { borderRadius: raio.m - 1.5 },
+        st.botao, comOrbita && { borderRadius: raio.pilula },
         tipo === 'primario' && st.botaoPrimario, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto,
         /* o cursor em cima: a borda acende e o fundo clareia um pouco */
         hovered && !inativo && (tipo === 'primario' ? st.sobrePrimario : tipo === 'fantasma' ? st.sobreFantasma : tipo === 'perigo' ? st.sobrePerigo : st.sobreDiscreto),
@@ -109,11 +148,12 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
         <>
           {tipo === 'primario' ? (
             <>
-              <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} />
+              <LinearGradient pointerEvents="none" colors={['#9168ff', '#7648ff', '#6639f4']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+              <BrilhoAndante forte={!!hovered && !inativo} />
               {/* a luz de cima: uma faixa clara na metade de cima, mais forte com o cursor em cima */}
               <LinearGradient pointerEvents="none" colors={[hovered && !inativo ? 'rgba(255,255,255,0.34)' : 'rgba(255,255,255,0.22)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }} style={StyleSheet.absoluteFill} />
               {/* e a sombra de baixo, que dá volume */}
-              <LinearGradient pointerEvents="none" colors={['rgba(20,0,60,0)', 'rgba(20,0,60,0.28)']} start={{ x: 0, y: 0.55 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
+              <LinearGradient pointerEvents="none" colors={['rgba(20,0,60,0)', 'rgba(20,0,60,0.1)']} start={{ x: 0, y: 0.55 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
             </>
           ) : null}
           {conteudo}
@@ -141,7 +181,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
   ) : null;
 
   return (
-    <Animated.View style={[{ transform: [{ scale: escala }], borderRadius: raio.m }, tipo === 'primario' && !desabilitado && st.brilhoPrimario, style]}>
+    <Animated.View style={[{ transform: [{ scale: escala }], borderRadius: raio.pilula }, tipo === 'primario' && !desabilitado && st.brilhoPrimario, style]}>
       {comOrbita ? (
         <View onLayout={(e) => setMedida({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} style={st.orbita}>
           {feixe}
@@ -293,19 +333,22 @@ const st = estilos(() => StyleSheet.create({
   },
   cartaoDestaque: { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: cores.cartao, boxShadow: '0 24px 50px -30px rgba(106,0,212,0.55)' },
   fio: { position: 'absolute', top: 0, left: 24, right: 24, height: 1 },
-  orbita: { borderRadius: raio.m, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(196,168,255,0.2)' },
+  orbita: { borderRadius: raio.pilula, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(196,168,255,0.2)' },
   campoFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.06)` },
   /* botões: a mesma altura e o mesmo canto em todos; no navegador, as trocas de cor são suaves */
   botao: {
-    borderRadius: raio.m, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
+    borderRadius: raio.pilula, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
     ...(Platform.OS === 'web' ? ({ transitionProperty: 'background-color, border-color, box-shadow', transitionDuration: '180ms' } as object) : null),
   },
-  botaoPrimario: { backgroundColor: cores.destaqueForte, borderWidth: 1, borderColor: 'rgba(214,196,255,0.36)' },
-  brilhoPrimario: { boxShadow: '0 12px 26px -14px rgba(122,38,236,0.95)' },   // o brilho roxo embaixo do botão principal
+  botaoPrimario: { backgroundColor: '#6f3ff9', borderWidth: 1, borderColor: 'rgba(206,186,255,0.6)' },
+  /* o halo: um anel de luz violeta em volta e o brilho embaixo */
+  brilhoPrimario: Platform.OS === 'web'
+    ? ({ boxShadow: '0 0 0 4px rgba(124,77,255,0.26), 0 10px 32px -8px rgba(118,72,255,0.9)' } as object)
+    : { shadowColor: '#7c4dff', shadowOpacity: 0.65, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 8 },
   botaoFantasma: { borderWidth: 1, borderColor: 'rgba(196,168,255,0.34)', backgroundColor: `rgba(${cores.tom},0.08)` },
   botaoPerigo: { borderWidth: 1, borderColor: 'rgba(255,107,129,0.5)', backgroundColor: 'rgba(255,107,129,0.08)' },
   botaoDiscreto: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', backgroundColor: 'rgba(255,255,255,0.06)' },
-  sobrePrimario: { borderColor: 'rgba(232,220,255,0.7)' },
+  sobrePrimario: { borderColor: 'rgba(236,226,255,0.9)' },
   sobreFantasma: { borderColor: 'rgba(196,168,255,0.75)', backgroundColor: `rgba(${cores.tom},0.17)`, boxShadow: '0 0 20px -8px rgba(139,92,246,0.9)' },
   sobrePerigo: { borderColor: 'rgba(255,107,129,0.85)', backgroundColor: 'rgba(255,107,129,0.16)' },
   sobreDiscreto: { borderColor: 'rgba(255,255,255,0.16)', backgroundColor: 'rgba(255,255,255,0.1)' },
