@@ -33,7 +33,8 @@ const PT: Textos = {
   amigo: 'amigo', campeao: 'campeão',
   fala: {
     idioma: 'Antes de começar, escolha a sua língua.',
-    apresentacao: 'Oi! Eu sou o RONDIN, o agente do RONDO. Vou te ajudar a criar a sua conta e montar o seu perfil de treino.',
+    boasVindas: 'Olá, eu sou o RONDIN e irei lhe acompanhar nessa jornada.',   // a tela de apresentação (telas/Apresentacao.tsx)
+    apresentacao: 'Vamos criar a sua conta e montar o seu perfil de treino.',
     entrar: 'Oi! Eu sou o RONDIN, o agente do RONDO. Que ótimo ter você de volta! É só entrar com o seu e-mail e a sua senha.',
     nome: 'Como eu posso te chamar?',
     objetivo: 'Prazer, {nome}! Qual é o seu grande objetivo agora?',
@@ -126,7 +127,8 @@ const EN: Textos = {
   amigo: 'friend', campeao: 'champ',
   fala: {
     idioma: 'Before we start, choose your language.',
-    apresentacao: 'Hi! I am RONDIN, the RONDO agent. I will help you create your account and set up your training profile.',
+    boasVindas: "Hi, I'm RONDIN, and I'll be with you on this journey.",
+    apresentacao: "Let's create your account and set up your training profile.",
     entrar: 'Hi! I am RONDIN, the RONDO agent. Great to have you back! Just sign in with your email and your password.',
     nome: 'What should I call you?',
     objetivo: 'Nice to meet you, {nome}! What is your main goal right now?',
@@ -223,7 +225,8 @@ const ES: Textos = {
   amigo: 'amigo', campeao: 'campeón',
   fala: {
     idioma: 'Antes de empezar, elige tu idioma.',
-    apresentacao: '¡Hola! Soy RONDIN, el agente de RONDO. Te voy a ayudar a crear tu cuenta y a armar tu perfil de entrenamiento.',
+    boasVindas: 'Hola, soy RONDIN y te voy a acompañar en este viaje.',
+    apresentacao: 'Vamos a crear tu cuenta y a armar tu perfil de entrenamiento.',
     entrar: '¡Hola! Soy RONDIN, el agente de RONDO. ¡Qué bueno tenerte de vuelta! Solo inicia sesión con tu correo y tu contraseña.',
     nome: '¿Cómo te llamo?',
     objetivo: '¡Mucho gusto, {nome}! ¿Cuál es tu gran objetivo ahora?',

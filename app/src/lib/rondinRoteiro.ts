@@ -209,7 +209,8 @@ export function listarFalas(idioma: Idioma): string[] {
       if (p.tipo === 'campo') for (const teste of ['', 'x', '0', '1', '999', 'a@', '31/02/2020']) add(p.validar(teste, {}));
     }
   }
-  add(t.fala.apresentacao);   // a apresentação vai na frente da primeira pergunta do cadastro
+  add(t.fala.boasVindas);     // a tela de apresentação, antes de entrar ou criar conta
+  add(t.fala.apresentacao);   // vai na frente da primeira pergunta do cadastro
   Object.values(t.falas).forEach(add);
   Object.values(t.srv).forEach(add);
   add(t.erro.email); add(t.erro.senhaLogin);
