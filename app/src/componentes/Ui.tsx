@@ -5,7 +5,6 @@ import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleProp, St
 import Svg, { Circle, Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { cores, DEGRADE, FIM_DIAGONAL, FONTE, INICIO_DIAGONAL, PesoFonte, raio, estilos } from '../tema';
-import { Faiscas } from './Faiscas';
 import { Icone, NomeIcone } from './Icone';
 
 /* ---------- texto ---------- */
@@ -52,9 +51,14 @@ export function Cartao({ children, style, destaque }: { children: React.ReactNod
 }
 
 /* ---------- botão ----------
-   O principal segue a referência do dono (2026-11-12): pílula violeta elétrica, borda fina clara, halo de luz em volta, um
-   brilho lilás que passeia devagar na parte de baixo e três estrelinhas piscando antes do texto (Faiscas), quando o botão
-   não tem ícone próprio. Os outros tipos ficam discretos, mas com o mesmo formato de pílula. */
+   O principal segue a referência em vídeo do dono (2026-11-12): parado, ele fica APAGADO (pílula cinza escura, texto
+   acinzentado); quando o cursor chega nele, no momento antes do clique, ele ACENDE: vira violeta vivo, cresce um pouco, o
+   texto fica branco, um brilho lilás passeia na parte de baixo e uma luz roxa se espalha em volta. O cursor saiu, ele apaga
+   devagar. Sem estrelinhas nem brilhos "de IA". Onde não existe cursor (celular, tela de toque) ele fica aceso, para não
+   parecer desativado, e brilha mais ao ser tocado. Os outros tipos ficam discretos, com o mesmo formato de pílula. */
+
+/* tela sem cursor (celular, tablet): o botão principal fica aceso */
+const SEM_CURSOR = Platform.OS !== 'web' || (typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(hover: none)').matches);
 
 /* o brilho que passeia na parte de baixo do botão principal, de um lado para o outro */
 function BrilhoAndante({ forte }: { forte: boolean }) {
@@ -106,7 +110,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
   const inativo = !!desabilitado || !!carregando;
   const conteudo = (
     <View style={[st.botaoMiolo, pequeno && st.botaoMioloPequeno]}>
-      {carregando ? <ActivityIndicator size="small" color={cor} /> : icone ? <Icone nome={icone} tamanho={pequeno ? 16 : 18} cor={cor} /> : tipo === 'primario' ? <Faiscas tamanho={pequeno ? 16 : 21} /> : null}
+      {carregando ? <ActivityIndicator size="small" color={cor} /> : icone ? <Icone nome={icone} tamanho={pequeno ? 16 : 18} cor={cor} /> : null}
       <T tam={pequeno ? 13.5 : tipo === 'primario' ? 16 : 15} peso="500" cor={cor} style={{ letterSpacing: 0.2 }}>{titulo}</T>
     </View>
   );
@@ -114,6 +118,21 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
   const escala = useRef(new Animated.Value(1)).current;
   const nativo = Platform.OS !== 'web';
   const mola = (para: number) => Animated.spring(escala, { toValue: para, useNativeDriver: nativo, speed: 42, bounciness: 5 }).start();
+
+  /* aceso ou apagado (só o principal): o cursor em cima, o foco do teclado, o toque ou o carregando acendem */
+  const primario = tipo === 'primario';
+  const [cursor, setCursor] = useState(false);
+  const [foco, setFoco] = useState(false);
+  const [tocando, setTocando] = useState(false);
+  const aceso = primario && !desabilitado && (SEM_CURSOR || cursor || foco || tocando || !!carregando);
+  const luz = useRef(new Animated.Value(aceso ? 1 : 0)).current;
+  const realce = useRef(new Animated.Value(0)).current;   // o brilho a mais do toque
+  useEffect(() => {
+    Animated.timing(luz, { toValue: aceso ? 1 : 0, duration: aceso ? 280 : 650, easing: aceso ? Easing.out(Easing.cubic) : Easing.inOut(Easing.quad), useNativeDriver: nativo }).start();
+  }, [aceso, luz, nativo]);
+  useEffect(() => {
+    Animated.timing(realce, { toValue: tocando ? 1 : 0, duration: tocando ? 140 : 420, easing: Easing.out(Easing.quad), useNativeDriver: nativo }).start();
+  }, [tocando, realce, nativo]);
 
   /* contorno com luz: o feixe gira por trás do botão e só aparece na faixa fina da borda */
   const reduzido = useMovimentoReduzido();
@@ -134,29 +153,31 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
       accessibilityState={{ disabled: inativo, busy: !!carregando }}
       disabled={inativo}
       onPress={aoPressionar}
-      onPressIn={() => mola(0.97)}
-      onPressOut={() => mola(1)}
+      onPressIn={() => { mola(0.97); setTocando(true); }}
+      onPressOut={() => { mola(1); setTocando(false); }}
+      onHoverIn={() => setCursor(true)}
+      onHoverOut={() => setCursor(false)}
+      onFocus={() => setFoco(true)}
+      onBlur={() => setFoco(false)}
       style={({ hovered }: { pressed: boolean; hovered?: boolean }) => [
         st.botao, comOrbita && { borderRadius: raio.pilula },
         tipo === 'primario' && st.botaoPrimario, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto,
         /* o cursor em cima: a borda acende e o fundo clareia um pouco */
-        hovered && !inativo && (tipo === 'primario' ? st.sobrePrimario : tipo === 'fantasma' ? st.sobreFantasma : tipo === 'perigo' ? st.sobrePerigo : st.sobreDiscreto),
+        hovered && !inativo && !primario && (tipo === 'fantasma' ? st.sobreFantasma : tipo === 'perigo' ? st.sobrePerigo : st.sobreDiscreto),
         { opacity: desabilitado ? 0.45 : 1 },
       ]}
     >
-      {({ hovered }: { pressed: boolean; hovered?: boolean }) => (
+      {() => (
         <>
-          {tipo === 'primario' ? (
-            <>
+          {primario ? (
+            /* aceso: o violeta, o brilho que passeia, a luz de cima e a borda clara aparecem juntos, por cima do cinza apagado */
+            <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, st.acesoBorda, { opacity: luz }]}>
               <LinearGradient pointerEvents="none" colors={['#9168ff', '#7648ff', '#6639f4']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
-              <BrilhoAndante forte={!!hovered && !inativo} />
-              {/* a luz de cima: uma faixa clara na metade de cima, mais forte com o cursor em cima */}
-              <LinearGradient pointerEvents="none" colors={[hovered && !inativo ? 'rgba(255,255,255,0.34)' : 'rgba(255,255,255,0.22)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }} style={StyleSheet.absoluteFill} />
-              {/* e a sombra de baixo, que dá volume */}
-              <LinearGradient pointerEvents="none" colors={['rgba(20,0,60,0)', 'rgba(20,0,60,0.1)']} start={{ x: 0, y: 0.55 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
-            </>
+              <BrilhoAndante forte={cursor || tocando} />
+              <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.26)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }} style={StyleSheet.absoluteFill} />
+            </Animated.View>
           ) : null}
-          {conteudo}
+          {primario ? <Animated.View style={{ opacity: luz.interpolate({ inputRange: [0, 1], outputRange: [0.62, 1] }) }}>{conteudo}</Animated.View> : conteudo}
         </>
       )}
     </Pressable>
@@ -181,7 +202,23 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
   ) : null;
 
   return (
-    <Animated.View style={[{ transform: [{ scale: escala }], borderRadius: raio.pilula }, tipo === 'primario' && !desabilitado && st.brilhoPrimario, style]}>
+    <Animated.View style={[{ transform: [{ scale: escala }], borderRadius: raio.pilula }, style]}>
+      {primario && !desabilitado ? (
+        /* a luz roxa que se espalha em volta quando ele acende (no toque, um pouco mais) */
+        <Animated.View pointerEvents="none" style={[st.aura, { opacity: Animated.add(Animated.multiply(luz, 0.85), Animated.multiply(realce, 0.15)) }]}>
+          <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <Defs>
+              <RadialGradient id="auraBotao" cx="50%" cy="55%" r="50%">
+                <Stop offset="0" stopColor="#7c4dff" stopOpacity={0.55} />
+                <Stop offset="0.55" stopColor="#6a3cf0" stopOpacity={0.18} />
+                <Stop offset="1" stopColor="#4c1d95" stopOpacity={0} />
+              </RadialGradient>
+            </Defs>
+            <Ellipse cx="50" cy="50" rx="50" ry="50" fill="url(#auraBotao)" />
+          </Svg>
+        </Animated.View>
+      ) : null}
+      <Animated.View style={[{ borderRadius: raio.pilula }, primario && !desabilitado && { transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.985, 1.02] }) }] }]}>
       {comOrbita ? (
         <View onLayout={(e) => setMedida({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} style={st.orbita}>
           {feixe}
@@ -190,6 +227,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
       ) : (
         miolo
       )}
+      </Animated.View>
     </Animated.View>
   );
 }
@@ -340,15 +378,14 @@ const st = estilos(() => StyleSheet.create({
     borderRadius: raio.pilula, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
     ...(Platform.OS === 'web' ? ({ transitionProperty: 'background-color, border-color, box-shadow', transitionDuration: '180ms' } as object) : null),
   },
-  botaoPrimario: { backgroundColor: '#6f3ff9', borderWidth: 1, borderColor: 'rgba(206,186,255,0.6)' },
-  /* o halo: um anel de luz violeta em volta e o brilho embaixo */
-  brilhoPrimario: Platform.OS === 'web'
-    ? ({ boxShadow: '0 0 0 4px rgba(124,77,255,0.26), 0 10px 32px -8px rgba(118,72,255,0.9)' } as object)
-    : { shadowColor: '#7c4dff', shadowOpacity: 0.65, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 8 },
+  /* apagado: cinza escuro quase sem cor; o aceso (acesoBorda + degradê) aparece por cima */
+  botaoPrimario: { backgroundColor: '#1b1a21', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  acesoBorda: { borderRadius: raio.pilula, borderWidth: 1, borderColor: 'rgba(206,186,255,0.65)', overflow: 'hidden', margin: -1 },
+  /* a luz em volta: maior que o botão, atrás dele */
+  aura: { position: 'absolute', left: '-14%', right: '-14%', top: '-70%', bottom: '-90%' },
   botaoFantasma: { borderWidth: 1, borderColor: 'rgba(196,168,255,0.34)', backgroundColor: `rgba(${cores.tom},0.08)` },
   botaoPerigo: { borderWidth: 1, borderColor: 'rgba(255,107,129,0.5)', backgroundColor: 'rgba(255,107,129,0.08)' },
   botaoDiscreto: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', backgroundColor: 'rgba(255,255,255,0.06)' },
-  sobrePrimario: { borderColor: 'rgba(236,226,255,0.9)' },
   sobreFantasma: { borderColor: 'rgba(196,168,255,0.75)', backgroundColor: `rgba(${cores.tom},0.17)`, boxShadow: '0 0 20px -8px rgba(139,92,246,0.9)' },
   sobrePerigo: { borderColor: 'rgba(255,107,129,0.85)', backgroundColor: 'rgba(255,107,129,0.16)' },
   sobreDiscreto: { borderColor: 'rgba(255,255,255,0.16)', backgroundColor: 'rgba(255,255,255,0.1)' },
