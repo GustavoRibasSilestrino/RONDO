@@ -1,4 +1,4 @@
-"""A política de conteúdo: filtro de palavras, 3 avisos, suspensão de 7 dias e banimento depois de 2 suspensões."""
+"""A política de conteúdo: filtro de palavras, 3 avisos, suspensão de 7 dias e banimento na violação seguinte à 2ª suspensão."""
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import update
@@ -51,7 +51,7 @@ def _fim_da_suspensao(email):
         s.commit()
 
 
-def test_duas_suspensoes_e_passar_do_limite_de_novo_bane(cliente):
+def test_depois_da_segunda_suspensao_a_proxima_violacao_bane(cliente):
     a, _ = duas(cliente)
     for _ in range(2):            # dois ciclos: 3 avisos e a suspensão
         for _ in range(4):
@@ -60,9 +60,7 @@ def test_duas_suspensoes_e_passar_do_limite_de_novo_bane(cliente):
     eu = cliente.get("/auth/eu", headers=a).json()
     assert (eu["avisos"], eu["suspensoes"]) == (0, 2)
     assert _postar(cliente, a, BOM).status_code == 201   # cumpriu a suspensão: volta a publicar
-    for _ in range(3):
-        assert _postar(cliente, a).status_code == 422
-    r = _postar(cliente, a)
+    r = _postar(cliente, a)   # a primeira violação depois da 2ª suspensão já bane
     assert r.status_code == 403 and "banida" in r.json()["detail"]
     # banida: nenhum pedido passa e o login é recusado
     assert cliente.get("/social/feed", headers=a).status_code == 403

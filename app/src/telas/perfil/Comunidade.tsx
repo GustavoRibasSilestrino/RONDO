@@ -18,7 +18,7 @@ const REGRAS = [
   'Sem golpe, spam, propaganda enganosa ou conta falsa.',
   'Nada que incentive se machucar, distúrbio alimentar ou uso de substâncias proibidas.',
   'Palavras ofensivas são bloqueadas antes de publicar, e cada tentativa vira um aviso. Conteúdo tirado do ar depois de denúncia também.',
-  `Depois de ${LIMITE_AVISOS} avisos, a próxima violação suspende a conta por 7 dias (sem publicar nada). Quem já teve ${SUSPENSOES_ATE_BANIR} suspensões e passa do limite de novo é banido.`,
+  `Depois de ${LIMITE_AVISOS} avisos, a próxima violação suspende a conta por 7 dias (sem publicar nada). Quem já teve ${SUSPENSOES_ATE_BANIR} suspensões é banido na próxima violação, sem novos avisos.`,
 ];
 
 export function ComunidadeSeguranca() {

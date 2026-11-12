@@ -237,7 +237,7 @@ function Termos() {
           denúncia também conta como aviso.</li>
         <li>São <b>3 avisos</b>. Passou do limite, a conta é <b>suspensa por 7 dias</b>: dá para continuar usando o app, mas não
           dá para publicar nada. Depois da suspensão, os avisos voltam a zero.</li>
-        <li>Quem já teve <b>2 suspensões</b> e passa do limite de novo é <b>banido</b>: a conta deixa de entrar no RONDO.</li>
+        <li>Depois da <b>2ª suspensão</b>, a próxima violação (sem novo ciclo de avisos) <b>bane</b> a conta: a conta deixa de entrar no RONDO.</li>
         <li>Você vê os seus avisos e suspensões em Configurações, Comunidade e segurança. Se achar que houve um engano, escreva
           para {CONTATO}.</li>
       </ul>

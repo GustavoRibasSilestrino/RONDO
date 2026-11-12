@@ -4,7 +4,7 @@ Regra (pedida pelo dono em 2026-11-12):
 - cada tentativa de publicar algo inapropriado (palavra bloqueada pelo filtro, servicos/filtro.py) é barrada e vira um
   AVISO; um conteúdo tirado do ar pela moderação depois de denúncia também conta como aviso;
 - a pessoa tem 3 avisos; passou do limite (a 4ª vez), a conta é SUSPENSA por 7 dias e os avisos voltam a zero;
-- quem já tem 2 suspensões e passa do limite de novo é BANIDO: a conta não entra mais.
+- quem já tem 2 suspensões é BANIDO na próxima violação (sem novo ciclo de avisos): a conta não entra mais.
 Suspensa, a pessoa continua usando o app (treinos, dieta...), mas não publica nada (posts, comentários, stories, clubes,
 nome, @ e bio). Banida, nenhum pedido passa e o login é recusado. Tudo fica no histórico (tabela penalidades).
 """
@@ -46,15 +46,15 @@ def exigir_pode_publicar(u: Usuario) -> None:
 def aplicar(sessao: Session, u: Usuario, motivo: str, trecho: str | None) -> str:
     """Registra uma violação e devolve o que aconteceu: 'aviso', 'suspensao' ou 'banimento'. Grava na hora."""
     agora = datetime.now(timezone.utc)
-    if u.avisos < LIMITE_AVISOS:
-        u.avisos += 1
-        sessao.add(Penalidade(usuario_id=u.id, tipo="aviso", motivo=motivo, trecho=(trecho or "")[:300] or None))
-        resultado = "aviso"
-    elif u.suspensoes >= SUSPENSOES_ATE_BANIR:
+    if u.suspensoes >= SUSPENSOES_ATE_BANIR:
         u.banido = True
         u.avisos = 0
         sessao.add(Penalidade(usuario_id=u.id, tipo="banimento", motivo=motivo, trecho=(trecho or "")[:300] or None))
         resultado = "banimento"
+    elif u.avisos < LIMITE_AVISOS:
+        u.avisos += 1
+        sessao.add(Penalidade(usuario_id=u.id, tipo="aviso", motivo=motivo, trecho=(trecho or "")[:300] or None))
+        resultado = "aviso"
     else:
         u.suspensoes += 1
         u.avisos = 0
@@ -70,10 +70,11 @@ def mensagem(u: Usuario, resultado: str) -> str:
         return MSG_BANIDA
     if resultado == "suspensao":
         return (f"Sua conta foi suspensa por 7 dias, até {_data(u.suspenso_ate)} (horário de Brasília), por passar do limite de "
-                f"{LIMITE_AVISOS} avisos. Esta é a suspensão {u.suspensoes} de {SUSPENSOES_ATE_BANIR}: depois da segunda, "
-                "passar do limite de novo bane a conta.")
+                f"{LIMITE_AVISOS} avisos. Esta é a suspensão {u.suspensoes} de {SUSPENSOES_ATE_BANIR}"
+                + (": a partir de agora, qualquer nova violação bane a conta." if u.suspensoes >= SUSPENSOES_ATE_BANIR
+                   else ": depois da segunda, a próxima violação bane a conta."))
     restam = LIMITE_AVISOS - u.avisos
-    seguinte = "suspensão da conta" if u.suspensoes < SUSPENSOES_ATE_BANIR else "banimento da conta"
+    seguinte = "suspensão da conta"
     return (f"Isso não foi publicado: tem uma palavra que não é permitida no RONDO. Aviso {u.avisos} de {LIMITE_AVISOS}. "
             + (f"Depois de mais {restam}, a próxima vez é {seguinte}." if restam else f"A próxima vez é {seguinte}."))
 
