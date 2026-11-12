@@ -2,9 +2,11 @@
    Só a esfera de pontos (a moldura de instrumento em volta saiu em 2026-11-12, a pedido do dono). Com `hud`, ganha a
    auréola de luz roxa atrás, inclina na direção do cursor, acende com o cursor em cima e cada toque (ou cada tecla, pela
    prop `pulso`) solta uma onda em volta. Tudo é desenhado no mesmo canvas, num laço só.
-   Os pontos se desfazem com o cursor: quanto mais perto do centro, mais eles se soltam e se espalham (os que estão perto
-   do cursor fogem dele); afastando o cursor, cada ponto volta no seu ritmo e a esfera se monta de novo. Com o dedo vale o
-   mesmo enquanto ele arrasta; soltou, a esfera se refaz. Parado para quem pede menos movimento. */
+   Só os pontos onde o cursor passa se soltam e fogem dele, abrindo um buraco que anda junto; o resto da esfera fica
+   inteiro, e cada ponto volta ao lugar no seu ritmo. Com o dedo vale o mesmo enquanto ele arrasta; soltou, a esfera se
+   refaz. Parado para quem pede menos movimento.
+   Desde 2026-11-12 tem o visual do RONDIN 3D feito no Blender (brand/rondin-3d): um miolo escuro esconde em parte os
+   pontos de trás, e os acesos da frente ganham um brilho em volta. */
 import React, { useEffect, useMemo, useRef } from 'react';
 import { CAMPOS, EstadoOrbe, amplitude, corDoPonto, esfera, quadro } from '../lib/orbe';
 import { useMovimentoReduzido } from '../lib/movimento';
@@ -60,6 +62,19 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
     const R = tamanho * 0.36;   // sem a moldura de instrumento (tirada em 2026-11-12): só a esfera
     const fio = Math.max(1, tamanho / 210);   // espessura dos traços, proporcional ao tamanho
     let amp = 0, anterior = 0, quadroId = 0, brilho = 0, mx = 0, my = 0;
+    /* o visual do RONDIN 3D (brand/rondin-3d, feito no Blender): o brilho em volta de cada ponto aceso é um "carimbo"
+       desenhado uma vez só e repetido em modo de somar luz, que é leve mesmo com 1.100 pontos */
+    const carimbo = document.createElement('canvas');
+    carimbo.width = carimbo.height = 64;
+    const cc = carimbo.getContext('2d');
+    if (cc) {
+      const g = cc.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, 'rgba(226,206,255,0.9)');
+      g.addColorStop(0.25, 'rgba(176,128,255,0.35)');
+      g.addColorStop(1, 'rgba(124,58,237,0)');
+      cc.fillStyle = g;
+      cc.fillRect(0, 0, 64, 64);
+    }
     const t0 = performance.now();
 
     /* o cursor: a esfera se inclina na direção dele, de qualquer lugar da janela; perto dela, os pontos se soltam */
@@ -111,23 +126,25 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
       mx += (mira.current.x - mx) * Math.min(1, dt * 4);
       my += (mira.current.y - my) * Math.min(1, dt * 4);
       quadro(pts, t, amp, R, c, c, saida, 0.42 + my * 0.5, mx * 0.9);
-      /* os pontos se soltam: cada um vai para a sua direção (com um redemoinho leve) e foge do cursor; voltando, cada um no seu ritmo */
-      const alvoSolto = reduzido ? 0 : mira.current.desfaz;
-      const cxm = mira.current.cx, cym = mira.current.cy, alcance = R * 0.75;
+      /* só os pontos perto do cursor se soltam (pedido do dono): fogem dele, com um redemoinho leve; o resto da esfera fica
+         inteiro. Afastou o cursor, cada ponto volta ao lugar no seu ritmo. */
+      const cxm = mira.current.cx, cym = mira.current.cy, alcance = R * 0.5;
       for (let i = 0; i < N; i += 1) {
+        const o = i * CAMPOS;
+        const bx = saida[o], by = saida[o + 1];
+        const ax = bx - cxm, ay = by - cym, da = Math.hypot(ax, ay);
+        const perto = reduzido || da >= alcance ? 0 : 1 - da / alcance;
         const s = solto[i];
-        solto[i] = s + (alvoSolto - s) * Math.min(1, dt * fugaV[i] * (alvoSolto > s ? 1.4 : 0.8));
+        solto[i] = s + (perto - s) * Math.min(1, dt * fugaV[i] * (perto > s ? 2.2 : 0.7));
         const k = solto[i];
         if (k < 0.002) continue;
         const e2 = k * k * (3 - 2 * k);
-        const o = i * CAMPOS;
         const giroP = t * 0.6 * (fugaV[i] - 3);
         const dx = fugaX[i] * Math.cos(giroP) - fugaY[i] * Math.sin(giroP), dy = fugaX[i] * Math.sin(giroP) + fugaY[i] * Math.cos(giroP);
-        let x = saida[o] + dx * fugaD[i] * R * e2, y = saida[o + 1] + dy * fugaD[i] * R * e2;
-        const ax = x - cxm, ay = y - cym, da = Math.hypot(ax, ay);
-        if (da < alcance && da > 0.01) { const f = (1 - da / alcance) * R * 0.35 * e2; x += (ax / da) * f; y += (ay / da) * f; }
-        saida[o] = x; saida[o + 1] = y;
-        saida[o + 3] *= 1 - 0.25 * e2;                 // soltos, ficam um pouco mais leves
+        const ux = da > 0.01 ? ax / da : dx, uy = da > 0.01 ? ay / da : dy;
+        saida[o] = bx + (ux * R * 0.42 + dx * fugaD[i] * R * 0.18) * e2;
+        saida[o + 1] = by + (uy * R * 0.42 + dy * fugaD[i] * R * 0.18) * e2;
+        saida[o + 3] *= 1 - 0.2 * e2;                  // soltos, ficam um pouco mais leves
       }
       ctx.clearRect(0, 0, tamanho, tamanho);
       /* o destaque: uma auréola de luz roxa atrás da esfera, que respira devagar e cresce quando ele fala ou o cursor chega */
@@ -140,17 +157,39 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
         ctx.fillStyle = halo;
         ctx.fillRect(0, 0, tamanho, tamanho);
       }
-      for (const passe of [0, 1]) {   // primeiro os pontos de trás, depois os da frente
+      for (const passe of [0, 1]) {   // primeiro os pontos de trás, depois o miolo escuro, depois os da frente
+        if (passe === 1) {
+          const vol = 1 + (0.05 + 0.2 * amp) * 0.4;
+          const miolo = ctx.createRadialGradient(c, c - R * 0.25, 0, c, c, R * 0.97 * vol);
+          miolo.addColorStop(0, 'rgba(10,6,20,0.9)');
+          miolo.addColorStop(0.92, 'rgba(5,3,10,0.86)');
+          miolo.addColorStop(1, 'rgba(5,3,10,0)');
+          ctx.fillStyle = miolo;
+          ctx.beginPath();
+          ctx.arc(c, c, R * 0.97 * vol, 0, Math.PI * 2);
+          ctx.fill();
+        }
         for (let i = 0; i < N; i += 1) {
           const o = i * CAMPOS;
           if (saida[o + 5] !== passe) continue;
-          ctx.globalAlpha = saida[o + 3];
+          ctx.globalAlpha = Math.min(1, saida[o + 3] * (passe ? 1.15 : 1));
           ctx.fillStyle = corDoPonto(saida[o + 4], saida[o + 3]);
           ctx.beginPath();
-          ctx.arc(saida[o], saida[o + 1], Math.max(0.35, saida[o + 2]), 0, Math.PI * 2);
+          ctx.arc(saida[o], saida[o + 1], Math.max(0.4, saida[o + 2] * 1.3), 0, Math.PI * 2);
           ctx.fill();
         }
       }
+      /* o brilho em volta dos pontos acesos da frente, como a luz do 3D */
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < N; i += 1) {
+        const o = i * CAMPOS;
+        const luz = saida[o + 3];
+        if (saida[o + 5] !== 1 || luz < 0.5) continue;
+        const r = saida[o + 2] * 1.3 * 4.2;
+        ctx.globalAlpha = Math.min(0.75, (luz - 0.5) * 1.5);
+        ctx.drawImage(carimbo, saida[o] - r, saida[o + 1] - r, r * 2, r * 2);
+      }
+      ctx.globalCompositeOperation = 'source-over';
       ctx.globalAlpha = 1;
       /* a moldura de instrumento saiu (pedido do dono): só as ondas dos toques continuam, em volta da esfera */
       if (hud) desenharOndas(agora);

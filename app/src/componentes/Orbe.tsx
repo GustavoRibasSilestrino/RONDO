@@ -42,11 +42,16 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
   const c = tamanho / 2;
   const a = reduzido ? 0.06 : amp.current;
   quadro(pts, t.current, a, tamanho * 0.36, c, c, saida);   // sem a moldura (tirada em 2026-11-12): só a esfera
+  /* o visual do RONDIN 3D (brand/rondin-3d): os pontos de trás, o miolo escuro, e os da frente com brilho nos acesos */
   const bolinhas: React.ReactElement[] = [];
   for (const passe of [0, 1]) {
+    if (passe === 1) bolinhas.push(<Circle key="miolo" cx={c} cy={c} r={tamanho * 0.36 * 0.97} fill="#05030a" opacity={0.86} />);
     for (let i = 0; i < N; i += 1) {
       const o = i * CAMPOS;
       if (saida[o + 5] !== passe) continue;
+      if (passe === 1 && saida[o + 3] > 0.5) {
+        bolinhas.push(<Circle key={`b${i}`} cx={saida[o]} cy={saida[o + 1]} r={saida[o + 2] * 1.25 * 2.6} fill="#b080ff" opacity={Math.min(0.3, (saida[o + 3] - 0.5) * 0.6)} />);
+      }
       bolinhas.push(
         <Circle key={i} cx={saida[o]} cy={saida[o + 1]} r={Math.max(0.4, saida[o + 2] * 1.25)} fill={corDoPonto(saida[o + 4], saida[o + 3])} opacity={saida[o + 3]} />,
       );
