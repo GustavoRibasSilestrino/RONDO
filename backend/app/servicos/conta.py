@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_STORIES
 from app.modelos import (
-    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Membro, Notificacao, Post, RedefinicaoSenha, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
+    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Membro, Notificacao, Penalidade, Post, RedefinicaoSenha, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
 )
 from app.servicos import midia as servico_midia
 from app.servicos.busca import normalizar
@@ -28,6 +28,10 @@ def exportar(sessao: Session, u: Usuario) -> dict:
             "papel": u.papel, "pro": u.pro, "selo": u.selo, "marketing": u.marketing, "criado_em": _data(u.criado_em),
         },
         "dados_do_app": {d.chave: d.valor for d in todos(DadoUsuario, DadoUsuario.usuario_id == uid)},
+        "politica_de_conteudo": {
+            "avisos": u.avisos, "suspensoes": u.suspensoes, "suspenso_ate": _data(u.suspenso_ate), "banido": u.banido,
+            "historico": [{"tipo": x.tipo, "motivo": x.motivo, "trecho": x.trecho, "em": _data(x.em)} for x in todos(Penalidade, Penalidade.usuario_id == uid)],
+        },
         "publicacoes": [
             {"id": p.id, "texto": p.texto, "destaque": p.destaque, "midia": p.midia, "clube_id": p.clube_id, "criado_em": _data(p.criado_em)}
             for p in todos(Post, Post.autor_id == uid)
@@ -86,6 +90,7 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
     sessao.execute(delete(DadoUsuario).where(DadoUsuario.usuario_id == uid))
     sessao.execute(delete(Consentimento).where(Consentimento.usuario_id == uid))
     sessao.execute(delete(RedefinicaoSenha).where(RedefinicaoSenha.usuario_id == uid))
+    sessao.execute(delete(Penalidade).where(Penalidade.usuario_id == uid))
     sessao.execute(delete(Bloqueio).where(or_(Bloqueio.quem_id == uid, Bloqueio.bloqueado_id == uid)))
     sessao.execute(delete(Denuncia).where(Denuncia.denunciante_id == uid))
     # as denúncias contra a pessoa ficam (para o histórico da moderação), sem apontar para a conta apagada

@@ -8,7 +8,7 @@ import { Mark } from "./ui";
 
 export const CONTATO = "rondooficial.dev@gmail.com";
 export const RESPONSAVEL = "Gustavo Ribas Silestrino";
-const ATUALIZADO = "11 de novembro de 2026";
+const ATUALIZADO = "12 de novembro de 2026";
 
 const Email = () => <a href={`mailto:${CONTATO}`}>{CONTATO}</a>;
 
@@ -76,7 +76,8 @@ function Privacidade() {
         <li>Avisos do app (quem deu cheers, comentou ou começou a seguir você).</li>
         <li>
           Segurança da comunidade: quem você bloqueou e as denúncias que você fez (o que foi denunciado, uma cópia do texto, o
-          motivo e o que você escreveu). Quem foi denunciado não fica sabendo quem denunciou.
+          motivo e o que você escreveu). Quem foi denunciado não fica sabendo quem denunciou. E os seus avisos, suspensões e
+          um eventual banimento, com o motivo e o trecho que foi barrado (a política está nos Termos de Uso).
         </li>
       </ul>
       <h3>O que fica só no seu aparelho</h3>
@@ -131,6 +132,7 @@ function Privacidade() {
           <tr><td>Conta, dados do app e publicações</td><td>Enquanto a conta existir. Ao apagar a conta, tudo sai do banco na hora.</td></tr>
           <tr><td>Stories</td><td>24 horas; depois são apagados do banco, com a foto.</td></tr>
           <tr><td>Avisos do app</td><td>180 dias.</td></tr>
+          <tr><td>Avisos, suspensões e banimento</td><td>Enquanto a conta existir. Ao apagar a conta, o histórico sai junto.</td></tr>
           <tr><td>Bloqueios e denúncias que você fez</td><td>Enquanto a conta existir. Denúncias contra uma conta apagada ficam, sem ligação com ela, como histórico da moderação.</td></tr>
           <tr><td>Registro dos aceites</td><td>Enquanto a conta existir.</td></tr>
           <tr><td>Cadastro de profissional</td><td>Até você pedir a exclusão.</td></tr>
@@ -223,9 +225,22 @@ function Termos() {
       <p>
         <b>Tolerância zero</b> com conteúdo ofensivo, de ódio, assédio, nudez, violência ou golpe, e com quem abusa de outras
         pessoas. Toda publicação, comentário, story e perfil tem a opção de <b>denunciar</b> e de <b>bloquear</b> quem publicou
-        (nos três pontinhos). A equipe do RONDO analisa as denúncias em até 24 horas, tira do ar o que viola estes termos e pode
-        remover a conta de quem os violou. Contato da equipe: {CONTATO}.
+        (nos três pontinhos). A equipe do RONDO analisa as denúncias em até 24 horas e tira do ar o que viola estes termos.
+        Contato da equipe: {CONTATO}.
       </p>
+
+      <h3>Avisos, suspensão e banimento</h3>
+      <ul>
+        <li>O RONDO bloqueia palavras ofensivas (xingamentos, palavrões fortes, termos sexuais e ofensas de preconceito) em
+          publicações, comentários, stories, clubes, nome, @ e bio. O que tiver uma delas não é publicado.</li>
+        <li>Cada tentativa de publicar algo bloqueado é um <b>aviso</b>. Um conteúdo tirado do ar pela equipe depois de uma
+          denúncia também conta como aviso.</li>
+        <li>São <b>3 avisos</b>. Passou do limite, a conta é <b>suspensa por 7 dias</b>: dá para continuar usando o app, mas não
+          dá para publicar nada. Depois da suspensão, os avisos voltam a zero.</li>
+        <li>Quem já teve <b>2 suspensões</b> e passa do limite de novo é <b>banido</b>: a conta deixa de entrar no RONDO.</li>
+        <li>Você vê os seus avisos e suspensões em Configurações, Comunidade e segurança. Se achar que houve um engano, escreva
+          para {CONTATO}.</li>
+      </ul>
 
       <h2>5. O seu conteúdo</h2>
       <p>

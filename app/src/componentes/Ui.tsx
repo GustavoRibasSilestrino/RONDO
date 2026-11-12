@@ -55,13 +55,15 @@ export function Cartao({ children, style, destaque }: { children: React.ReactNod
    acinzentado); quando o cursor chega nele, no momento antes do clique, ele ACENDE: vira violeta vivo, cresce um pouco, o
    texto fica branco, um brilho lilás passeia na parte de baixo e uma luz roxa se espalha em volta. O cursor saiu, ele apaga
    devagar. Sem estrelinhas nem brilhos "de IA". Onde não existe cursor (celular, tela de toque) ele fica aceso, para não
-   parecer desativado, e brilha mais ao ser tocado. Os outros tipos ficam discretos, com o mesmo formato de pílula. */
+   parecer desativado, e brilha mais ao ser tocado. Os outros tipos fazem o mesmo (pedido do dono): apagados parados e
+   acesos com o cursor; o de perigo acende em vermelho. Sem cursor, os outros ficam apagados e acendem ao toque, para o
+   principal continuar se destacando. */
 
 /* tela sem cursor (celular, tablet): o botão principal fica aceso */
 const SEM_CURSOR = Platform.OS !== 'web' || (typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia('(hover: none)').matches);
 
 /* o brilho que passeia na parte de baixo do botão principal, de um lado para o outro */
-function BrilhoAndante({ forte }: { forte: boolean }) {
+function BrilhoAndante({ forte, perigo }: { forte: boolean; perigo?: boolean }) {
   const reduzido = useMovimentoReduzido();
   const [w, setW] = useState(0);
   const x = useRef(new Animated.Value(0)).current;
@@ -82,12 +84,12 @@ function BrilhoAndante({ forte }: { forte: boolean }) {
         <Animated.View style={{ position: 'absolute', bottom: '-55%', height: '120%', width: larg, left: (w - larg) / 2, transform: [{ translateX: x.interpolate({ inputRange: [0, 1], outputRange: [-w * 0.24, w * 0.24] }) }] }}>
           <Svg width="100%" height="100%" viewBox="0 0 100 50" preserveAspectRatio="none">
             <Defs>
-              <RadialGradient id="brilhoAndante" cx="50%" cy="50%" r="50%">
-                <Stop offset="0" stopColor="#e6c8ff" stopOpacity={forte ? 0.75 : 0.55} />
-                <Stop offset="1" stopColor="#c58cff" stopOpacity={0} />
+              <RadialGradient id={perigo ? 'brilhoAndantePerigo' : 'brilhoAndante'} cx="50%" cy="50%" r="50%">
+                <Stop offset="0" stopColor={perigo ? '#ffd0d8' : '#e6c8ff'} stopOpacity={forte ? 0.75 : 0.55} />
+                <Stop offset="1" stopColor={perigo ? '#ff8fa1' : '#c58cff'} stopOpacity={0} />
               </RadialGradient>
             </Defs>
-            <Ellipse cx="50" cy="25" rx="50" ry="25" fill="url(#brilhoAndante)" />
+            <Ellipse cx="50" cy="25" rx="50" ry="25" fill={perigo ? 'url(#brilhoAndantePerigo)' : 'url(#brilhoAndante)'} />
           </Svg>
         </Animated.View>
       ) : null}
@@ -106,9 +108,10 @@ type BotaoProps = {
   style?: StyleProp<ViewStyle>;
 };
 export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, carregando, orbita, icone, pequeno, style }: BotaoProps) {
-  const cor = tipo === 'primario' ? cores.branco : tipo === 'perigo' ? cores.erro : cores.texto;
   const inativo = !!desabilitado || !!carregando;
-  const conteudo = (
+  /* o conteúdo em duas cores: a do botão apagado e o branco do aceso (um some enquanto o outro aparece) */
+  const corApagado = tipo === 'perigo' ? cores.erro : tipo === 'primario' ? 'rgba(255,255,255,0.62)' : 'rgba(244,241,251,0.82)';
+  const miolo2 = (cor: string) => (
     <View style={[st.botaoMiolo, pequeno && st.botaoMioloPequeno]}>
       {carregando ? <ActivityIndicator size="small" color={cor} /> : icone ? <Icone nome={icone} tamanho={pequeno ? 16 : 18} cor={cor} /> : null}
       <T tam={pequeno ? 13.5 : tipo === 'primario' ? 16 : 15} peso="500" cor={cor} style={{ letterSpacing: 0.2 }}>{titulo}</T>
@@ -121,10 +124,11 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
 
   /* aceso ou apagado (só o principal): o cursor em cima, o foco do teclado, o toque ou o carregando acendem */
   const primario = tipo === 'primario';
+  const perigo = tipo === 'perigo';
   const [cursor, setCursor] = useState(false);
   const [foco, setFoco] = useState(false);
   const [tocando, setTocando] = useState(false);
-  const aceso = primario && !desabilitado && (SEM_CURSOR || cursor || foco || tocando || !!carregando);
+  const aceso = !desabilitado && ((primario && SEM_CURSOR) || cursor || foco || tocando || !!carregando);
   const luz = useRef(new Animated.Value(aceso ? 1 : 0)).current;
   const realce = useRef(new Animated.Value(0)).current;   // o brilho a mais do toque
   useEffect(() => {
@@ -161,23 +165,21 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
       onBlur={() => setFoco(false)}
       style={({ hovered }: { pressed: boolean; hovered?: boolean }) => [
         st.botao, comOrbita && { borderRadius: raio.pilula },
-        tipo === 'primario' && st.botaoPrimario, tipo === 'fantasma' && st.botaoFantasma, tipo === 'perigo' && st.botaoPerigo, tipo === 'discreto' && st.botaoDiscreto,
+        st.botaoApagado, perigo && st.botaoApagadoPerigo,
         /* o cursor em cima: a borda acende e o fundo clareia um pouco */
-        hovered && !inativo && !primario && (tipo === 'fantasma' ? st.sobreFantasma : tipo === 'perigo' ? st.sobrePerigo : st.sobreDiscreto),
         { opacity: desabilitado ? 0.45 : 1 },
       ]}
     >
       {() => (
         <>
-          {primario ? (
-            /* aceso: o violeta, o brilho que passeia, a luz de cima e a borda clara aparecem juntos, por cima do cinza apagado */
-            <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, st.acesoBorda, { opacity: luz }]}>
-              <LinearGradient pointerEvents="none" colors={['#9168ff', '#7648ff', '#6639f4']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
-              <BrilhoAndante forte={cursor || tocando} />
-              <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.26)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }} style={StyleSheet.absoluteFill} />
-            </Animated.View>
-          ) : null}
-          {primario ? <Animated.View style={{ opacity: luz.interpolate({ inputRange: [0, 1], outputRange: [0.62, 1] }) }}>{conteudo}</Animated.View> : conteudo}
+          {/* aceso: a cor, o brilho que passeia, a luz de cima e a borda clara aparecem juntos, por cima do cinza apagado */}
+          <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, st.acesoBorda, perigo && st.acesoBordaPerigo, { opacity: luz }]}>
+            <LinearGradient pointerEvents="none" colors={perigo ? ['#ff7a8e', '#e5485f', '#c42f4b'] : ['#9168ff', '#7648ff', '#6639f4']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+            <BrilhoAndante forte={cursor || tocando} perigo={perigo} />
+            <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.26)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }} style={StyleSheet.absoluteFill} />
+          </Animated.View>
+          <Animated.View style={{ opacity: luz.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }}>{miolo2(corApagado)}</Animated.View>
+          <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: luz }]}>{miolo2(cores.branco)}</Animated.View>
         </>
       )}
     </Pressable>
@@ -203,22 +205,22 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
 
   return (
     <Animated.View style={[{ transform: [{ scale: escala }], borderRadius: raio.pilula }, style]}>
-      {primario && !desabilitado ? (
-        /* a luz roxa que se espalha em volta quando ele acende (no toque, um pouco mais) */
-        <Animated.View pointerEvents="none" style={[st.aura, { opacity: Animated.add(Animated.multiply(luz, 0.85), Animated.multiply(realce, 0.15)) }]}>
+      {!desabilitado ? (
+        /* a luz que se espalha em volta quando ele acende (no toque, um pouco mais) */
+        <Animated.View pointerEvents="none" style={[st.aura, { opacity: Animated.add(Animated.multiply(luz, primario ? 0.85 : 0.6), Animated.multiply(realce, 0.15)) }]}>
           <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
             <Defs>
-              <RadialGradient id="auraBotao" cx="50%" cy="55%" r="50%">
-                <Stop offset="0" stopColor="#7c4dff" stopOpacity={0.55} />
-                <Stop offset="0.55" stopColor="#6a3cf0" stopOpacity={0.18} />
-                <Stop offset="1" stopColor="#4c1d95" stopOpacity={0} />
+              <RadialGradient id={perigo ? 'auraBotaoPerigo' : 'auraBotao'} cx="50%" cy="55%" r="50%">
+                <Stop offset="0" stopColor={perigo ? '#ff4d6a' : '#7c4dff'} stopOpacity={0.5} />
+                <Stop offset="0.55" stopColor={perigo ? '#d6334f' : '#6a3cf0'} stopOpacity={0.16} />
+                <Stop offset="1" stopColor={perigo ? '#7a1426' : '#4c1d95'} stopOpacity={0} />
               </RadialGradient>
             </Defs>
-            <Ellipse cx="50" cy="50" rx="50" ry="50" fill="url(#auraBotao)" />
+            <Ellipse cx="50" cy="50" rx="50" ry="50" fill={perigo ? 'url(#auraBotaoPerigo)' : 'url(#auraBotao)'} />
           </Svg>
         </Animated.View>
       ) : null}
-      <Animated.View style={[{ borderRadius: raio.pilula }, primario && !desabilitado && { transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.985, 1.02] }) }] }]}>
+      <Animated.View style={[{ borderRadius: raio.pilula }, !desabilitado && { transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.985, 1.02] }) }] }]}>
       {comOrbita ? (
         <View onLayout={(e) => setMedida({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} style={st.orbita}>
           {feixe}
@@ -378,17 +380,13 @@ const st = estilos(() => StyleSheet.create({
     borderRadius: raio.pilula, overflow: 'hidden', alignItems: 'center', justifyContent: 'center',
     ...(Platform.OS === 'web' ? ({ transitionProperty: 'background-color, border-color, box-shadow', transitionDuration: '180ms' } as object) : null),
   },
-  /* apagado: cinza escuro quase sem cor; o aceso (acesoBorda + degradê) aparece por cima */
-  botaoPrimario: { backgroundColor: '#1b1a21', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  /* apagado (todos os tipos): cinza escuro quase sem cor; o aceso (acesoBorda + degradê) aparece por cima */
+  botaoApagado: { backgroundColor: '#1b1a21', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  botaoApagadoPerigo: { borderColor: 'rgba(255,107,129,0.28)' },
   acesoBorda: { borderRadius: raio.pilula, borderWidth: 1, borderColor: 'rgba(206,186,255,0.65)', overflow: 'hidden', margin: -1 },
+  acesoBordaPerigo: { borderColor: 'rgba(255,190,200,0.7)' },
   /* a luz em volta: maior que o botão, atrás dele */
   aura: { position: 'absolute', left: '-14%', right: '-14%', top: '-70%', bottom: '-90%' },
-  botaoFantasma: { borderWidth: 1, borderColor: 'rgba(196,168,255,0.34)', backgroundColor: `rgba(${cores.tom},0.08)` },
-  botaoPerigo: { borderWidth: 1, borderColor: 'rgba(255,107,129,0.5)', backgroundColor: 'rgba(255,107,129,0.08)' },
-  botaoDiscreto: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.07)', backgroundColor: 'rgba(255,255,255,0.06)' },
-  sobreFantasma: { borderColor: 'rgba(196,168,255,0.75)', backgroundColor: `rgba(${cores.tom},0.17)`, boxShadow: '0 0 20px -8px rgba(139,92,246,0.9)' },
-  sobrePerigo: { borderColor: 'rgba(255,107,129,0.85)', backgroundColor: 'rgba(255,107,129,0.16)' },
-  sobreDiscreto: { borderColor: 'rgba(255,255,255,0.16)', backgroundColor: 'rgba(255,255,255,0.1)' },
   botaoMiolo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, minHeight: 50, paddingVertical: 13, paddingHorizontal: 22 },
   botaoMioloPequeno: { minHeight: 42, paddingVertical: 10, paddingHorizontal: 16 },
   chip: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 11, borderRadius: raio.pilula },

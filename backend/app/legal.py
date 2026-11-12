@@ -2,8 +2,8 @@
 os aceites ficam registrados com a versão que a pessoa viu (tabela consentimentos)."""
 from datetime import timedelta
 
-VERSAO_TERMOS = "2026-11-11"
-VERSAO_PRIVACIDADE = "2026-11-11"
+VERSAO_TERMOS = "2026-11-12"
+VERSAO_PRIVACIDADE = "2026-11-12"
 
 MAIORIDADE = 18   # abaixo disso, o cadastro só vale com o consentimento de um responsável (LGPD, art. 14)
 

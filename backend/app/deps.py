@@ -31,4 +31,7 @@ def usuario_opcional(
 def usuario_atual(usuario: Usuario | None = Depends(usuario_opcional)) -> Usuario:
     if not usuario:
         raise HTTPException(401, "Não autenticado.")
+    if usuario.banido:   # conta banida pela política de conteúdo (servicos/penalidades.py): nada passa
+        from app.servicos.penalidades import MSG_BANIDA
+        raise HTTPException(403, MSG_BANIDA)
     return usuario

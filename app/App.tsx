@@ -14,6 +14,7 @@ import { BotaoVoltar } from './src/componentes/BotaoVoltar';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
 import { Icone } from './src/componentes/Icone';
 import { MenuLateral } from './src/componentes/MenuLateral';
+import { tirarCarregando } from './src/lib/carregando';
 import { useMenuRecolhido } from './src/lib/largura';
 import { PainelLateral } from './src/componentes/PainelLateral';
 import { useLayoutLargo } from './src/lib/largura';
@@ -57,6 +58,8 @@ function Raiz() {
   const { estado, pronto: dadosProntos, commit, puxarDoServidor } = useLoja();
   const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
   const pronto = dadosProntos && fontes;   // espera a fonte, para o texto não aparecer trocado
+  /* no navegador, a tela de carregamento (preta, com o RONDIN, de public/index.html) some quando a primeira tela está pronta */
+  useEffect(() => { if (pronto) tirarCarregando(); }, [pronto]);
   const [tela, setTela] = useState(INICIO);
   const [antes, setAntes] = useState(INICIO);   // a aba em que a pessoa estava ao abrir as notificações: o sino volta para ela
   const [voltarPara, setVoltarPara] = useState('perfil');   // de onde a pessoa veio ao abrir Hoje, Evolução, Recado ou Coleções: o voltar leva para lá (o recado do feed volta para o feed)
@@ -151,6 +154,7 @@ const SO_CAMERA = Platform.OS === 'web' && typeof window !== 'undefined' && new 
 
 function SoCamera() {
   const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
+  useEffect(() => { if (fontes) tirarCarregando(); }, [fontes]);
   if (!fontes) return <View style={st.centro} />;
   const fechar = () => {
     const rn = (window as unknown as { ReactNativeWebView?: { postMessage: (m: string) => void } }).ReactNativeWebView;

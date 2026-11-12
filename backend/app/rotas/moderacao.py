@@ -20,6 +20,7 @@ from app.esquemas_social import PaginaPessoas, PessoaOut
 from app.modelos import Bloqueio, Comentario, Denuncia, Notificacao, Post, Seguidor, Story, StoryReacao, StoryVisto, Usuario
 from app.servicos import conta as servico_conta
 from app.servicos import email as servico_email
+from app.servicos import penalidades
 from app.servicos import midia as servico_midia
 from app.servicos.social import ha_bloqueio, ms, pessoas_out, post_visivel
 
@@ -231,9 +232,13 @@ def decidir(denuncia_id: int, dados: DecisaoIn, moderador: Usuario = Depends(_mo
     d = sessao.get(Denuncia, denuncia_id)
     if not d:
         raise HTTPException(404, "Denúncia não encontrada.")
-    tipo, alvo = d.tipo, d.alvo_id
+    tipo, alvo, autor_id = d.tipo, d.alvo_id, d.autor_id
     if dados.acao == "remover":
         _tirar_do_ar(sessao, tipo, alvo)
+        # conteúdo tirado do ar conta como um aviso para quem publicou (a conta removida não tem mais o que contar)
+        autor = sessao.get(Usuario, autor_id) if autor_id and tipo != "pessoa" else None
+        if autor and autor.papel != "dono":
+            penalidades.aplicar(sessao, autor, "Conteúdo tirado do ar pela moderação após denúncia", d.trecho)
     situacao = "removido" if dados.acao == "remover" else "mantido"
     agora = datetime.now(timezone.utc)
     # a decisão vale para todas as denúncias pendentes do mesmo conteúdo

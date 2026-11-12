@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Boolean, Date, DateTime, String, event, false
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, event, false
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.banco import Base
@@ -29,6 +29,25 @@ class Usuario(Base):
     marketing: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     # o nome e o @ sem acento e em minúsculas, para a busca de pessoas; preenchido sozinho ao gravar (ver abaixo)
     busca: Mapped[str] = mapped_column(String(200), default='', server_default='')
+    # a política de conteúdo (servicos/penalidades.py): avisos do ciclo atual (0 a 3), suspensões já tomadas, até quando
+    # a conta está suspensa e se foi banida. Quem define é só o servidor.
+    avisos: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    suspensoes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    suspenso_ate: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    banido: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+
+
+class Penalidade(Base):
+    """O histórico da política de conteúdo de cada conta: cada aviso, suspensão e banimento, com o motivo e o trecho."""
+
+    __tablename__ = "penalidades"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), index=True)
+    tipo: Mapped[str] = mapped_column(String(12))          # aviso | suspensao | banimento
+    motivo: Mapped[str] = mapped_column(String(160))
+    trecho: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 
 def _preencher_busca(_mapper, _conexao, usuario: "Usuario") -> None:

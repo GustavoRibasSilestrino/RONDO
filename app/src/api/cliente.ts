@@ -1,4 +1,5 @@
 /* Chamadas à API do RONDO, já com o token da pessoa logada. A URL vem de EXPO_PUBLIC_API_URL. */
+import { Alert, Platform } from 'react-native';
 import { lerToken } from './sessao';
 
 declare const process: { env: Record<string, string | undefined> };
@@ -22,6 +23,15 @@ export class ErroHttp extends Error {
     super(mensagem);
     this.status = status;
   }
+}
+
+let banimentoAvisado = false;
+function avisarBanimento(mensagem: string): void {
+  if (banimentoAvisado) return;
+  banimentoAvisado = true;
+  if (Platform.OS === 'web') { if (typeof window !== 'undefined') window.alert(mensagem); } else Alert.alert('Conta banida', mensagem);
+  aoVencer?.();
+  setTimeout(() => { banimentoAvisado = false; }, 5000);
 }
 
 /* quem cuida da sessão (a loja) se registra aqui: qualquer chamada que volte 401 com token derruba a sessão vencida */
@@ -49,6 +59,8 @@ export async function chamar<T>(metodo: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELE
       if (typeof d.detail === 'string') mensagem = d.detail;
       else if (Array.isArray(d.detail) && d.detail[0] && typeof (d.detail[0] as { msg?: unknown }).msg === 'string') mensagem = String((d.detail[0] as { msg: string }).msg).replace(/^Value error, /, '');
     } catch { /* corpo sem JSON: fica a mensagem padrão */ }
+    /* conta banida pela política de conteúdo: avisa uma vez e sai da conta neste aparelho */
+    if (resposta.status === 403 && token && /banida/i.test(mensagem)) avisarBanimento(mensagem);
     throw new ErroHttp(resposta.status, mensagem);
   }
   return (await resposta.json()) as T;

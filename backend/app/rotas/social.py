@@ -16,6 +16,7 @@ from app.esquemas_social import (
 )
 from app.modelos import Clube, Comentario, Curtida, Membro, Notificacao, Post, Seguidor, Story, StoryReacao, StoryVisto, Usuario
 from app.servicos import conta as servico_conta
+from app.servicos import penalidades
 from app.servicos import midia as servico_midia
 from app.servicos.social import (
     TEXTOS, bloqueados, clube_visivel, denunciados, condicao_post_visivel, limite_valido, montar_posts, ms, notificar, pagina_de_posts,
@@ -50,6 +51,7 @@ def feed(
 
 @router.post("/posts", response_model=PostOut, status_code=201)
 def publicar(dados: PostIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    penalidades.conferir_texto(sessao, usuario, dados.texto, dados.destaque)
     if dados.clube_id is not None:
         clube_visivel(sessao, usuario.id, dados.clube_id)
         if not sessao.get(Membro, (dados.clube_id, usuario.id)):
@@ -158,6 +160,7 @@ def listar_comentarios(
 
 @router.post("/posts/{post_id}/comentarios", response_model=ComentarioOut, status_code=201)
 def comentar(post_id: int, dados: ComentarioIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    penalidades.conferir_texto(sessao, usuario, dados.texto)
     post = post_visivel(sessao, usuario.id, post_id)
     c = Comentario(post_id=post.id, autor_id=usuario.id, texto=dados.texto)
     sessao.add(c)
@@ -256,6 +259,7 @@ def _story_out(s: Story) -> StoryOut:
 
 @router.post("/stories", response_model=StoryOut, status_code=201)
 def publicar_story(dados: StoryIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    penalidades.conferir_texto(sessao, usuario, dados.texto, dados.legenda)
     midia = _midia_valida([dados.midia], usuario.id) if dados.midia else None
     s = Story(autor_id=usuario.id, texto=dados.texto, fundo=dados.fundo, legenda=dados.legenda, midia=midia[0] if midia else None)
     sessao.add(s)

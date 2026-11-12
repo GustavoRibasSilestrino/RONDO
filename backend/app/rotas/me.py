@@ -15,6 +15,7 @@ from app.modelos import Consentimento, DadoUsuario, Usuario
 from app.seguranca import conferir_senha
 from app.servicos import conta as servico_conta
 from app.servicos import midia as servico_midia
+from app.servicos import penalidades
 
 router = APIRouter(prefix="/me", tags=["me"])
 
@@ -62,6 +63,8 @@ def enviar_dados(dados: DadosIn, usuario: Usuario = Depends(usuario_atual), sess
 
 @router.patch("/perfil", response_model=UsuarioOut)
 def mudar_perfil(dados: PerfilIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    if dados.nome is not None or dados.arroba is not None or dados.bio is not None:   # o que aparece para os outros
+        penalidades.conferir_texto(sessao, usuario, dados.nome, dados.arroba, dados.bio)
     if dados.nome is not None and dados.nome.strip() != usuario.nome:
         if servico_conta.nome_em_uso(sessao, dados.nome, ignorar_id=usuario.id):   # trocar o nome para o de outra conta também não vale
             raise HTTPException(409, servico_conta.MSG_NOME_EM_USO)

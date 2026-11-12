@@ -27,7 +27,13 @@ export async function entrar(email: string, senha: string): Promise<Usuario> {
     } catch {
       throw new Error('Sem conexão. Tente de novo em instantes.');
     }
-    if (resposta.status === 401 || resposta.status === 403) throw new Error('E-mail ou senha incorretos.');
+    if (resposta.status === 403) {
+      /* conta banida pela política de conteúdo: o servidor explica; outro 403 vale como senha errada */
+      let detalhe = '';
+      try { detalhe = String(((await resposta.json()) as { detail?: unknown }).detail ?? ''); } catch { /* sem corpo */ }
+      throw new Error(/banida/i.test(detalhe) ? detalhe : 'E-mail ou senha incorretos.');
+    }
+    if (resposta.status === 401) throw new Error('E-mail ou senha incorretos.');
     if (!resposta.ok) throw new Error('Não foi possível entrar agora. Tente de novo.');
     const dados = (await resposta.json()) as { email?: string; nome?: string; token?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; arroba?: string | null; foto?: string | null };
     if (dados.token) await guardarToken(dados.token);

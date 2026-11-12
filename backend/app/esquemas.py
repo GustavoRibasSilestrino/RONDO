@@ -1,5 +1,5 @@
 import re
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
@@ -92,6 +92,10 @@ class UsuarioOut(BaseModel):
     bio: str = ""
     foto: str | None = None
     marketing: bool = False
+    # a política de conteúdo: avisos do ciclo (0 a 3), suspensões tomadas e até quando está suspensa
+    avisos: int = 0
+    suspensoes: int = 0
+    suspenso_ate: datetime | None = None
     model_config = {"from_attributes": True}
 
 

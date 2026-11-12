@@ -32,5 +32,11 @@ export const lerDenuncias = (situacao: 'pendente' | 'removido' | 'mantido' = 'pe
   chamar<{ itens: Denuncia[]; pendentes: number }>('GET', `/moderacao/denuncias?situacao=${situacao}`);
 export const decidirDenuncia = (id: number, acao: 'remover' | 'manter') => chamar<{ status: string }>('POST', `/moderacao/denuncias/${id}`, { acao });
 
+/* a situação da conta na política de conteúdo (avisos do ciclo, suspensões, até quando está suspensa) */
+export type Situacao = { avisos: number; suspensoes: number; suspenso_ate: string | null };
+export const lerSituacao = () => chamar<Situacao>('GET', '/auth/eu');
+export const LIMITE_AVISOS = 3;
+export const SUSPENSOES_ATE_BANIR = 2;
+
 /* o contato da equipe, que aparece no app (as lojas pedem um contato visível para a comunidade) */
 export const CONTATO_COMUNIDADE = 'rondooficial.dev@gmail.com';

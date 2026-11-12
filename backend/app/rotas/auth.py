@@ -19,6 +19,7 @@ from app.legal import VERSAO_PRIVACIDADE, VERSAO_TERMOS
 from app.protecao import conta_travada, registrar_falha, zerar_falhas
 from app.modelos import Consentimento, RedefinicaoSenha, Usuario
 from app.servicos import conta as servico_conta
+from app.servicos import penalidades
 from app.servicos.email import EmailIndisponivel, enviar
 from app.servicos.login_social import InfoSocial, verificar_apple, verificar_google
 from app.seguranca import conferir_senha, criar_token, gerar_hash, precisa_atualizar
@@ -51,6 +52,7 @@ def cadastro(dados: CadastroIn, sessao: Session = Depends(obter_sessao)):
     email = dados.email.lower()
     if sessao.scalar(select(Usuario).where(Usuario.email == email)):
         raise HTTPException(409, "Este e-mail já tem conta.")
+    penalidades.nome_permitido(dados.nome)
     if servico_conta.nome_em_uso(sessao, dados.nome):
         raise HTTPException(409, servico_conta.MSG_NOME_EM_USO)
     usuario = Usuario(
@@ -97,6 +99,8 @@ def login(dados: LoginIn, sessao: Session = Depends(obter_sessao)):
         registrar_falha(email)   # conta que não existe também conta: a resposta é igual, e ninguém descobre quem tem conta
         raise HTTPException(401, "E-mail ou senha incorretos.")
     zerar_falhas(email)
+    if usuario.banido:
+        raise HTTPException(403, penalidades.MSG_BANIDA)
     if precisa_atualizar(usuario.senha_hash):   # conta antiga, com o hash mais pesado: regrava no formato leve, uma vez só
         usuario.senha_hash = gerar_hash(dados.senha)
         sessao.commit()
@@ -152,6 +156,7 @@ def cadastro_social(dados: CadastroSocialIn, sessao: Session = Depends(obter_ses
     nome = (dados.nome or t.get("nome") or email.split("@")[0]).strip()[:120]
     if len(nome) < 2:
         nome = "Você"
+    penalidades.nome_permitido(nome)
     if servico_conta.nome_em_uso(sessao, nome):
         raise HTTPException(409, servico_conta.MSG_NOME_EM_USO)
     # sem senha própria: o hash é de um valor aleatório que ninguém conhece (quem quiser uma senha usa "Esqueci a senha")

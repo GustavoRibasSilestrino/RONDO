@@ -3,7 +3,7 @@
    As lojas exigem as duas coisas de apps com conteúdo publicado pelas pessoas. */
 import React, { useCallback, useEffect, useState } from 'react';
 import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
-import { CONTATO_COMUNIDADE, decidirDenuncia, desbloquear, lerBloqueados, lerDenuncias, nomeDoMotivo, type Denuncia } from '../../api/moderacao';
+import { CONTATO_COMUNIDADE, decidirDenuncia, desbloquear, LIMITE_AVISOS, lerBloqueados, lerDenuncias, lerSituacao, nomeDoMotivo, SUSPENSOES_ATE_BANIR, type Denuncia, type Situacao } from '../../api/moderacao';
 import type { Pessoa } from '../../api/social';
 import { useAviso } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
@@ -17,7 +17,8 @@ const REGRAS = [
   'Sem nudez, conteúdo sexual ou violência explícita.',
   'Sem golpe, spam, propaganda enganosa ou conta falsa.',
   'Nada que incentive se machucar, distúrbio alimentar ou uso de substâncias proibidas.',
-  'Quem desrespeita as regras tem o conteúdo removido e pode perder a conta.',
+  'Palavras ofensivas são bloqueadas antes de publicar, e cada tentativa vira um aviso. Conteúdo tirado do ar depois de denúncia também.',
+  `Depois de ${LIMITE_AVISOS} avisos, a próxima violação suspende a conta por 7 dias (sem publicar nada). Quem já teve ${SUSPENSOES_ATE_BANIR} suspensões e passa do limite de novo é banido.`,
 ];
 
 export function ComunidadeSeguranca() {
@@ -25,6 +26,9 @@ export function ComunidadeSeguranca() {
   const { atualizarSocial } = useLoja();
   const [bloqueados, setBloqueados] = useState<Pessoa[] | null>(null);
   const [erro, setErro] = useState('');
+  const [situacao, setSituacao] = useState<Situacao | null>(null);
+  useEffect(() => { lerSituacao().then(setSituacao).catch(() => {}); }, []);
+  const suspensaAte = situacao?.suspenso_ate && new Date(situacao.suspenso_ate).getTime() > Date.now() ? new Date(situacao.suspenso_ate) : null;
 
   useEffect(() => {
     let vivo = true;
@@ -45,6 +49,22 @@ export function ComunidadeSeguranca() {
 
   return (
     <View style={{ gap: 22 }}>
+      {situacao ? (
+        <View>
+          <T tam={12} cor={cores.texto3} style={st.rotulo}>SUA CONTA</T>
+          <View style={[st.pessoa, suspensaAte && { borderColor: 'rgba(255,107,129,0.5)' }]}>
+            <View style={{ flex: 1, gap: 4 }}>
+              {suspensaAte ? (
+                <T tam={14.5} peso="500" cor={cores.erro}>Suspensa até {suspensaAte.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}: você não pode publicar até lá.</T>
+              ) : (
+                <T tam={14.5} peso="500">{situacao.avisos === 0 && situacao.suspensoes === 0 ? 'Tudo certo: nenhum aviso.' : 'Em dia com as regras, com atenção aos avisos.'}</T>
+              )}
+              <T tam={13} cor={cores.texto2}>Avisos: {situacao.avisos} de {LIMITE_AVISOS} · Suspensões: {situacao.suspensoes} de {SUSPENSOES_ATE_BANIR}</T>
+            </View>
+          </View>
+        </View>
+      ) : null}
+
       <View>
         <T tam={12} cor={cores.texto3} style={st.rotulo}>REGRAS DA COMUNIDADE</T>
         <View style={{ gap: 8 }}>

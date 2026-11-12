@@ -13,6 +13,7 @@ from app.esquemas_social import ClubeIn, ClubeOut, EntrarPorCodigoIn, PaginaClub
 from app.modelos import Clube, Membro, Post, Usuario
 from app.protecao import conta_travada, registrar_falha, zerar_falhas
 from app.rotas.social import apagar_posts
+from app.servicos import penalidades
 from app.servicos.social import clube_visivel, clubes_out, limite_valido, pessoas_out
 
 router = APIRouter(prefix="/clubes", tags=["clubes"])
@@ -60,6 +61,7 @@ def listar(
 
 @router.post("", response_model=ClubeOut, status_code=201)
 def criar(dados: ClubeIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    penalidades.conferir_texto(sessao, usuario, dados.nome, dados.descricao, dados.meta)
     criados = sessao.scalar(select(func.count()).select_from(Clube).where(Clube.dono_id == usuario.id)) or 0
     if criados >= MAX_CLUBES_CRIADOS:
         raise HTTPException(409, "Você já criou clubes demais.")
