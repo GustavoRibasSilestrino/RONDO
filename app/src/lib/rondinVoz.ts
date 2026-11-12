@@ -2,7 +2,9 @@
    1. áudio pronto (mp3 gerado no Azure (voz neural) por scripts/gerar-vozes.mjs, em public/vozes/<sotaque>/<frase>.mp3), que é a voz boa;
    2. a voz do aparelho (expo-speech), quando a frase não tem áudio (ex.: mensagem de erro do servidor) ou o áudio não carrega.
    O arquivo vozes/manifest.json diz quais frases têm áudio e quanto duram. Sem nenhum dos dois, o RONDIN segue só com a legenda. */
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createAudioPlayer, AudioPlayer } from 'expo-audio';
+import { useEffect, useState } from 'react';
 import * as Speech from 'expo-speech';
 import { Platform } from 'react-native';
 import { URL_API } from '../api/cliente';
@@ -153,6 +155,25 @@ function tocarArquivo(url: string): Promise<boolean> {
    dinâmico (nome, quilos): áudio do servidor; se não vier no prazo, é pulado (ou, se a frase toda está sem áudio pronto, sai na
    voz do aparelho junto com o resto). `aoFim` roda quando acabou (na hora, no modo só texto). `aoDuracao` avisa a duração total
    quando todos os trechos têm áudio pronto, para a legenda andar no ritmo real. `aoPalavra` avisa o avanço da voz do aparelho. */
+/* ---------- a voz desligada (o botão de alto-falante): vale para todas as falas do RONDIN e fica guardada no aparelho ----------
+   Desligada, o RONDIN segue só com a legenda, no mesmo ritmo. */
+const CHAVE_MUDO = 'yy.rondin.mudo';
+let desligada = false;
+const ouvintes = new Set<(v: boolean) => void>();
+AsyncStorage.getItem(CHAVE_MUDO).then((v) => { if (v === '1') { desligada = true; ouvintes.forEach((f) => f(true)); } }).catch(() => {});
+export const vozDesligada = (): boolean => desligada;
+export function definirVozDesligada(v: boolean): void {
+  desligada = v;
+  if (v) parar();
+  AsyncStorage.setItem(CHAVE_MUDO, v ? '1' : '0').catch(() => {});
+  ouvintes.forEach((f) => f(v));
+}
+export function useVozDesligada(): [boolean, (v: boolean) => void] {
+  const [v, setV] = useState(desligada);
+  useEffect(() => { ouvintes.add(setV); setV(desligada); return () => { ouvintes.delete(setV); }; }, []);
+  return [v, definirVozDesligada];
+}
+
 export function falar(
   itens: (string | Trecho)[], sotaque: Sotaque, aoFim: () => void,
   aoPalavra?: (indice: number) => void, aoDuracao?: (ms: number) => void,
@@ -160,7 +181,7 @@ export function falar(
   parar();
   const minha = rodada;
   const fim = () => { if (rodada === minha) aoFim(); };
-  if (sotaque.mudo) { fim(); return; }
+  if (sotaque.mudo || desligada) { fim(); return; }
   const trechos: Trecho[] = itens.map((x) => (typeof x === 'string' ? { texto: x, dinamico: false } : x));
   /* os pedidos ao servidor saem já, enquanto os primeiros trechos tocam */
   const dinamicos = trechos.map((x) => (x.dinamico ? buscarDinamico(x.texto, sotaque.id) : null));

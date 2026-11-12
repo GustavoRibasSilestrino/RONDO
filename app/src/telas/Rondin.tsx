@@ -56,8 +56,8 @@ const Palavra = React.memo(function Palavra({ texto, visivel, destaque, reduzido
   return <Animated.View style={{ opacity: op }}><T tam={20} peso="300" cor={cor} style={{ lineHeight: 29 }}>{texto}</T></Animated.View>;
 });
 
-/* ---------- a legenda: as palavras surgem no ritmo da fala; a última fica em destaque ---------- */
-function Legenda({ largo, texto, chave, taxa, duracaoMs, indiceVoz, completa, aoCompletar }: { largo: boolean; texto: string; chave: number; taxa: number; duracaoMs: number; indiceVoz: number; completa: boolean; aoCompletar: () => void }) {
+/* ---------- a legenda: as palavras surgem no ritmo da fala; a última fica em destaque (também usada em telas/Apresentacao.tsx) ---------- */
+export function Legenda({ largo, texto, chave, taxa, duracaoMs, indiceVoz, completa, aoCompletar }: { largo: boolean; texto: string; chave: number; taxa: number; duracaoMs: number; indiceVoz: number; completa: boolean; aoCompletar: () => void }) {
   const palavras = useMemo(() => texto.split(/\s+/).filter(Boolean), [texto]);
   const inicios = useMemo(() => { let i = 0; return palavras.map((p) => { const o = texto.indexOf(p, i); i = o + p.length; return o; }); }, [palavras, texto]);
   const [n, setN] = useState(0);

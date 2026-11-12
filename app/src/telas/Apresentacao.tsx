@@ -1,23 +1,23 @@
 /* A apresentação do RONDIN: a primeira coisa que a pessoa vê antes de entrar ou criar conta. No celular, logo depois da
    abertura (a tela preta com o nome RONDO); no navegador, quando a pessoa clica em "Entrar" ou "Criar conta" no site.
-   A bolha nasce no meio da tela, se apresenta (escrito e falado, na língua do aparelho) e mostra o botão para seguir.
-   Tocar na bolha faz ela falar de novo (no navegador, a voz só sai depois de um toque, regra dos navegadores). */
+   O RONDIN (3D) nasce no meio da tela e se apresenta sozinho, falando; a frase surge palavra por palavra, esmaecendo, com a
+   mesma legenda das perguntas (Legenda, de telas/Rondin.tsx). No canto, o alto-falante desliga a voz (fica guardado).
+   Quando a frase termina, aparece o botão para seguir. A frase fica em lib/rondinTextos.ts (fala.boasVindas). */
+import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BotaoVoz } from '../componentes/BotaoVoz';
+import { Icone } from '../componentes/Icone';
 import { Orbe } from '../componentes/Orbe';
-import { Botao, T } from '../componentes/Ui';
+import { T } from '../componentes/Ui';
 import { useMovimentoReduzido } from '../lib/movimento';
 import type { EstadoOrbe } from '../lib/orbe';
 import { TEXTOS as FALAS } from '../lib/rondinTextos';
 import { falar, parar, sotaquePadrao } from '../lib/rondinVoz';
+import { Legenda } from './Rondin';
 
-/* a frase fica em lib/rondinTextos.ts (fala.boasVindas), para entrar na geração das vozes da Azure */
-const TEXTOS = {
-  pt: { botao: 'Vamos lá', ouvir: 'Toque em mim para ouvir' },
-  en: { botao: "Let's go", ouvir: 'Tap me to listen' },
-  es: { botao: 'Vamos', ouvir: 'Tócame para escuchar' },
-};
+const BOTAO = { pt: 'Vamos lá', en: "Let's go", es: 'Vamos' };
 
 type Props = {
   aoContinuar: () => void;
@@ -29,89 +29,99 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
   const { width, height } = useWindowDimensions();
   const reduzido = useMovimentoReduzido();
   const sotaque = useRef(sotaquePadrao()).current;
-  const txt = { ...TEXTOS[sotaque.idioma], fala: FALAS[sotaque.idioma].fala.boasVindas };
-  const palavras = txt.fala.split(' ');
+  const fala = FALAS[sotaque.idioma].fala.boasVindas;
   const [estado, setEstado] = useState<EstadoOrbe>('quieto');
-  const [mostradas, setMostradas] = useState(0);   // quantas palavras já apareceram
-  const [pronto, setPronto] = useState(false);     // o texto todo apareceu: mostra o botão
-  const [pulso, setPulso] = useState(0);
+  const [comecou, setComecou] = useState(false);     // a legenda só corre depois que o RONDIN nasce
+  const [indiceVoz, setIndiceVoz] = useState(-1);
+  const [duracaoMs, setDuracaoMs] = useState(0);
+  const [pronto, setPronto] = useState(false);       // a frase toda apareceu: mostra o botão
+  const [chave, setChave] = useState(0);
   const nasce = useRef(new Animated.Value(0)).current;
   const botao = useRef(new Animated.Value(0)).current;
   const nativo = Platform.OS !== 'web';
-  const tamanho = Math.round(Math.min(width * 0.72, height * 0.42, 340));
+  const tamanho = Math.round(Math.min(width * 0.8, height * 0.46, 380));
 
-  /* a fala: a voz lê a frase e as palavras aparecem no ritmo dela. Sem voz (navegador sem toque, aparelho mudo), elas
-     aparecem sozinhas, uma a cada ~230 ms. */
   const apresentar = () => {
+    setIndiceVoz(-1); setDuracaoMs(0); setChave((c) => c + 1);
     setEstado('falando');
-    setMostradas(0);
-    let i = 0;
-    const timer = setInterval(() => {
-      i += 1;
-      setMostradas(i);
-      if (i >= palavras.length) clearInterval(timer);
-    }, reduzido ? 1 : 230);
-    falar([txt.fala], sotaque, () => {
-      clearInterval(timer);
-      setMostradas(palavras.length);
-      setEstado('quieto');
-      setPronto(true);
-    });
-    /* garantia: se a voz não começar (navegador sem toque), o botão aparece mesmo assim */
-    setTimeout(() => { setPronto(true); setEstado((e) => (e === 'falando' ? 'quieto' : e)); }, palavras.length * 230 + 1200);
-    return timer;
+    falar([fala], sotaque, () => setEstado('quieto'), (i) => setIndiceVoz(i), (ms) => setDuracaoMs(ms));
   };
 
   useEffect(() => {
-    let timer: ReturnType<typeof setInterval> | undefined;
     const inicio = setTimeout(() => {
-      Animated.timing(nasce, { toValue: 1, duration: reduzido ? 1 : 900, easing: Easing.out(Easing.back(1.4)), useNativeDriver: nativo }).start();
-      setTimeout(() => { timer = apresentar(); }, reduzido ? 0 : 650);
+      Animated.timing(nasce, { toValue: 1, duration: reduzido ? 1 : 900, easing: Easing.out(Easing.cubic), useNativeDriver: nativo }).start();
+      /* ele começa a falar sozinho, logo depois de nascer */
+      setTimeout(() => { setComecou(true); apresentar(); }, reduzido ? 0 : 700);
     }, atraso);
-    return () => { clearTimeout(inicio); if (timer) clearInterval(timer); parar(); };
+    return () => { clearTimeout(inicio); parar(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (pronto) Animated.timing(botao, { toValue: 1, duration: reduzido ? 1 : 500, easing: Easing.out(Easing.cubic), useNativeDriver: nativo }).start();
+    if (pronto) Animated.timing(botao, { toValue: 1, duration: reduzido ? 1 : 520, easing: Easing.out(Easing.cubic), useNativeDriver: nativo }).start();
   }, [pronto, botao, reduzido, nativo]);
 
   const seguir = () => { parar(); aoContinuar(); };
 
   return (
-    <View style={[st.tela, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 28 }]}>
+    <View style={[st.tela, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 32 }]}>
+      <BotaoVoz idioma={sotaque.idioma} style={[st.voz, { top: insets.top + 14 }]} />
+
       <View style={st.meio}>
-        <Animated.View style={{ opacity: nasce, transform: [{ scale: nasce.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }] }}>
-          <Orbe
-            hud tamanho={tamanho} estado={estado} pulso={pulso}
-            aoPressionar={() => { setPulso((p) => p + 1); apresentar(); }}
-            rotulo={txt.ouvir}
-          />
+        <Animated.View style={{ opacity: nasce }}>
+          <Orbe hud tamanho={tamanho} estado={estado} aoPressionar={apresentar} rotulo={fala} />
         </Animated.View>
-        <T tam={12.5} peso="500" style={st.nome}>RONDIN</T>
-        <View style={st.fala} accessibilityLiveRegion="polite" accessibilityLabel={txt.fala}>
-          <T tam={Math.min(26, Math.max(21, width / 17))} centro style={{ lineHeight: Math.min(36, Math.max(30, width / 12.5)) }}>
-            {palavras.map((p, i) => (
-              <T key={i} tam={Math.min(26, Math.max(21, width / 17))} style={{ opacity: i < mostradas ? 1 : 0.12 }}>{p}{i < palavras.length - 1 ? ' ' : ''}</T>
-            ))}
-          </T>
+        <T tam={12} peso="500" style={st.nome}>RONDIN</T>
+        <View style={st.fala}>
+          {comecou ? (
+            <Legenda
+              largo texto={fala} chave={chave} taxa={sotaque.taxa} duracaoMs={duracaoMs} indiceVoz={indiceVoz}
+              completa={false} aoCompletar={() => setPronto(true)}
+            />
+          ) : null}
         </View>
       </View>
-      <Animated.View pointerEvents={pronto ? 'auto' : 'none'} style={[st.base, { opacity: botao, transform: [{ translateY: botao.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }]}>
-        <Botao titulo={txt.botao} aoPressionar={seguir} />
-        <Pressable accessibilityRole="button" onPress={() => { setPulso((p) => p + 1); apresentar(); }} style={st.ouvir} hitSlop={8}>
-          <T tam={13} style={{ opacity: 0.7 }}>{txt.ouvir}</T>
-        </Pressable>
+
+      <Animated.View
+        pointerEvents={pronto ? 'auto' : 'none'}
+        style={[st.base, { opacity: botao, transform: [{ translateY: botao.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }]}
+      >
+        <BotaoSeguir titulo={BOTAO[sotaque.idioma]} aoPressionar={seguir} />
       </Animated.View>
     </View>
   );
 }
 
+/* o botão de seguir: uma pílula roxa com luz em cima, sombra de volume embaixo, brilho suave por baixo e a seta num círculo.
+   Ao tocar, só a seta anda e o brilho muda (nada muda de tamanho, a tela não pula). */
+function BotaoSeguir({ titulo, aoPressionar }: { titulo: string; aoPressionar: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={titulo} onPress={aoPressionar} style={st.pilulaCaixa}>
+      {({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => (
+        <View style={[st.pilula, (hovered || pressed) && st.pilulaAcesa, pressed && { opacity: 0.92 }]}>
+          <LinearGradient pointerEvents="none" colors={['#9b6bff', '#7c3aed', '#5b21b6']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+          <LinearGradient pointerEvents="none" colors={[hovered ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.2)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.6 }} style={StyleSheet.absoluteFill} />
+          <LinearGradient pointerEvents="none" colors={['rgba(20,0,60,0)', 'rgba(20,0,60,0.3)']} start={{ x: 0, y: 0.5 }} end={{ x: 0, y: 1 }} style={StyleSheet.absoluteFill} />
+          <T tam={16.5} peso="500" style={st.pilulaTexto}>{titulo}</T>
+          <View style={[st.seta, (hovered || pressed) && { transform: [{ translateX: 3 }] }]}>
+            <Icone nome="setaDireita" tamanho={18} cor="#ffffff" espessura={2} />
+          </View>
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
 const st = StyleSheet.create({
   tela: { flex: 1, backgroundColor: '#000000', paddingHorizontal: 24, alignItems: 'center' },
-  meio: { flex: 1, width: '100%', maxWidth: 520, alignItems: 'center', justifyContent: 'center' },
-  nome: { letterSpacing: 4, color: '#e6b3ff', marginTop: 4, opacity: 0.85 },
-  fala: { marginTop: 18, maxWidth: 440, minHeight: 110, justifyContent: 'flex-start' },
-  base: { width: '100%', maxWidth: 440, gap: 8 },
-  ouvir: { alignSelf: 'center', paddingVertical: 10, paddingHorizontal: 12 },
+  voz: { position: 'absolute', right: 16, zIndex: 2 },
+  meio: { flex: 1, width: '100%', maxWidth: 560, alignItems: 'center', justifyContent: 'center' },
+  nome: { letterSpacing: 5, color: '#c4a8ff', marginTop: 2, opacity: 0.9 },
+  fala: { width: '100%', maxWidth: 460, minHeight: 100 },
+  base: { width: '100%', maxWidth: 340, alignItems: 'stretch' },
+  pilulaCaixa: { borderRadius: 30, ...(Platform.OS === 'web' ? ({ boxShadow: '0 10px 32px -8px rgba(124,58,237,0.75), 0 0 0 1px rgba(196,168,255,0.28)' } as object) : { shadowColor: '#7c3aed', shadowOpacity: 0.6, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 10 }) },
+  pilula: { height: 58, borderRadius: 30, overflow: 'hidden', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingLeft: 28, paddingRight: 8 },
+  pilulaAcesa: { ...(Platform.OS === 'web' ? ({ filter: 'brightness(1.08)' } as object) : {}) },
+  pilulaTexto: { flex: 1, textAlign: 'center', letterSpacing: 0.3, marginLeft: 34, color: '#ffffff' },
+  seta: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.22)' },
 });
