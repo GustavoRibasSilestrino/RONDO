@@ -7,6 +7,7 @@ import { GymScene } from "./components/GymScene";
 import { Hero } from "./components/Hero";
 import { Nav } from "./components/Nav";
 import { Recado } from "./components/Recado";
+import { RondinFlutuante } from "./components/RondinFlutuante";
 import { Clube, Entrar, Faq, Footer, Planos, Profissionais } from "./components/Sections";
 import { Tools } from "./components/Tools";
 import { usePauseOffscreen, useSpotlight } from "./components/ui";
@@ -42,6 +43,7 @@ export default function App() {
         <Entrar />
       </main>
       <Footer />
+      <RondinFlutuante />
     </>
   );
 }
