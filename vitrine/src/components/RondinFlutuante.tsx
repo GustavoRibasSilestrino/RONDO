@@ -1,15 +1,25 @@
 import { useEffect, useRef, useState } from "react";
 import { desenharOrbe, esfera } from "../lib/orbe";
 import { APP_CRIAR } from "../lib/rotas";
+import { tocarNotificacao } from "../lib/som";
 import { reduceMotion } from "../lib/util";
 import { Btn } from "./ui";
 
 /* O RONDIN no canto da tela (pedido do dono em 2026-11-12): aparece por alguns segundos com "Oi, quer me conhecer?",
-   some, e volta depois. Tocar nele abre um balão de fala com o convite e o botão que leva a criar a conta no app.
+   some, e volta depois, cada vez num dos quatro cantos, sorteado, com um som de notificação (lib/som.ts; só depois que
+   a pessoa já interagiu com a página, regra dos navegadores). Tocar nele abre um balão de fala com o convite e o botão que leva a criar a conta no app.
    Com o cursor (ou o foco) em cima ele não some. Para quem pede menos movimento, fica sempre ali, parado. */
 const PRIMEIRA = 2500;     // ms até a primeira aparição
 const VISIVEL = 5000;      // ms que ele fica na tela
 const ESCONDIDO = 7000;    // ms até voltar
+
+/* os quatro cantos da tela: superior/inferior + esquerdo/direito */
+type Canto = "se" | "sd" | "ie" | "id";
+const CANTOS: Canto[] = ["se", "sd", "ie", "id"];
+const sortearCanto = (anterior: Canto | null): Canto => {
+  const opcoes = CANTOS.filter((c) => c !== anterior);
+  return opcoes[Math.floor(Math.random() * opcoes.length)];
+};
 
 function Esfera({ tamanho, vivo }: { tamanho: number; vivo: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -41,12 +51,20 @@ export function RondinFlutuante() {
   const balao = useRef<HTMLDivElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
 
-  /* o ciclo: aparece, fica alguns segundos, some, volta */
+  /* o ciclo: aparece, fica alguns segundos, some, volta; cada vez num canto sorteado (nunca o mesmo da vez anterior) */
+  const [canto, setCanto] = useState<Canto>("id");
   const primeira = useRef(true);
   useEffect(() => {
     if (reduceMotion || aberto || segurando) return;
     const espera = visivel ? VISIVEL : primeira.current ? PRIMEIRA : ESCONDIDO;
-    const id = setTimeout(() => { primeira.current = false; setVisivel((v) => !v); }, espera);
+    const id = setTimeout(() => {
+      if (!visivel) {
+        setCanto((atual) => sortearCanto(primeira.current ? null : atual));
+        tocarNotificacao();
+      }
+      primeira.current = false;
+      setVisivel(!visivel);
+    }, espera);
     return () => clearTimeout(id);
   }, [visivel, aberto, segurando]);
 
@@ -71,7 +89,7 @@ export function RondinFlutuante() {
 
   const mostrando = visivel || aberto || segurando;
   return (
-    <div className={`rondin-canto${mostrando ? " is-on" : ""}${aberto ? " is-aberto" : ""}`}>
+    <div className={`rondin-canto canto-${canto}${mostrando ? " is-on" : ""}${aberto ? " is-aberto" : ""}`}>
       {aberto ? (
         <div className="rondin-balao" role="dialog" aria-labelledby="rondin-balao-texto" ref={balao}>
           <button type="button" className="rondin-fechar" aria-label="Fechar" onClick={() => fechar()}>

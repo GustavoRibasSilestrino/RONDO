@@ -1,8 +1,15 @@
 /* ===== O RONDIN no canto da tela (components/RondinFlutuante.tsx) ===== */
 .rondin-canto {
-  position: fixed; z-index: 110; right: calc(20px + env(safe-area-inset-right, 0px)); bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-  display: flex; flex-direction: column; align-items: flex-end; gap: 12px; pointer-events: none;
+  --borda: 20px; --dx: 26px; --dy: 26px;   /* --dx/--dy: de onde a esfera nasce (do canto para dentro) */
+  position: fixed; z-index: 110; display: flex; flex-direction: column; align-items: flex-end; gap: 12px; pointer-events: none;
 }
+/* os quatro cantos (sorteados a cada aparição): os de cima ficam abaixo da barra do site; nos da esquerda a fala vai
+   à direita da esfera; nos de cima o balão abre para baixo */
+.canto-id { right: calc(var(--borda) + env(safe-area-inset-right, 0px)); bottom: calc(var(--borda) + env(safe-area-inset-bottom, 0px)); }
+.canto-ie { left: calc(var(--borda) + env(safe-area-inset-left, 0px)); bottom: calc(var(--borda) + env(safe-area-inset-bottom, 0px)); align-items: flex-start; --dx: -26px; }
+.canto-sd { right: calc(var(--borda) + env(safe-area-inset-right, 0px)); top: calc(var(--nav-h) + 12px); flex-direction: column-reverse; --dy: -26px; }
+.canto-se { left: calc(var(--borda) + env(safe-area-inset-left, 0px)); top: calc(var(--nav-h) + 12px); flex-direction: column-reverse; align-items: flex-start; --dx: -26px; --dy: -26px; }
+.canto-ie .rondin-chamada, .canto-se .rondin-chamada { flex-direction: row-reverse; }
 .rondin-canto > * { pointer-events: auto; }
 
 /* o chamado: a esfera e a fala ao lado, que nascem do canto e voltam para ele */
@@ -13,7 +20,7 @@
 .rondin-chamada:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 4px; }
 .rondin-orbe {
   position: relative; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%;
-  opacity: 0; transform: translate(26px, 26px) scale(.35);
+  opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.35);
   transition: opacity .45s var(--ease), transform .7s cubic-bezier(.34, 1.4, .5, 1);
 }
 .rondin-orbe::before {   /* a luz roxa atrás dele */
@@ -25,9 +32,13 @@
   position: relative; padding: .6rem .95rem; border-radius: 14px 14px 4px 14px; white-space: nowrap;
   border: 1px solid rgba(196, 168, 255, .28); background: #120d1e; color: var(--ink);
   font-size: .95rem; font-weight: 500; letter-spacing: -.01em; box-shadow: 0 14px 34px -14px rgba(0, 0, 0, .9);
-  opacity: 0; transform: translateX(14px) scale(.92); transform-origin: right center;
+  opacity: 0; transform: translateX(calc(var(--dx) * .55)) scale(.92); transform-origin: right center;
   transition: opacity .3s var(--ease), transform .45s var(--ease);
 }
+/* a ponta mais reta da fala fica do lado da esfera */
+.canto-ie .rondin-fala { border-radius: 14px 14px 14px 4px; transform-origin: left center; }
+.canto-sd .rondin-fala { border-radius: 14px 4px 14px 14px; }
+.canto-se .rondin-fala { border-radius: 4px 14px 14px 14px; transform-origin: left center; }
 .rondin-chamada:hover .rondin-fala { border-color: rgba(196, 168, 255, .55); }
 
 .rondin-canto.is-on .rondin-orbe { opacity: 1; transform: none; }
@@ -48,6 +59,14 @@
   content: ""; position: absolute; right: 22px; bottom: -8px; width: 16px; height: 16px; transform: rotate(45deg);
   background: #0e0a18; border-right: 1px solid rgba(196, 168, 255, .3); border-bottom: 1px solid rgba(196, 168, 255, .3);
 }
+.canto-ie .rondin-balao { border-radius: 22px 22px 22px 6px; transform-origin: bottom left; }
+.canto-ie .rondin-balao::after { right: auto; left: 22px; }
+.canto-sd .rondin-balao { border-radius: 22px 6px 22px 22px; transform-origin: top right; }
+.canto-se .rondin-balao { border-radius: 6px 22px 22px 22px; transform-origin: top left; }
+.canto-sd .rondin-balao::after, .canto-se .rondin-balao::after {
+  bottom: auto; top: -8px; border: 0; border-left: 1px solid rgba(196, 168, 255, .3); border-top: 1px solid rgba(196, 168, 255, .3);
+}
+.canto-se .rondin-balao::after { right: auto; left: 22px; }
 .rondin-balao p { font-size: 1.12rem; line-height: 1.4; color: var(--ink); max-width: 22ch; text-wrap: balance; }
 .rondin-balao p b { color: var(--accent-2); font-weight: 700; }
 .rondin-balao .rondin-conhecer { width: 100%; justify-content: center; }
@@ -62,7 +81,7 @@
 @keyframes rondin-abre { from { opacity: 0; transform: translateY(10px) scale(.85); } to { opacity: 1; transform: none; } }
 
 @media (max-width: 560px) {
-  .rondin-canto { right: calc(14px + env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+  .rondin-canto { --borda: 14px; }
   .rondin-fala { font-size: .88rem; }
 }
 @media (prefers-reduced-motion: reduce) {
