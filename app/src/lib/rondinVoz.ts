@@ -1,5 +1,5 @@
 /* A voz do RONDIN. Cada frase tem dois caminhos:
-   1. áudio pronto (mp3 gerado no Azure (voz neural) por scripts/gerar-vozes.mjs, em public/vozes/<sotaque>/<frase>.mp3), que é a voz boa;
+   1. áudio pronto (mp3 gerado na ElevenLabs, voz "Will", por scripts/gerar-vozes.mjs, em public/vozes/<sotaque>/<frase>.mp3), que é a voz boa;
    2. a voz do aparelho (expo-speech), quando a frase não tem áudio (ex.: mensagem de erro do servidor) ou o áudio não carrega.
    O arquivo vozes/manifest.json diz quais frases têm áudio e quanto duram. Sem nenhum dos dois, o RONDIN segue só com a legenda. */
 import AsyncStorage from '@react-native-async-storage/async-storage';

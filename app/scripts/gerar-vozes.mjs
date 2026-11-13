@@ -1,16 +1,17 @@
-/* Gera os áudios do RONDIN no Azure (voz neural): um mp3 por frase e por sotaque, em public/vozes/<sotaque>/<frase>.mp3, mais o
+/* Gera os áudios do RONDIN na ElevenLabs: um mp3 por frase e por língua, em public/vozes/<sotaque>/<frase>.mp3, mais o
    public/vozes/manifest.json (quais frases têm áudio e quanto duram). O app toca esses arquivos; o que faltar cai na voz do aparelho.
+   (Até 2026-11-13 era o Azure; o dono assinou a ElevenLabs e escolheu a voz "Will", brasileira, para as três línguas.)
 
    Uso (dentro da pasta app):
-     npm run vozes -- --listar                lista as vozes do Azure (para trocar o nome em scripts/vozes.config.json)
-     npm run vozes -- --dry                   só conta os caracteres que seriam gerados
-     npm run vozes -- --sotaque br            gera só um sotaque (comece por aqui)
-     npm run vozes                            gera todos os sotaques
+     npm run vozes -- --listar                lista as vozes da conta (para trocar o voice_id em scripts/vozes.config.json)
+     npm run vozes -- --dry                   só conta os caracteres (os créditos) que seriam gastos
+     npm run vozes -- --sotaque br            gera só uma língua (comece por aqui)
+     npm run vozes                            gera todas
      npm run vozes -- --forcar                regenera mesmo o que já existe (use depois de trocar a voz)
-     npm run vozes -- --simular               áudios mudos de teste, sem chamar o Azure (só para testar o app)
+     npm run vozes -- --simular               áudios mudos de teste, sem chamar a ElevenLabs (só para testar o app)
 
-   As credenciais ficam em AZURE_SPEECH_KEY e AZURE_SPEECH_REGION (variáveis de ambiente ou arquivo app/.env, que o git ignora).
-   Nunca vão para o app. Frases que já existem não são geradas de novo, então dá para rodar quantas vezes quiser. */
+   A chave fica em ELEVENLABS_API_KEY (variável de ambiente ou arquivo app/.env, que o git ignora). Nunca vai para o app.
+   Frases que já existem não são geradas de novo, então dá para rodar quantas vezes quiser. */
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -35,62 +36,54 @@ function ler(nome) {
   }
   return '';
 }
-const chave = () => ler('AZURE_SPEECH_KEY');
-const regiao = () => ler('AZURE_SPEECH_REGION').toLowerCase();
+const chave = () => ler('ELEVENLABS_API_KEY');
 
-const escapar = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
-  .replace(/RONDO/gi, '<sub alias="Rôndo">RONDO</sub>');   // o nome da marca se fala RÔN-do, não "rondó"
+/* como os nomes da marca se falam: RONDO é "Rôndo" (não "rondó") e RONDIN não pode ser soletrado letra por letra */
+function preparar(texto, idioma) {
+  return texto
+    .replace(/RONDIN/g, 'Rondin')
+    .replace(/RONDO/g, idioma === 'pt' ? 'Rôndo' : 'Rondo');
+}
 
-async function azure(caminho, opcoes = {}) {
-  const url = `https://${regiao()}.tts.speech.microsoft.com${caminho}`;
-  for (let tentativa = 0; tentativa < 4; tentativa += 1) {
-    const r = await fetch(url, { ...opcoes, headers: { 'Ocp-Apim-Subscription-Key': chave(), 'User-Agent': 'rondo-vozes', ...(opcoes.headers ?? {}) } });
-    if (r.status === 429 || r.status >= 500) { await new Promise((ok) => setTimeout(ok, 1500 * (tentativa + 1))); continue; }
+async function eleven(caminho, opcoes = {}) {
+  const url = `https://api.elevenlabs.io${caminho}`;
+  for (let tentativa = 0; tentativa < 5; tentativa += 1) {
+    const r = await fetch(url, { ...opcoes, headers: { 'xi-api-key': chave(), ...(opcoes.headers ?? {}) } });
+    if (r.status === 429 || r.status >= 500) { await new Promise((ok) => setTimeout(ok, 2000 * (tentativa + 1))); continue; }
     return r;
   }
-  throw new Error('O Azure não respondeu depois de várias tentativas.');
+  throw new Error('A ElevenLabs não respondeu depois de várias tentativas.');
 }
 
 async function listar() {
-  const r = await azure('/cognitiveservices/voices/list');
-  if (!r.ok) throw new Error(`Não consegui listar as vozes (${r.status}). Confira a chave e a região.`);
-  const vozes = await r.json();
-  const idiomas = new Set(['pt-BR', 'pt-PT', 'en-US', 'es-ES', 'it-IT', 'fr-FR']);
-  console.log('Vozes dos idiomas usados pelo RONDIN:\n');
-  for (const v of vozes.filter((x) => idiomas.has(x.Locale)).sort((a, b) => a.Locale.localeCompare(b.Locale) || a.ShortName.localeCompare(b.ShortName))) {
-    console.log(`${v.ShortName.padEnd(36)} ${v.Gender.padEnd(7)} ${v.VoiceType ?? ''}`);
-  }
-}
-
-/* o SSML que o Azure lê: a voz, o idioma e, se houver, o ajuste de tom e velocidade */
-function ssml(cfg, texto) {
-  const dentro = cfg.tom || cfg.taxa
-    ? `<prosody${cfg.tom ? ` pitch="${cfg.tom}"` : ''}${cfg.taxa ? ` rate="${cfg.taxa}"` : ''}>${escapar(texto)}</prosody>`
-    : escapar(texto);
-  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${cfg.lang}"><voice name="${cfg.voz}">${dentro}</voice></speak>`;
+  const r = await eleven('/v1/voices');
+  if (!r.ok) throw new Error(`Não consegui listar as vozes (${r.status}). Confira a chave.`);
+  const { voices } = await r.json();
+  console.log('Vozes da conta (voice_id, nome, sotaque):\n');
+  for (const v of voices) console.log(`${v.voice_id}  ${v.name}  ${v.labels?.accent ?? ''}`);
 }
 
 async function gerarUma(cfg, texto, destino) {
   if (tem('--simular')) {   // áudio mudo com duração proporcional ao texto, só para testar o app
     const seg = Math.max(0.8, texto.length * 0.065).toFixed(2);
-    execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'anullsrc=r=24000:cl=mono', '-t', seg, '-b:a', `${config.bitrate}`, destino]);
+    execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=mono', '-t', seg, '-b:a', `${config.bitrate}`, destino]);
     return;
   }
-  const r = await azure('/cognitiveservices/v1', {
+  const r = await eleven(`/v1/text-to-speech/${cfg.voz}?output_format=${config.formato}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/ssml+xml', 'X-Microsoft-OutputFormat': config.formato },
-    body: ssml(cfg, texto),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: preparar(texto, cfg.idioma), model_id: config.modelo, language_code: cfg.idioma, voice_settings: config.ajustes }),
   });
-  if (r.status === 401 || r.status === 403) throw new Error('Credenciais recusadas pelo Azure. Confira AZURE_SPEECH_KEY e AZURE_SPEECH_REGION.');
-  if (!r.ok) throw new Error(`Azure respondeu ${r.status}: ${(await r.text()).slice(0, 300)}`);
+  if (r.status === 401 || r.status === 403) throw new Error('Chave recusada pela ElevenLabs. Confira ELEVENLABS_API_KEY no app/.env.');
+  if (!r.ok) throw new Error(`ElevenLabs respondeu ${r.status}: ${(await r.text()).slice(0, 300)}`);
   writeFileSync(destino, Buffer.from(await r.arrayBuffer()));
 }
 
 async function main() {
   const simular = tem('--simular');
   const dry = tem('--dry');
-  if (!simular && !dry && (!chave() || !regiao())) throw new Error('Defina AZURE_SPEECH_KEY e AZURE_SPEECH_REGION (variáveis de ambiente ou arquivo app/.env).');
-  if (tem('--listar')) { if (!chave() || !regiao()) throw new Error('Defina AZURE_SPEECH_KEY e AZURE_SPEECH_REGION (ou app/.env).'); return listar(); }
+  if (!simular && !dry && !chave()) throw new Error('Defina ELEVENLABS_API_KEY (variável de ambiente ou arquivo app/.env).');
+  if (tem('--listar')) return listar();
 
   const escolhido = valor('--sotaque');
   const ids = Object.keys(config.sotaques).filter((id) => !escolhido || id === escolhido);

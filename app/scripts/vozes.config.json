@@ -1,15 +1,12 @@
 {
-  "_ajuda": "Voz neural do Azure para cada sotaque. 'voz' é o nome da voz; 'lang' é o idioma que ela usa para ler o texto (o sotaque estrangeiro vem de uma voz de outro idioma lendo o português); 'tom' e 'taxa' ajustam a voz (SSML prosody: '-25%', '+10%'). Veja as vozes disponíveis com: npm run vozes -- --listar",
-  "formato": "audio-24khz-48kbitrate-mono-mp3",
-  "bitrate": 48000,
+  "_ajuda": "Voz do RONDIN na ElevenLabs (escolhida pelo dono em 2026-11-13): a mesma voz nas três línguas, para o RONDIN ser sempre o mesmo. 'voz' é o voice_id da ElevenLabs; 'idioma' é o código de língua que o modelo multilíngue usa para ler. Veja as vozes da conta com: npm run vozes -- --listar",
+  "modelo": "eleven_multilingual_v2",
+  "formato": "mp3_44100_64",
+  "bitrate": 64000,
+  "ajustes": { "stability": 0.5, "similarity_boost": 0.8, "style": 0.2, "use_speaker_boost": true },
   "sotaques": {
-    "br":       { "voz": "pt-BR-AntonioNeural", "lang": "pt-BR" },
-    "pt":       { "voz": "pt-PT-DuarteNeural", "lang": "pt-PT" },
-    "gringo":   { "voz": "en-US-AndrewNeural", "lang": "en-US" },
-    "espanhol": { "voz": "es-ES-AlvaroNeural", "lang": "es-ES" },
-    "italiano": { "voz": "it-IT-DiegoNeural", "lang": "it-IT" },
-    "frances":  { "voz": "fr-FR-HenriNeural", "lang": "fr-FR" },
-    "narrador": { "voz": "pt-BR-AntonioNeural", "lang": "pt-BR", "tom": "-28%", "taxa": "-12%" },
-    "robo":     { "voz": "pt-BR-AntonioNeural", "lang": "pt-BR", "tom": "-45%", "taxa": "-15%" }
+    "br":       { "voz": "CstacWqMhJQlnfLPxRG4", "nome": "Will (brasileiro)", "idioma": "pt" },
+    "gringo":   { "voz": "CstacWqMhJQlnfLPxRG4", "nome": "Will (brasileiro)", "idioma": "en" },
+    "espanhol": { "voz": "CstacWqMhJQlnfLPxRG4", "nome": "Will (brasileiro)", "idioma": "es" }
   }
 }
