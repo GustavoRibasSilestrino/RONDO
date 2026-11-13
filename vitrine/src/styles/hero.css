@@ -36,8 +36,10 @@
   /* o título e a frase ficam no alto; os botões descem para perto da margem de baixo da primeira tela */
   .hero-grade { align-items: stretch; grid-template-rows: minmax(0, 1fr); min-height: calc(100svh - var(--nav-h) - clamp(1.4rem, 6vh, 2.6rem) - clamp(3rem, 8vh, 4.5rem)); }
   .hero-texto { max-width: 22rem; margin-inline: auto; text-align: center; display: flex; flex-direction: column; width: 100%; }
-  /* os botões ficam presos embaixo; o texto se centra na altura toda, então fica no meio da tela */
-  .hero-cta { position: absolute; left: 1.25rem; width: calc(100% - 2.5rem); bottom: 0; margin-top: 0 !important; }
+  /* os botões vêm depois do texto, no fluxo: com altura sobrando, a frase empurra os botões para o fundo da tela; em celular
+     baixo (ou com as barras do navegador à mostra) eles só descem até onde o texto acaba, sem nunca cobrir a frase.
+     Antes eram presos no fundo com position absolute e subiam por cima do texto em telas baixas (corrigido em 2026-11-13). */
+  .hero-cta { position: static; width: 100%; margin-top: 1.6rem !important; }
   .hero-texto { padding-bottom: 2.6rem; }   /* compensa o espaço do menu em cima: o texto cai no centro exato da tela */
   .hero-title { margin-top: auto; }
   .hero-texto .lead { margin-bottom: auto; }

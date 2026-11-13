@@ -147,8 +147,8 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   };
 
   return (
-    <Tela>
-      {/* topo: @usuário e as ações */}
+    <Tela semCabecalho>
+      {/* topo: @usuário e as ações (sem o cabeçalho do app e sem o fogo da sequência: o perfil começa perto do topo) */}
       <View style={st.barra}>
         <T tam={17} peso="500" linhas={1} style={{ flex: 1 }}>@{arrobaAtual}</T>
         <Pressable accessibilityRole="button" accessibilityLabel={estado.pro ? 'Seu plano: PRO' : 'Plano PRO: conhecer o plano'} onPress={() => setPlano(true)} style={({ pressed }) => [st.redondo, st.pro, pressed && { opacity: 0.8 }]}>

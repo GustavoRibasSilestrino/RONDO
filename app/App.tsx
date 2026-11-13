@@ -157,10 +157,11 @@ function Raiz() {
       {tela === 'notificacoes' && <Notificacoes />}
       {tela === 'perfil' && <Perfil ir={irPara} />}
       {DO_PERFIL.includes(tela) && tela !== 'recado' ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
-      {largo ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} mostrarNome={tela === 'home'} mostrarSino={tela === 'home' || tela === 'notificacoes'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
+      {largo || tela === 'perfil' ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} mostrarNome={tela === 'home'} mostrarSino={tela === 'home' || tela === 'notificacoes'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
       {largo ? null : <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />}
-      {/* computador: a joia da sequência fica no canto de cima, à esquerda da área (no celular ela mora no cabeçalho) */}
-      {largo ? <View pointerEvents="box-none" style={st.seloCanto}><SeloSequencia /></View> : null}
+      {/* computador: a joia da sequência fica no canto de cima, à esquerda da área (no celular ela mora no cabeçalho); no
+          Perfil ela não aparece, nem o cabeçalho do celular (pedido do dono, 2026-11-13) */}
+      {largo && tela !== 'perfil' ? <View pointerEvents="box-none" style={st.seloCanto}><SeloSequencia /></View> : null}
       {/* dentro da área do feed: a lupa fica sozinha no canto de cima à direita, sem passar por cima do painel de gráficos */}
       {largo && tela === 'home' ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={() => setBuscando(true)} style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.lupaCanto, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}>

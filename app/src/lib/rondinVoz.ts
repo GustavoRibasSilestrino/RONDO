@@ -150,7 +150,7 @@ export function useSomBloqueado(): boolean {
 type Resultado = 'tocou' | 'falhou' | 'bloqueado';
 
 /* no navegador, o player do próprio navegador: ele diz na hora se o som foi recusado (o do expo-audio não diz) */
-function tocarNoNavegador(url: string): Promise<Resultado> {
+function tocarNoNavegador(url: string, aoComecar?: () => void): Promise<Resultado> {
   return new Promise((resolve) => {
     const audio = new Audio(url);
     let pronto = false;
@@ -169,17 +169,17 @@ function tocarNoNavegador(url: string): Promise<Resultado> {
     encerrarAtual = sair;
     audio.onended = () => acabar('tocou');
     audio.onerror = () => acabar('falhou');
-    audio.play().then(() => clearTimeout(espera)).catch((e: { name?: string }) => acabar(e?.name === 'NotAllowedError' ? 'bloqueado' : 'falhou'));
+    audio.play().then(() => { clearTimeout(espera); aoComecar?.(); }).catch((e: { name?: string }) => acabar(e?.name === 'NotAllowedError' ? 'bloqueado' : 'falhou'));
   });
 }
 
 /* toca o mp3 e diz o que aconteceu ('falhou': o chamador usa a voz do aparelho; 'bloqueado': o navegador recusou o som) */
-function tocarArquivo(url: string): Promise<Resultado> {
-  if (Platform.OS === 'web') return tocarNoNavegador(url);
-  return tocarNoAparelho(url).then((ok): Resultado => (ok ? 'tocou' : 'falhou'));
+function tocarArquivo(url: string, aoComecar?: () => void): Promise<Resultado> {
+  if (Platform.OS === 'web') return tocarNoNavegador(url, aoComecar);
+  return tocarNoAparelho(url, aoComecar).then((ok): Resultado => (ok ? 'tocou' : 'falhou'));
 }
 
-function tocarNoAparelho(url: string): Promise<boolean> {
+function tocarNoAparelho(url: string, aoComecar?: () => void): Promise<boolean> {
   return new Promise((resolve) => {
     let jogador: AudioPlayer | null = null;
     let pronto = false;
@@ -197,7 +197,7 @@ function tocarNoAparelho(url: string): Promise<boolean> {
       jogador = createAudioPlayer({ uri: url });
       encerrarAtual = sair;
       jogador.addListener('playbackStatusUpdate', (s) => {
-        if (s.playing) clearTimeout(espera);
+        if (s.playing) { clearTimeout(espera); aoComecar?.(); }
         if (s.didJustFinish) acabar(true);
       });
       jogador.play();
@@ -230,13 +230,17 @@ export function useVozDesligada(): [boolean, (v: boolean) => void] {
   return [v, definirVozDesligada];
 }
 
+/* `aoComecar`: avisa quando o som começa de verdade (o navegador aceitou tocar), para a tela só mostrar a legenda nessa hora:
+   assim, se o navegador recusar o som, a legenda não aparece e some (o "pisca" da apresentação) */
 export function falar(
   itens: (string | Trecho)[], sotaque: Sotaque, aoFim: () => void,
-  aoPalavra?: (indice: number) => void, aoDuracao?: (ms: number) => void,
+  aoPalavra?: (indice: number) => void, aoDuracao?: (ms: number) => void, aoComecar?: () => void,
 ): void {
   parar();
   const minha = rodada;
-  const fim = () => { if (rodada === minha) aoFim(); };
+  let comecou = false;
+  const comecar = () => { if (!comecou && rodada === minha) { comecou = true; aoComecar?.(); } };
+  const fim = () => { if (rodada === minha) { comecar(); aoFim(); } };
   if (sotaque.mudo || desligada) { fim(); return; }
   const trechos: Trecho[] = itens.map((x) => (typeof x === 'string' ? { texto: x, dinamico: false } : x));
   /* os pedidos ao servidor saem já, enquanto os primeiros trechos tocam */
@@ -257,18 +261,19 @@ export function falar(
       if (x.dinamico) {
         const url = await dinamicos[i];
         if (rodada !== minha) return;
-        const res: Resultado = url ? await tocarArquivo(url) : 'falhou';
-        if (res === 'bloqueado') { marcarBloqueado(); fim(); return; }
+        const res: Resultado = url ? await tocarArquivo(url, comecar) : 'falhou';
+        if (res === 'bloqueado') { marcarBloqueado(); if (rodada === minha) aoFim(); return; }
         tocou = res === 'tocou';
         if (!tocou && fixosComAudio) { deslocamento += x.texto.length + 1; continue; }   // o resto está em áudio bom: pula só este trecho
       } else {
-        const res: Resultado = duracoes[i] !== undefined ? await tocarArquivo(`${BASE_AUDIO}/${sotaque.id}/${hashFala(x.texto)}.mp3`) : 'falhou';
-        if (res === 'bloqueado') { marcarBloqueado(); fim(); return; }
+        const res: Resultado = duracoes[i] !== undefined ? await tocarArquivo(`${BASE_AUDIO}/${sotaque.id}/${hashFala(x.texto)}.mp3`, comecar) : 'falhou';
+        if (res === 'bloqueado') { marcarBloqueado(); if (rodada === minha) aoFim(); return; }
         tocou = res === 'tocou';
       }
       if (rodada !== minha) return;
       if (!tocou) {
         const base = deslocamento;
+        comecar();
         await falarComAparelho(x.texto, sotaque, minha, aoPalavra ? (c) => aoPalavra(base + c) : undefined);
       }
       deslocamento += x.texto.length + 1;

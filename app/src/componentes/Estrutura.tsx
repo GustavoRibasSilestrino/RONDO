@@ -8,7 +8,8 @@ import { cores, larguraMax, raio, estilos } from '../tema';
 import { T } from './Ui';
 
 /* ---------- Tela ---------- */
-export function Tela({ children, comDoca = true, animada = true, compacto = false }: { children: React.ReactNode; comDoca?: boolean; animada?: boolean; compacto?: boolean }) {
+/* `semCabecalho`: a tela não tem o cabeçalho do app em cima (o Perfil, desde 2026-11-13): o conteúdo começa perto do topo */
+export function Tela({ children, comDoca = true, animada = true, compacto = false, semCabecalho = false }: { children: React.ReactNode; comDoca?: boolean; animada?: boolean; compacto?: boolean; semCabecalho?: boolean }) {
   /* com a barra de baixo há o cabeçalho do app no alto (56 px); sem ela (entrar), a coluna começa mais perto do topo */
   const insets = useSafeAreaInsets();
   const { largo } = useLayoutLargo();   // computador: sem cabeçalho em cima nem barra embaixo
@@ -24,7 +25,7 @@ export function Tela({ children, comDoca = true, animada = true, compacto = fals
     <View style={{ flex: 1 }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingTop: insets.top + (largo ? (compacto ? 24 : 32) : comDoca ? 56 + (compacto ? 6 : 20) : 24), paddingBottom: insets.bottom + (largo ? 56 : comDoca ? 120 : 40), alignItems: 'center' }}
+        contentContainerStyle={{ paddingTop: insets.top + (largo ? (semCabecalho ? 14 : compacto ? 24 : 32) : semCabecalho ? 10 : comDoca ? 56 + (compacto ? 6 : 20) : 24), paddingBottom: insets.bottom + (largo ? 56 : comDoca ? 120 : 40), alignItems: 'center' }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={32}

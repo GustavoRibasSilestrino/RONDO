@@ -44,14 +44,16 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
   const apresentar = () => {
     setIndiceVoz(-1); setDuracaoMs(0); setChave((c) => c + 1);
     setEstado('falando');
-    falar([fala], sotaque, () => setEstado('quieto'), (i) => setIndiceVoz(i), (ms) => setDuracaoMs(ms));
+    /* a legenda só começa quando a voz começa (ou quando a voz está desligada): sem isso, se o navegador recusa o som, a
+       frase aparecia e sumia logo em seguida, trocada pelo "Toque para ter a experiência" */
+    falar([fala], sotaque, () => setEstado('quieto'), (i) => setIndiceVoz(i), (ms) => setDuracaoMs(ms), () => setComecou(true));
   };
 
   useEffect(() => {
     const inicio = setTimeout(() => {
       Animated.timing(nasce, { toValue: 1, duration: reduzido ? 1 : 900, easing: Easing.out(Easing.cubic), useNativeDriver: nativo }).start();
       /* ele começa a falar sozinho, logo depois de nascer */
-      setTimeout(() => { setComecou(true); apresentar(); }, reduzido ? 150 : 700);
+      setTimeout(apresentar, reduzido ? 150 : 700);
     }, atraso);
     return () => { clearTimeout(inicio); parar(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
