@@ -16,7 +16,7 @@ import { falar, parar, sotaquePadrao, useSomBloqueado, useVozDesligada } from '.
 import { Legenda } from './Rondin';
 
 const BOTAO = { pt: 'Vamos lá', en: "Let's go", es: 'Vamos' };
-const TOQUE = { pt: 'Toque na tela para ouvir o RONDIN', en: 'Tap the screen to hear RONDIN', es: 'Toca la pantalla para escuchar a RONDIN' };
+const TOQUE = { pt: 'Toque para ter a experiência', en: 'Tap for the full experience', es: 'Toca para vivir la experiencia' };
 
 type Props = {
   aoContinuar: () => void;
@@ -57,12 +57,14 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* no navegador, a primeira fala pode ser recusada (o som só é liberado depois de um toque na página): aparece o aviso e,
-     no primeiro toque em qualquer lugar, ele se apresenta de novo, desde o começo, já com a voz */
+  /* no navegador, a primeira fala pode ser recusada (o som só é liberado depois de um toque na página). Aí o RONDIN fica
+     parado no meio, sem falar e sem legenda, só com "Toque para ter a experiência" (pedido do dono: disfarça o toque que o
+     navegador exige); no primeiro toque em qualquer lugar ele começa a se apresentar, com a voz e a legenda juntas */
   const bloqueado = useSomBloqueado();
   const [mudo] = useVozDesligada();
   const estavaBloqueado = useRef(false);
   const aviso = useRef(new Animated.Value(0)).current;
+  const esperandoToque = bloqueado && !mudo;
   useEffect(() => {
     if (bloqueado) estavaBloqueado.current = true;
     else if (estavaBloqueado.current) { estavaBloqueado.current = false; if (!mudo) apresentar(); }
@@ -86,7 +88,11 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
         </Animated.View>
         <T tam={12} peso="500" style={st.nome}>RONDIN</T>
         <View style={st.fala}>
-          {comecou ? (
+          {esperandoToque ? (
+            <Animated.View pointerEvents="none" style={[st.aviso, { opacity: aviso }]}>
+              <T tam={15} cor="rgba(232,224,255,0.86)" style={{ textAlign: 'center', letterSpacing: 0.3 }}>{TOQUE[sotaque.idioma]}</T>
+            </Animated.View>
+          ) : comecou ? (
             <Legenda
               largo texto={fala} chave={chave} taxa={sotaque.taxa} duracaoMs={duracaoMs} indiceVoz={indiceVoz}
               completa={false} aoCompletar={() => setPronto(true)}
@@ -94,10 +100,6 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
           ) : null}
         </View>
       </View>
-
-      <Animated.View pointerEvents="none" style={[st.aviso, { opacity: aviso }]}>
-        <T tam={13} cor="rgba(232,224,255,0.82)" style={{ textAlign: 'center' }}>{TOQUE[sotaque.idioma]}</T>
-      </Animated.View>
 
       <Animated.View
         pointerEvents={pronto ? 'auto' : 'none'}
@@ -116,5 +118,5 @@ const st = StyleSheet.create({
   nome: { letterSpacing: 5, color: '#c4a8ff', marginTop: 2, opacity: 0.9 },
   fala: { width: '100%', maxWidth: 460, minHeight: 100 },
   base: { width: '100%', maxWidth: 340, alignItems: 'stretch' },
-  aviso: { marginBottom: 14, paddingHorizontal: 16 },
+  aviso: { paddingTop: 18, paddingHorizontal: 16, alignItems: 'center' },
 });
