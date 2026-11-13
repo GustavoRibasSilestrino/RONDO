@@ -249,17 +249,27 @@ def salvar_imagens():
 
 
 def salvar_video():
+    """renderiza a volta quadro a quadro em saida/quadros/ (se parar no meio, rodar de novo continua de onde parou)
+    e junta tudo no rondin.mp4 com o ffmpeg, se ele estiver instalado (senão, ver montar_video.py)"""
     cena = bpy.context.scene
     cena.render.resolution_x = cena.render.resolution_y = 1080
-    if hasattr(cena.render.image_settings, "media_type"):   # Blender 5: vídeo é um tipo de mídia à parte
-        cena.render.image_settings.media_type = "VIDEO"
-    cena.render.image_settings.file_format = "FFMPEG"
-    cena.render.ffmpeg.format = "MPEG4"
-    cena.render.ffmpeg.codec = "H264"
-    cena.render.ffmpeg.constant_rate_factor = "HIGH"
-    cena.render.filepath = os.path.join(SAIDA, "rondin.mp4")
+    cena.render.image_settings.file_format = "PNG"
+    cena.render.image_settings.color_mode = "RGB"
+    cena.render.use_overwrite = False                    # quadros já prontos não são feitos de novo
+    cena.render.use_placeholder = True
+    pasta = os.path.join(SAIDA, "quadros")
+    os.makedirs(pasta, exist_ok=True)
+    cena.render.filepath = os.path.join(pasta, "q_")
     bpy.ops.render.render(animation=True)
     cena.render.resolution_x = cena.render.resolution_y = 2048
+    import shutil
+    import subprocess
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg:
+        subprocess.run([ffmpeg, "-y", "-framerate", "30", "-i", os.path.join(pasta, "q_%04d.png"), "-c:v", "libx264",
+                        "-pix_fmt", "yuv420p", "-crf", "18", os.path.join(SAIDA, "rondin.mp4")], check=True)
+    else:
+        print("RONDIN: quadros prontos em", pasta, "- para juntar no vídeo: python brand/rondin-3d/montar_video.py")
 
 
 def salvar_modelo():
