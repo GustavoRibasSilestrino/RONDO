@@ -14,7 +14,8 @@ export type Campo = 'texto' | 'email' | 'senha' | 'numero' | 'data';
 /* Uma fala com lugares para o que muda de pessoa para pessoa: "Prazer, {nome}!". `valores` diz o que entra em cada lugar. */
 export type Valores = Record<string, string>;
 export type Dita = { modelo: string; valores: Valores };
-/* Um pedaço de áudio: as partes fixas existem como mp3 pronto; as dinâmicas (nome) o servidor gera na hora. */
+/* Um pedaço de áudio: as partes fixas existem como mp3 pronto. As dinâmicas (nome, números) não são mais faladas
+   (ficam só na legenda); o tipo ainda aceita `dinamico` para quem chamar a voz com um trecho próprio. */
 export type Trecho = { texto: string; dinamico: boolean };
 
 export function trechosDe(modelo: string, valores: Valores = {}): { exibir: string; audio: Trecho[] } {
@@ -23,8 +24,10 @@ export function trechosDe(modelo: string, valores: Valores = {}): { exibir: stri
   for (const parte of modelo.split(/(\{\w+\})/)) {
     const m = /^\{(\w+)\}$/.exec(parte);
     if (m) {
-      const v = (valores[m[1]] ?? '').trim();
-      if (v) audio.push({ texto: v, dinamico: true });
+      /* desde 2026-11-13 o RONDIN não fala o nome nem os números (pedido do dono): a voz diz só "Prazer!", com a voz
+         gravada (Will, da ElevenLabs), e o nome aparece na legenda. Assim nenhum nome vai para um serviço de voz e a
+         fala não espera o servidor. */
+      continue;
     } else {
       const limpo = parte.replace(/^[\s!?.,;:¡¿]+/, '').trim();   // a pontuação que sobra depois do nome não é lida
       if (limpo) audio.push({ texto: limpo, dinamico: false });
