@@ -12,10 +12,11 @@ import { Botao, T } from '../componentes/Ui';
 import { useMovimentoReduzido } from '../lib/movimento';
 import type { EstadoOrbe } from '../lib/orbe';
 import { TEXTOS as FALAS } from '../lib/rondinTextos';
-import { falar, parar, sotaquePadrao } from '../lib/rondinVoz';
+import { falar, parar, sotaquePadrao, useSomBloqueado, useVozDesligada } from '../lib/rondinVoz';
 import { Legenda } from './Rondin';
 
 const BOTAO = { pt: 'Vamos lá', en: "Let's go", es: 'Vamos' };
+const TOQUE = { pt: 'Toque na tela para ouvir o RONDIN', en: 'Tap the screen to hear RONDIN', es: 'Toca la pantalla para escuchar a RONDIN' };
 
 type Props = {
   aoContinuar: () => void;
@@ -56,6 +57,19 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /* no navegador, a primeira fala pode ser recusada (o som só é liberado depois de um toque na página): aparece o aviso e,
+     no primeiro toque em qualquer lugar, ele se apresenta de novo, desde o começo, já com a voz */
+  const bloqueado = useSomBloqueado();
+  const [mudo] = useVozDesligada();
+  const estavaBloqueado = useRef(false);
+  const aviso = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (bloqueado) estavaBloqueado.current = true;
+    else if (estavaBloqueado.current) { estavaBloqueado.current = false; if (!mudo) apresentar(); }
+    Animated.timing(aviso, { toValue: bloqueado && !mudo ? 1 : 0, duration: reduzido ? 1 : 400, useNativeDriver: nativo }).start();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bloqueado, mudo]);
+
   useEffect(() => {
     if (pronto) Animated.timing(botao, { toValue: 1, duration: reduzido ? 1 : 520, easing: Easing.out(Easing.cubic), useNativeDriver: nativo }).start();
   }, [pronto, botao, reduzido, nativo]);
@@ -81,6 +95,10 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
         </View>
       </View>
 
+      <Animated.View pointerEvents="none" style={[st.aviso, { opacity: aviso }]}>
+        <T tam={13} cor="rgba(232,224,255,0.82)" style={{ textAlign: 'center' }}>{TOQUE[sotaque.idioma]}</T>
+      </Animated.View>
+
       <Animated.View
         pointerEvents={pronto ? 'auto' : 'none'}
         style={[st.base, { opacity: botao, transform: [{ translateY: botao.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }]}
@@ -98,4 +116,5 @@ const st = StyleSheet.create({
   nome: { letterSpacing: 5, color: '#c4a8ff', marginTop: 2, opacity: 0.9 },
   fala: { width: '100%', maxWidth: 460, minHeight: 100 },
   base: { width: '100%', maxWidth: 340, alignItems: 'stretch' },
+  aviso: { marginBottom: 14, paddingHorizontal: 16 },
 });

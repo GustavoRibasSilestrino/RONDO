@@ -122,8 +122,70 @@ function falarComAparelho(texto: string, sotaque: Sotaque, minha: number, aoPala
   });
 }
 
-/* toca o mp3; devolve false se não deu para tocar (o chamador usa a voz do aparelho) */
-function tocarArquivo(url: string): Promise<boolean> {
+/* ---------- som bloqueado pelo navegador ----------
+   Os navegadores não deixam uma página tocar som antes de a pessoa tocar nela (clique, toque ou tecla). A apresentação do
+   RONDIN fala sozinha assim que a página abre, então no navegador a primeira fala pode ser recusada. Quando isso acontece,
+   o RONDIN marca o som como bloqueado (a tela mostra "toque para ouvir") e, no primeiro toque em qualquer lugar, avisa quem
+   estiver escutando (`useSomBloqueado`) para ele falar de novo, desde o começo. No celular isso não existe. */
+let somBloqueado = false;
+const avisosBloqueio = new Set<(bloqueado: boolean) => void>();
+const GESTOS = ['pointerdown', 'keydown', 'touchend'] as const;
+function marcarBloqueado(): void {
+  if (somBloqueado || typeof window === 'undefined') return;
+  somBloqueado = true;
+  avisosBloqueio.forEach((f) => f(true));
+  const liberar = () => {
+    GESTOS.forEach((ev) => window.removeEventListener(ev, liberar, true));
+    somBloqueado = false;
+    avisosBloqueio.forEach((f) => f(false));
+  };
+  GESTOS.forEach((ev) => window.addEventListener(ev, liberar, true));
+}
+/* a página ainda não recebeu nenhum toque: o som com certeza seria recusado */
+function semToqueAinda(): boolean {
+  if (Platform.OS !== 'web' || typeof navigator === 'undefined') return false;
+  const ativacao = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation;
+  return !!ativacao && !ativacao.hasBeenActive;
+}
+export function useSomBloqueado(): boolean {
+  const [b, setB] = useState(somBloqueado);
+  useEffect(() => { avisosBloqueio.add(setB); setB(somBloqueado); return () => { avisosBloqueio.delete(setB); }; }, []);
+  return b;
+}
+
+type Resultado = 'tocou' | 'falhou' | 'bloqueado';
+
+/* no navegador, o player do próprio navegador: ele diz na hora se o som foi recusado (o do expo-audio não diz) */
+function tocarNoNavegador(url: string): Promise<Resultado> {
+  return new Promise((resolve) => {
+    const audio = new Audio(url);
+    let pronto = false;
+    const acabar = (r: Resultado) => {
+      if (pronto) return;
+      pronto = true;
+      clearTimeout(espera);
+      audio.onended = null;
+      audio.onerror = null;
+      if (!audio.ended) audio.pause();
+      if (encerrarAtual === sair) encerrarAtual = null;
+      resolve(r);
+    };
+    const sair = () => acabar('tocou');   // parar(): não toca a voz do aparelho por cima
+    const espera = setTimeout(() => acabar('falhou'), 8000);
+    encerrarAtual = sair;
+    audio.onended = () => acabar('tocou');
+    audio.onerror = () => acabar('falhou');
+    audio.play().then(() => clearTimeout(espera)).catch((e: { name?: string }) => acabar(e?.name === 'NotAllowedError' ? 'bloqueado' : 'falhou'));
+  });
+}
+
+/* toca o mp3 e diz o que aconteceu ('falhou': o chamador usa a voz do aparelho; 'bloqueado': o navegador recusou o som) */
+function tocarArquivo(url: string): Promise<Resultado> {
+  if (Platform.OS === 'web') return tocarNoNavegador(url);
+  return tocarNoAparelho(url).then((ok): Resultado => (ok ? 'tocou' : 'falhou'));
+}
+
+function tocarNoAparelho(url: string): Promise<boolean> {
   return new Promise((resolve) => {
     let jogador: AudioPlayer | null = null;
     let pronto = false;
@@ -191,6 +253,8 @@ export function falar(
     const duracoes = trechos.map((x) => (x.dinamico ? undefined : m?.[sotaque.id]?.[hashFala(x.texto)]));
     const fixosComAudio = trechos.every((x, i) => x.dinamico || duracoes[i] !== undefined);
     if (fixosComAudio && !trechos.some((x) => x.dinamico)) aoDuracao?.(duracoes.reduce<number>((a, d) => a + (d as number), 0) * 1000);
+    /* sem nenhum toque na página o navegador recusaria o som: nem tenta (a legenda segue; a fala volta no primeiro toque) */
+    if (semToqueAinda()) { marcarBloqueado(); fim(); return; }
     let deslocamento = 0;
     for (let i = 0; i < trechos.length; i += 1) {
       if (rodada !== minha) return;
@@ -199,10 +263,14 @@ export function falar(
       if (x.dinamico) {
         const url = await dinamicos[i];
         if (rodada !== minha) return;
-        tocou = !!url && (await tocarArquivo(url));
+        const res: Resultado = url ? await tocarArquivo(url) : 'falhou';
+        if (res === 'bloqueado') { marcarBloqueado(); fim(); return; }
+        tocou = res === 'tocou';
         if (!tocou && fixosComAudio) { deslocamento += x.texto.length + 1; continue; }   // o resto está em áudio bom: pula só este trecho
       } else {
-        tocou = duracoes[i] !== undefined && (await tocarArquivo(`${BASE_AUDIO}/${sotaque.id}/${hashFala(x.texto)}.mp3`));
+        const res: Resultado = duracoes[i] !== undefined ? await tocarArquivo(`${BASE_AUDIO}/${sotaque.id}/${hashFala(x.texto)}.mp3`) : 'falhou';
+        if (res === 'bloqueado') { marcarBloqueado(); fim(); return; }
+        tocou = res === 'tocou';
       }
       if (rodada !== minha) return;
       if (!tocou) {
