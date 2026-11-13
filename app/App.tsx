@@ -2,7 +2,7 @@
    Cabeçalho fixo (notificações e a marca) no alto e uma barra de vidro escuro no pé, com todas as abas à vista. */
 import { Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { BackHandler, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Abertura } from './src/componentes/Abertura';
@@ -17,6 +17,7 @@ import { Icone } from './src/componentes/Icone';
 import { RondinChamado } from './src/componentes/RondinChamado';
 import { MenuLateral } from './src/componentes/MenuLateral';
 import { tirarCarregando } from './src/lib/carregando';
+import { atrasoDaAbertura } from './src/lib/abertura';
 import { useMenuRecolhido } from './src/lib/largura';
 import { PainelLateral } from './src/componentes/PainelLateral';
 import { useLayoutLargo } from './src/lib/largura';
@@ -58,6 +59,8 @@ const TELAS: ItemAba[] = [
 /* telas que moram dentro do Perfil: a barra mantém o Perfil aceso e o voltar leva para ele */
 const DO_PERFIL = ['hoje', 'evolucao', 'colecoes', 'recado', 'diario'];
 
+const ESPERA_RONDIN = 5000;   // ms entre o app abrir e o RONDIN chegar com a pergunta do dia
+
 function Raiz() {
   const { estado, pronto: dadosProntos, commit, puxarDoServidor } = useLoja();
   const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
@@ -68,8 +71,17 @@ function Raiz() {
   const [antes, setAntes] = useState(INICIO);   // a aba em que a pessoa estava ao abrir as notificações: o sino volta para ela
   const [voltarPara, setVoltarPara] = useState('perfil');   // de onde a pessoa veio ao abrir Hoje, Evolução, Recado ou Coleções: o voltar leva para lá (o recado do feed volta para o feed)
   const [buscando, setBuscando] = useState(false);   // a busca de pessoas, aberta pela lupa (no alto do app, ou no canto do feed no computador)
-  /* a chegada: toda vez que a pessoa abre o app, depois da abertura preta, o RONDIN aparece (componentes/Chegada.tsx) */
-  const [chegando, setChegando] = useState(true);
+  /* a chegada (componentes/Chegada.tsx): desde 2026-11-13 o app abre primeiro e o RONDIN chega 5 s depois (pedido do dono),
+     fazendo a pergunta do dia. Uma vez por abertura do app. */
+  const [chegando, setChegando] = useState(false);
+  const chegadaMarcada = useRef(false);
+  const logado = pronto && !!estado.usuario;
+  useEffect(() => {
+    if (!logado || chegadaMarcada.current) return;
+    chegadaMarcada.current = true;
+    const id = setTimeout(() => setChegando(true), atrasoDaAbertura() + ESPERA_RONDIN);
+    return () => clearTimeout(id);
+  }, [logado]);
   /* "Olá Rondin": a língua em que ele foi chamado, ou null (lib/escuta.ts; só no navegador, e só se a pessoa ligou) */
   const [chamado, setChamado] = useState<Idioma | null>(null);
   const idiomaRondin: Idioma = estado.perfilFit ? achaSotaque(estado.perfilFit.sotaque).idioma : sotaquePadrao().idioma;
@@ -145,7 +157,7 @@ function Raiz() {
       {tela === 'notificacoes' && <Notificacoes />}
       {tela === 'perfil' && <Perfil ir={irPara} />}
       {DO_PERFIL.includes(tela) && tela !== 'recado' ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
-      {largo ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} mostrarNome={tela === 'home'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
+      {largo ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} mostrarNome={tela === 'home'} mostrarSino={tela === 'home' || tela === 'notificacoes'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
       {largo ? null : <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />}
       {/* computador: a joia da sequência fica no canto de cima, à esquerda da área (no celular ela mora no cabeçalho) */}
       {largo ? <View pointerEvents="box-none" style={st.seloCanto}><SeloSequencia /></View> : null}
@@ -165,7 +177,7 @@ function Raiz() {
           aoRecado={() => { setChamado(null); irPara('recado'); }} aoDiario={() => { setChamado(null); irPara('diario'); }}
         />
       ) : null}
-      {chegando ? <Chegada aoEntrar={() => setChegando(false)} aoDiario={() => { setChegando(false); irPara('diario'); }} /> : null}
+      {chegando ? <Chegada depoisDoApp aoEntrar={() => setChegando(false)} aoDiario={() => { setChegando(false); irPara('diario'); }} /> : null}
     </View>
   );
 }

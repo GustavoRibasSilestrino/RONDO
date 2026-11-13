@@ -141,12 +141,6 @@ function marcarBloqueado(): void {
   };
   GESTOS.forEach((ev) => window.addEventListener(ev, liberar, true));
 }
-/* a página ainda não recebeu nenhum toque: o som com certeza seria recusado */
-function semToqueAinda(): boolean {
-  if (Platform.OS !== 'web' || typeof navigator === 'undefined') return false;
-  const ativacao = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation;
-  return !!ativacao && !ativacao.hasBeenActive;
-}
 export function useSomBloqueado(): boolean {
   const [b, setB] = useState(somBloqueado);
   useEffect(() => { avisosBloqueio.add(setB); setB(somBloqueado); return () => { avisosBloqueio.delete(setB); }; }, []);
@@ -253,8 +247,8 @@ export function falar(
     const duracoes = trechos.map((x) => (x.dinamico ? undefined : m?.[sotaque.id]?.[hashFala(x.texto)]));
     const fixosComAudio = trechos.every((x, i) => x.dinamico || duracoes[i] !== undefined);
     if (fixosComAudio && !trechos.some((x) => x.dinamico)) aoDuracao?.(duracoes.reduce<number>((a, d) => a + (d as number), 0) * 1000);
-    /* sem nenhum toque na página o navegador recusaria o som: nem tenta (a legenda segue; a fala volta no primeiro toque) */
-    if (semToqueAinda()) { marcarBloqueado(); fim(); return; }
+    /* sempre tenta tocar: o Chrome e o Edge liberam o som quando a pessoa chega por um clique no próprio site (o "Criar
+       conta"), mesmo sem tocar na página nova; se o navegador recusar, a fala volta no primeiro toque (useSomBloqueado) */
     let deslocamento = 0;
     for (let i = 0; i < trechos.length; i += 1) {
       if (rodada !== minha) return;

@@ -2,11 +2,13 @@
    juntas. `dizer(partes, depois)` fala as partes em ordem; `depois` roda quando a voz e a legenda terminaram. Tocar no orbe
    pula a fala enquanto ela corre e a repete depois. É a mesma lógica de telas/Rondin.tsx, sem as etapas do cadastro. */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { falar, parar, type Sotaque } from './rondinVoz';
+import { falar, parar, useSomBloqueado, type Sotaque } from './rondinVoz';
+import { trechosParaVoz, type Trecho } from './rondinRoteiro';
 
 export type FalaRondin = {
   fala: string; chave: number; indiceVoz: number; duracaoMs: number; completa: boolean; falando: boolean;
-  dizer: (partes: string[], depois?: () => void, graca?: number) => void;
+  /* `ocultar`: palavras da pessoa (o nome) que aparecem na legenda mas não são faladas */
+  dizer: (partes: string[], depois?: () => void, graca?: number, ocultar?: string[]) => void;
   tocarNoOrbe: () => void;
   aoCompletarLegenda: () => void;
   calar: () => void;
@@ -20,7 +22,7 @@ export function useFalaRondin(sotaque: Sotaque): FalaRondin {
   const [completa, setCompleta] = useState(false);
   const [falando, setFalando] = useState(false);
   const ctrl = useRef<{ id: number; voz: boolean; leg: boolean; depois: (() => void) | null; graca: number }>({ id: 0, voz: false, leg: false, depois: null, graca: 3500 });
-  const ultimas = useRef<string[]>([]);
+  const ultimas = useRef<Trecho[]>([]);
   const sotaqueRef = useRef(sotaque);
   sotaqueRef.current = sotaque;
 
@@ -33,13 +35,14 @@ export function useFalaRondin(sotaque: Sotaque): FalaRondin {
     d?.();
   }, []);
 
-  const dizer = useCallback((partes: string[], depois?: () => void, graca = 3500) => {
+  const dizer = useCallback((partes: string[], depois?: () => void, graca = 3500, ocultar: string[] = []) => {
     const id = ctrl.current.id + 1;
     ctrl.current = { id, voz: false, leg: false, depois: depois ?? null, graca };
-    ultimas.current = partes;
+    const trechos = partes.flatMap((p) => trechosParaVoz(p, ocultar));
+    ultimas.current = trechos;
     setFala(partes.join(' ')); setChave(id); setIndiceVoz(-1); setDuracaoMs(0); setCompleta(false); setFalando(true);
     falar(
-      partes, sotaqueRef.current,
+      trechos, sotaqueRef.current,
       () => { if (ctrl.current.id === id) { ctrl.current.voz = true; checar(id); } },
       (i) => { if (ctrl.current.id === id) setIndiceVoz(i); },
       (ms) => { if (ctrl.current.id === id) setDuracaoMs(ms); },
@@ -65,6 +68,16 @@ export function useFalaRondin(sotaque: Sotaque): FalaRondin {
     if (ctrl.current.id > 0 && !ctrl.current.leg) { pular(); return; }
     if (ultimas.current.length) falar(ultimas.current, sotaqueRef.current, () => undefined);
   }, [pular]);
+
+  /* no navegador o som pode ser recusado antes do primeiro toque na página: no primeiro toque, a fala atual volta, com voz */
+  const bloqueado = useSomBloqueado();
+  const estava = useRef(false);
+  useEffect(() => {
+    if (bloqueado) { estava.current = true; return; }
+    if (!estava.current) return;
+    estava.current = false;
+    if (ultimas.current.length && ctrl.current.id > 0) falar(ultimas.current, sotaqueRef.current, () => undefined);
+  }, [bloqueado]);
 
   /* sai da tela: a voz para e nenhuma frase pendente roda depois */
   const calar = useCallback(() => {

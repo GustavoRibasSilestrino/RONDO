@@ -32,9 +32,9 @@ const ITENS: { id: Secao; titulo: string; sub: string; icone: NomeIcone }[] = [
   { id: 'conta', titulo: 'Conta e segurança', sub: 'Senha, e-mail, sair e apagar', icone: 'cadeado' },
 ];
 
-type Props = { aberto: boolean; aoFechar: () => void };
+type Props = { aberto: boolean; aoFechar: () => void; aoEditarPerfil?: () => void };
 
-export function Configuracoes({ aberto, aoFechar }: Props) {
+export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
   const insets = useSafeAreaInsets();
   const { estado, commit, limpar } = useLoja();
   const avisar = useAviso();
@@ -78,6 +78,17 @@ export function Configuracoes({ aberto, aoFechar }: Props) {
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 40, paddingTop: 8 }}>
             {secao === null ? (
               <View style={{ gap: 10 }}>
+                {/* editar o perfil (antes era o lápis no topo do Perfil): fecha as configurações e abre a edição */}
+                {aoEditarPerfil ? (
+                  <Pressable accessibilityRole="button" accessibilityLabel="Editar perfil" onPress={() => { sair(); aoEditarPerfil(); }} style={({ pressed }) => [st.linha, pressed && { opacity: 0.85 }]}>
+                    <View style={st.icone}><Icone nome="lapis" tamanho={20} cor="#ffffff" /></View>
+                    <View style={{ flex: 1 }}>
+                      <T tam={15.5} peso="500">Editar perfil</T>
+                      <T tam={12.5} style={{ marginTop: 1 }}>Foto, nome, nome de usuário e descrição</T>
+                    </View>
+                    <Icone nome="setaDireita" tamanho={18} cor="#ffffff" />
+                  </Pressable>
+                ) : null}
                 {ITENS.filter((i) => i.id !== 'denuncias' || estado.usuario?.papel === 'dono').map((i) => (
                   <Pressable key={i.id} accessibilityRole="button" accessibilityLabel={i.titulo} onPress={() => setSecao(i.id)} style={({ pressed }) => [st.linha, pressed && { opacity: 0.85 }]}>
                     <View style={st.icone}><Icone nome={i.icone} tamanho={20} cor="#ffffff" /></View>

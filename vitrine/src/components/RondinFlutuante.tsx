@@ -8,7 +8,9 @@ import { Btn } from "./ui";
 /* O RONDIN no canto da tela (pedido do dono em 2026-11-12): aparece por alguns segundos com "Oi, quer me conhecer?",
    some, e volta depois, cada vez num dos quatro cantos, sorteado, com um som de notificação (lib/som.ts; só depois que
    a pessoa já interagiu com a página, regra dos navegadores). Tocar nele abre um balão de fala com o convite e o botão que leva a criar a conta no app.
-   Com o cursor (ou o foco) em cima ele não some. Para quem pede menos movimento, fica sempre ali, parado. */
+   Com o cursor (ou o foco) em cima ele não some. Para quem pede menos movimento, fica sempre ali, parado.
+   No celular (desde 2026-11-13): só nos cantos de baixo, e só depois que a pessoa rola para fora da primeira tela (nela,
+   ele ficava em cima do nome RONDO da foto ou dos botões). */
 const PRIMEIRA = 2500;     // ms até a primeira aparição
 const VISIVEL = 5000;      // ms que ele fica na tela
 const ESCONDIDO = 7000;    // ms até voltar
@@ -16,8 +18,11 @@ const ESCONDIDO = 7000;    // ms até voltar
 /* os quatro cantos da tela: superior/inferior + esquerdo/direito */
 type Canto = "se" | "sd" | "ie" | "id";
 const CANTOS: Canto[] = ["se", "sd", "ie", "id"];
+/* no celular e no tablet, só os cantos de baixo: os de cima cobririam o nome RONDO da foto e o menu */
+const TELA_PEQUENA = "(max-width: 960px), (max-aspect-ratio: 4/5)";
+const pequena = () => typeof matchMedia !== "undefined" && matchMedia(TELA_PEQUENA).matches;
 const sortearCanto = (anterior: Canto | null): Canto => {
-  const opcoes = CANTOS.filter((c) => c !== anterior);
+  const opcoes = CANTOS.filter((c) => c !== anterior && (!pequena() || c === "ie" || c === "id"));
   return opcoes[Math.floor(Math.random() * opcoes.length)];
 };
 
@@ -51,10 +56,23 @@ export function RondinFlutuante() {
   const balao = useRef<HTMLDivElement>(null);
   const botao = useRef<HTMLButtonElement>(null);
 
+  /* no celular a primeira tela é ocupada inteira pela foto, pelo título e pelos botões: enquanto ela estiver à vista, o
+     RONDIN espera (ele cobriria o texto e os botões). Aparece depois que a pessoa rola a página. */
+  const [heroNaTela, setHeroNaTela] = useState(false);
+  useEffect(() => {
+    const hero = document.querySelector(".hero");
+    if (!hero || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(([e]) => setHeroNaTela(pequena() && e.intersectionRatio > 0.2), { threshold: [0, 0.2, 0.5, 1] });
+    io.observe(hero);
+    return () => io.disconnect();
+  }, []);
+  const esperando = heroNaTela && !aberto;
+
   /* o ciclo: aparece, fica alguns segundos, some, volta; cada vez num canto sorteado (nunca o mesmo da vez anterior) */
   const [canto, setCanto] = useState<Canto>("id");
   const primeira = useRef(true);
   useEffect(() => {
+    if (esperando) { setVisivel(false); return; }
     if (reduceMotion || aberto || segurando) return;
     const espera = visivel ? VISIVEL : primeira.current ? PRIMEIRA : ESCONDIDO;
     const id = setTimeout(() => {
@@ -66,7 +84,7 @@ export function RondinFlutuante() {
       setVisivel(!visivel);
     }, espera);
     return () => clearTimeout(id);
-  }, [visivel, aberto, segurando]);
+  }, [visivel, aberto, segurando, esperando]);
 
   /* o balão aberto: Esc ou um toque fora fecha, e o foco volta para o RONDIN */
   useEffect(() => {
@@ -87,7 +105,7 @@ export function RondinFlutuante() {
     if (devolverFoco) botao.current?.focus();
   };
 
-  const mostrando = visivel || aberto || segurando;
+  const mostrando = aberto || (!esperando && (visivel || segurando || reduceMotion));
   return (
     <div className={`rondin-canto canto-${canto}${mostrando ? " is-on" : ""}${aberto ? " is-aberto" : ""}`}>
       {aberto ? (

@@ -26,7 +26,7 @@ import { useMovimentoReduzido } from '../lib/movimento';
 import { EstadoOrbe } from '../lib/orbe';
 import { Dita, Opcao, Passo, Respostas, emailValido, falasDe, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar, primeiroNome, trechosDe } from '../lib/rondinRoteiro';
 import { TEXTOS, traduzirErro } from '../lib/rondinTextos';
-import { SOTAQUES, Sotaque, falar, parar, sotaquePadrao } from '../lib/rondinVoz';
+import { SOTAQUES, Sotaque, falar, parar, sotaquePadrao, useSomBloqueado } from '../lib/rondinVoz';
 import { cores, estilos } from '../tema';
 import type { Estado, Usuario } from '../tipos';
 import { RecuperarSenha } from './RecuperarSenha';
@@ -217,6 +217,16 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
     setTimeout(() => { if (ctrl.current.id === id) { ctrl.current.voz = true; checar(id); } }, ctrl.current.graca);
   }, [checar]);
   const pular = () => { parar(); ctrl.current.voz = true; setCompleta(true); };
+  /* no navegador, a primeira pergunta pode ficar muda (o som só é liberado depois de um toque na página): no primeiro toque,
+     ela é falada de novo */
+  const somBloqueado = useSomBloqueado();
+  const estavaBloqueado = useRef(false);
+  useEffect(() => {
+    if (somBloqueado) { estavaBloqueado.current = true; return; }
+    if (!estavaBloqueado.current) return;
+    estavaBloqueado.current = false;
+    if (trechosRef.current.length) falar(trechosRef.current, sotaqueRef.current, () => undefined);
+  }, [somBloqueado]);
   /* tocar no orbe: enquanto ele fala, pula a fala; esperando a resposta, ele repete a pergunta em voz alta */
   const tocarNoOrbe = () => {
     if (fase === 'falando' && !completa) pular();

@@ -154,14 +154,10 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         <Pressable accessibilityRole="button" accessibilityLabel={estado.pro ? 'Seu plano: PRO' : 'Plano PRO: conhecer o plano'} onPress={() => setPlano(true)} style={({ pressed }) => [st.redondo, st.pro, pressed && { opacity: 0.8 }]}>
           <Icone nome="estrela" tamanho={19} cor="#ffffff" />
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Conversar com o RONDIN: recado do dia" onPress={() => ir('recado')} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
-          <Icone nome="recado" tamanho={19} cor="#ffffff" />
-        </Pressable>
+        {/* o microfone do recado e o lápis saíram daqui (2026-11-13): o recado continua no cartão do dia e no diário, e
+            "Editar perfil" fica dentro das Configurações */}
         <Pressable accessibilityRole="button" accessibilityLabel="Diário de recados" onPress={() => ir('diario')} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
           <Icone nome="calendario" tamanho={19} cor="#ffffff" />
-        </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Editar perfil" onPress={abrirEdicao} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
-          <Icone nome="lapis" tamanho={19} cor="#ffffff" />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Configurações" onPress={() => setConfig(true)} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
           <Icone nome="engrenagem" tamanho={20} cor="#ffffff" />
@@ -307,7 +303,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         )}
       </Folha>
 
-      <Configuracoes aberto={config} aoFechar={() => setConfig(false)} />
+      <Configuracoes aberto={config} aoFechar={() => setConfig(false)} aoEditarPerfil={abrirEdicao} />
       <PlanoPro aberto={plano} aoFechar={() => setPlano(false)} />
       <EditarTitulos aberta={editandoTitulos} aoFechar={() => setEditandoTitulos(false)} />
       <CriarStory aberto={criandoStory} aoFechar={() => setCriandoStory(false)} aoPublicar={() => { recarregarStories().catch(() => {}); }} />

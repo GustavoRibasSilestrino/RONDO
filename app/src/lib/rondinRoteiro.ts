@@ -6,6 +6,8 @@
 import type { Estado, PerfilFit } from '../tipos';
 import type { Idioma } from './rondinSotaques';
 import { TEXTOS, type Textos } from './rondinTextos.ts';
+import { CONVERSA } from './rondinConversa.ts';
+import { PERGUNTAS_DO_DIA } from './perguntas.ts';
 
 export type Opcao = { id: string; rotulo: string; nota?: string; comentario?: string };
 export type Respostas = Record<string, string | string[]>;
@@ -34,6 +36,20 @@ export function trechosDe(modelo: string, valores: Valores = {}): { exibir: stri
     }
   }
   return { exibir, audio };
+}
+
+/* Uma frase pronta (já com o que muda de pessoa para pessoa) virando áudio. O que é da pessoa não é falado, fica só na
+   legenda: as palavras entre aspas (o "eco" de uma palavra que ela disse) e o que vier em `ocultar` (o nome dela). Quando há
+   algo assim, a frase é dividida em sentenças, para cada sentença fixa ter o seu áudio gravado. O gerador de vozes passa as
+   frases pelo mesmo caminho, então o que se grava é exatamente o que se toca. */
+export function trechosParaVoz(texto: string, ocultar: string[] = []): Trecho[] {
+  const nomes = ocultar.map((n) => n.trim()).filter((n) => n.length > 1);
+  const temAspas = /"[^"]*"/.test(texto);
+  const temNome = nomes.some((n) => texto.includes(n));
+  if (!temAspas && !temNome) return [{ texto, dinamico: false }];
+  let modelo = texto.replace(/"[^"]*"/g, '{x}');
+  for (const n of nomes) modelo = modelo.split(n).join('{x}');
+  return modelo.split(/(?<=[.!?])\s+/).flatMap((frase) => trechosDe(frase).audio);
 }
 
 type Base = { id: string; fala: (r: Respostas) => string };
@@ -217,5 +233,17 @@ export function listarFalas(idioma: Idioma): string[] {
   Object.values(t.falas).forEach(add);
   Object.values(t.srv).forEach(add);
   add(t.erro.email); add(t.erro.senhaLogin);
+  /* a conversa do recado (lib/rondinConversa.ts), as perguntas do dia (lib/perguntas.ts) e a saudação da chegada */
+  const voz = (texto: string, ocultar: string[] = []) => trechosParaVoz(texto, ocultar).forEach((x) => { if (!x.dinamico) achadas.add(x.texto); });
+  const c = CONVERSA[idioma];
+  for (const pg of PERGUNTAS_DO_DIA) { voz(pg[idioma]); voz(pg.seguir[idioma]); }
+  [c.falas.jaHoje, c.falas.guardado, c.falas.descartado, c.falas.naoResponder, c.falas.chamado, c.falas.convite].forEach((f) => voz(f));
+  for (const hora of [8, 15, 21]) { voz(c.falas.saudacao('', hora)); voz(c.falas.saudacao('Fulano', hora), ['Fulano']); }
+  const { neutras, curtas, positivas, negativas, eco } = c.reacao;
+  for (const f of [...neutras, ...curtas, ...positivas, ...negativas, ...c.fechamento, ...c.encerrar]) {
+    voz(f);
+    voz(`${f} "x"`);   // a mesma frase quando vem junto do eco: dividida em sentenças
+  }
+  voz(eco('palavra'));
   return [...achadas];
 }

@@ -25,6 +25,9 @@ const CHAVE_DIA = 'yy.chegada.v1';           // {email, dia}: o último dia em q
 const CHAVE_CONVITE = 'yy.escuta.convite.v1'; // '1' depois que o convite da voz foi feito
 
 type Props = { aoEntrar: () => void; aoDiario: () => void };
+/* `depoisDoApp`: o RONDIN chega com o app já aberto (App.tsx, 5 s depois). Aí ele só aparece se tiver a pergunta do dia (ou o
+   convite da voz) para fazer: se a pessoa já passou pela pergunta hoje, ele não interrompe só para cumprimentar. */
+type PropsChegada = Props & { depoisDoApp?: boolean };
 
 function Cumprimento({ convidar, aoEntrar, aoDiario }: Props & { convidar: boolean }) {
   const { estado } = useLoja();
@@ -43,8 +46,9 @@ function Cumprimento({ convidar, aoEntrar, aoDiario }: Props & { convidar: boole
   useEffect(() => {
     const id = setTimeout(() => {
       const frase = saudacao(idioma, nome, new Date().getHours());
-      if (convidar) fala.dizer([frase, CONVERSA[idioma].falas.convite]);
-      else fala.dizer([frase], () => setTimeout(entrar, 1100));   // cumprimentou: segue sozinho
+      /* o nome aparece na legenda, mas a voz não o fala (só as frases gravadas, com a voz do RONDIN) */
+      if (convidar) fala.dizer([frase, CONVERSA[idioma].falas.convite], undefined, undefined, [nome]);
+      else fala.dizer([frase], () => setTimeout(entrar, 1100), undefined, [nome]);   // cumprimentou: segue sozinho
     }, atrasoDaAbertura());
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -79,7 +83,7 @@ function Cumprimento({ convidar, aoEntrar, aoDiario }: Props & { convidar: boole
   );
 }
 
-export function Chegada({ aoEntrar, aoDiario }: Props) {
+export function Chegada({ aoEntrar, aoDiario, depoisDoApp }: PropsChegada) {
   const { estado } = useLoja();
   const email = estado.usuario?.email ?? '';
   const hoje = iso();
@@ -98,7 +102,9 @@ export function Chegada({ aoEntrar, aoDiario }: Props) {
       try { convidado = (await AsyncStorage.getItem(CHAVE_CONVITE)) === '1'; } catch { /* sem registro: ainda não convidou */ }
       if (!vivo) return;
       const respondeu = estado.recados.some((r) => iso(new Date(r.criado)) === hoje);
-      setConvidar(escutaDisponivel() && !escutaLigada() && !convidado);
+      const convidarAgora = escutaDisponivel() && !escutaLigada() && !convidado;
+      if (depoisDoApp && (respondeu || passou) && !convidarAgora) { aoEntrar(); return; }   // nada a perguntar: não interrompe
+      setConvidar(convidarAgora);
       setModo(respondeu || passou ? 'cumprimento' : 'pergunta');
     })();
     return () => { vivo = false; };
