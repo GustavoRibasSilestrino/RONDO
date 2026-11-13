@@ -9,6 +9,7 @@ import React, { useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import type { Estado, Usuario } from '../tipos';
 import type { ResultadoSocial } from '../api/loginSocial';
+import { atrasoDaAbertura } from '../lib/abertura';
 import { contaPedida } from '../lib/entrada';
 import { CadastroSocial } from './CadastroSocial';
 import { Apresentacao } from './Apresentacao';
@@ -47,8 +48,8 @@ export function Login({ aoEntrar }: { aoEntrar: (usuario: Usuario, extra?: Parti
   }, []);
 
   if (apresentando) {
-    /* no celular espera a abertura (a tela preta com o nome RONDO) sumir antes de a bolha nascer */
-    return <Apresentacao atraso={NA_WEB ? 0 : 1800} aoContinuar={() => { apresentou = true; setApresentando(false); }} />;
+    /* espera a abertura (a tela preta com o nome RONDO) sumir antes de a bolha nascer, no celular e no navegador */
+    return <Apresentacao atraso={atrasoDaAbertura()} aoContinuar={() => { apresentou = true; setApresentando(false); }} />;
   }
   if (pendente) return <CadastroSocial tokenSocial={pendente.tokenSocial} nome={pendente.nome} email={pendente.email} aoVoltar={() => setPendente(null)} aoConcluir={aoEntrar} />;
   if (tela === 'inicio') return <Inicio aoCriar={() => setTela('cadastro')} aoEntrar={() => setTela('entrar')} aoSocial={aoSocial} />;

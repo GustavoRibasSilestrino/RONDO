@@ -8,7 +8,7 @@ import { Mark } from "./ui";
 
 export const CONTATO = "rondooficial.dev@gmail.com";
 export const RESPONSAVEL = "Gustavo Ribas Silestrino";
-const ATUALIZADO = "12 de novembro de 2026";
+const ATUALIZADO = "13 de novembro de 2026";
 
 const Email = () => <a href={`mailto:${CONTATO}`}>{CONTATO}</a>;
 
@@ -82,10 +82,21 @@ function Privacidade() {
       </ul>
       <h3>O que fica só no seu aparelho</h3>
       <ul>
-        <li>Os áudios dos recados de voz. Eles não vão para o nosso servidor. O servidor guarda só a lista: a pergunta, a duração, as datas e o caminho do arquivo dentro do seu aparelho.</li>
+        <li>Os áudios dos recados de voz, as respostas que você dá ao RONDIN e guarda no diário. Eles não vão para o nosso servidor. O servidor guarda só a lista: a pergunta, a duração, as datas, a ordem da conversa e o caminho do arquivo dentro do seu aparelho.</li>
         <li>Fotos que você escolheu mas não publicou.</li>
         <li>A imagem da câmera na análise da execução. O vídeo é analisado no próprio aparelho, quadro a quadro, e não é gravado nem enviado a ninguém. Para a análise funcionar, o aparelho baixa uma vez o programa que reconhece o corpo, do jsDelivr (cdn.jsdelivr.net) e do Google (storage.googleapis.com); esses serviços recebem o seu endereço de internet nesse download, como em qualquer página.</li>
       </ul>
+      <h3>Chamar o RONDIN pela voz (só no navegador)</h3>
+      <p>
+        No RONDO aberto no navegador, você pode ligar a escuta do “Olá Rondin”, para o RONDIN aparecer quando você o chama. Ela
+        vem desligada e só liga se você aceitar, em Configurações ou no convite que o RONDIN faz uma vez; o navegador pede a
+        permissão do microfone nesse momento. Com ela ligada, o microfone escuta enquanto o app está aberto e à vista, e para
+        quando o RONDIN fala ou você grava um recado. Quem transforma a fala em texto é o próprio navegador: no Chrome, o áudio é
+        enviado ao serviço de voz do Google para isso, e o Google o trata pela política dele. O RONDO não grava, não guarda e não
+        recebe esse áudio nem o texto: o texto só serve, na hora, para achar o nome “Rondin” e para o RONDIN reagir às suas
+        respostas do recado, e depois é descartado. Você desliga quando quiser, em Configurações. No aplicativo do celular essa
+        escuta não existe.
+      </p>
       <h3>Cadastro de profissional</h3>
       <p>Nome, e-mail, conselho (CRN ou CREF), número do registro e UF, para conferir o registro na consulta pública do conselho.</p>
       <h3>O que não coletamos</h3>

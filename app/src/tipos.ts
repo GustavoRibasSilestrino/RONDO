@@ -84,6 +84,10 @@ export type Recado = {
   segundos: number;
   uri: string;
   onda?: number[];   // o volume da gravação resumido em barras (0 a 1), para desenhar a onda
+  /* uma conversa com o RONDIN guarda uma resposta por vez: `grupo` é o id da conversa (as mesmas respostas do dia) e `turno`
+     a ordem (1 = a pergunta do dia, 2 = a segunda pergunta). Recados antigos não têm nenhum dos dois. */
+  grupo?: string;
+  turno?: number;
 };
 
 /* O lado público do perfil: descrição, títulos exibidos (ids de lib/nivel.ts) e publicações em destaque (ids de Post). */

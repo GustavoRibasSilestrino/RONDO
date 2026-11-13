@@ -34,7 +34,9 @@ No app, a exclusão fica em Configurações > Conta e segurança > Apagar conta.
 
 Não coletado: localização, contatos, dados financeiros, histórico de navegação, IDs de publicidade, registros de falhas e diagnósticos.
 
-Áudio dos recados de voz: **não é coletado** (fica só no aparelho, nunca vai para o servidor).
+Áudio dos recados de voz: **não é coletado** (fica só no aparelho, nunca vai para o servidor). O servidor guarda só a lista dos recados (a pergunta, a duração, as datas e a ordem da conversa).
+
+"Olá Rondin" (chamar o RONDIN pela voz) existe **só na versão do navegador** (`userondo.vercel.app/app`), vem desligado e só liga se a pessoa aceitar. **Não existe no app das lojas**: ali o microfone é usado apenas para gravar as respostas do recado, a pedido da pessoa, e o áudio fica no aparelho. Se um dia a escuta chegar ao app (precisaria de um módulo nativo de reconhecimento de fala), isto muda: o reconhecimento pode enviar áudio a um serviço de fala (Apple ou Google), e aí é preciso declarar "Áudio" como coletado nos dois formulários, atualizar o manifesto de privacidade do iOS e a Política de Privacidade.
 
 Público-alvo: o app aceita menores com autorização de um responsável. Se marcar faixas abaixo de 13 anos, o Google aplica a política "Famílias", que tem exigências próprias: confira antes de publicar.
 

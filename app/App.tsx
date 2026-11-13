@@ -12,7 +12,9 @@ import { FundoCena, cenaDaTela } from './src/componentes/FundoCena';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
 import { BotaoVoltar } from './src/componentes/BotaoVoltar';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
+import { Chegada } from './src/componentes/Chegada';
 import { Icone } from './src/componentes/Icone';
+import { RondinChamado } from './src/componentes/RondinChamado';
 import { MenuLateral } from './src/componentes/MenuLateral';
 import { tirarCarregando } from './src/lib/carregando';
 import { useMenuRecolhido } from './src/lib/largura';
@@ -22,10 +24,14 @@ import { SeloSequencia } from './src/componentes/SeloSequencia';
 import { AvisoProvider } from './src/componentes/Estrutura';
 import { T } from './src/componentes/Ui';
 import { estadoVazio, LojaProvider, useLoja } from './src/estado/loja';
+import { useEscutaDoChamado } from './src/lib/escuta';
+import { voltarInterceptado } from './src/lib/interceptarVoltar';
 import { naoLidas, useNotificacoes } from './src/lib/notificacoes';
+import { achaSotaque, sotaquePadrao, type Idioma } from './src/lib/rondinVoz';
 import { Colecoes } from './src/telas/Colecoes';
 import { CriarPlano } from './src/telas/CriarPlano';
 import { Dieta } from './src/telas/Dieta';
+import { Diario } from './src/telas/Diario';
 import { Evolucao } from './src/telas/Evolucao';
 import { Hoje } from './src/telas/Hoje';
 import { Login } from './src/telas/Login';
@@ -36,8 +42,6 @@ import { Social } from './src/telas/Social';
 import { Treino } from './src/telas/Treino';
 import { nivelDe, xpTotal } from './src/lib/nivel';
 import { cores, estilos } from './src/tema';
-
-const NO_CELULAR = Platform.OS !== 'web';
 
 /* o app abre no Início (o feed), e o botão voltar do Android leva para ele */
 const INICIO = 'home';
@@ -52,7 +56,7 @@ const TELAS: ItemAba[] = [
 ];
 
 /* telas que moram dentro do Perfil: a barra mantém o Perfil aceso e o voltar leva para ele */
-const DO_PERFIL = ['hoje', 'evolucao', 'colecoes', 'recado'];
+const DO_PERFIL = ['hoje', 'evolucao', 'colecoes', 'recado', 'diario'];
 
 function Raiz() {
   const { estado, pronto: dadosProntos, commit, puxarDoServidor } = useLoja();
@@ -64,6 +68,12 @@ function Raiz() {
   const [antes, setAntes] = useState(INICIO);   // a aba em que a pessoa estava ao abrir as notificações: o sino volta para ela
   const [voltarPara, setVoltarPara] = useState('perfil');   // de onde a pessoa veio ao abrir Hoje, Evolução, Recado ou Coleções: o voltar leva para lá (o recado do feed volta para o feed)
   const [buscando, setBuscando] = useState(false);   // a busca de pessoas, aberta pela lupa (no alto do app, ou no canto do feed no computador)
+  /* a chegada: toda vez que a pessoa abre o app, depois da abertura preta, o RONDIN aparece (componentes/Chegada.tsx) */
+  const [chegando, setChegando] = useState(true);
+  /* "Olá Rondin": a língua em que ele foi chamado, ou null (lib/escuta.ts; só no navegador, e só se a pessoa ligou) */
+  const [chamado, setChamado] = useState<Idioma | null>(null);
+  const idiomaRondin: Idioma = estado.perfilFit ? achaSotaque(estado.perfilFit.sotaque).idioma : sotaquePadrao().idioma;
+  useEscutaDoChamado({ ativo: pronto && !!estado.usuario, idioma: idiomaRondin, aoChamar: (i) => setChamado(i ?? idiomaRondin) });
   useNotificacoes();
   const { largo, comPainel } = useLayoutLargo();   // computador: menu lateral no lugar da barra e do cabeçalho
   const [menuRecolhido, alternarMenu] = useMenuRecolhido();
@@ -71,19 +81,21 @@ function Raiz() {
   /* botão voltar do Android: de qualquer tela volta para o início; no início, sai do app */
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (voltarInterceptado()) return true;   // a conversa do recado cuida do próprio voltar
+      if (chamado) { setChamado(null); return true; }
       if (tela === 'notificacoes') { setTela(antes); return true; }
       if (tela === INICIO) return false;
       setTela(DO_PERFIL.includes(tela) ? voltarPara : INICIO);
       return true;
     });
     return () => sub.remove();
-  }, [tela, antes, voltarPara]);
+  }, [tela, antes, voltarPara, chamado]);
 
   if (!pronto) {
-    /* o nome na tela preta é a abertura do app do celular; no navegador fica só o preto, até a tela aparecer */
+    /* enquanto carrega: a tela preta com o nome RONDO, igual à abertura (no navegador, igual à tela de carregamento) */
     return (
       <View style={st.centro}>
-        {NO_CELULAR ? <T tam={30} peso="200" style={{ letterSpacing: 10 }}>RONDO</T> : null}
+        <T tam={30} peso="200" style={{ letterSpacing: 10 }}>RONDO</T>
       </View>
     );
   }
@@ -104,6 +116,7 @@ function Raiz() {
           });
           void puxarDoServidor();   // traz os treinos, a dieta e o resto desta conta que estão no servidor
           setTela(INICIO);
+          setChegando(true);        // recém-entrou: o RONDIN aparece já fazendo a pergunta do dia
         }}
       />
     );
@@ -126,11 +139,12 @@ function Raiz() {
       {tela === 'dieta' && <><Dieta /><CriarPlano tipo="dieta" /></>}
       {tela === 'hoje' && <Hoje ir={irPara} />}
       {tela === 'evolucao' && <Evolucao />}
-      {tela === 'recado' && <Recado />}
+      {tela === 'recado' && <Recado aoSair={() => setTela(voltarPara)} aoDiario={() => irPara('diario')} />}
+      {tela === 'diario' && <Diario ir={irPara} />}
       {tela === 'colecoes' && <Colecoes />}
       {tela === 'notificacoes' && <Notificacoes />}
       {tela === 'perfil' && <Perfil ir={irPara} />}
-      {DO_PERFIL.includes(tela) ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
+      {DO_PERFIL.includes(tela) && tela !== 'recado' ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
       {largo ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} mostrarNome={tela === 'home'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
       {largo ? null : <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />}
       {/* computador: a joia da sequência fica no canto de cima, à esquerda da área (no celular ela mora no cabeçalho) */}
@@ -144,6 +158,14 @@ function Raiz() {
       </View>
       {comPainel ? <PainelLateral ir={setTela} /> : null}
       <AvisoNivel />
+      {/* o RONDIN por cima de tudo: chamado pela voz ("Olá Rondin") ou, ao abrir o app, perguntando o recado do dia */}
+      {chamado ? (
+        <RondinChamado
+          idioma={chamado} aoFechar={() => setChamado(null)}
+          aoRecado={() => { setChamado(null); irPara('recado'); }} aoDiario={() => { setChamado(null); irPara('diario'); }}
+        />
+      ) : null}
+      {chegando ? <Chegada aoEntrar={() => setChegando(false)} aoDiario={() => { setChegando(false); irPara('diario'); }} /> : null}
     </View>
   );
 }
@@ -173,8 +195,8 @@ export default function App() {
             <Raiz />
           </AvisoProvider>
         </LojaProvider>
-        {/* a abertura (tela preta com o nome RONDO em branco) é só do app do celular, quando ele abre; no navegador não aparece */}
-        {NO_CELULAR ? <Abertura /> : null}
+        {/* a abertura: a tela preta com o nome RONDO em branco, toda vez que o app abre, no celular e no navegador; depois dela vem o RONDIN */}
+        <Abertura />
         <StatusBar style="light" />
       </View>
     </SafeAreaProvider>

@@ -18,12 +18,14 @@ import { ComunidadeSeguranca, FilaDenuncias } from './Comunidade';
 import { ContaSeguranca } from './ContaSeguranca';
 import { Privacidade } from './Privacidade';
 import { SeusDados } from './SeusDados';
+import { VozDoRondin } from './VozDoRondin';
 
-type Secao = 'dados' | 'beneficios' | 'comunidade' | 'denuncias' | 'privacidade' | 'conta';
+type Secao = 'dados' | 'beneficios' | 'voz' | 'comunidade' | 'denuncias' | 'privacidade' | 'conta';
 
 const ITENS: { id: Secao; titulo: string; sub: string; icone: NomeIcone }[] = [
   { id: 'dados', titulo: 'Seus dados', sub: 'Medidas, atividade e objetivo', icone: 'perfil' },
   { id: 'beneficios', titulo: 'Benefícios por nível', sub: 'O que cada nível libera', icone: 'estrela' },
+  { id: 'voz', titulo: 'RONDIN pela voz', sub: 'Chamar dizendo “Olá Rondin”', icone: 'recado' },
   { id: 'comunidade', titulo: 'Comunidade e segurança', sub: 'Regras, pessoas bloqueadas e contato', icone: 'alerta' },
   { id: 'denuncias', titulo: 'Denúncias', sub: 'Só você vê: analisar e decidir', icone: 'alerta' },
   { id: 'privacidade', titulo: 'Privacidade e dados', sub: 'E-mails, baixar seus dados e documentos', icone: 'olho' },
@@ -107,6 +109,7 @@ export function Configuracoes({ aberto, aoFechar }: Props) {
               </View>
             ) : null}
 
+            {secao === 'voz' ? <VozDoRondin /> : null}
             {secao === 'comunidade' ? <ComunidadeSeguranca /> : null}
             {secao === 'denuncias' ? <FilaDenuncias /> : null}
             {secao === 'privacidade' ? <Privacidade /> : null}

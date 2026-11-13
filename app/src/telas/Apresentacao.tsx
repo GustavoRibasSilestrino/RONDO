@@ -19,7 +19,7 @@ const BOTAO = { pt: 'Vamos lá', en: "Let's go", es: 'Vamos' };
 
 type Props = {
   aoContinuar: () => void;
-  atraso?: number;   // ms antes de começar (no celular, o tempo da abertura sumir)
+  atraso?: number;   // ms antes de começar (o tempo de a abertura preta sumir, lib/abertura.ts)
 };
 
 export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
@@ -34,8 +34,8 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
   const [duracaoMs, setDuracaoMs] = useState(0);
   const [pronto, setPronto] = useState(false);       // a frase toda apareceu: mostra o botão
   const [chave, setChave] = useState(0);
-  /* no navegador o RONDIN já está na tela de carregamento: aparece direto, sem nascer de novo */
-  const nasce = useRef(new Animated.Value(Platform.OS === 'web' ? 1 : 0)).current;
+  /* o RONDIN nasce depois da abertura preta (o nome RONDO), no celular e no navegador */
+  const nasce = useRef(new Animated.Value(0)).current;
   const botao = useRef(new Animated.Value(0)).current;
   const nativo = Platform.OS !== 'web';
   const tamanho = Math.round(Math.min(width * 0.8, height * 0.46, 380));
@@ -50,7 +50,7 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
     const inicio = setTimeout(() => {
       Animated.timing(nasce, { toValue: 1, duration: reduzido ? 1 : 900, easing: Easing.out(Easing.cubic), useNativeDriver: nativo }).start();
       /* ele começa a falar sozinho, logo depois de nascer */
-      setTimeout(() => { setComecou(true); apresentar(); }, reduzido || Platform.OS === 'web' ? 150 : 700);
+      setTimeout(() => { setComecou(true); apresentar(); }, reduzido ? 150 : 700);
     }, atraso);
     return () => { clearTimeout(inicio); parar(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps

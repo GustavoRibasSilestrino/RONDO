@@ -39,7 +39,8 @@
     "typecheck": "tsc --noEmit",
     "export:web": "expo export --platform web",
     "vozes": "node --experimental-strip-types --no-warnings scripts/gerar-vozes.mjs",
-    "textos": "node --experimental-strip-types --no-warnings scripts/conferir-textos.mjs"
+    "textos": "node --experimental-strip-types --no-warnings scripts/conferir-textos.mjs",
+    "testar:rondin": "node --experimental-strip-types --no-warnings scripts/testar-rondin.mjs"
   },
   "private": true
 }

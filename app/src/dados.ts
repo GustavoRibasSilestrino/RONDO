@@ -98,19 +98,4 @@ export const OBJETIVOS = [
   { valor: 1.1, nome: 'Ganhar' },
 ];
 
-/* ---------- recado de voz ---------- */
-export const PERGUNTAS = [
-  'Do que você tem orgulho esta semana?',
-  'Por que você está começando agora?',
-  'O que te tirou do sério hoje?',
-  'Qual treino você quase pulou e fez mesmo assim?',
-  'Como você quer se sentir daqui a 90 dias?',
-  'O que você diria para quem você era ontem?',
-  'Qual hábito pequeno está funcionando para você?',
-];
-export const PRAZOS_RECADO = [
-  { dias: 30, nome: '30 dias' },
-  { dias: 90, nome: '90 dias' },
-  { dias: 180, nome: '6 meses' },
-  { dias: 365, nome: '1 ano' },
-];
+/* As perguntas do recado de voz moram em lib/perguntas.ts (perguntas de filosofia, nas três línguas do RONDIN). */
