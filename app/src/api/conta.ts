@@ -34,6 +34,7 @@ export async function entrar(email: string, senha: string): Promise<Usuario> {
       throw new Error(/banida/i.test(detalhe) ? detalhe : 'E-mail ou senha incorretos.');
     }
     if (resposta.status === 401) throw new Error('E-mail ou senha incorretos.');
+    if (resposta.status === 429) throw new Error('Muitas tentativas em pouco tempo. Espere um minuto e tente de novo.');   // o servidor limita o login por minuto
     if (!resposta.ok) throw new Error('Não foi possível entrar agora. Tente de novo.');
     const dados = (await resposta.json()) as { email?: string; nome?: string; token?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; arroba?: string | null; foto?: string | null };
     if (dados.token) await guardarToken(dados.token);

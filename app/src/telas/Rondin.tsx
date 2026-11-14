@@ -362,8 +362,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
     setErro(''); setEnviando(true);
     try {
       const usuario = await entrar(email.trim(), senha);
-      setFase('trabalhando');
-      dizer([{ modelo: falasDe(idioma).deVolta, valores: { nome: usuario.nome.trim().split(/\s+/)[0] || tx.campeao } }], () => aoEntrar(usuario));
+      aoEntrar(usuario);   // entra na hora, como no cadastro: esperar a saudação falada atrasava o app em vários segundos
     } catch (e) {
       const msg = traduzirErro(e instanceof Error ? e.message : 'Não foi possível entrar. Tente de novo.', idioma);
       setErro(msg); setEnviando(false);
