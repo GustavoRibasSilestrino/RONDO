@@ -130,8 +130,6 @@ img, svg, video, canvas { max-width: 100%; }
   .day-tab { min-height: 3.05rem; }
   .key .k { width: .55rem; height: .55rem; }
   .day-seta { width: max(44px, 2.81rem); height: max(44px, 2.81rem); }
-  .day-seta.ant { left: -.37rem; }
-  .day-seta.prox { right: -.37rem; }
   .day-seta svg { width: 1.34rem; height: 1.34rem; }
 }
 

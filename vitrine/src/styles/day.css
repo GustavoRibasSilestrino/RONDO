@@ -94,6 +94,12 @@
 .day-seta svg { width: 26px; height: 26px; }
 .day-seta:hover:not(:disabled) { transform: scale(1.06); border-color: rgba(196, 168, 255, .7); }
 .day-seta:disabled { opacity: .25; cursor: default; }
+/* tela larga: as setas saem para fora do conteúdo, longe do texto e do cartão (pedido do dono, 2026-11-16) */
+@media (min-width: 1100px) {
+  /* até 88px para fora, mas nunca a menos de 24px da borda da tela ((100% - 100vw) / 2 é a distância até ela) */
+  .day-seta.ant { left: max(-88px, calc((100% - 100vw) / 2 + 24px)); }
+  .day-seta.prox { right: max(-88px, calc((100% - 100vw) / 2 + 24px)); }
+}
 
 /* celular: título e relógio em cima, texto em cima do cartão, as abas vão de ponta a ponta */
 @media (max-width: 760px) {
@@ -103,11 +109,11 @@
   .moment h3 { font-size: clamp(2.2rem, 11vw, 3rem); }
   .m-text p { margin: .5rem auto 0; font-size: .95rem; }
   .m-ui { width: min(100%, 360px); padding: 1rem; }
-  /* celular: o palco ocupa a largura toda e as setas ficam por cima das bordas */
-  .day-stage { padding-inline: 0; }
-  .day-seta { width: 46px; height: 46px; top: 38%; }
-  .day-seta.ant { left: -6px; }
-  .day-seta.prox { right: -6px; }
+  /* celular: o palco ocupa a largura toda e as setas descem para baixo do cartão, lado a lado, sem cobrir nada
+     (antes ficavam por cima das bordas das imagens) */
+  .day-stage { padding-inline: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: .9rem; }
+  .day-track { order: 0; flex: 0 0 100%; min-width: 0; }
+  .day-seta { order: 1; position: static; translate: none; width: 46px; height: 46px; }
   .day-seta svg { width: 22px; height: 22px; }
 }
 
