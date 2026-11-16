@@ -3,9 +3,9 @@ import { Backdrop } from "./components/Backdrop";
 import { Compare } from "./components/Compare";
 import { Constancia } from "./components/Constancia";
 import { Day } from "./components/Day";
-import { GymScene } from "./components/GymScene";
 import { Hero } from "./components/Hero";
 import { Nav } from "./components/Nav";
+import { PastasTreino } from "./components/PastasTreino";
 import { Recado } from "./components/Recado";
 import { RondinFlutuante } from "./components/RondinFlutuante";
 import { Clube, Entrar, Faq, Footer, Planos, Profissionais } from "./components/Sections";
@@ -30,7 +30,7 @@ export default function App() {
       <Nav />
       <main id="conteudo">
         <Hero />
-        <GymScene />
+        <PastasTreino />
         <Day />
         <Compare />
         <Recado />

@@ -1,0 +1,84 @@
+/* ===== As pastas do treino (components/PastasTreino.tsx) =====
+   No lugar da cena dos aparelhos em 3D (2026-11-16). Três pastas de papel em cores chapadas, como as de um fichário de
+   academia: a aberta vem para a frente e mostra os exercícios; o RONDIN fica no canto da folha e explica a carga de hoje.
+   Sem animação de rolagem. Cada pasta traz a sua cor (--cor) e a cor da tinta escura que lê bem sobre ela (--tinta). */
+.pastas { position: relative; padding: clamp(4.5rem, 9vw, 8rem) 0; }
+.pastas-grade { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(2rem, 5vw, 5rem); align-items: center; }
+
+.pastas-titulo { font-size: clamp(1.7rem, 3.2vw, 2.9rem); line-height: 1.1; color: var(--ink); }
+.pastas-titulo span { display: block; }
+.pastas-titulo span:nth-child(1) { color: #ff8a65; }
+.pastas-titulo span:nth-child(2) { color: #7fd6ff; }
+.pastas-titulo span:nth-child(3) { color: #d6f566; }
+.pastas-lead { margin: 1.4rem 0 2rem; max-width: 40ch; color: var(--ink-2); font-size: clamp(1rem, 1.2vw, 1.1rem); line-height: 1.6; }
+
+/* a mesa: as abas em cima, a folha da pasta aberta embaixo */
+.pastas-mesa { position: relative; }
+.pastas-abas { display: flex; gap: .4rem; padding-left: 1.2rem; position: relative; z-index: 1; }
+.pastas-aba {
+  appearance: none; border: 0; cursor: pointer; font: inherit; font-weight: 600; font-size: .95rem; letter-spacing: -.005em;
+  padding: .8rem 1.25rem 1rem; margin-bottom: -.35rem; border-radius: 14px 14px 0 0;
+  background: var(--cor); color: var(--tinta);
+  filter: saturate(.75) brightness(.78); transform: translateY(.35rem);
+  transition: transform .18s cubic-bezier(.2, .8, .2, 1), filter .18s;
+}
+.pastas-aba:hover { filter: saturate(.9) brightness(.9); transform: translateY(.15rem); }
+.pastas-aba.is-aberta { filter: none; transform: none; }
+.pastas-aba:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+.pastas-folha {
+  position: relative; z-index: 2; background: var(--cor); color: var(--tinta);
+  border-radius: 6px 22px 22px 22px; padding: clamp(1.4rem, 3vw, 2.2rem) clamp(1.2rem, 3vw, 2.2rem) 1.4rem;
+  box-shadow: 0 30px 60px -28px rgba(0, 0, 0, .85), 0 2px 0 rgba(255, 255, 255, .25) inset;
+}
+.pastas-cabeca h3 { font-family: var(--font-titulo); font-weight: 400; font-size: clamp(1.4rem, 2.6vw, 2.2rem); line-height: 1.05; }
+.pastas-cabeca p { margin-top: .45rem; font-size: .95rem; opacity: .78; }
+
+.pastas-colunas, .pastas-linha { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, .9fr); gap: .8rem; align-items: center; }
+.pastas-colunas { margin-top: 1.4rem; padding: 0 .9rem .5rem; font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+.pastas-colunas span:last-child, .pastas-hoje { text-align: right; }
+.pastas-lista { list-style: none; display: grid; gap: .35rem; }
+.pastas-linha {
+  appearance: none; width: 100%; border: 0; cursor: pointer; text-align: left; font: inherit; color: inherit;
+  padding: .85rem .9rem; border-radius: 12px; background: rgba(255, 255, 255, .28);
+  transition: background .15s;
+}
+.pastas-linha:hover { background: rgba(255, 255, 255, .42); }
+.pastas-linha.is-escolhido { background: var(--tinta); color: var(--cor); }
+.pastas-linha:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
+.pastas-nome, .pastas-ontem, .pastas-hoje { display: grid; gap: .15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.pastas-nome { font-size: 1rem; }
+.pastas-ontem, .pastas-hoje { font-size: 1.05rem; }
+.pastas-hoje { font-size: 1.2rem; }
+.pastas-linha small { font-size: .8rem; font-weight: 400; opacity: .78; }
+.pastas-hoje small.is-sobe { font-weight: 700; opacity: 1; }
+
+/* o RONDIN no canto da folha, com o balão de fala */
+.pastas-rondin { display: flex; align-items: flex-end; justify-content: flex-end; gap: .8rem; margin-top: 1.3rem; }
+.pastas-fala {
+  position: relative; max-width: 34ch; padding: .9rem 1.1rem; border-radius: 16px 16px 4px 16px;
+  background: #0d0919; color: #f1eefb; font-size: .95rem; line-height: 1.5;
+  box-shadow: 0 14px 30px -16px rgba(0, 0, 0, .7);
+}
+.pastas-orbe { display: grid; justify-items: center; gap: .2rem; flex: none; }
+.pastas-orbe canvas { width: 72px; height: 72px; border-radius: 50%; background: radial-gradient(closest-side, #1c1233, #07040e); }
+.pastas-orbe span { font-size: .68rem; font-weight: 700; letter-spacing: .18em; }
+
+@media (max-width: 960px) {
+  .pastas-grade { grid-template-columns: minmax(0, 1fr); }
+  .pastas-texto { text-align: left; }
+}
+@media (max-width: 640px) {
+  .pastas-titulo { font-size: 1.85rem; }
+  .pastas-abas { padding-left: .4rem; gap: .3rem; }
+  .pastas-aba { font-size: .85rem; padding: .7rem .8rem .9rem; flex: 1 1 0; line-height: 1.2; }
+  .pastas-folha { border-radius: 6px 6px 20px 20px; }
+  .pastas-colunas, .pastas-linha { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, .9fr); gap: .5rem; }
+  .pastas-linha { padding: .75rem .65rem; }
+  .pastas-nome { font-size: .92rem; }
+  .pastas-ontem { font-size: .95rem; }
+  .pastas-hoje { font-size: 1.05rem; }
+  .pastas-fala { font-size: .9rem; }
+  .pastas-orbe canvas { width: 60px; height: 60px; }
+}
+@media (prefers-reduced-motion: reduce) { .pastas-aba, .pastas-linha { transition: none; } }
