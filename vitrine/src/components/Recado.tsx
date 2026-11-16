@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { desenharOrbe, esfera } from "../lib/orbe";
+import poster3d from "../assets/rondin/rondin-3d.jpg";
+import video3d from "../assets/rondin/rondin-3d.mp4";
 import { APP_CRIAR } from "../lib/rotas";
 import { Btn } from "./ui";
 
@@ -26,17 +27,24 @@ type Fase = "pergunta" | "gravando" | "segunda" | "gravando2" | "fim" | "guardad
 
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
+/* o RONDIN em 3D (o vídeo feito no Blender, brand/rondin-3d/, desde 2026-11-16): a esfera girando, em laço, sem som. O fundo
+   preto do vídeo some com `mix-blend-mode: screen`, então só os pontos aparecem sobre o painel. Para quem pediu menos
+   movimento no sistema, fica parado no primeiro quadro. */
 function Orbe({ tamanho }: { tamanho: number }) {
-  const ref = useRef<HTMLCanvasElement>(null);
+  const ref = useRef<HTMLVideoElement>(null);
   useEffect(() => {
-    const c = ref.current, ctx = c?.getContext("2d");
-    if (!c || !ctx) return;
-    const dpr = Math.min(2, devicePixelRatio || 1);
-    c.width = c.height = tamanho * dpr;
-    ctx.scale(dpr, dpr);
-    desenharOrbe(ctx, esfera(tamanho > 80 ? 420 : 190), 2.4, 0.1, tamanho);
-  }, [tamanho]);
-  return <canvas ref={ref} className="conversa-orbe" style={{ width: tamanho, height: tamanho }} aria-hidden="true" />;
+    const v = ref.current;
+    if (!v) return;
+    const menos = matchMedia("(prefers-reduced-motion: reduce)");
+    const aplicar = () => { if (menos.matches) v.pause(); else v.play().catch(() => {}); };
+    aplicar();
+    menos.addEventListener("change", aplicar);
+    return () => menos.removeEventListener("change", aplicar);
+  }, []);
+  return (
+    <video ref={ref} className="conversa-orbe" src={video3d} poster={poster3d} width={tamanho} height={tamanho}
+      style={{ width: tamanho, height: tamanho }} muted loop playsInline preload="auto" aria-hidden="true" />
+  );
 }
 
 /* a onda da resposta: barras paradas, com a altura sorteada uma vez (e crescendo enquanto a gravação corre) */
@@ -89,7 +97,7 @@ function Conversa() {
     <div className="conversa">
       <div className="conversa-falas" ref={fim} aria-live="polite">
         <div className="conversa-cena">
-          <Orbe tamanho={112} />
+          <Orbe tamanho={124} />
           <b>RONDIN</b>
           <span>A pergunta de hoje</span>
         </div>
