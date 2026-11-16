@@ -38,24 +38,35 @@ export function barraDoEspectro(i: number, t: number, amp: number): number {
 }
 
 /* preenche `saida` (n * CAMPOS) com a posição e o brilho de cada ponto no instante t; raio R em pixels, centro (cx, cy).
-   `incl` é o quanto a esfera está tombada para a frente e `desvio` um giro a mais: é por eles que o orbe acompanha o cursor. */
-export function quadro(pts: Pontos, t: number, amp: number, R: number, cx: number, cy: number, saida: Float32Array, incl = 0.42, desvio = 0): void {
+   `incl` é o quanto a esfera está tombada para a frente e `desvio` um giro a mais: é por eles que o orbe acompanha o cursor.
+   `fala` (desde 2026-11-16): as ondas da voz. Recebe a distância de cada ponto até o centro da frente da esfera (0 no
+   meio, 1 no ponto oposto, atrás) e devolve a força da voz que chegou ali (0 a 1). Quem chama guarda o nível da voz dos
+   últimos instantes: o que ele disse agora sai do meio, e o que disse há pouco já está mais longe, então cada sílaba vira
+   um anel que se abre pela esfera. Nos anéis os pontos saltam para fora e acendem. */
+export function quadro(pts: Pontos, t: number, amp: number, R: number, cx: number, cy: number, saida: Float32Array, incl = 0.42, desvio = 0, fala?: (d: number) => number): void {
   const n = pts.length / 3;
-  const giro = t * 0.34 + desvio;
+  const giro = t * 0.22 + desvio;   // giro mais lento (2026-11-16)
   const cg = Math.cos(giro), sg = Math.sin(giro);
   const ci = Math.cos(incl), si = Math.sin(incl);
-  const onda = 0.05 + 0.2 * amp;       // quanto a superfície ondula
+  const onda = 0.04 + 0.09 * amp;      // quanto a superfície ondula (mais contido desde 2026-11-16, a pedido do dono)
   const escala = R / 150;
   for (let i = 0; i < n; i += 1) {
     const x = pts[i * 3], y = pts[i * 3 + 1], z = pts[i * 3 + 2];
-    const volume = 1 + onda * Math.sin(y * 5.5 + x * 2 + t * (1.8 + amp * 2.6));
+    let anel = 0;
+    if (fala) {
+      const zFrente = y * si + (-x * sg + z * cg) * ci;   // o quanto o ponto está virado para quem olha (1 = bem no meio)
+      const d = Math.acos(Math.max(-1, Math.min(1, zFrente))) / Math.PI;
+      const forca = fala(d);
+      if (forca > 0.003) anel = forca * (0.5 + 0.5 * Math.sin(d * 18 - t * 4.5));   // anéis largos e lentos, que se abrem devagar
+    }
+    const volume = (1 + onda * Math.sin(y * 5.5 + x * 2 + t * (1.1 + amp * 0.7))) * (1 + 0.07 * anel);
     const xr = (x * cg + z * sg) * volume;
     const zr = (-x * sg + z * cg) * volume;
     const yr = y * volume;
     const y2 = yr * ci - zr * si;
     const z2 = yr * si + zr * ci;
-    const faixa = 0.5 + 0.5 * Math.sin(y * 8.5 + x * 2.2 + t * 1.5 + amp * 1.5);   // as faixas de luz
-    const luz = faixa * faixa;
+    const faixa = 0.5 + 0.5 * Math.sin(y * 8.5 + x * 2.2 + t * 0.9 + amp * 0.8);   // as faixas de luz
+    const luz = Math.min(1, faixa * faixa + 0.45 * anel);   // os anéis da voz acendem, sem ofuscar
     const frente = z2 > 0;
     const prof = (z2 + 1.4) / 2.4;
     const o = i * CAMPOS;

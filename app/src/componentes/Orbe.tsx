@@ -1,21 +1,19 @@
-/* O orbe do RONDIN no celular. Desde 2026-11-16 a esfera é o vídeo do RONDIN 3D feito no Blender (brand/rondin-3d, em
-   assets/rondin/), girando em laço e sem som, pelo expo-video. No navegador usa Orbe.web.tsx. Com `hud`, a auréola de luz
-   roxa atrás, que cresce quando ele fala; a voz também aparece na esfera, que pulsa um pouco enquanto ele fala ou ouve.
-   O celular não tem o modo de mistura do navegador, então o vídeo fica recortado num círculo (o fundo dele é preto, como o
-   miolo da esfera). Tocar nele chama `aoPressionar`. Parado para quem pede menos movimento. */
-import { useVideoPlayer, VideoView } from 'expo-video';
-import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, View } from 'react-native';
+/* O orbe do RONDIN no celular: SVG com menos pontos e quadros espaçados, para não pesar. No navegador usa Orbe.web.tsx.
+   Só a esfera de pontos (a moldura de instrumento saiu em 2026-11-12); com `hud`, a auréola de luz roxa atrás.
+   Tocar nele chama `aoPressionar`. Enquanto ele fala, os pontos formam anéis que nascem no meio da esfera e se abrem até a
+   borda, no ritmo da fala (lib/orbe.ts, `fala`; no celular, o ritmo é simulado). */
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Pressable } from 'react-native';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
-import { EstadoOrbe, amplitude } from '../lib/orbe';
+import { CAMPOS, EstadoOrbe, amplitude, corDoPonto, esfera, quadro } from '../lib/orbe';
 import { useMovimentoReduzido } from '../lib/movimento';
 
-const VIDEO = require('../../assets/rondin/rondin-3d.mp4');
-const INTERVALO = 80;   // ms entre atualizações do pulsar (cerca de 12 por segundo: o giro é do próprio vídeo)
+const N = 360;
+const INTERVALO = 55;   // ms entre quadros (cerca de 18 por segundo)
 
 type Props = {
   tamanho: number; estado: EstadoOrbe;
-  hud?: boolean;                 // a auréola em volta da esfera
+  hud?: boolean;                 // a moldura de instrumento em volta da esfera
   pulso?: number;                // só no navegador (a onda a cada tecla)
   aoPressionar?: () => void;     // tocar no orbe
   rotulo?: string;               // o que o toque faz, para leitores de tela
@@ -23,49 +21,68 @@ type Props = {
 
 export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
   const reduzido = useMovimentoReduzido();
+  const pts = useMemo(() => esfera(N), []);
+  const saida = useMemo(() => new Float32Array(N * CAMPOS), []);
   const estadoRef = useRef(estado);
   estadoRef.current = estado;
-  const [amp, setAmp] = useState(0.06);
-  const player = useVideoPlayer(VIDEO, (p) => { p.loop = true; p.muted = true; });
+  const [, redesenhar] = useState(0);
+  const amp = useRef(0);
+  const t = useRef(2);
+  /* o ritmo da fala dos últimos quadros (cerca de 0,8 s): o mais novo sai do meio da esfera */
+  const hist = useRef(new Float32Array(36));   // ~2 s: os anéis se abrem devagar
+  const nivelSuave = useRef(0);
+  const posHist = useRef(0);
 
   useEffect(() => {
-    if (reduzido) player.pause(); else player.play();
-  }, [player, reduzido]);
-
-  useEffect(() => {
-    if (reduzido) { setAmp(0.06); return undefined; }
+    if (reduzido) { redesenhar((v) => v + 1); return undefined; }
     const t0 = Date.now();
-    let atual = 0;
     const id = setInterval(() => {
-      atual += (amplitude(estadoRef.current, (Date.now() - t0) / 1000) - atual) * 0.35;
-      setAmp((a) => (Math.abs(a - atual) > 0.004 ? atual : a));
+      t.current = (Date.now() - t0) / 1000;
+      amp.current += (amplitude(estadoRef.current, t.current) - amp.current) * 0.12;
+      nivelSuave.current += ((estadoRef.current === 'falando' ? Math.max(0, amplitude('falando', t.current) - 0.4) * 1.6 : 0) - nivelSuave.current) * 0.15;
+      hist.current[posHist.current] = nivelSuave.current;
+      posHist.current = (posHist.current + 1) % hist.current.length;
+      redesenhar((v) => v + 1);
     }, INTERVALO);
     return () => clearInterval(id);
   }, [reduzido]);
 
   const c = tamanho / 2;
-  const lado = Math.round(tamanho * 0.84);
+  const a = reduzido ? 0.06 : amp.current;
+  const H = hist.current.length;
+  const fala = reduzido ? undefined : (d: number) => (d >= 0.5 ? 0 : hist.current[(posHist.current - 1 - Math.min(H - 1, Math.floor((d / 0.5) * H)) + H * 2) % H] * (1 - d * 1.5));
+  quadro(pts, t.current, a, tamanho * 0.36, c, c, saida, 0.42, 0, fala);   // sem a moldura (tirada em 2026-11-12): só a esfera
+  /* o visual do RONDIN 3D (brand/rondin-3d): os pontos de trás, o miolo escuro, e os da frente com brilho nos acesos */
+  const bolinhas: React.ReactElement[] = [];
+  for (const passe of [0, 1]) {
+    if (passe === 1) bolinhas.push(<Circle key="miolo" cx={c} cy={c} r={tamanho * 0.36 * 0.97} fill="#05030a" opacity={0.86} />);
+    for (let i = 0; i < N; i += 1) {
+      const o = i * CAMPOS;
+      if (saida[o + 5] !== passe) continue;
+      if (passe === 1 && saida[o + 3] > 0.5) {
+        bolinhas.push(<Circle key={`b${i}`} cx={saida[o]} cy={saida[o + 1]} r={saida[o + 2] * 1.25 * 2.6} fill="#b080ff" opacity={Math.min(0.3, (saida[o + 3] - 0.5) * 0.6)} />);
+      }
+      bolinhas.push(
+        <Circle key={i} cx={saida[o]} cy={saida[o + 1]} r={Math.max(0.4, saida[o + 2] * 1.25)} fill={corDoPonto(saida[o + 4], saida[o + 3])} opacity={saida[o + 3]} />,
+      );
+    }
+  }
+
+  /* o destaque: uma auréola de luz roxa atrás da esfera, que cresce quando ele fala */
   const halo = hud ? (
-    <Svg width={tamanho} height={tamanho} style={{ position: 'absolute', left: 0, top: 0 }}>
+    <>
       <Defs>
         <RadialGradient id="halo-rondin" cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor="#b080ff" stopOpacity={Math.min(0.62, 0.34 + 0.22 * amp)} />
-          <Stop offset="0.45" stopColor="#7c3aed" stopOpacity={(0.34 + 0.22 * amp) * 0.42} />
+          <Stop offset="0" stopColor="#b080ff" stopOpacity={Math.min(0.62, 0.34 + 0.22 * a)} />
+          <Stop offset="0.45" stopColor="#7c3aed" stopOpacity={(0.34 + 0.22 * a) * 0.42} />
           <Stop offset="1" stopColor="#5b21b6" stopOpacity="0" />
         </RadialGradient>
       </Defs>
       <Circle cx={c} cy={c} r={c} fill="url(#halo-rondin)" />
-    </Svg>
+    </>
   ) : null;
 
-  const desenho = (
-    <View style={{ width: tamanho, height: tamanho, alignItems: 'center', justifyContent: 'center' }} pointerEvents="none">
-      {halo}
-      <View style={{ width: lado, height: lado, borderRadius: lado / 2, overflow: 'hidden', backgroundColor: '#000', transform: [{ scale: 1 + 0.12 * amp }] }}>
-        <VideoView player={player} style={{ width: lado, height: lado }} contentFit="cover" nativeControls={false} allowsPictureInPicture={false} />
-      </View>
-    </View>
-  );
+  const desenho = <Svg width={tamanho} height={tamanho} viewBox={`0 0 ${tamanho} ${tamanho}`}>{halo}{bolinhas}</Svg>;
   if (!aoPressionar) return desenho;
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={aoPressionar} style={({ pressed }) => ({ width: tamanho, height: tamanho, borderRadius: tamanho / 2, opacity: pressed ? 0.85 : 1 })}>

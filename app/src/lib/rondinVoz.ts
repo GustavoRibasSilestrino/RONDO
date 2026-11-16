@@ -154,9 +154,62 @@ export function useSomBloqueado(): boolean {
 type Resultado = 'tocou' | 'falhou' | 'bloqueado';
 
 /* no navegador, o player do próprio navegador: ele diz na hora se o som foi recusado (o do expo-audio não diz) */
+/* ---------- o nível da voz, para o orbe formar ondas com a fala (2026-11-16) ----------
+   O áudio da voz passa por um analisador do próprio navegador (Web Audio), que mede o volume a cada instante. Só para os
+   arquivos do próprio app (as frases fixas): os do servidor vêm de outro endereço, e o navegador não deixa medir sem
+   permissão dele. Se o som do navegador ainda não está liberado, não liga nada (ligar calaria a voz) e o orbe segue o
+   ritmo de fala simulado. */
+let somWeb: AudioContext | null = null;
+let analisador: AnalyserNode | null = null;
+let amostras: Uint8Array | null = null;
+let medindo: HTMLAudioElement | null = null;
+function medirVoz(audio: HTMLAudioElement, url: string): void {
+  try {
+    if (new URL(url, window.location.href).origin !== window.location.origin) return;
+    const Contexto = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Contexto) return;
+    if (!somWeb) somWeb = new Contexto();
+    if (somWeb.state !== 'running') { void somWeb.resume().catch(() => {}); return; }
+    if (!analisador) {
+      analisador = somWeb.createAnalyser();
+      analisador.fftSize = 512;
+      analisador.smoothingTimeConstant = 0.5;
+      analisador.connect(somWeb.destination);
+      amostras = new Uint8Array(analisador.fftSize);
+    }
+    somWeb.createMediaElementSource(audio).connect(analisador);
+    medindo = audio;
+  } catch { /* sem o analisador: o orbe usa o ritmo simulado */ }
+}
+
+/* o som do navegador só liga depois de um toque: o primeiro toque na página já deixa o analisador pronto, para a primeira
+   frase também formar ondas */
+if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  const ligar = () => {
+    try {
+      const Contexto = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Contexto) return;
+      if (!somWeb) somWeb = new Contexto();
+      if (somWeb.state !== 'running') void somWeb.resume().catch(() => {});
+    } catch { /* sem Web Audio: o orbe usa o ritmo simulado */ }
+  };
+  window.addEventListener('pointerdown', ligar, { capture: true, passive: true });
+  window.addEventListener('keydown', ligar, { capture: true, passive: true });
+}
+
+/* o volume da voz agora, de 0 a 1; -1 quando não há voz medida tocando (aí o orbe usa o ritmo simulado) */
+export function nivelDaVoz(): number {
+  if (!medindo || medindo.paused || medindo.ended || !analisador || !amostras) return -1;
+  analisador.getByteTimeDomainData(amostras as Uint8Array<ArrayBuffer>);
+  let soma = 0;
+  for (let i = 0; i < amostras.length; i += 1) { const v = (amostras[i] - 128) / 128; soma += v * v; }
+  return Math.min(1, Math.sqrt(soma / amostras.length) * 4.2);
+}
+
 function tocarNoNavegador(url: string, aoComecar?: () => void): Promise<Resultado> {
   return new Promise((resolve) => {
     const audio = new Audio(url);
+    medirVoz(audio, url);
     let pronto = false;
     const acabar = (r: Resultado) => {
       if (pronto) return;
@@ -165,6 +218,7 @@ function tocarNoNavegador(url: string, aoComecar?: () => void): Promise<Resultad
       audio.onended = null;
       audio.onerror = null;
       if (!audio.ended) audio.pause();
+      if (medindo === audio) medindo = null;
       if (encerrarAtual === sair) encerrarAtual = null;
       resolve(r);
     };
