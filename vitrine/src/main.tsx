@@ -23,6 +23,7 @@ import "./styles/hero.css";
 import "./styles/acabamento.css";
 import "./styles/cenas.css";
 import "./styles/rondin.css";
+import "./styles/botoes.css";
 
 /* sem zoom de pinça: o Safari do iPhone ignora o user-scalable=no do index.html, mas respeita cancelar o gesto
    (esses eventos só existem no Safari) */

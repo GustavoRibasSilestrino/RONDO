@@ -1,0 +1,21 @@
+/* Cursor em cima dos botões (pedido do dono, 2026-11-16): o botão só fica cinza. Sem subir, sem zoom, sem o reflexo que
+   atravessa, sem acelerar o contorno de luz e sem a seta andar; a troca de cor é na hora, sem transição.
+   Este arquivo vem por último (main.tsx), para valer sobre as regras de :hover de base.css, acabamento.css, day.css,
+   pastas.css e recado.css. */
+:root { --cinza-botao: #3a3842; --cinza-botao-borda: #5a5866; --cinza-botao-claro: #d6d4dc; }
+
+.btn, .btn .arrow, .day-seta, .pastas-aba, .conversa-responder { transition: none; }
+
+.btn:hover, .btn-primary:hover, .btn-ghost:hover, .hero-cta .btn-ghost:hover {
+  transform: none; background: var(--cinza-botao); border-color: var(--cinza-botao-borda); box-shadow: none; color: #fff;
+}
+/* o botão branco da primeira tela fica num cinza claro, para o texto escuro continuar legível */
+.hero-cta .btn-primary:hover { transform: none; background: var(--cinza-botao-claro); border-color: var(--cinza-botao-claro); box-shadow: none; color: #1b0a3d; }
+.btn:hover::after { background-position: 160% 0; transition: none; }
+.btn:hover::before { animation-duration: 3.2s; }
+.btn:hover .arrow { translate: none; }
+
+.day-seta:hover:not(:disabled) { transform: none; background: var(--cinza-botao); border-color: var(--cinza-botao-borda); box-shadow: none; }
+.pastas-aba:hover:not(.is-aberta) { transform: translateY(.35rem); filter: none; background: var(--cinza-botao); color: #fff; }
+.conversa-responder:hover, .conversa-responder.is-gravando:hover { background: var(--cinza-botao); }
+.conversa-responder:active { transform: none; }
