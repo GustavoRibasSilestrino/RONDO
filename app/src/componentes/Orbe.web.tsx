@@ -69,6 +69,9 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
     /* o volume da voz nos últimos HIST quadros: o mais novo sai do meio da esfera, os mais velhos já estão mais longe */
     const hist = new Float32Array(HIST);
     let posHist = 0, nivelSuave = 0;
+    /* o relógio do movimento (2026-11-16, pedido do dono): só anda enquanto ele fala, e na velocidade da voz. Calado, o
+       relógio para e a esfera fica parada (o cursor continua soltando os pontos). Ao parar de falar, desacelera até parar. */
+    let tm = 2, vel = 0;
     const fala = (d: number) => {
       if (d >= 0.5) return 0;   // só a metade da frente, a que se vê
       const atras = Math.min(HIST - 1, Math.floor((d / 0.5) * HIST));
@@ -128,18 +131,24 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
     };
 
     const desenhar = (agora: number) => {
-      const t = reduzido ? 2 : (agora - t0) / 1000;
+      const tReal = reduzido ? 2 : (agora - t0) / 1000;   // o relógio de sempre: só para o rodamoinho dos pontos soltos
       const dt = Math.min(0.1, Math.max(0, (agora - anterior) / 1000));
       anterior = agora;
       const e = estadoRef.current;
+      const t = tm;
       brilho += ((mira.current.dentro ? 1 : 0) - brilho) * Math.min(1, dt * 8);
       /* a voz: o volume medido de verdade ou, sem ele, o ritmo simulado enquanto ele fala */
       const real = reduzido ? -1 : nivelDaVoz();
-      const nivel = real >= 0 ? real : e === 'falando' && !reduzido ? Math.max(0, amplitude('falando', t) - 0.4) * 1.6 : 0;
+      const nivel = real >= 0 ? real : e === 'falando' && !reduzido ? Math.max(0, amplitude('falando', tReal) - 0.4) * 1.6 : 0;
       nivelSuave += (nivel - nivelSuave) * Math.min(1, dt * 3);   // a voz amaciada: sem trancos de sílaba a sílaba
       hist[posHist] = nivelSuave;
       posHist = (posHist + 1) % HIST;
-      const alvo = reduzido ? 0.06 : (real >= 0 ? 0.3 + 0.7 * real : amplitude(e, t)) + 0.1 * brilho;
+      const falando = e === 'falando' && !reduzido;
+      /* a velocidade segue a voz: mais forte, mais rápido; calado, zero */
+      const alvoVel = falando ? 0.35 + 1.3 * nivelSuave : 0;
+      vel += (alvoVel - vel) * Math.min(1, dt * (alvoVel > vel ? 3 : 1.6));
+      tm += dt * vel;
+      const alvo = falando ? (real >= 0 ? 0.3 + 0.7 * real : amplitude('falando', tReal)) : 0;
       amp += (alvo - amp) * Math.min(1, dt * 2.5);   // suaviza bem: o orbe não pula de um estado a outro nem treme com a voz
       mx += (mira.current.x - mx) * Math.min(1, dt * 4);
       my += (mira.current.y - my) * Math.min(1, dt * 4);
@@ -157,7 +166,7 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
         const k = solto[i];
         if (k < 0.002) continue;
         const e2 = k * k * (3 - 2 * k);
-        const giroP = t * 0.6 * (fugaV[i] - 3);
+        const giroP = tReal * 0.6 * (fugaV[i] - 3);
         const dx = fugaX[i] * Math.cos(giroP) - fugaY[i] * Math.sin(giroP), dy = fugaX[i] * Math.sin(giroP) + fugaY[i] * Math.cos(giroP);
         const ux = da > 0.01 ? ax / da : dx, uy = da > 0.01 ? ay / da : dy;
         saida[o] = bx + (ux * R * 0.42 + dx * fugaD[i] * R * 0.18) * e2;
@@ -167,7 +176,7 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
       ctx.clearRect(0, 0, tamanho, tamanho);
       /* o destaque: uma auréola de luz roxa atrás da esfera, que respira devagar e cresce quando ele fala ou o cursor chega */
       if (hud) {
-        const forca = 0.34 + 0.22 * amp + 0.12 * brilho + 0.04 * Math.sin(t * 1.3);
+        const forca = 0.34 + 0.22 * amp + 0.12 * brilho;   // sem respirar sozinha: só cresce com a voz e o cursor
         const halo = ctx.createRadialGradient(c, c, R * 0.2, c, c, tamanho * 0.5);
         halo.addColorStop(0, `rgba(176,128,255,${Math.min(0.62, forca).toFixed(3)})`);
         halo.addColorStop(0.45, `rgba(124,58,237,${(forca * 0.42).toFixed(3)})`);

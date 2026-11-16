@@ -33,22 +33,35 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
   const nivelSuave = useRef(0);
   const posHist = useRef(0);
 
+  /* o movimento só anda enquanto ele fala, na velocidade da voz; calado, a esfera fica parada e o desenho não se refaz
+     (2026-11-16, pedido do dono) */
+  const vel = useRef(0);
   useEffect(() => {
     if (reduzido) { redesenhar((v) => v + 1); return undefined; }
     const t0 = Date.now();
+    let anterior = Date.now();
     const id = setInterval(() => {
-      t.current = (Date.now() - t0) / 1000;
-      amp.current += (amplitude(estadoRef.current, t.current) - amp.current) * 0.12;
-      nivelSuave.current += ((estadoRef.current === 'falando' ? Math.max(0, amplitude('falando', t.current) - 0.4) * 1.6 : 0) - nivelSuave.current) * 0.15;
+      const agora = Date.now(), dt = Math.min(0.2, (agora - anterior) / 1000);
+      anterior = agora;
+      const falando = estadoRef.current === 'falando';
+      const tReal = (agora - t0) / 1000;
+      nivelSuave.current += ((falando ? Math.max(0, amplitude('falando', tReal) - 0.4) * 1.6 : 0) - nivelSuave.current) * 0.15;
       hist.current[posHist.current] = nivelSuave.current;
       posHist.current = (posHist.current + 1) % hist.current.length;
-      redesenhar((v) => v + 1);
+      const alvoVel = falando ? 0.35 + 1.3 * nivelSuave.current : 0;
+      vel.current += (alvoVel - vel.current) * (alvoVel > vel.current ? 0.2 : 0.1);
+      t.current += dt * vel.current;
+      const antes = amp.current;
+      amp.current += ((falando ? amplitude('falando', tReal) : 0) - amp.current) * 0.12;
+      /* parado de verdade (sem fala, sem velocidade e sem anéis no caminho): não redesenha */
+      const quieto = !falando && vel.current < 0.002 && Math.abs(amp.current - antes) < 0.0005 && nivelSuave.current < 0.002;
+      if (!quieto) redesenhar((v) => v + 1);
     }, INTERVALO);
     return () => clearInterval(id);
   }, [reduzido]);
 
   const c = tamanho / 2;
-  const a = reduzido ? 0.06 : amp.current;
+  const a = reduzido ? 0 : amp.current;
   const H = hist.current.length;
   const fala = reduzido ? undefined : (d: number) => (d >= 0.5 ? 0 : hist.current[(posHist.current - 1 - Math.min(H - 1, Math.floor((d / 0.5) * H)) + H * 2) % H] * (1 - d * 1.5));
   quadro(pts, t.current, a, tamanho * 0.36, c, c, saida, 0.42, 0, fala);   // sem a moldura (tirada em 2026-11-12): só a esfera
