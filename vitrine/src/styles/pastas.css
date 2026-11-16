@@ -6,8 +6,7 @@
 .pastas { position: relative; padding: clamp(4.5rem, 9vw, 8rem) 0; }
 .pastas-grade { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(2rem, 5vw, 5rem); align-items: center; }
 
-/* os títulos desta seção na Bricolage em negrito (não na Climate Crisis dos outros títulos): mais finos e fáceis de ler,
-   a pedido do dono (2026-11-16) */
+/* os títulos desta seção na Bricolage em negrito, como os do resto do site (desde 2026-11-16) */
 .pastas-titulo { font-family: var(--font-display); font-weight: 760; letter-spacing: -.03em; font-size: clamp(2rem, 3.8vw, 3.4rem); line-height: 1.04; color: var(--ink); }
 .pastas-titulo span { display: block; }
 .pastas-titulo span:nth-child(1) { color: var(--ink); }
