@@ -33,8 +33,7 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
   const nivelSuave = useRef(0);
   const posHist = useRef(0);
 
-  /* o movimento só anda enquanto ele fala, na velocidade da voz; calado, a esfera fica parada e o desenho não se refaz
-     (2026-11-16, pedido do dono) */
+  /* falando, o movimento anda na velocidade da voz; calado, bem devagar, só ondas suaves (2026-11-16, pedido do dono) */
   const vel = useRef(0);
   useEffect(() => {
     if (reduzido) { redesenhar((v) => v + 1); return undefined; }
@@ -48,14 +47,11 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
       nivelSuave.current += ((falando ? Math.max(0, amplitude('falando', tReal) - 0.4) * 1.6 : 0) - nivelSuave.current) * 0.15;
       hist.current[posHist.current] = nivelSuave.current;
       posHist.current = (posHist.current + 1) % hist.current.length;
-      const alvoVel = falando ? 0.35 + 1.3 * nivelSuave.current : 0;
+      const alvoVel = falando ? 0.35 + 1.3 * nivelSuave.current : 0.22;
       vel.current += (alvoVel - vel.current) * (alvoVel > vel.current ? 0.2 : 0.1);
       t.current += dt * vel.current;
-      const antes = amp.current;
-      amp.current += ((falando ? amplitude('falando', tReal) : 0) - amp.current) * 0.12;
-      /* parado de verdade (sem fala, sem velocidade e sem anéis no caminho): não redesenha */
-      const quieto = !falando && vel.current < 0.002 && Math.abs(amp.current - antes) < 0.0005 && nivelSuave.current < 0.002;
-      if (!quieto) redesenhar((v) => v + 1);
+      amp.current += ((falando ? amplitude('falando', tReal) : 0.08) - amp.current) * 0.12;
+      redesenhar((v) => v + 1);
     }, INTERVALO);
     return () => clearInterval(id);
   }, [reduzido]);

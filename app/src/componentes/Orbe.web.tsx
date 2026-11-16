@@ -69,8 +69,8 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
     /* o volume da voz nos últimos HIST quadros: o mais novo sai do meio da esfera, os mais velhos já estão mais longe */
     const hist = new Float32Array(HIST);
     let posHist = 0, nivelSuave = 0;
-    /* o relógio do movimento (2026-11-16, pedido do dono): só anda enquanto ele fala, e na velocidade da voz. Calado, o
-       relógio para e a esfera fica parada (o cursor continua soltando os pontos). Ao parar de falar, desacelera até parar. */
+    /* o relógio do movimento (2026-11-16, pedido do dono): falando, anda na velocidade da voz; calado, anda bem devagar,
+       e a esfera só ondula de leve, como ondas suaves. A troca entre os dois é gradual. */
     let tm = 2, vel = 0;
     const fala = (d: number) => {
       if (d >= 0.5) return 0;   // só a metade da frente, a que se vê
@@ -144,11 +144,11 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
       hist[posHist] = nivelSuave;
       posHist = (posHist + 1) % HIST;
       const falando = e === 'falando' && !reduzido;
-      /* a velocidade segue a voz: mais forte, mais rápido; calado, zero */
-      const alvoVel = falando ? 0.35 + 1.3 * nivelSuave : 0;
+      /* a velocidade segue a voz: mais forte, mais rápido; calado, um passo lento e constante */
+      const alvoVel = falando ? 0.35 + 1.3 * nivelSuave : 0.22;
       vel += (alvoVel - vel) * Math.min(1, dt * (alvoVel > vel ? 3 : 1.6));
       tm += dt * vel;
-      const alvo = falando ? (real >= 0 ? 0.3 + 0.7 * real : amplitude('falando', tReal)) : 0;
+      const alvo = falando ? (real >= 0 ? 0.3 + 0.7 * real : amplitude('falando', tReal)) : 0.08;   // calado: ondas suaves
       amp += (alvo - amp) * Math.min(1, dt * 2.5);   // suaviza bem: o orbe não pula de um estado a outro nem treme com a voz
       mx += (mira.current.x - mx) * Math.min(1, dt * 4);
       my += (mira.current.y - my) * Math.min(1, dt * 4);
