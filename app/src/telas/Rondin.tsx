@@ -494,7 +494,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                 ) : null}
 
                 {passo.tipo === 'campo' ? (
-                  <View style={{ gap: 14 }}>
+                  <View style={st.formulario}>
                     <CampoFlutuante
                       key={passo.id} ref={campoRef} rotulo={passo.rotulo} accessibilityLabel={passo.rotulo} value={texto} autoFocus={Platform.OS === 'web'}
                       onChangeText={(v) => { setErro(''); setTeclas((n) => n + 1); setTexto(passo.campo === 'data' ? mascararData(v) : v); }}
@@ -517,7 +517,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                 ) : null}
 
                 {passo.tipo === 'entrar' ? (
-                  <View style={{ gap: 14 }}>
+                  <View style={st.formulario}>
                     <CampoFlutuante
                       ref={campoRef} rotulo={ui.email} icone="email" value={email} onChangeText={(v) => { setEmail(v); setErro(''); setTeclas((n) => n + 1); }} autoFocus={Platform.OS === 'web'}
                       valido={emailValido(email)} autoCapitalize="none" autoCorrect={false} autoComplete="email" keyboardType="email-address" textContentType="emailAddress"
@@ -538,14 +538,17 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                         <T tam={13.5} cor={cores.erro} style={{ flex: 1, lineHeight: 19 }}>{erro}</T>
                       </View>
                     ) : null}
-                    <Botao orbita carregando={enviando} titulo={enviando ? ui.entrando : ui.entrar} aoPressionar={fazerLogin} />
-                    <Pressable accessibilityRole="button" onPress={() => { parar(); setRecuperando(true); }} style={{ alignSelf: 'center', paddingVertical: 10 }}>
-                      <T tam={13.5} cor={cores.destaque2} style={{ textDecorationLine: 'underline' }}>{ui.esqueci}</T>
+                    {/* "Esqueci a senha" discreto, logo abaixo da senha, à direita */}
+                    <Pressable accessibilityRole="button" onPress={() => { parar(); setRecuperando(true); }} hitSlop={8} style={st.esqueci}>
+                      <T tam={13} cor={cores.texto2}>{ui.esqueci}</T>
                     </Pressable>
+                    <Botao orbita carregando={enviando} titulo={enviando ? ui.entrando : ui.entrar} aoPressionar={fazerLogin} />
                     {aoSocial ? <BotoesSociais aoResultado={aoSocial} /> : null}
                     {aoTrocarModo ? (
-                      <Pressable accessibilityRole="button" onPress={() => { parar(); aoTrocarModo(); }} style={{ alignSelf: 'center', paddingVertical: 10 }}>
-                        <T tam={13.5} cor={cores.texto2} style={{ textDecorationLine: 'underline' }}>{ui.semConta}</T>
+                      /* uma linha só: a pergunta apagada e a ação em destaque */
+                      <Pressable accessibilityRole="button" accessibilityLabel={`${ui.semContaPergunta} ${ui.criarContaLink}`} onPress={() => { parar(); aoTrocarModo(); }} style={st.rodapeConta}>
+                        <T tam={14} cor={cores.texto2}>{ui.semContaPergunta} </T>
+                        <T tam={14} peso="500" cor={cores.destaque2}>{ui.criarContaLink}</T>
                       </Pressable>
                     ) : null}
                   </View>
@@ -594,7 +597,11 @@ const st = estilos(() => StyleSheet.create({
     borderRadius: 12, borderWidth: 1, borderColor: cores.linha2, backgroundColor: `rgba(${cores.tom},0.07)`,
   },
   cartaoIdiomaLargo: { flexBasis: '30%', minWidth: 140 },   // computador: as três línguas lado a lado; no celular, uma embaixo da outra
-  olho: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  olho: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  /* os campos de digitar: mais estreitos que o texto da fala, no meio (pedido do dono, 2026-11-16) */
+  formulario: { gap: 12, width: '100%', maxWidth: 380, alignSelf: 'center' },
+  esqueci: { alignSelf: 'flex-end', marginTop: -4, paddingVertical: 2 },
+  rodapeConta: { flexDirection: 'row', alignSelf: 'center', alignItems: 'center', marginTop: 10, paddingVertical: 8 },
   banner: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 12,
     borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,107,129,0.35)', backgroundColor: 'rgba(255,107,129,0.08)',

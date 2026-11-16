@@ -1,5 +1,7 @@
 /* Campo de texto com rótulo que sobe: o rótulo ocupa o lugar do texto e, ao focar ou preencher, vira o título pequeno do campo.
-   O rótulo nunca some (some só o "placeholder"), o erro aparece colado ao campo com ícone e texto, e o foco acende a borda. */
+   O rótulo nunca some (some só o "placeholder"), o erro aparece colado ao campo com ícone e texto, e o foco acende a borda.
+   Desde 2026-11-16 é mais baixo e mais discreto (pedido do dono), e no navegador o preenchimento automático não pinta mais
+   o meio do campo de cinza-azulado. */
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 import { cores, FONTE, estilos } from '../tema';
@@ -15,6 +17,15 @@ type Props = TextInputProps & {
   valido?: boolean;        // mostra um "ok" verde quando o valor já está certo
   direita?: React.ReactNode;   // ação à direita (ex.: mostrar a senha)
 };
+
+/* o navegador pinta o fundo dos campos que ele mesmo preenche (e-mail e senha salvos): aqui o fundo fica transparente e o
+   texto continua branco */
+if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getElementById('campo-sem-autofill')) {
+  const css = document.createElement('style');
+  css.id = 'campo-sem-autofill';
+  css.textContent = 'input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus{-webkit-text-fill-color:#f4f1fb;caret-color:#f4f1fb;-webkit-box-shadow:0 0 0 1000px transparent inset;box-shadow:0 0 0 1000px transparent inset;transition:background-color 99999s ease-in-out 0s;}';
+  document.head.appendChild(css);
+}
 
 export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuante(
   { rotulo, icone, erro, valido, direita, value, onFocus, onBlur, style, ...resto },
@@ -38,7 +49,7 @@ export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuant
       <View style={[st.caixa, alto && st.caixaAlta, foco && st.caixaFoco, !!erro && st.caixaErro]}>
         {icone ? (
           <View style={[st.icone, alto && { alignSelf: 'flex-start', marginTop: 20 }]}>
-            <Icone nome={icone} tamanho={20} cor={corIcone} />
+            <Icone nome={icone} tamanho={18} cor={corIcone} />
           </View>
         ) : null}
         <View style={st.meio}>
@@ -50,8 +61,8 @@ export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuant
               {
                 color: corRotulo,
                 transform: [
-                  { translateY: sobe.interpolate({ inputRange: [0, 1], outputRange: [0, -12] }) },
-                  { scale: sobe.interpolate({ inputRange: [0, 1], outputRange: [1, 0.78] }) },
+                  { translateY: sobe.interpolate({ inputRange: [0, 1], outputRange: [0, -10] }) },
+                  { scale: sobe.interpolate({ inputRange: [0, 1], outputRange: [1, 0.8] }) },
                 ],
               },
             ]}
@@ -88,17 +99,17 @@ export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuant
 
 const st = estilos(() => StyleSheet.create({
   caixa: {
-    height: 60, flexDirection: 'row', alignItems: 'center', paddingLeft: 16, paddingRight: 6,
-    borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)',
+    height: 50, flexDirection: 'row', alignItems: 'center', paddingLeft: 14, paddingRight: 4,
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.03)',
   },
   caixaAlta: { height: undefined, minHeight: 112, alignItems: 'stretch' },
-  caixaFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.07)`, boxShadow: `0 0 0 4px rgba(${cores.tom},0.18)` },
-  caixaErro: { borderColor: cores.erro, boxShadow: '0 0 0 4px rgba(255,107,129,0.14)' },
-  icone: { marginRight: 12 },
+  caixaFoco: { borderColor: `rgba(${cores.tom},0.7)`, backgroundColor: 'rgba(255,255,255,0.04)' },
+  caixaErro: { borderColor: cores.erro },
+  icone: { marginRight: 11 },
   meio: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
-  rotulo: { position: 'absolute', left: 0, top: 20, fontSize: 16, fontFamily: FONTE['300'], transformOrigin: 'left center' },
-  entrada: { height: 60, paddingTop: 20, paddingBottom: 0, paddingHorizontal: 0, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
+  rotulo: { position: 'absolute', left: 0, top: 15, fontSize: 15, fontFamily: FONTE['300'], transformOrigin: 'left center' },
+  entrada: { height: 50, paddingTop: 16, paddingBottom: 0, paddingHorizontal: 0, color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   entradaAlta: { height: undefined, minHeight: 112, paddingTop: 32, paddingBottom: 12, textAlignVertical: 'top' },
-  valido: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  valido: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   erroLinha: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 8, paddingHorizontal: 6 },
 }));

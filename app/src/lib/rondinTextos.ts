@@ -22,7 +22,7 @@ export type Textos = {
     voltarInicio: string; voltarPergunta: string; criarConta: string; etapa: string;
     estado: Record<EstadoDoOrbe, string>;
     orbePular: string; orbeRepetir: string; pular: string; continuar: string;
-    entrar: string; entrando: string; email: string; senha: string; verSenha: string; esconderSenha: string; esqueci: string; semConta: string;
+    entrar: string; entrando: string; email: string; senha: string; verSenha: string; esconderSenha: string; esqueci: string; semConta: string; semContaPergunta: string; criarContaLink: string;
     tentar: string; abreNoNavegador: string; termos: string; privacidade: string; dias: string;
   };
   rec: Record<string, string>;         // a tela "esqueci a senha"
@@ -108,7 +108,7 @@ const PT: Textos = {
     estado: { quieto: 'EM ESPERA', ouvindo: 'OUVINDO', pensando: 'PROCESSANDO', falando: 'FALANDO' },
     orbePular: 'RONDIN. Tocar para pular a fala', orbeRepetir: 'RONDIN. Tocar para ouvir a pergunta de novo', pular: 'Pular fala', continuar: 'Continuar',
     entrar: 'Entrar', entrando: 'Entrando…', email: 'E-mail', senha: 'Senha', verSenha: 'Mostrar senha', esconderSenha: 'Esconder senha',
-    esqueci: 'Esqueci a minha senha', semConta: 'Ainda não tenho conta', tentar: 'Tentar de novo', abreNoNavegador: 'abre no navegador',
+    esqueci: 'Esqueci a senha', semConta: 'Ainda não tenho conta', semContaPergunta: 'Ainda não tem conta?', criarContaLink: 'Criar conta', tentar: 'Tentar de novo', abreNoNavegador: 'abre no navegador',
     termos: 'Termos de Uso', privacidade: 'Política de Privacidade', dias: '{n} dias',
   },
   rec: {
@@ -202,7 +202,7 @@ const EN: Textos = {
     estado: { quieto: 'STANDBY', ouvindo: 'LISTENING', pensando: 'PROCESSING', falando: 'SPEAKING' },
     orbePular: 'RONDIN. Tap to skip', orbeRepetir: 'RONDIN. Tap to hear the question again', pular: 'Skip', continuar: 'Continue',
     entrar: 'Sign in', entrando: 'Signing in…', email: 'Email', senha: 'Password', verSenha: 'Show password', esconderSenha: 'Hide password',
-    esqueci: 'I forgot my password', semConta: "I don't have an account yet", tentar: 'Try again', abreNoNavegador: 'opens in the browser',
+    esqueci: 'Forgot password', semConta: "I don't have an account yet", semContaPergunta: "Don't have an account?", criarContaLink: 'Sign up', tentar: 'Try again', abreNoNavegador: 'opens in the browser',
     termos: 'Terms of Use', privacidade: 'Privacy Policy', dias: '{n} days',
   },
   rec: {
@@ -300,7 +300,7 @@ const ES: Textos = {
     estado: { quieto: 'EN ESPERA', ouvindo: 'ESCUCHANDO', pensando: 'PROCESANDO', falando: 'HABLANDO' },
     orbePular: 'RONDIN. Toca para saltar', orbeRepetir: 'RONDIN. Toca para oír la pregunta otra vez', pular: 'Saltar', continuar: 'Continuar',
     entrar: 'Iniciar sesión', entrando: 'Entrando…', email: 'Correo electrónico', senha: 'Contraseña', verSenha: 'Mostrar contraseña', esconderSenha: 'Ocultar contraseña',
-    esqueci: 'Olvidé mi contraseña', semConta: 'Todavía no tengo cuenta', tentar: 'Intentar de nuevo', abreNoNavegador: 'se abre en el navegador',
+    esqueci: 'Olvidé la contraseña', semConta: 'Todavía no tengo cuenta', semContaPergunta: '¿Todavía no tienes cuenta?', criarContaLink: 'Crear cuenta', tentar: 'Intentar de nuevo', abreNoNavegador: 'se abre en el navegador',
     termos: 'Términos de Uso', privacidade: 'Política de Privacidad', dias: '{n} días',
   },
   rec: {
