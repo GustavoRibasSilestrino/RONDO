@@ -1,7 +1,6 @@
-/* A tela de carregamento do navegador (public/index.html, gerada por scripts/gerar-carregando.mjs): preta, com o nome RONDO no
-   meio, aparece antes de o app carregar. Quando o app está pronto para mostrar a primeira tela, ela some esmaecendo e a
-   abertura do app (componentes/Abertura.tsx), com o mesmo nome, assume no mesmo lugar.
-   No celular não existe (lá é só a abertura). */
+/* A tela de carregamento do navegador (public/index.html, gerada por scripts/gerar-carregando.mjs): o RONDIN (a esfera de
+   pontos) no meio, sobre o fundo do app, aparece antes de o app carregar. Quando o app está pronto, ela some esmaecendo e o
+   RONDIN do app assume no mesmo lugar. No navegador não há a abertura com o nome RONDO (só no celular, Abertura.tsx). */
 import { Platform } from 'react-native';
 
 let tirada = false;

@@ -208,8 +208,9 @@ export default function App() {
             <Raiz />
           </AvisoProvider>
         </LojaProvider>
-        {/* a abertura: a tela preta com o nome RONDO em branco, toda vez que o app abre, no celular e no navegador; depois dela vem o RONDIN */}
-        <Abertura />
+        {/* a abertura: a tela preta com o nome RONDO em branco, toda vez que o app abre, só no app do celular (no navegador, quem
+            vem do site vai direto para o RONDIN, desde 2026-11-16); depois dela vem o RONDIN */}
+        {Platform.OS !== 'web' ? <Abertura /> : null}
         <StatusBar style="light" />
       </View>
     </SafeAreaProvider>
