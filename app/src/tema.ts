@@ -77,3 +77,7 @@ export const FONTE: Record<PesoFonte, string> = {
   '400': 'Poppins_500Medium',
   '500': 'Poppins_600SemiBold',
 };
+
+/* o cursor em cima de um botão (pedido do dono, 2026-11-16): ele só fica cinza, na hora, sem zoom nem animação.
+   O mesmo cinza dos botões do site (vitrine/src/styles/botoes.css). */
+export const CINZA_SOBRE = { backgroundColor: '#3a3842', borderColor: '#5a5866' } as const;

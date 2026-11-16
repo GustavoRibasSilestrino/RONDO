@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle, Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { cores, DEGRADE, FIM_DIAGONAL, FONTE, INICIO_DIAGONAL, PesoFonte, raio, estilos } from '../tema';
+import { CINZA_SOBRE, cores, DEGRADE, FIM_DIAGONAL, FONTE, INICIO_DIAGONAL, PesoFonte, raio, estilos } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 
 /* ---------- texto ---------- */
@@ -122,18 +122,19 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
   const nativo = Platform.OS !== 'web';
   const mola = (para: number) => Animated.spring(escala, { toValue: para, useNativeDriver: nativo, speed: 42, bounciness: 5 }).start();
 
-  /* aceso ou apagado (só o principal): o cursor em cima, o foco do teclado, o toque ou o carregando acendem */
+  /* aceso ou apagado (só o principal): o foco do teclado, o toque ou o carregando acendem. O cursor em cima não acende mais:
+     o botão só fica cinza (CINZA_SOBRE), na hora, sem zoom (pedido do dono, 2026-11-16) */
   const primario = tipo === 'primario';
   const perigo = tipo === 'perigo';
   const [cursor, setCursor] = useState(false);
   const [foco, setFoco] = useState(false);
   const [tocando, setTocando] = useState(false);
-  const aceso = !desabilitado && ((primario && SEM_CURSOR) || cursor || foco || tocando || !!carregando);
+  const aceso = !desabilitado && !cursor && ((primario && SEM_CURSOR) || foco || tocando || !!carregando);
   const luz = useRef(new Animated.Value(aceso ? 1 : 0)).current;
   const realce = useRef(new Animated.Value(0)).current;   // o brilho a mais do toque
   useEffect(() => {
-    Animated.timing(luz, { toValue: aceso ? 1 : 0, duration: aceso ? 280 : 650, easing: aceso ? Easing.out(Easing.cubic) : Easing.inOut(Easing.quad), useNativeDriver: nativo }).start();
-  }, [aceso, luz, nativo]);
+    luz.setValue(aceso ? 1 : 0);   // sem transição: acende e apaga na hora
+  }, [aceso, luz]);
   useEffect(() => {
     Animated.timing(realce, { toValue: tocando ? 1 : 0, duration: tocando ? 140 : 420, easing: Easing.out(Easing.quad), useNativeDriver: nativo }).start();
   }, [tocando, realce, nativo]);
@@ -166,7 +167,8 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
       style={({ hovered }: { pressed: boolean; hovered?: boolean }) => [
         st.botao, comOrbita && { borderRadius: raio.pilula },
         st.botaoApagado, perigo && st.botaoApagadoPerigo,
-        /* o cursor em cima: a borda acende e o fundo clareia um pouco */
+        /* o cursor em cima: só o cinza */
+        cursor && !desabilitado && CINZA_SOBRE,
         { opacity: desabilitado ? 0.45 : 1 },
       ]}
     >
@@ -220,7 +222,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
           </Svg>
         </Animated.View>
       ) : null}
-      <Animated.View style={[{ borderRadius: raio.pilula }, !desabilitado && { transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.985, 1.02] }) }] }]}>
+      <View style={{ borderRadius: raio.pilula }}>
       {comOrbita ? (
         <View onLayout={(e) => setMedida({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} style={st.orbita}>
           {feixe}
@@ -229,7 +231,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
       ) : (
         miolo
       )}
-      </Animated.View>
+      </View>
     </Animated.View>
   );
 }

@@ -8,7 +8,7 @@ import { useLayoutLargo } from '../lib/largura';
 import type { EstadoOrbe } from '../lib/orbe';
 import type { Sotaque } from '../lib/rondinVoz';
 import type { FalaRondin } from '../lib/useFalaRondin';
-import { cores, estilos } from '../tema';
+import { CINZA_SOBRE, cores, estilos } from '../tema';
 import { Legenda } from '../telas/Rondin';
 import { BotaoVoz } from './BotaoVoz';
 import { FundoRondin } from './FundoRondin';
@@ -91,7 +91,7 @@ export function BotaoCanto({ icone, rotulo, aoPressionar }: { icone: 'calendario
   return (
     <Pressable
       accessibilityRole="button" accessibilityLabel={rotulo} onPress={aoPressionar} hitSlop={6}
-      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.botaoRedondo, (hovered || pressed) && st.botaoRedondoAceso]}
+      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.botaoRedondo, pressed && st.botaoRedondoAceso, hovered && !pressed && CINZA_SOBRE]}
     >
       <Icone nome={icone} tamanho={20} cor="#ffffff" />
     </Pressable>

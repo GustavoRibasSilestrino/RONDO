@@ -1,5 +1,6 @@
 /* O alto-falante do RONDIN: liga e desliga a voz dele (fica guardado no aparelho e vale para todas as falas). Botão só de
    ícone, com nome para leitores de tela e o estado "pressionado" anunciado. 44x44 de área de toque. */
+import { CINZA_SOBRE } from '../tema';
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { useVozDesligada } from '../lib/rondinVoz';
@@ -21,7 +22,7 @@ export function BotaoVoz({ idioma = 'pt', style }: { idioma?: 'pt' | 'en' | 'es'
       accessibilityState={{ selected: desligada }}
       onPress={() => setDesligada(!desligada)}
       hitSlop={6}
-      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.botao, (hovered || pressed) && st.ativo, pressed && { opacity: 0.85 }, style]}
+      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.botao, pressed && st.ativo, hovered && !pressed && CINZA_SOBRE, pressed && { opacity: 0.85 }, style]}
     >
       <Icone nome={desligada ? 'somDesligado' : 'somLigado'} tamanho={20} cor={desligada ? 'rgba(255,255,255,0.55)' : '#ffffff'} />
     </Pressable>

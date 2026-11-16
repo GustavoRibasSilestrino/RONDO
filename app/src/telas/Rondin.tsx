@@ -27,7 +27,7 @@ import { EstadoOrbe } from '../lib/orbe';
 import { Dita, Opcao, Passo, Respostas, emailValido, falasDe, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar, primeiroNome, trechosDe } from '../lib/rondinRoteiro';
 import { TEXTOS, traduzirErro } from '../lib/rondinTextos';
 import { SOTAQUES, Sotaque, acabouDeLiberarSom, falar, parar, sotaquePadrao, useSomBloqueado } from '../lib/rondinVoz';
-import { cores, estilos } from '../tema';
+import { CINZA_SOBRE, cores, estilos } from '../tema';
 import type { Estado, Usuario } from '../tipos';
 import { RecuperarSenha } from './RecuperarSenha';
 import { SITE } from './Login';
@@ -585,7 +585,7 @@ const st = estilos(() => StyleSheet.create({
     minHeight: 44, paddingVertical: 9, paddingHorizontal: 15, borderRadius: 12, borderWidth: 1, borderColor: cores.linha2,
     backgroundColor: `rgba(${cores.tom},0.07)`, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, maxWidth: '100%',
   },
-  pilulaSobre: { borderColor: 'rgba(196,168,255,0.7)', backgroundColor: `rgba(${cores.tom},0.16)`, boxShadow: '0 0 18px -6px rgba(139,92,246,0.9)' },
+  pilulaSobre: { ...CINZA_SOBRE },   // o cursor em cima: só o cinza, sem brilho (pedido do dono, 2026-11-16)
   pilulaMarcada: { backgroundColor: cores.destaqueForte, borderColor: cores.destaque2, boxShadow: '0 0 18px -6px rgba(139,92,246,0.95)' },
   tecla: { width: 20, height: 20, borderRadius: 5, borderWidth: 1, borderColor: 'rgba(196,168,255,0.4)', alignItems: 'center', justifyContent: 'center' },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
