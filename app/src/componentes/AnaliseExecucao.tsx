@@ -73,7 +73,10 @@ export function AnaliseExecucao({ aberta, aoFechar }: { aberta: boolean; aoFecha
             onMessage={(e) => { if (e.nativeEvent.data === 'fechar') aoFechar(); }}
             /* só o próprio site do RONDO abre dentro: qualquer outro link vai para o navegador */
             onShouldStartLoadWithRequest={(r) => {
-              if (r.url.startsWith(SITE) || r.url.startsWith('about:') || r.url.startsWith('blob:')) return true;
+              /* compara o domínio exato (antes "começa com" deixava passar userondo.vercel.app.outro-site.com) */
+              let doSite = false;
+              try { doSite = new URL(r.url).origin === new URL(SITE).origin; } catch { /* endereço inválido: não abre aqui */ }
+              if (doSite || r.url.startsWith('about:') || r.url.startsWith('blob:')) return true;
               Linking.openURL(r.url).catch(() => {});
               return false;
             }}
