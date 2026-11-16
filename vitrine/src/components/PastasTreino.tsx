@@ -3,7 +3,8 @@ import { desenharOrbe, esfera } from "../lib/orbe";
 import { APP_CRIAR } from "../lib/rotas";
 import { Btn } from "./ui";
 
-/* As pastas do treino (desde 2026-11-16, no lugar da cena dos aparelhos em 3D, a pedido do dono: "colorido, sem cara de IA").
+/* As pastas do treino (desde 2026-11-16, no lugar da cena dos aparelhos em 3D, a pedido do dono: "sem cara de IA"). Cores da paleta do site e do
+   app: as pastas em tons de roxo; o verde só onde há progresso (a carga que sobe e o "Recorde de amanhã").
    As três pastas são as rotinas que vêm no app (app/src/dados.ts: Peito e Tríceps, Costas e Bíceps, Pernas), com os mesmos
    exercícios, faixas de repetição e passos de carga. A carga de hoje segue a regra do app (progressão dupla, em
    app/src/lib/calc.ts): se todas as séries da última vez bateram o topo da faixa, sobe um passo; senão, mantém.
@@ -15,7 +16,7 @@ type Pasta = { id: string; nome: string; minutos: number; cor: string; tinta: st
 /* a última vez de cada exercício é um exemplo: umas séries batem o topo da faixa (a carga sobe), outras não (mantém) */
 const PASTAS: Pasta[] = [
   {
-    id: "a", nome: "Peito e Tríceps", minutos: 55, cor: "#ff6a3d", tinta: "#2a0d05",
+    id: "a", nome: "Peito e Tríceps", minutos: 55, cor: "#8b5cf6", tinta: "#ffffff",
     exercicios: [
       { nome: "Supino reto", faixa: [6, 8], passo: 2.5, kg: 70, reps: [8, 8, 8] },
       { nome: "Supino inclinado", faixa: [8, 10], passo: 2, kg: 24, reps: [10, 9, 8] },
@@ -24,7 +25,7 @@ const PASTAS: Pasta[] = [
     ],
   },
   {
-    id: "b", nome: "Costas e Bíceps", minutos: 50, cor: "#36c2ff", tinta: "#04202e",
+    id: "b", nome: "Costas e Bíceps", minutos: 50, cor: "#5b21b6", tinta: "#ffffff",
     exercicios: [
       { nome: "Puxada na frente", faixa: [8, 10], passo: 2.5, kg: 55, reps: [10, 10, 10] },
       { nome: "Remada baixa", faixa: [8, 10], passo: 2.5, kg: 50, reps: [10, 10, 9] },
@@ -32,7 +33,7 @@ const PASTAS: Pasta[] = [
     ],
   },
   {
-    id: "c", nome: "Pernas", minutos: 60, cor: "#c9f03a", tinta: "#1b2203",
+    id: "c", nome: "Pernas", minutos: 60, cor: "#c4a8ff", tinta: "#1a0b3d",
     exercicios: [
       { nome: "Agachamento", faixa: [6, 8], passo: 2.5, kg: 80, reps: [8, 7, 7] },
       { nome: "Leg press", faixa: [10, 12], passo: 5, kg: 160, reps: [12, 12, 12] },

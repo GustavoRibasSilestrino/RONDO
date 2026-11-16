@@ -1,15 +1,16 @@
 /* ===== As pastas do treino (components/PastasTreino.tsx) =====
    No lugar da cena dos aparelhos em 3D (2026-11-16). Três pastas de papel em cores chapadas, como as de um fichário de
-   academia: a aberta vem para a frente e mostra os exercícios; o RONDIN fica no canto da folha e explica a carga de hoje.
+   academia (em tons de roxo, a paleta do site e do app; o verde só marca o progresso): a aberta vem para a frente e mostra os
+   exercícios; o RONDIN fica no canto da folha e explica a carga de hoje.
    Sem animação de rolagem. Cada pasta traz a sua cor (--cor) e a cor da tinta escura que lê bem sobre ela (--tinta). */
 .pastas { position: relative; padding: clamp(4.5rem, 9vw, 8rem) 0; }
 .pastas-grade { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(2rem, 5vw, 5rem); align-items: center; }
 
 .pastas-titulo { font-size: clamp(1.7rem, 3.2vw, 2.9rem); line-height: 1.1; color: var(--ink); }
 .pastas-titulo span { display: block; }
-.pastas-titulo span:nth-child(1) { color: #ff8a65; }
-.pastas-titulo span:nth-child(2) { color: #7fd6ff; }
-.pastas-titulo span:nth-child(3) { color: #d6f566; }
+.pastas-titulo span:nth-child(1) { color: var(--ink); }
+.pastas-titulo span:nth-child(2) { color: var(--accent-2); }
+.pastas-titulo span:nth-child(3) { color: var(--good); }   /* o verde: o progresso */
 .pastas-lead { margin: 1.4rem 0 2rem; max-width: 40ch; color: var(--ink-2); font-size: clamp(1rem, 1.2vw, 1.1rem); line-height: 1.6; }
 
 /* a mesa: as abas em cima, a folha da pasta aberta embaixo */
@@ -40,18 +41,19 @@
 .pastas-lista { list-style: none; display: grid; gap: .35rem; }
 .pastas-linha {
   appearance: none; width: 100%; border: 0; cursor: pointer; text-align: left; font: inherit; color: inherit;
-  padding: .85rem .9rem; border-radius: 12px; background: rgba(255, 255, 255, .28);
+  padding: .85rem .9rem; border-radius: 12px; background: rgba(255, 255, 255, .16);
   transition: background .15s;
 }
-.pastas-linha:hover { background: rgba(255, 255, 255, .42); }
-.pastas-linha.is-escolhido { background: var(--tinta); color: var(--cor); }
+.pastas-linha:hover { background: rgba(255, 255, 255, .26); }
+.pastas-linha.is-escolhido { background: #0d0919; color: #fff; }
 .pastas-linha:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
 .pastas-nome, .pastas-ontem, .pastas-hoje { display: grid; gap: .15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 .pastas-nome { font-size: 1rem; }
 .pastas-ontem, .pastas-hoje { font-size: 1.05rem; }
 .pastas-hoje { font-size: 1.2rem; }
 .pastas-linha small { font-size: .8rem; font-weight: 400; opacity: .78; }
-.pastas-hoje small.is-sobe { font-weight: 700; opacity: 1; }
+/* a carga que sobe: uma etiqueta verde (a cor do progresso no site e no app) */
+.pastas-hoje small.is-sobe { justify-self: end; font-weight: 700; opacity: 1; padding: .12rem .5rem; border-radius: 999px; background: var(--good); color: #04281a; }
 
 /* o RONDIN no canto da folha, com o balão de fala */
 .pastas-rondin { display: flex; align-items: flex-end; justify-content: flex-end; gap: .8rem; margin-top: 1.3rem; }
