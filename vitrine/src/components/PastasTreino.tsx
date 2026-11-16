@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { desenharOrbe, esfera } from "../lib/orbe";
+import { RondinVideo } from "./RondinVideo";
 import { APP_CRIAR } from "../lib/rotas";
 import { Btn } from "./ui";
 
@@ -57,22 +57,13 @@ function falaDoExercicio(e: Exercicio): string {
     : `Da última vez, ${e.nome} com ${kg(e.kg)}: ${series}. Ainda faltou chegar a ${e.faixa[1]} em todas. Hoje mantém ${kg(e.kg)} e busca o topo.`;
 }
 
-/* o RONDIN, parado (uma imagem da esfera de pontos, a mesma do app), com o balão de fala */
+/* o RONDIN em 3D (o vídeo do Blender), com o balão de fala */
 function Rondin({ fala }: { fala: string }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const c = ref.current, ctx = c?.getContext("2d");
-    if (!c || !ctx) return;
-    const t = 72, dpr = Math.min(2, devicePixelRatio || 1);
-    c.width = c.height = t * dpr;
-    ctx.scale(dpr, dpr);
-    desenharOrbe(ctx, esfera(190), 2.4, 0.1, t);
-  }, []);
   return (
     <div className="pastas-rondin">
       <p className="pastas-fala" aria-live="polite">{fala}</p>
       <div className="pastas-orbe">
-        <canvas ref={ref} width={72} height={72} aria-hidden="true" />
+        <RondinVideo tamanho={72} />
         <span>RONDIN</span>
       </div>
     </div>

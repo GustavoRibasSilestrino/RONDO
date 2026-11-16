@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { desenharOrbe, esfera } from "../lib/orbe";
+import { RondinVideo } from "./RondinVideo";
 import { APP_CRIAR } from "../lib/rotas";
 import { tocarNotificacao } from "../lib/som";
 import { reduceMotion } from "../lib/util";
@@ -25,29 +25,6 @@ const sortearCanto = (anterior: Canto | null): Canto => {
   const opcoes = CANTOS.filter((c) => c !== anterior && (!pequena() || c === "ie" || c === "id"));
   return opcoes[Math.floor(Math.random() * opcoes.length)];
 };
-
-function Esfera({ tamanho, vivo }: { tamanho: number; vivo: boolean }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = ref.current, ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
-    const dpr = Math.min(2, devicePixelRatio || 1);
-    canvas.width = canvas.height = tamanho * dpr;
-    ctx.scale(dpr, dpr);
-    const pts = esfera(tamanho > 80 ? 420 : 170);
-    if (reduceMotion || !vivo) { desenharOrbe(ctx, pts, 2, 0.1, tamanho); return; }
-    let id = 0;
-    const t0 = performance.now();
-    const quadro = (agora: number) => {
-      const t = (agora - t0) / 1000;
-      desenharOrbe(ctx, pts, t + 2, 0.12 + 0.06 * Math.sin(t * 1.6), tamanho);
-      id = requestAnimationFrame(quadro);
-    };
-    id = requestAnimationFrame(quadro);
-    return () => cancelAnimationFrame(id);
-  }, [tamanho, vivo]);
-  return <canvas ref={ref} className="rondin-esfera" style={{ width: tamanho, height: tamanho }} aria-hidden="true" />;
-}
 
 export function RondinFlutuante() {
   const [visivel, setVisivel] = useState(reduceMotion);
@@ -113,7 +90,7 @@ export function RondinFlutuante() {
           <button type="button" className="rondin-fechar" aria-label="Fechar" onClick={() => fechar()}>
             <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
           </button>
-          <Esfera tamanho={96} vivo />
+          <RondinVideo tamanho={96} />
           <p id="rondin-balao-texto">Oi, eu sou o <b>RONDIN</b>. Quer me conhecer?</p>
           <Btn href={APP_CRIAR} className="rondin-conhecer">Conhecer RONDIN <span className="arrow">→</span></Btn>
         </div>
@@ -126,7 +103,7 @@ export function RondinFlutuante() {
         onFocus={() => setSegurando(true)} onBlur={() => setSegurando(false)}
       >
         {!aberto ? <span className="rondin-fala" aria-hidden="true">Oi, quer me conhecer?</span> : null}
-        <span className="rondin-orbe"><Esfera tamanho={64} vivo={mostrando} /></span>
+        <span className="rondin-orbe"><RondinVideo tamanho={64} tocando={mostrando} /></span>
       </button>
     </div>
   );

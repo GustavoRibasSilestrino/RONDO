@@ -164,3 +164,6 @@ h2.display { font-size: clamp(2.1rem, 4.6vw, 3.8rem); }
 
 /* animações sem fim fora da tela ficam pausadas (a classe vem de usePauseOffscreen, em components/ui.tsx) */
 .is-off, .is-off::before, .is-off::after { animation-play-state: paused !important; }
+
+/* o RONDIN em 3D (components/RondinVideo.tsx): o fundo preto do vídeo some sobre o fundo escuro */
+.rondin-video { display: block; flex: none; object-fit: cover; mix-blend-mode: screen; pointer-events: none; }

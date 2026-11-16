@@ -64,7 +64,8 @@
   box-shadow: 0 14px 30px -16px rgba(0, 0, 0, .7);
 }
 .pastas-orbe { display: grid; justify-items: center; gap: .2rem; flex: none; }
-.pastas-orbe canvas { width: 72px; height: 72px; border-radius: 50%; background: radial-gradient(closest-side, #1c1233, #07040e); }
+/* o fundo das pastas é roxo claro: aqui o RONDIN fica no próprio círculo escuro do vídeo, sem o modo de mistura */
+.pastas-orbe .rondin-video { mix-blend-mode: normal; border-radius: 50%; }
 .pastas-orbe span { font-size: .68rem; font-weight: 700; letter-spacing: .18em; }
 
 @media (max-width: 960px) {
@@ -82,6 +83,6 @@
   .pastas-ontem { font-size: .95rem; }
   .pastas-hoje { font-size: 1.05rem; }
   .pastas-fala { font-size: .9rem; }
-  .pastas-orbe canvas { width: 60px; height: 60px; }
+  .pastas-orbe .rondin-video { width: 60px !important; height: 60px !important; }
 }
 @media (prefers-reduced-motion: reduce) { .pastas-aba, .pastas-linha { transition: none; } }

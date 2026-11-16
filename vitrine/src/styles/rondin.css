@@ -23,6 +23,8 @@
   opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.35);
   transition: opacity .45s var(--ease), transform .7s cubic-bezier(.34, 1.4, .5, 1);
 }
+/* a animação de entrada isola o orbe, e o preto do vídeo não some: fica o círculo escuro, sem os cantos */
+.rondin-orbe .rondin-video { border-radius: 50%; }
 .rondin-orbe::before {   /* a luz roxa atrás dele */
   content: ""; position: absolute; inset: -14px; border-radius: 50%; z-index: -1;
   background: radial-gradient(closest-side, rgba(139, 92, 246, .42), rgba(109, 40, 217, .14) 60%, transparent);
