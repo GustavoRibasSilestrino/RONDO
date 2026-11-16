@@ -157,7 +157,10 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
         if (bruto) {
           const guardado = JSON.parse(bruto) as Partial<Estado>;
           /* dados de uma versão antiga, com contas e histórico de demonstração: descarta e começa limpo */
-          const lido: Estado = (guardado.semeado || guardado.semeadoSocial) ? estadoVazio() : { ...estadoVazio(), ...guardado };
+          let lido: Estado = (guardado.semeado || guardado.semeadoSocial) ? estadoVazio() : { ...estadoVazio(), ...guardado };
+          /* a conta guardada só vale com o token junto: se o token sumiu (apagaram os dados do site, ou ele foi limpo), a
+             pessoa não está mais logada, mesmo que a cópia dos dados ainda esteja no aparelho (revisão de 2026-11-16) */
+          if (lido.usuario && !(await lerToken())) lido = { ...lido, usuario: null };
           recente.current = lido;
           setEstado(lido);
         }

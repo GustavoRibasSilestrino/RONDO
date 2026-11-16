@@ -51,7 +51,9 @@ export async function chamar<T>(metodo: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELE
   } catch {
     throw new ErroHttp(0, 'Sem conexão. Tente de novo em instantes.');
   }
-  if (resposta.status === 401 && token) aoVencer?.();
+  /* 401 fora das rotas de entrar: o servidor não reconhece mais a sessão (token vencido, trocado ou apagado do aparelho),
+     então o app sai da conta, em vez de seguir mostrando a conta como se estivesse logado */
+  if (resposta.status === 401 && (token || !caminho.startsWith('/auth/'))) aoVencer?.();
   if (!resposta.ok) {
     let mensagem = 'Não foi possível concluir agora. Tente de novo.';
     try {
