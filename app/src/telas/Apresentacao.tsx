@@ -41,7 +41,13 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
   const nativo = Platform.OS !== 'web';
   const tamanho = Math.round(Math.min(width * 0.8, height * 0.46, 380));
 
+  /* um toque só pode fazer ele se apresentar uma vez: o toque que libera o som (no orbe, o lugar natural) disparava a
+     apresentação duas vezes, uma pela liberação e outra pelo toque no orbe, e a frase começava, era cortada e recomeçava */
+  const ultimaVez = useRef(0);
   const apresentar = () => {
+    const agora = Date.now();
+    if (agora - ultimaVez.current < 1200) return;
+    ultimaVez.current = agora;
     setIndiceVoz(-1); setDuracaoMs(0); setChave((c) => c + 1);
     setEstado('falando');
     /* a legenda só começa quando a voz começa (ou quando a voz está desligada): sem isso, se o navegador recusa o som, a

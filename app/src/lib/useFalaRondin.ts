@@ -2,7 +2,7 @@
    juntas. `dizer(partes, depois)` fala as partes em ordem; `depois` roda quando a voz e a legenda terminaram. Tocar no orbe
    pula a fala enquanto ela corre e a repete depois. É a mesma lógica de telas/Rondin.tsx, sem as etapas do cadastro. */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { falar, parar, useSomBloqueado, type Sotaque } from './rondinVoz';
+import { acabouDeLiberarSom, falar, parar, useSomBloqueado, type Sotaque } from './rondinVoz';
 import { trechosParaVoz, type Trecho } from './rondinRoteiro';
 
 export type FalaRondin = {
@@ -65,6 +65,7 @@ export function useFalaRondin(sotaque: Sotaque): FalaRondin {
   }, []);
 
   const tocarNoOrbe = useCallback(() => {
+    if (acabouDeLiberarSom()) return;   // este toque só liberou o som (e a fala já recomeçou): não pula nem repete
     if (ctrl.current.id > 0 && !ctrl.current.leg) { pular(); return; }
     if (ultimas.current.length) falar(ultimas.current, sotaqueRef.current, () => undefined);
   }, [pular]);

@@ -26,7 +26,7 @@ import { useMovimentoReduzido } from '../lib/movimento';
 import { EstadoOrbe } from '../lib/orbe';
 import { Dita, Opcao, Passo, Respostas, emailValido, falasDe, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar, primeiroNome, trechosDe } from '../lib/rondinRoteiro';
 import { TEXTOS, traduzirErro } from '../lib/rondinTextos';
-import { SOTAQUES, Sotaque, falar, parar, sotaquePadrao, useSomBloqueado } from '../lib/rondinVoz';
+import { SOTAQUES, Sotaque, acabouDeLiberarSom, falar, parar, sotaquePadrao, useSomBloqueado } from '../lib/rondinVoz';
 import { cores, estilos } from '../tema';
 import type { Estado, Usuario } from '../tipos';
 import { RecuperarSenha } from './RecuperarSenha';
@@ -229,6 +229,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
   }, [somBloqueado]);
   /* tocar no orbe: enquanto ele fala, pula a fala; esperando a resposta, ele repete a pergunta em voz alta */
   const tocarNoOrbe = () => {
+    if (acabouDeLiberarSom()) return;   // este toque só liberou o som (e a fala já recomeçou): não pula nem repete
     if (fase === 'falando' && !completa) pular();
     else if (trechosRef.current.length) falar(trechosRef.current, sotaqueRef.current, () => undefined);
   };

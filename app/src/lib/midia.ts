@@ -120,6 +120,20 @@ export async function escolherFoto(origem: 'galeria' | 'camera', aspecto: [numbe
   return guardar(resultado.assets[0]);
 }
 
+/* No navegador a foto fica guardada como data URI. Ela vira arquivo aqui, sem `fetch`: a política de conteúdo do app (CSP,
+   ligada desde 2026-11-11) não deixa o `fetch` ler `data:`, e por isso a foto de perfil (e as fotos dos posts) não subia. */
+function dataUriParaBlob(uri: string): Blob {
+  const virgula = uri.indexOf(',');
+  const cabeca = uri.slice(5, virgula);                       // ex.: "image/jpeg;base64"
+  const tipo = cabeca.split(';')[0] || 'application/octet-stream';
+  const dados = uri.slice(virgula + 1);
+  if (!cabeca.includes(';base64')) return new Blob([decodeURIComponent(dados)], { type: tipo });
+  const bin = atob(dados);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: tipo });
+}
+
 /* sobe a foto ou o vídeo para o servidor e devolve a referência com a url pública, para os outros verem.
    Se já foi enviada, devolve como está. */
 export async function enviarMidia(m: Midia): Promise<Midia> {
@@ -130,7 +144,7 @@ export async function enviarMidia(m: Midia): Promise<Midia> {
   const ext = m.tipo === 'video' ? 'mp4' : 'jpg';
   const { url_envio, url } = await pedirUpload(m.tipo, ext);
   let corpo: Blob;
-  try { corpo = await (await fetch(uri)).blob(); } catch { throw new Error('Não foi possível ler o arquivo.'); }
+  try { corpo = uri.startsWith('data:') ? dataUriParaBlob(uri) : await (await fetch(uri)).blob(); } catch { throw new Error('Não foi possível ler o arquivo.'); }
   let resposta: Response;
   try {
     resposta = await fetch(url_envio, { method: 'PUT', headers: { 'Content-Type': corpo.type || (m.tipo === 'video' ? 'video/mp4' : 'image/jpeg') }, body: corpo });

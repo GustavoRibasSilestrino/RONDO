@@ -128,6 +128,9 @@ function falarComAparelho(texto: string, sotaque: Sotaque, minha: number, aoPala
    o RONDIN marca o som como bloqueado (a tela mostra "toque para ouvir") e, no primeiro toque em qualquer lugar, avisa quem
    estiver escutando (`useSomBloqueado`) para ele falar de novo, desde o começo. No celular isso não existe. */
 let somBloqueado = false;
+let liberadoEm = 0;
+/* o toque que acabou de liberar o som não deve valer também como toque no orbe (que pula ou repete a fala) */
+export const acabouDeLiberarSom = (): boolean => Date.now() - liberadoEm < 900;
 const avisosBloqueio = new Set<(bloqueado: boolean) => void>();
 const GESTOS = ['pointerdown', 'keydown', 'touchend'] as const;
 function marcarBloqueado(): void {
@@ -137,6 +140,7 @@ function marcarBloqueado(): void {
   const liberar = () => {
     GESTOS.forEach((ev) => window.removeEventListener(ev, liberar, true));
     somBloqueado = false;
+    liberadoEm = Date.now();
     avisosBloqueio.forEach((f) => f(false));
   };
   GESTOS.forEach((ev) => window.addEventListener(ev, liberar, true));
