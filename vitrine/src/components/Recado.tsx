@@ -89,7 +89,7 @@ function Conversa() {
     <div className="conversa">
       <div className="conversa-falas" ref={fim} aria-live="polite">
         <div className="conversa-cena">
-          <Orbe tamanho={150} />
+          <Orbe tamanho={112} />
           <b>RONDIN</b>
           <span>A pergunta de hoje</span>
         </div>
