@@ -19,6 +19,7 @@ import { exercicioDe, guardarRotina, musculosDe, rotinaDe, todasRotinas } from '
 import { descricaoDos } from '../lib/musculos';
 import { diaDaSemana, fmt, haQuanto, iso, mmss, num, somarDias } from '../lib/datas';
 import { explicacaoDaSugestao } from '../lib/treinoSugerido';
+import { esconderBotaoMais } from '../lib/botaoMais';
 import { cores, estilos, larguraMax } from '../tema';
 import { TodosTreinos } from './TodosTreinos';
 
@@ -55,6 +56,10 @@ function Lista() {
   const lixeira = useRef<Retangulo | null>(null);
   const [sobreLixeira, setSobreLixeira] = useState(false);
   const [desfazer, setDesfazer] = useState<Rotina | null>(null);
+  /* a lixeira e o + dividem o pé da tela: com a lixeira à mostra, o + desce e some; ao sair desta tela, ele volta */
+  const lixeiraVisivel = !!escolhida && !aberto;
+  useEffect(() => { esconderBotaoMais(lixeiraVisivel); }, [lixeiraVisivel]);
+  useEffect(() => () => esconderBotaoMais(false), []);
   useEffect(() => {
     if (!desfazer) return undefined;
     const t = setTimeout(() => setDesfazer(null), 5000);
@@ -205,7 +210,7 @@ function Lista() {
         rotinas={rotinas} largura={colunaUtil} escolhida={escolhida}
         aoEscolher={setEscolhida}
         aoAbrir={(id) => { setEscolhida(id); setAberto(id); }}
-        arrasto={{ lixeira, podeExcluir, aoSobreLixeira: setSobreLixeira, aoJogarNaLixeira: excluir }}
+        arrasto={{ lixeira, podeExcluir, aoSobreLixeira: setSobreLixeira, aoJogarNaLixeira: excluir, aoCancelar: () => { setEscolhida(null); setSobreLixeira(false); } }}
       />
       {ocultos.length ? (
         <Pressable accessibilityRole="button" onPress={() => commit((e) => { if (e.perfilFit) e.perfilFit.treinosOcultos = []; })} hitSlop={8} style={{ alignSelf: 'center', paddingVertical: 8 }}>
@@ -304,11 +309,12 @@ function Lista() {
       <AnaliseExecucao aberta={analise} aoFechar={() => setAnalise(false)} />
     </Tela>
     <Lixeira
-      visivel={!!escolhida && !aberto}
+      visivel={lixeiraVisivel}
       sobre={sobreLixeira}
       aviso={avisoLixeira}
       aoTocar={() => { if (escolhida) excluir(escolhida); }}
       aoMedir={(ret) => { lixeira.current = ret; }}
+      aoCancelar={() => { setEscolhida(null); setSobreLixeira(false); }}
     />
     {desfazer ? (
       <View pointerEvents="box-none" style={st.desfazerFaixa}>

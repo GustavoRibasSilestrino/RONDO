@@ -5,7 +5,7 @@
    Tocar numa pasta faz ela SUBIR (fica escolhida) e a lixeira aparece acima da barra de abas (componentes/Lixeira.tsx); tocar de
    novo nela ABRE o treino (`aoAbrir`). A pasta escolhida pode ser ARRASTADA: só começa depois de 8 px de movimento (o toque e a
    rolagem continuam funcionando); com o dedo sobre a lixeira, ela avisa e o celular vibra de leve; soltando ali, a pasta encolhe
-   e cai dentro dela (`aoJogarNaLixeira`); soltando fora, volta ao lugar com mola. Os treinos sugeridos levam o selo
+   e cai dentro dela (`aoJogarNaLixeira`); soltando fora, CANCELA: volta ao lugar com mola e desce para a pilha (`aoCancelar`). Os treinos sugeridos levam o selo
    "SUGESTÃO". Parado para quem pede menos movimento (a pasta sobe e some sem animação). */
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -43,6 +43,7 @@ type Arrasto = {
   podeExcluir: (id: string) => boolean;
   aoSobreLixeira: (sobre: boolean) => void;
   aoJogarNaLixeira: (id: string) => void;
+  aoCancelar: () => void;   // soltou fora da lixeira: a pasta volta para a pilha e a lixeira sai
 };
 
 function Pasta({ rotina, largura, topo, esquerda, escolhida, reduzido, aoTocar, arrasto }: {
@@ -90,7 +91,7 @@ function Pasta({ rotina, largura, topo, esquerda, escolhida, reduzido, aoTocar, 
       onPanResponderMove: (_e, g) => { ultimo.current = { dx: g.dx, dy: g.dy, x: g.moveX, y: g.moveY }; pos.setValue({ x: g.dx, y: g.dy }); marcar(dentro(g.moveX, g.moveY)); },
       onPanResponderRelease: () => {
         /* decide pelo último movimento: na soltura, o navegador às vezes não traz a posição do dedo */
-        if (!sobreRef.current || !arrastoRef.current.lixeira.current) { voltar(); return; }
+        if (!sobreRef.current || !arrastoRef.current.lixeira.current) { voltar(); arrastoRef.current.aoCancelar(); return; }
         /* caiu na lixeira: a pasta vai até o centro dela, encolhe e some */
         const r = arrastoRef.current.lixeira.current;
         const u = ultimo.current;
