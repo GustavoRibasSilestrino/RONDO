@@ -35,7 +35,7 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
   const rotinas = todasRotinas(estado);
   const ultima = estado.treinos[estado.treinos.length - 1];
   const idxUltima = ultima ? rotinas.findIndex((r) => r.id === ultima.rotina) : -1;
-  const sugerida = rotinas[(idxUltima + 1) % rotinas.length];
+  const sugerida = rotinas.length ? rotinas[(idxUltima + 1) % rotinas.length] : undefined;   // pode não haver treino: a pessoa excluiu todos
   const treinouHoje = estado.treinos.some((t) => t.data === d);
   const agua = estado.agua[d] ?? 0;
   const checkin = !!estado.checkins[d];
@@ -91,6 +91,12 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
             <T tam={24} peso="300">Treino em andamento</T>
             <T tam={13} cor={cores.texto2} style={{ marginTop: 2 }}>{estado.treinoAtual ? rotinaDe(estado, estado.treinoAtual.rotina)?.nome : undefined}</T>
             <Botao titulo="Continuar treino" icone="treino" aoPressionar={() => ir('treino')} style={{ marginTop: 14 }} />
+          </>
+        ) : !sugerida ? (
+          <>
+            <T tam={24} peso="300">Nenhum treino ainda</T>
+            <T tam={13} cor={cores.texto2} style={{ marginTop: 2 }}>Crie o seu na aba Treino.</T>
+            <Botao titulo="Ir para o treino" icone="treino" aoPressionar={() => ir('treino')} style={{ marginTop: 14 }} />
           </>
         ) : (
           <>

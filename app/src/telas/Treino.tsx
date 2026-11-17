@@ -21,7 +21,6 @@ import { diaDaSemana, fmt, haQuanto, iso, mmss, num, somarDias } from '../lib/da
 import { explicacaoDaSugestao } from '../lib/treinoSugerido';
 import { esconderBotaoMais } from '../lib/botaoMais';
 import { cores, estilos, larguraMax } from '../tema';
-import { TodosTreinos } from './TodosTreinos';
 
 const DESCANSO_MS = 90_000;
 const SEMANA = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
@@ -46,7 +45,6 @@ function Lista() {
   const [calendario, setCalendario] = useState(false);
   const [analise, setAnalise] = useState(false);   // a câmera que analisa a execução
   const avisar = useAviso();
-  const [todos, setTodos] = useState(false);
   const [editor, setEditor] = useState<{ inicial: Rascunho } | null>(null);   // o editor aberto, para mudar um treino próprio
   const rotinas = todasRotinas(estado);
   const [serie, setSerie] = useState<'constancia' | 'evolucao'>('constancia');
@@ -85,7 +83,7 @@ function Lista() {
     });
 
   /* editar e excluir os treinos próprios (criar e enviar arquivo ficam no + de baixo: telas/CriarPlano.tsx) */
-  const abrirEditar = (r: Rotina) => { setTodos(false); setEditor({ inicial: { id: r.id, nome: r.nome, exercicios: r.exercicios, musculos: r.musculos ?? [] } }); };
+  const abrirEditar = (r: Rotina) => { setEditor({ inicial: { id: r.id, nome: r.nome, exercicios: r.exercicios, musculos: r.musculos ?? [] } }); };
   const salvarTreino = (r: Rotina) => {
     commit((e) => guardarRotina(e, r));
     setEditor(null);
@@ -99,10 +97,6 @@ function Lista() {
 
   const ultimaData = (id: string): string | null => [...estado.treinos].reverse().find((t) => t.rotina === id)?.data ?? null;
 
-  /* a rotina em destaque: a que a pessoa tocou numa pasta ou, sem escolha, a que está há mais tempo sem treinar (ou nunca foi feita) */
-  const daVez = [...rotinas].sort((a, b) => (ultimaData(a.id) ?? '').localeCompare(ultimaData(b.id) ?? ''))[0];
-  const escolhidaRotina = escolhida ? rotinas.find((x) => x.id === escolhida) : undefined;
-  const sugerida = escolhidaRotina ?? daVez;
   const temSugestao = rotinas.some((x) => x.sugerida);
 
   /* a semana: segunda a domingo, com os dias em que houve treino */
@@ -132,11 +126,11 @@ function Lista() {
   const totalSeries = (r: Rotina) => r.exercicios.reduce((t, x) => t + x.series, 0);
   const colunaUtil = Math.min(width, larguraMax) - 40;   // a largura da pilha de pastas
 
-  /* excluir um treino pela lixeira: o próprio sai da lista; o sugerido fica escondido (perfilFit.treinosOcultos). O último que
-     sobrar não sai (a aba e o Hoje sempre têm um treino). Dá para desfazer por 5 s. */
+  /* excluir um treino pela lixeira: o próprio sai da lista; o sugerido fica escondido (perfilFit.treinosOcultos). Qualquer um sai,
+     inclusive o último (pedido do dono, 2026-11-17). Dá para desfazer por 5 s. */
   const podeExcluir = (id: string): boolean => {
     const x = rotinas.find((y) => y.id === id);
-    return !!x && rotinas.length > 1 && (!!x.propria || !!x.sugerida);
+    return !!x && (!!x.propria || !!x.sugerida);
   };
   const excluir = (id: string) => {
     const x = rotinas.find((y) => y.id === id);
@@ -159,9 +153,7 @@ function Lista() {
     setDesfazer(null);
   };
   const ocultos = estado.perfilFit?.treinosOcultos ?? [];
-  const avisoLixeira = escolhida && !podeExcluir(escolhida)
-    ? (rotinas.length <= 1 ? 'Deixe pelo menos um treino' : 'Este treino não pode ser excluído')
-    : undefined;
+  const avisoLixeira = escolhida && !podeExcluir(escolhida) ? 'Este treino não pode ser excluído' : undefined;
   const rotinaAberta = aberto ? rotinas.find((x) => x.id === aberto) : undefined;
 
   return (
@@ -206,45 +198,24 @@ function Lista() {
           <T tam={13} peso="500" cor="#c4b5fd" style={{ marginTop: 8, lineHeight: 19 }}>Não é fixo: troque, edite ou crie os seus treinos quando quiser.</T>
         </View>
       ) : null}
-      <PilhaPastas
+      {rotinas.length ? <PilhaPastas
         rotinas={rotinas} largura={colunaUtil} escolhida={escolhida}
         aoEscolher={setEscolhida}
         aoAbrir={(id) => { setEscolhida(id); setAberto(id); }}
         arrasto={{ lixeira, podeExcluir, aoSobreLixeira: setSobreLixeira, aoJogarNaLixeira: excluir, aoCancelar: () => { setEscolhida(null); setSobreLixeira(false); } }}
-      />
+      /> : null}
+      {rotinas.length === 0 ? (
+        <View style={st.vazio}>
+          <T tam={16} peso="500" centro>Nenhum treino por aqui</T>
+          <T tam={13} cor={cores.texto2} centro style={{ marginTop: 4, lineHeight: 19 }}>Crie o seu no + do canto, ou traga de volta os treinos sugeridos.</T>
+        </View>
+      ) : null}
       {ocultos.length ? (
         <Pressable accessibilityRole="button" onPress={() => commit((e) => { if (e.perfilFit) e.perfilFit.treinosOcultos = []; })} hitSlop={8} style={{ alignSelf: 'center', paddingVertical: 8 }}>
           <T tam={13} peso="500" cor={cores.destaque2}>Mostrar os treinos sugeridos de novo</T>
         </Pressable>
       ) : null}
 
-      {/* o treino sugerido, em destaque */}
-      <View style={st.hero}>
-        <View style={st.selo}><T tam={10.5} peso="500" cor="#ffffff" style={{ letterSpacing: 1 }}>{escolhidaRotina ? 'TREINO ESCOLHIDO' : sugerida.sugerida ? 'SUGESTÃO PARA HOJE' : 'SUGERIDO PARA HOJE'}</T></View>
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14, marginTop: 12 }}>
-          <View style={{ flex: 1 }}>
-            <T tam={28} peso="500" style={{ letterSpacing: -0.5 }}>{sugerida.nome}</T>
-            <View style={st.metas}>
-              <View style={st.meta}><Icone nome="relogio" tamanho={15} cor={cores.texto} /><T tam={12.5}>{sugerida.minutos} min</T></View>
-              <View style={st.meta}><Icone nome="treino" tamanho={15} cor={cores.texto} /><T tam={12.5}>{sugerida.exercicios.length} exercícios</T></View>
-              <View style={st.meta}><Icone nome="ok" tamanho={15} cor={cores.texto} /><T tam={12.5}>{totalSeries(sugerida)} séries</T></View>
-            </View>
-          </View>
-          <View style={st.anatomiaFigura}><CorpoMusculos grupos={musculosDe(sugerida)} largura={64} /></View>
-        </View>
-        <View style={{ marginTop: 16, gap: 10 }}>
-          {sugerida.exercicios.map((x, k) => (
-            <View key={x.id} style={st.linhaEx}>
-              <View style={st.numero}><T tam={12} peso="500">{k + 1}</T></View>
-              <T tam={14.5} style={{ flex: 1 }} linhas={1}>{x.nome}</T>
-              <T tam={13} style={{ opacity: 0.85 }}>{x.series} × {x.faixa[0] === x.faixa[1] ? x.faixa[0] : `${x.faixa[0]}-${x.faixa[1]}`}{x.inicial > 0 ? <T tam={13} peso="500" cor={cores.destaque2}>{`  ·  ${num(x.inicial)} kg`}</T> : null}</T>
-            </View>
-          ))}
-        </View>
-        <T tam={12.5} style={{ marginTop: 14, opacity: 0.75 }}>{ultimaData(sugerida.id) ? `Última vez: ${haQuanto(ultimaData(sugerida.id)!)}` : 'Ainda não feito'}. O app abre com a sua última carga e sugere a próxima.</T>
-        <Botao titulo="Começar treino" icone="treino" aoPressionar={() => iniciar(sugerida.id)} style={{ marginTop: 16 }} />
-        <Botao tipo="fantasma" icone="menu" titulo="Ver todos os treinos" aoPressionar={() => setTodos(true)} style={{ marginTop: 10 }} />
-      </View>
 
       {/* gráfico de constância e evolução */}
       <View style={st.grafico}>
@@ -301,7 +272,6 @@ function Lista() {
           </View>
         ) : null}
       </Folha>
-      <TodosTreinos aberto={todos} rotinas={rotinas} aoFechar={() => setTodos(false)} aoIniciar={iniciar} aoEditar={abrirEditar} ultimaData={ultimaData} />
       <EditorTreino aberto={!!editor} inicial={editor?.inicial ?? null} aoFechar={() => setEditor(null)} aoSalvar={salvarTreino} aoExcluir={excluirTreino} />
       <Folha aberta={calendario} aoFechar={() => setCalendario(false)} titulo="Constância">
         <CalendarioMes />
@@ -585,6 +555,7 @@ const st = estilos(() => StyleSheet.create({
   selo: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.destaqueForte },
   metas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
+  vazio: { marginTop: 14, padding: 20, borderRadius: 22, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
   desfazerFaixa: { position: 'absolute', left: 0, right: 0, bottom: 16 + 62 + 12 + 58 + 14, alignItems: 'center' },   // acima do + do canto, para não ficar por baixo dele
   desfazer: { flexDirection: 'row', alignItems: 'center', gap: 16, width: 300, maxWidth: '86%', paddingVertical: 12, paddingHorizontal: 18, borderRadius: 999, backgroundColor: cores.aviso, boxShadow: '0 16px 34px -14px rgba(42,22,80,0.8)' },
   anatomiaFigura: { padding: 8, borderRadius: 16, backgroundColor: cores.destaqueForte },

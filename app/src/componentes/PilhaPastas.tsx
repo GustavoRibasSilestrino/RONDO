@@ -22,7 +22,7 @@ const ROXO = cores.destaqueForte;    // o selo da sugestão e o contorno da past
 
 const ALTURA = 168;     // altura de cada pasta
 const ABA = 28;         // altura da aba
-const PASSO = 66;       // quanto de cada pasta aparece (a aba e uma faixa do corpo)
+const PASSO = 84;       // quanto de cada pasta aparece (a aba e uma faixa do corpo); mais espaço = mais fácil de tocar (pedido do dono)
 const DESLOCA = 10;     // cada pasta de trás anda isto para a direita
 const SOBE = 52;        // quanto a pasta escolhida sobe
 const LIMIAR = 8;       // px de movimento antes de o arrasto começar
