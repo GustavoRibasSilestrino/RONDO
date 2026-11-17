@@ -26,7 +26,8 @@ hora) e define a senha nova. O servidor responde igual exista a conta ou não. O
    - Origens JavaScript autorizadas: `https://userondo.vercel.app`
 3. Copie o **ID do cliente** e use em dois lugares:
    - Render: `GOOGLE_CLIENT_IDS` = o ID (para o app de celular, some os IDs de iOS e Android, separados por vírgula).
-   - Vercel, projeto `rondo-app`: `EXPO_PUBLIC_GOOGLE_CLIENT_ID` = o ID. Depois, publique o app de novo.
+   - App: `EXPO_PUBLIC_GOOGLE_CLIENT_ID` = o ID, no arquivo `app/.env.production` (o ID é público; o projeto `rondo-app` da Vercel não tem
+     variáveis). O push publica o app de novo. **Feito em 2026-11-17** (cliente "RONDO web", projeto RONDO no Google Cloud).
 
 ## 3. Entrar com a Apple
 
@@ -36,7 +37,9 @@ Exige a conta Apple Developer (US$ 99 por ano).
    - Domínio: `userondo.vercel.app`, Return URL: `https://userondo.vercel.app/app/`
 2. Use o Services ID em dois lugares:
    - Render: `APPLE_CLIENT_IDS` = o Services ID (e, no app de iPhone, o Bundle ID, separados por vírgula).
-   - Vercel, projeto `rondo-app`: `EXPO_PUBLIC_APPLE_CLIENT_ID` = o Services ID. Publique o app de novo.
+   - App: `EXPO_PUBLIC_APPLE_CLIENT_ID` = o Services ID, no arquivo `app/.env.production`. O push publica o app de novo.
+   - Antes do Services ID, crie o App ID `br.rondo.app` (Identifiers > App IDs > App, com Sign in with Apple marcado): o Services ID
+     pede um "Primary App ID".
 
 ## O que ainda não existe: login social no celular
 
