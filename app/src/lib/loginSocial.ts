@@ -32,6 +32,9 @@ export async function desenharBotaoGoogle(alvo: HTMLElement, largura: number, ao
   if (!g) throw new Error('google');
   g.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: (r: { credential?: string }) => { if (r.credential) aoToken(r.credential); }, ux_mode: 'popup' });
   alvo.innerHTML = '';
+  /* o app é escuro e o quadro do Google é claro: com esquemas de cor diferentes, o navegador pinta um retângulo branco em volta
+     do botão. Dizer que esta caixa é clara deixa o quadro transparente e sobra só o botão em pílula. */
+  alvo.style.colorScheme = 'light';
   g.accounts.id.renderButton(alvo, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', logo_alignment: 'left', width: Math.round(largura), locale });
 }
 
