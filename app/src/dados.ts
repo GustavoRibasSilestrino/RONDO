@@ -15,7 +15,8 @@ export type Exercicio = {
 };
 /* `propria`: treino criado ou enviado pela pessoa (fica em estado.rotinasProprias); `musculos`: o que pinta na figura do corpo
    (os treinos fixos usam MUSCULOS_DA_ROTINA, em lib/musculos.ts). */
-export type Rotina = { id: string; nome: string; minutos: number; exercicios: Exercicio[]; musculos?: GrupoMuscular[]; propria?: boolean };
+/* `capa`: o título curto na pasta do treino (ex.: "PEITO"); `sugerida`: montada pelo app para o corpo da pessoa (lib/treinoSugerido.ts) */
+export type Rotina = { id: string; nome: string; minutos: number; exercicios: Exercicio[]; musculos?: GrupoMuscular[]; propria?: boolean; capa?: string; sugerida?: boolean };
 
 export const ROTINAS: Rotina[] = [
   {

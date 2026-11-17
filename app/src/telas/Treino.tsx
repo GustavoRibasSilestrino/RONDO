@@ -9,12 +9,15 @@ import { publicarPost } from '../api/social';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { GraficoLinha } from '../componentes/Grafico';
 import { Icone } from '../componentes/Icone';
+import { PilhaPastas } from '../componentes/PilhaPastas';
 import { EscuroContexto, Botao, Chip, T } from '../componentes/Ui';
 import type { Rotina } from '../dados';
 import { useLoja } from '../estado/loja';
 import { diaAtivo, epley, estagnado, inicioDaSemana, melhor1RM, proximaCarga, ultimaVez, volumeDe } from '../lib/calc';
 import { exercicioDe, guardarRotina, musculosDe, rotinaDe, todasRotinas } from '../lib/rotinas';
+import { descricaoDos } from '../lib/musculos';
 import { diaDaSemana, fmt, haQuanto, iso, mmss, num, somarDias } from '../lib/datas';
+import { explicacaoDaSugestao } from '../lib/treinoSugerido';
 import { cores, estilos, larguraMax } from '../tema';
 import { TodosTreinos } from './TodosTreinos';
 
@@ -45,6 +48,8 @@ function Lista() {
   const [editor, setEditor] = useState<{ inicial: Rascunho } | null>(null);   // o editor aberto, para mudar um treino próprio
   const rotinas = todasRotinas(estado);
   const [serie, setSerie] = useState<'constancia' | 'evolucao'>('constancia');
+  const [escolhida, setEscolhida] = useState<string | null>(null);   // a pasta que subiu (primeiro toque)
+  const [aberto, setAberto] = useState<string | null>(null);         // a pasta aberta (segundo toque): a janela do treino
 
   const iniciar = (rotinaId: string) =>
     commit((e) => {
@@ -79,8 +84,11 @@ function Lista() {
 
   const ultimaData = (id: string): string | null => [...estado.treinos].reverse().find((t) => t.rotina === id)?.data ?? null;
 
-  /* a rotina sugerida é a que está há mais tempo sem treinar (ou nunca foi feita) */
-  const sugerida = [...rotinas].sort((a, b) => (ultimaData(a.id) ?? '').localeCompare(ultimaData(b.id) ?? ''))[0];
+  /* a rotina em destaque: a que a pessoa tocou numa pasta ou, sem escolha, a que está há mais tempo sem treinar (ou nunca foi feita) */
+  const daVez = [...rotinas].sort((a, b) => (ultimaData(a.id) ?? '').localeCompare(ultimaData(b.id) ?? ''))[0];
+  const escolhidaRotina = escolhida ? rotinas.find((x) => x.id === escolhida) : undefined;
+  const sugerida = escolhidaRotina ?? daVez;
+  const temSugestao = rotinas.some((x) => x.sugerida);
 
   /* a semana: segunda a domingo, com os dias em que houve treino */
   const hoje = new Date();
@@ -107,6 +115,8 @@ function Lista() {
   const dif = atualSemana.volume - anteriorSemana.volume;
 
   const totalSeries = (r: Rotina) => r.exercicios.reduce((t, x) => t + x.series, 0);
+  const colunaUtil = Math.min(width, larguraMax) - 40;   // a largura da pilha de pastas
+  const rotinaAberta = aberto ? rotinas.find((x) => x.id === aberto) : undefined;
 
   return (
     <Tela>
@@ -139,6 +149,50 @@ function Lista() {
         </View>
       </View>
 
+      {/* os treinos, em pastas lado a lado (desde 2026-11-17). Os sugeridos foram montados para o corpo da pessoa: o aviso em
+          destaque diz que são só um ponto de partida. Tocar numa pasta põe o treino em destaque, logo abaixo. */}
+      {temSugestao && estado.perfilFit ? (
+        <View style={st.aviso}>
+          <View style={st.avisoSelo}><Icone nome="ia" tamanho={14} cor="#1e1430" /><T tam={11} peso="500" cor="#1e1430" style={{ letterSpacing: 1.2 }}>SUGESTÃO</T></View>
+          <T tam={17} peso="500" cor="#ffffff" style={{ marginTop: 10 }}>Treinos montados para o seu corpo</T>
+          <T tam={13} cor="rgba(255,255,255,0.82)" style={{ marginTop: 4, lineHeight: 19 }}>{explicacaoDaSugestao(estado.perfilFit)}</T>
+          <T tam={13} peso="500" cor="#c4b5fd" style={{ marginTop: 8, lineHeight: 19 }}>Não é fixo: troque, edite ou crie os seus treinos quando quiser.</T>
+        </View>
+      ) : null}
+      <PilhaPastas
+        rotinas={rotinas} largura={colunaUtil} escolhida={escolhida}
+        aoEscolher={setEscolhida}
+        aoAbrir={(id) => { setEscolhida(id); setAberto(id); }}
+      />
+
+      {/* o treino sugerido, em destaque */}
+      <View style={st.hero}>
+        <View style={st.selo}><T tam={10.5} peso="500" cor="#ffffff" style={{ letterSpacing: 1 }}>{escolhidaRotina ? 'TREINO ESCOLHIDO' : sugerida.sugerida ? 'SUGESTÃO PARA HOJE' : 'SUGERIDO PARA HOJE'}</T></View>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14, marginTop: 12 }}>
+          <View style={{ flex: 1 }}>
+            <T tam={28} peso="500" style={{ letterSpacing: -0.5 }}>{sugerida.nome}</T>
+            <View style={st.metas}>
+              <View style={st.meta}><Icone nome="relogio" tamanho={15} cor={cores.texto} /><T tam={12.5}>{sugerida.minutos} min</T></View>
+              <View style={st.meta}><Icone nome="treino" tamanho={15} cor={cores.texto} /><T tam={12.5}>{sugerida.exercicios.length} exercícios</T></View>
+              <View style={st.meta}><Icone nome="ok" tamanho={15} cor={cores.texto} /><T tam={12.5}>{totalSeries(sugerida)} séries</T></View>
+            </View>
+          </View>
+          <View style={st.anatomiaFigura}><CorpoMusculos grupos={musculosDe(sugerida)} largura={64} /></View>
+        </View>
+        <View style={{ marginTop: 16, gap: 10 }}>
+          {sugerida.exercicios.map((x, k) => (
+            <View key={x.id} style={st.linhaEx}>
+              <View style={st.numero}><T tam={12} peso="500">{k + 1}</T></View>
+              <T tam={14.5} style={{ flex: 1 }} linhas={1}>{x.nome}</T>
+              <T tam={13} style={{ opacity: 0.85 }}>{x.series} × {x.faixa[0] === x.faixa[1] ? x.faixa[0] : `${x.faixa[0]}-${x.faixa[1]}`}{x.inicial > 0 ? <T tam={13} peso="500" cor={cores.destaque2}>{`  ·  ${num(x.inicial)} kg`}</T> : null}</T>
+            </View>
+          ))}
+        </View>
+        <T tam={12.5} style={{ marginTop: 14, opacity: 0.75 }}>{ultimaData(sugerida.id) ? `Última vez: ${haQuanto(ultimaData(sugerida.id)!)}` : 'Ainda não feito'}. O app abre com a sua última carga e sugere a próxima.</T>
+        <Botao titulo="Começar treino" icone="treino" aoPressionar={() => iniciar(sugerida.id)} style={{ marginTop: 16 }} />
+        <Botao tipo="fantasma" icone="menu" titulo="Ver todos os treinos" aoPressionar={() => setTodos(true)} style={{ marginTop: 10 }} />
+      </View>
+
       {/* gráfico de constância e evolução */}
       <View style={st.grafico}>
         <View style={st.alternar}>
@@ -163,34 +217,37 @@ function Lista() {
         </T>
       </View>
 
-      {/* o treino sugerido, em destaque */}
-      <View style={st.hero}>
-        <View style={st.selo}><T tam={10.5} peso="500" cor="#ffffff" style={{ letterSpacing: 1 }}>SUGERIDO PARA HOJE</T></View>
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14, marginTop: 12 }}>
-          <View style={{ flex: 1 }}>
-            <T tam={28} peso="500" style={{ letterSpacing: -0.5 }}>{sugerida.nome}</T>
-            <View style={st.metas}>
-              <View style={st.meta}><Icone nome="relogio" tamanho={15} cor={cores.texto} /><T tam={12.5}>{sugerida.minutos} min</T></View>
-              <View style={st.meta}><Icone nome="treino" tamanho={15} cor={cores.texto} /><T tam={12.5}>{sugerida.exercicios.length} exercícios</T></View>
-              <View style={st.meta}><Icone nome="ok" tamanho={15} cor={cores.texto} /><T tam={12.5}>{totalSeries(sugerida)} séries</T></View>
-            </View>
-          </View>
-          <CorpoMusculos grupos={musculosDe(sugerida)} largura={64} />
-        </View>
-        <View style={{ marginTop: 16, gap: 10 }}>
-          {sugerida.exercicios.map((x, k) => (
-            <View key={x.id} style={st.linhaEx}>
-              <View style={st.numero}><T tam={12} peso="500">{k + 1}</T></View>
-              <T tam={14.5} style={{ flex: 1 }} linhas={1}>{x.nome}</T>
-              <T tam={13} style={{ opacity: 0.85 }}>{x.series} × {x.faixa[0] === x.faixa[1] ? x.faixa[0] : `${x.faixa[0]}-${x.faixa[1]}`}{x.inicial > 0 ? <T tam={13} peso="500" cor={cores.destaque2}>{`  ·  ${num(x.inicial)} kg`}</T> : null}</T>
-            </View>
-          ))}
-        </View>
-        <T tam={12.5} style={{ marginTop: 14, opacity: 0.75 }}>{ultimaData(sugerida.id) ? `Última vez: ${haQuanto(ultimaData(sugerida.id)!)}` : 'Ainda não feito'}. O app abre com a sua última carga e sugere a próxima.</T>
-        <Botao titulo="Começar treino" icone="treino" aoPressionar={() => iniciar(sugerida.id)} style={{ marginTop: 16 }} />
-        <Botao tipo="fantasma" icone="menu" titulo="Ver todos os treinos" aoPressionar={() => setTodos(true)} style={{ marginTop: 10 }} />
-      </View>
 
+      {/* a pasta aberta: o treino com os exercícios e o botão de começar */}
+      <Folha aberta={!!rotinaAberta} aoFechar={() => setAberto(null)} titulo={rotinaAberta?.nome}>
+        {rotinaAberta ? (
+          <View style={{ gap: 10 }}>
+            {rotinaAberta.sugerida ? <T tam={12.5} cor={cores.texto2} style={{ lineHeight: 18 }}>Sugestão montada para o seu corpo. Dá para editar ou criar o seu treino quando quiser.</T> : null}
+            <T tam={13} cor={cores.texto2}>{rotinaAberta.exercicios.length} exercícios · {rotinaAberta.minutos} min · {totalSeries(rotinaAberta)} séries</T>
+            {/* a anatomia: o que deve ser sentido no corpo durante este treino (pedido do dono, 2026-11-17) */}
+            {musculosDe(rotinaAberta).length ? (
+              <View style={st.anatomia}>
+                {/* a figura foi desenhada para fundo escuro: fica num quadro roxo-escuro, onde o contorno do corpo aparece */}
+                <View style={st.anatomiaFigura}><CorpoMusculos grupos={musculosDe(rotinaAberta)} largura={96} /></View>
+                <View style={{ flex: 1, gap: 6 }}>
+                  <T tam={11} peso="500" cor={cores.destaque2} style={{ letterSpacing: 1 }}>O QUE VOCÊ DEVE SENTIR</T>
+                  <T tam={15} peso="500" style={{ lineHeight: 21 }}>{descricaoDos(musculosDe(rotinaAberta)).replace(/^./, (c) => c.toUpperCase())}</T>
+                  <T tam={12.5} cor={cores.texto2} style={{ lineHeight: 18 }}>O músculo trabalhando: aquece, cansa e "queima" nas últimas repetições. Dor aguda ou na articulação não é normal: pare e ajuste.</T>
+                </View>
+              </View>
+            ) : null}
+            {rotinaAberta.exercicios.map((x, k) => (
+              <View key={x.id} style={st.linhaEx}>
+                <View style={st.numero}><T tam={12} peso="500">{k + 1}</T></View>
+                <T tam={14.5} style={{ flex: 1 }} linhas={1}>{x.nome}</T>
+                <T tam={13} style={{ opacity: 0.85 }}>{x.series} × {x.faixa[0] === x.faixa[1] ? x.faixa[0] : `${x.faixa[0]}-${x.faixa[1]}`}{x.inicial > 0 ? <T tam={13} peso="500" cor={cores.destaque2}>{`  ·  ${num(x.inicial)} kg`}</T> : null}</T>
+              </View>
+            ))}
+            <Botao titulo="Começar treino" icone="treino" aoPressionar={() => { const id = rotinaAberta.id; setAberto(null); iniciar(id); }} style={{ marginTop: 6 }} />
+            {rotinaAberta.propria ? <Botao tipo="fantasma" titulo="Editar treino" aoPressionar={() => { setAberto(null); abrirEditar(rotinaAberta); }} /> : null}
+          </View>
+        ) : null}
+      </Folha>
       <TodosTreinos aberto={todos} rotinas={rotinas} aoFechar={() => setTodos(false)} aoIniciar={iniciar} aoEditar={abrirEditar} ultimaData={ultimaData} />
       <EditorTreino aberto={!!editor} inicial={editor?.inicial ?? null} aoFechar={() => setEditor(null)} aoSalvar={salvarTreino} aoExcluir={excluirTreino} />
       <Folha aberta={calendario} aoFechar={() => setCalendario(false)} titulo="Constância">
@@ -304,7 +361,7 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
           <T tam={22} peso="500" linhas={1} style={{ letterSpacing: -0.3 }}>{rotina?.nome}</T>
           <View style={st.tempo}><Icone nome="relogio" tamanho={14} cor={cores.texto} /><T tam={13} peso="500">{mmss((agora - ta.inicio) / 1000)}</T></View>
         </View>
-        <CorpoMusculos grupos={rotina ? musculosDe(rotina) : []} largura={40} />
+        <View style={[st.anatomiaFigura, { padding: 4, borderRadius: 10 }]}><CorpoMusculos grupos={rotina ? musculosDe(rotina) : []} largura={40} /></View>
         <Botao pequeno titulo="Finalizar" icone="ok" aoPressionar={finalizar} />
       </View>
 
@@ -452,10 +509,14 @@ const st = estilos(() => StyleSheet.create({
   dia: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: cores.linha2 },
   diaFeito: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
   diaHoje: { borderColor: cores.destaque },
+  aviso: { marginTop: 18, padding: 18, borderRadius: 24, backgroundColor: cores.destaqueForte, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)', boxShadow: '0 18px 40px -22px rgba(42,22,80,0.8)' },
+  avisoSelo: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 5, paddingHorizontal: 11, borderRadius: 999, backgroundColor: '#c4b5fd' },
   hero: { marginTop: 14, padding: 20, borderRadius: 28, borderWidth: 1.5, borderColor: cores.destaqueForte, backgroundColor: cores.cartao },
   selo: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.destaqueForte },
   metas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
+  anatomiaFigura: { padding: 8, borderRadius: 16, backgroundColor: cores.destaqueForte },
+  anatomia: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao2 },
   linhaEx: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   numero: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
   botaoCamera: { right: undefined, left: 0 },

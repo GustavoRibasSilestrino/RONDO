@@ -34,6 +34,7 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
   const treinaEmCasa = ['casa', 'rua', 'misto'].includes(estado.perfilFit?.local ?? '');   // quem disse que treina em casa já vê os exercícios sem aparelho abertos
   const [semAberto, setSemAberto] = useState(false);
   const [nome, setNome] = useState('');
+  const [dica, setDica] = useState('Treino de Pernas');   // a sugestão de nome, mostrada como dica no campo
   const [musculos, setMusculos] = useState<GrupoMuscular[]>([]);
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
   const [tentou, setTentou] = useState(false);
@@ -41,7 +42,9 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
   /* ao abrir, carrega o rascunho (ou começa vazio, com um exercício para preencher) */
   useEffect(() => {
     if (!aberto) return;
-    setNome(inicial?.nome ?? '');
+    /* treino novo: o nome começa vazio, para a pessoa nomear (pedido do dono, 2026-11-17); a sugestão vira a dica do campo */
+    setNome(inicial?.id ? inicial.nome : '');
+    setDica(inicial?.nome || 'Treino de Pernas');
     setMusculos(inicial?.musculos ?? []);
     setExercicios(inicial?.exercicios.length ? inicial.exercicios : [novoExercicio()]);
     setTentou(false);
@@ -57,7 +60,7 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
     const novo = exercicioSemAparelho(b);
     return l.length === 1 && l[0].nome.trim() === '' ? [novo] : [...l, novo];
   });
-  const usarPronto = (i: number) => { const t = montarTreinoEmCasa(i); setNome(t.nome); setMusculos(t.musculos); setExercicios(t.exercicios); };
+  const usarPronto = (i: number) => { const t = montarTreinoEmCasa(i); setDica(t.nome); setMusculos(t.musculos); setExercicios(t.exercicios); };
 
   const nomeOk = nome.trim().length >= 2;
   const validos = exercicios.filter((x) => x.nome.trim().length >= 2);
@@ -85,8 +88,9 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
 
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 48, paddingTop: 10, gap: 18 }}>
             <View>
-              <Campo rotulo="Nome do treino" value={nome} onChangeText={setNome} placeholder="Ex.: Peito e ombros" maxLength={40} />
+              <Campo rotulo="Nome do treino" value={nome} onChangeText={setNome} placeholder={`Ex.: ${dica}`} maxLength={40} autoFocus={!inicial?.id} />
               {tentou && !nomeOk ? <T tam={12.5} cor={cores.erro} style={{ marginTop: 6 }}>Dê um nome ao treino (2 letras ou mais).</T> : null}
+              {!inicial?.id ? <T tam={12.5} cor={cores.texto2} style={{ marginTop: 6, lineHeight: 18 }}>Ele aparece como uma pasta, com este nome, na aba Treino.</T> : null}
             </View>
 
             {/* músculos: marcar pinta a figura */}

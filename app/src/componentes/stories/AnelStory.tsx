@@ -2,7 +2,7 @@
    Com `mais`, ganha o botãozinho de + para criar um story. */
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { cores, estilos } from '../../tema';
+import { cores, estilos, VIDRO } from '../../tema';
 import { Icone } from '../Icone';
 
 type Props = {
@@ -31,7 +31,7 @@ export function AnelStory({ tamanho, estado, children, aoPressionar, rotulo, mai
       </Pressable>
       {mais ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Criar um story" onPress={aoMais} hitSlop={8} style={[st.mais, { right: -2, bottom: -2 }]}>
-          <Icone nome="mais" tamanho={15} cor="#ffffff" espessura={2.4} />
+          <Icone nome="mais" tamanho={15} cor={cores.texto} espessura={2.4} />
         </Pressable>
       ) : null}
     </View>
@@ -40,5 +40,6 @@ export function AnelStory({ tamanho, estado, children, aoPressionar, rotulo, mai
 
 const st = estilos(() => StyleSheet.create({
   anel: { alignItems: 'center', justifyContent: 'center' },
-  mais: { position: 'absolute', width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte, borderWidth: 2.5, borderColor: cores.fundo },
+  /* o + do story: de vidro, como os outros botões (2026-11-17) */
+  mais: { position: 'absolute', width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 1.5, borderColor: '#ffffff', boxShadow: '0 4px 10px -4px rgba(42,22,80,0.5)', ...VIDRO },
 }));

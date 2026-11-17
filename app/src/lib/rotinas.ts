@@ -1,14 +1,21 @@
-/* Os treinos que o app conhece: os fixos de dados.ts mais os que a pessoa criou ou enviou. */
+/* Os treinos que o app conhece: os sugeridos para o corpo da pessoa (lib/treinoSugerido.ts; sem cadastro com peso e altura, os
+   fixos de dados.ts) mais os que ela criou ou enviou. Os fixos continuam valendo para achar treinos e exercícios do histórico. */
 import { ROTINAS, type Exercicio, type Rotina } from '../dados';
 import type { Estado } from '../tipos';
+import { rotinasSugeridas } from './treinoSugerido';
 import { MUSCULOS_DA_ROTINA, type GrupoMuscular } from './musculos';
 
-type ComRotinas = Pick<Estado, 'rotinasProprias'>;
+type ComRotinas = Pick<Estado, 'rotinasProprias'> & { perfilFit?: Estado['perfilFit'] };
 
-export const todasRotinas = (e: ComRotinas): Rotina[] => [...ROTINAS, ...(e.rotinasProprias ?? [])];
+export const todasRotinas = (e: ComRotinas): Rotina[] => {
+  const sugeridas = rotinasSugeridas(e.perfilFit);
+  return [...(sugeridas.length ? sugeridas : ROTINAS), ...(e.rotinasProprias ?? [])];
+};
+/* para achar no histórico: tudo o que o app conhece, inclusive os fixos antigos */
+const conhecidas = (e: ComRotinas): Rotina[] => [...todasRotinas(e), ...ROTINAS];
 export const todosExercicios = (e: ComRotinas): Exercicio[] => todasRotinas(e).flatMap((r) => r.exercicios);
-export const exercicioDe = (e: ComRotinas, id: string): Exercicio | undefined => todosExercicios(e).find((x) => x.id === id);
-export const rotinaDe = (e: ComRotinas, id: string): Rotina | undefined => todasRotinas(e).find((r) => r.id === id);
+export const exercicioDe = (e: ComRotinas, id: string): Exercicio | undefined => conhecidas(e).flatMap((r) => r.exercicios).find((x) => x.id === id);
+export const rotinaDe = (e: ComRotinas, id: string): Rotina | undefined => conhecidas(e).find((r) => r.id === id);
 export const musculosDe = (r: Rotina): GrupoMuscular[] => r.musculos ?? MUSCULOS_DA_ROTINA[r.id] ?? [];
 
 /* grava um treino próprio: troca o que tem o mesmo id ou acrescenta */

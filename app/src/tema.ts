@@ -70,7 +70,7 @@ export const cores: Paleta = {
   branco: '#ffffff',
   placeholder: 'rgba(30,20,48,0.45)',
   tom: '91,33,182',
-  painel: 'rgba(240,235,247,0.94)',       // as folhas que sobem de baixo: vidro quase opaco
+  painel: '#eee8f6',                      // as folhas que sobem de baixo: lilás bem claro, opaco (o conteúdo de trás não vaza)
   aviso: 'rgba(42,22,80,0.94)',           // o aviso rápido: pílula roxo-escura (texto branco)
   barra: 'rgba(255,255,255,0.42)',        // a pílula de vidro das abas
   cabecalho: 'rgba(214,206,226,0.72)',    // o cabeçalho de cima: vidro
