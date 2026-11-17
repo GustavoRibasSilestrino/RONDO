@@ -14,7 +14,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cadastrar, entrar, nomeEstaLivre } from '../api/conta';
-import type { ResultadoSocial } from '../api/loginSocial';
+import { concluirCadastroSocial, type ResultadoSocial } from '../api/loginSocial';
 import { BotoesSociais, temLoginSocial } from '../componentes/BotoesSociais';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
 import { FundoRondin } from '../componentes/FundoRondin';
@@ -168,8 +168,8 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [enviando, setEnviando] = useState(false);
-  /* entrar: com Google ou Apple configurados, primeiro as formas de entrar (Apple, Google, e-mail); o e-mail abre os campos */
-  const [porEmail, setPorEmail] = useState(false);
+  /* cadastro pelo Google: o token do provedor, guardado até a conta ser criada no fim da conversa */
+  const tokenSocial = useRef<string | null>(null);
   const [recuperando, setRecuperando] = useState(false);   // a tela de esqueci a senha, no lugar da conversa
   const campoRef = useRef<CampoRef>(null), senhaRef = useRef<CampoRef>(null);
   const [teclas, setTeclas] = useState(0);            // cada tecla digitada solta uma onda no orbe
@@ -314,6 +314,26 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
     responder(valor, p.comentario?.(valor, respRef.current));
   };
 
+  /* cadastro: e-mail e senha da mesma tela */
+  const enviarCredenciais = () => {
+    const avisar = (aviso: string) => { setErro(aviso); dizer([aviso], () => setFase('pergunta'), sotaqueRef.current, 500); };
+    if (!emailValido(email)) { avisar(tx.erro.email); campoRef.current?.focus(); return; }
+    if (senha.length < 8) { avisar(tx.erro.senha); senhaRef.current?.focus(); return; }
+    tokenSocial.current = null;
+    guardar('senha', senha);
+    responder(email.trim());
+  };
+
+  /* cadastro pelo Google: quem já tem conta entra direto; quem é novo segue para os termos, e a conta é criada no fim com as
+     respostas da conversa (nascimento, responsável, perfil), sem senha */
+  const socialNoCadastro = (r: ResultadoSocial) => {
+    if (!r.precisaCadastro) { aoEntrar(r.usuario); return; }
+    tokenSocial.current = r.tokenSocial;
+    setEmail(r.email);
+    guardar('senha', '');
+    responder(r.email);
+  };
+
   /* marcar ou desmarcar uma opção numa pergunta de várias respostas */
   const alternar = (p: Extract<Passo, { tipo: 'multi' }>, o: Opcao) => setMarcadas((m) => {
     if (o.id === p.exclusiva) return m.includes(o.id) ? [] : [o.id];
@@ -334,11 +354,13 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
     setFase('trabalhando'); setFalhou(false);
     try {
       const menor = typeof r.respNome === 'string';
-      const usuario = await cadastrar({
-        nome: String(r.nome), email: String(r.email), senha: String(r.senha), nascimento: lerData(String(r.nascimento))!,
-        aceita: true, marketing: false,
-        responsavel: menor ? { nome: String(r.respNome), email: String(r.respEmail), autoriza: true } : null,
-      });
+      const responsavel = menor ? { nome: String(r.respNome), email: String(r.respEmail), autoriza: true } : null;
+      const usuario = tokenSocial.current
+        ? await concluirCadastroSocial({ tokenSocial: tokenSocial.current, nome: String(r.nome), nascimento: lerData(String(r.nascimento))!, marketing: false, responsavel })
+        : await cadastrar({
+          nome: String(r.nome), email: String(r.email), senha: String(r.senha), nascimento: lerData(String(r.nascimento))!,
+          aceita: true, marketing: false, responsavel,
+        });
       aoEntrar(usuario, montarPerfil(r, sotaqueRef.current.id));   // conta criada: entra no app na hora
     } catch (e) {
       const bruta = e instanceof Error ? e.message : 'Não foi possível criar a conta agora.';
@@ -401,7 +423,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
 
   /* ---------- tamanhos ---------- */
   const respondendo = fase !== 'trabalhando';   // as respostas ficam na tela desde o começo da fala
-  const campoAberto = respondendo && (passo.tipo === 'campo' || passo.tipo === 'entrar');
+  const campoAberto = respondendo && (passo.tipo === 'campo' || passo.tipo === 'entrar' || passo.tipo === 'credenciais');
   const opcoesAbertas = respondendo && (passo.tipo === 'idioma' || passo.tipo === 'opcoes' || passo.tipo === 'multi');   // sobra pouca altura: o orbe encolhe para as opções caberem
   /* com o zoom, a janela "cabe" menos unidades: as contas usam a janela já dividida por k. O tamanho já inclui a moldura do orbe. */
   const teto = largo ? (campoAberto ? 210 : opcoesAbertas ? 230 : 300) : (campoAberto ? 176 : opcoesAbertas ? 196 : 276);   // no computador o orbe é maior
@@ -518,31 +540,56 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                   </View>
                 ) : null}
 
-                {passo.tipo === 'entrar' && aoSocial && temLoginSocial && !porEmail ? (
+                {passo.tipo === 'credenciais' ? (
                   <View style={st.formulario}>
-                    <BotoesSociais
-                      aoResultado={aoSocial} aoEmail={() => setPorEmail(true)}
-                      textos={{ apple: ui.comApple, google: ui.comGoogle, email: ui.comEmail, locale: idioma === 'pt' ? 'pt-BR' : idioma === 'es' ? 'es' : 'en' }}
-                    />
-                    {aoTrocarModo ? (
-                      <Pressable accessibilityRole="button" accessibilityLabel={`${ui.semContaPergunta} ${ui.criarContaLink}`} onPress={() => { parar(); aoTrocarModo(); }} style={st.rodapeConta}>
-                        <T tam={14} cor={cores.texto2}>{ui.semContaPergunta} </T>
-                        <T tam={14} peso="500" cor={cores.destaque2}>{ui.criarContaLink}</T>
-                      </Pressable>
+                    {/* o Google (e a Apple, quando configurada) em cima, e os campos logo abaixo, na mesma tela */}
+                    {aoSocial && temLoginSocial ? (
+                      <>
+                        <BotoesSociais aoResultado={socialNoCadastro} textos={{ apple: ui.comApple, google: ui.comGoogle, email: ui.comEmail, locale: idioma === 'pt' ? 'pt-BR' : idioma === 'es' ? 'es' : 'en' }} />
+                        <View style={st.ou}><View style={st.ouLinha} /><T tam={12.5} cor={cores.texto3}>{ui.ou}</T><View style={st.ouLinha} /></View>
+                      </>
                     ) : null}
-                  </View>
-                ) : null}
-
-                {passo.tipo === 'entrar' && !(aoSocial && temLoginSocial && !porEmail) ? (
-                  <View style={st.formulario}>
                     <CampoFlutuante
-                      ref={campoRef} rotulo={ui.email} icone="email" value={email} onChangeText={(v) => { setEmail(v); setErro(''); setTeclas((n) => n + 1); }} autoFocus={Platform.OS === 'web'}
+                      ref={campoRef} rotulo={ui.email} icone="email" value={email} onChangeText={(v) => { setEmail(v); setErro(''); setTeclas((n) => n + 1); }} autoFocus={Platform.OS === 'web' && !(aoSocial && temLoginSocial)}
                       valido={emailValido(email)} autoCapitalize="none" autoCorrect={false} autoComplete="email" keyboardType="email-address" textContentType="emailAddress"
                       returnKeyType="next" submitBehavior="submit" onSubmitEditing={() => senhaRef.current?.focus()}
                     />
                     <CampoFlutuante
                       ref={senhaRef} rotulo={ui.senha} icone="cadeado" value={senha} onChangeText={(v) => { setSenha(v); setErro(''); setTeclas((n) => n + 1); }} secureTextEntry={!verSenha}
-                      autoCapitalize="none" autoCorrect={false} autoComplete="current-password" textContentType="password" returnKeyType="go" onSubmitEditing={fazerLogin}
+                      autoCapitalize="none" autoCorrect={false} autoComplete={"new-password"} textContentType={"newPassword"} returnKeyType="go" onSubmitEditing={enviarCredenciais}
+                      direita={
+                        <Pressable accessibilityRole="button" accessibilityLabel={verSenha ? ui.esconderSenha : ui.verSenha} hitSlop={6} onPress={() => setVerSenha((v) => !v)} style={st.olho}>
+                          <Icone nome={verSenha ? 'olhoFechado' : 'olho'} tamanho={20} cor={verSenha ? cores.destaque2 : cores.texto3} />
+                        </Pressable>
+                      }
+                    />
+                    {erro ? (
+                      <View style={st.banner} accessibilityLiveRegion="polite" accessibilityRole="alert">
+                        <Icone nome="alerta" tamanho={18} cor={cores.erro} />
+                        <T tam={13.5} cor={cores.erro} style={{ flex: 1, lineHeight: 19 }}>{erro}</T>
+                      </View>
+                    ) : null}
+                    <Botao orbita carregando={enviando} titulo={ui.continuar} icone="setaDireita" aoPressionar={enviarCredenciais} />
+                  </View>
+                ) : null}
+
+                {passo.tipo === 'entrar' ? (
+                  <View style={st.formulario}>
+                    {/* o Google (e a Apple, quando configurada) em cima, e os campos logo abaixo, na mesma tela */}
+                    {aoSocial && temLoginSocial ? (
+                      <>
+                        <BotoesSociais aoResultado={aoSocial} textos={{ apple: ui.comApple, google: ui.comGoogle, email: ui.comEmail, locale: idioma === 'pt' ? 'pt-BR' : idioma === 'es' ? 'es' : 'en' }} />
+                        <View style={st.ou}><View style={st.ouLinha} /><T tam={12.5} cor={cores.texto3}>{ui.ou}</T><View style={st.ouLinha} /></View>
+                      </>
+                    ) : null}
+                    <CampoFlutuante
+                      ref={campoRef} rotulo={ui.email} icone="email" value={email} onChangeText={(v) => { setEmail(v); setErro(''); setTeclas((n) => n + 1); }} autoFocus={Platform.OS === 'web' && !(aoSocial && temLoginSocial)}
+                      valido={emailValido(email)} autoCapitalize="none" autoCorrect={false} autoComplete="email" keyboardType="email-address" textContentType="emailAddress"
+                      returnKeyType="next" submitBehavior="submit" onSubmitEditing={() => senhaRef.current?.focus()}
+                    />
+                    <CampoFlutuante
+                      ref={senhaRef} rotulo={ui.senha} icone="cadeado" value={senha} onChangeText={(v) => { setSenha(v); setErro(''); setTeclas((n) => n + 1); }} secureTextEntry={!verSenha}
+                      autoCapitalize="none" autoCorrect={false} autoComplete={"current-password"} textContentType={"password"} returnKeyType="go" onSubmitEditing={fazerLogin}
                       direita={
                         <Pressable accessibilityRole="button" accessibilityLabel={verSenha ? ui.esconderSenha : ui.verSenha} hitSlop={6} onPress={() => setVerSenha((v) => !v)} style={st.olho}>
                           <Icone nome={verSenha ? 'olhoFechado' : 'olho'} tamanho={20} cor={verSenha ? cores.destaque2 : cores.texto3} />
@@ -560,11 +607,6 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                       <T tam={13} cor={cores.texto2}>{ui.esqueci}</T>
                     </Pressable>
                     <Botao orbita carregando={enviando} titulo={enviando ? ui.entrando : ui.entrar} aoPressionar={fazerLogin} />
-                    {aoSocial && temLoginSocial ? (
-                      <Pressable accessibilityRole="button" onPress={() => { setPorEmail(false); setErro(''); }} hitSlop={6} style={st.rodapeConta}>
-                        <T tam={13.5} cor={cores.texto2}>{ui.outrasFormas}</T>
-                      </Pressable>
-                    ) : null}
                     {aoTrocarModo ? (
                       /* uma linha só: a pergunta apagada e a ação em destaque */
                       <Pressable accessibilityRole="button" accessibilityLabel={`${ui.semContaPergunta} ${ui.criarContaLink}`} onPress={() => { parar(); aoTrocarModo(); }} style={st.rodapeConta}>
@@ -622,6 +664,8 @@ const st = estilos(() => StyleSheet.create({
   /* os campos de digitar: mais estreitos que o texto da fala, no meio (pedido do dono, 2026-11-16) */
   formulario: { gap: 12, width: '100%', maxWidth: 380, alignSelf: 'center' },
   esqueci: { alignSelf: 'flex-end', marginTop: -4, paddingVertical: 2 },
+  ou: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 2 },
+  ouLinha: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
   rodapeConta: { flexDirection: 'row', alignSelf: 'center', alignItems: 'center', marginTop: 10, paddingVertical: 8 },
   banner: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 12,

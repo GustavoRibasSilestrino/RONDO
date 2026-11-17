@@ -22,7 +22,7 @@ export type Textos = {
     voltarInicio: string; voltarPergunta: string; criarConta: string; etapa: string;
     estado: Record<EstadoDoOrbe, string>;
     orbePular: string; orbeRepetir: string; pular: string; continuar: string;
-    entrar: string; entrando: string; email: string; senha: string; verSenha: string; esconderSenha: string; esqueci: string; semConta: string; semContaPergunta: string; criarContaLink: string; comApple: string; comGoogle: string; comEmail: string; outrasFormas: string;
+    entrar: string; entrando: string; email: string; senha: string; verSenha: string; esconderSenha: string; esqueci: string; semConta: string; semContaPergunta: string; criarContaLink: string; comApple: string; comGoogle: string; comEmail: string; outrasFormas: string; ou: string;
     tentar: string; abreNoNavegador: string; termos: string; privacidade: string; dias: string;
   };
   rec: Record<string, string>;         // a tela "esqueci a senha"
@@ -51,7 +51,7 @@ const PT: Textos = {
     foco: 'O que você quer destacar no corpo? Pode escolher mais de uma.',
     lesoes: 'Tem alguma lesão ou limitação que eu deva saber? Eu cuido do resto.',
     dia: 'Fora do treino, como é o seu dia a dia?',
-    email: 'Beleza, {nome}! Falta pouco. Agora a conta: qual é o seu e-mail?',
+    email: 'Beleza, {nome}! Falta pouco. Agora a conta: entre com o Google, ou escolha um e-mail e uma senha.',
     senha: 'Escolha uma senha com pelo menos oito caracteres. Prometo que não conto pra ninguém.',
     termos: 'Última etapa. Preciso que você aceite os Termos de Uso e a Política de Privacidade, e autorize o uso dos seus dados de saúde, como peso e treinos, para o app funcionar. Você aceita?',
     criar: 'Perfeito, {nome}! Estou montando a sua conta e o seu perfil agora.',
@@ -108,7 +108,7 @@ const PT: Textos = {
     estado: { quieto: 'EM ESPERA', ouvindo: 'OUVINDO', pensando: 'PROCESSANDO', falando: 'FALANDO' },
     orbePular: 'RONDIN. Tocar para pular a fala', orbeRepetir: 'RONDIN. Tocar para ouvir a pergunta de novo', pular: 'Pular fala', continuar: 'Continuar',
     entrar: 'Entrar', entrando: 'Entrando…', email: 'E-mail', senha: 'Senha', verSenha: 'Mostrar senha', esconderSenha: 'Esconder senha',
-    esqueci: 'Esqueci a senha', semConta: 'Ainda não tenho conta', semContaPergunta: 'Ainda não tem conta?', criarContaLink: 'Criar conta', comApple: 'Continuar com a Apple', comGoogle: 'Continuar com o Google', comEmail: 'Continuar com e-mail', outrasFormas: 'Outras formas de entrar', tentar: 'Tentar de novo', abreNoNavegador: 'abre no navegador',
+    esqueci: 'Esqueci a senha', semConta: 'Ainda não tenho conta', semContaPergunta: 'Ainda não tem conta?', criarContaLink: 'Criar conta', comApple: 'Continuar com a Apple', comGoogle: 'Continuar com o Google', comEmail: 'Continuar com e-mail', outrasFormas: 'Outras formas de entrar', ou: 'ou', tentar: 'Tentar de novo', abreNoNavegador: 'abre no navegador',
     termos: 'Termos de Uso', privacidade: 'Política de Privacidade', dias: '{n} dias',
   },
   rec: {
@@ -145,7 +145,7 @@ const EN: Textos = {
     foco: 'What do you want to bring out in your body? You can pick more than one.',
     lesoes: 'Do you have any injury or limitation I should know about? I will take care of the rest.',
     dia: 'Outside of training, what is your day like?',
-    email: 'Great, {nome}! Almost there. Now the account: what is your email?',
+    email: 'Great, {nome}! Almost there. Now the account: continue with Google, or choose an email and a password.',
     senha: 'Choose a password with at least eight characters. I promise I will not tell anyone.',
     termos: 'Last step. I need you to accept the Terms of Use and the Privacy Policy, and to allow the use of your health data, like weight and workouts, so the app can work. Do you accept?',
     criar: 'Perfect, {nome}! I am setting up your account and your profile now.',
@@ -202,7 +202,7 @@ const EN: Textos = {
     estado: { quieto: 'STANDBY', ouvindo: 'LISTENING', pensando: 'PROCESSING', falando: 'SPEAKING' },
     orbePular: 'RONDIN. Tap to skip', orbeRepetir: 'RONDIN. Tap to hear the question again', pular: 'Skip', continuar: 'Continue',
     entrar: 'Sign in', entrando: 'Signing in…', email: 'Email', senha: 'Password', verSenha: 'Show password', esconderSenha: 'Hide password',
-    esqueci: 'Forgot password', semConta: "I don't have an account yet", semContaPergunta: "Don't have an account?", criarContaLink: 'Sign up', comApple: 'Continue with Apple', comGoogle: 'Continue with Google', comEmail: 'Continue with email', outrasFormas: 'Other ways to sign in', tentar: 'Try again', abreNoNavegador: 'opens in the browser',
+    esqueci: 'Forgot password', semConta: "I don't have an account yet", semContaPergunta: "Don't have an account?", criarContaLink: 'Sign up', comApple: 'Continue with Apple', comGoogle: 'Continue with Google', comEmail: 'Continue with email', outrasFormas: 'Other ways to sign in', ou: 'or', tentar: 'Try again', abreNoNavegador: 'opens in the browser',
     termos: 'Terms of Use', privacidade: 'Privacy Policy', dias: '{n} days',
   },
   rec: {
@@ -243,7 +243,7 @@ const ES: Textos = {
     foco: '¿Qué quieres destacar en tu cuerpo? Puedes elegir más de una.',
     lesoes: '¿Tienes alguna lesión o limitación que deba saber? Yo me ocupo del resto.',
     dia: 'Fuera del entrenamiento, ¿cómo es tu día a día?',
-    email: '¡Genial, {nome}! Ya casi. Ahora la cuenta: ¿cuál es tu correo electrónico?',
+    email: '¡Genial, {nome}! Ya casi. Ahora la cuenta: entra con Google, o elige un correo y una contraseña.',
     senha: 'Elige una contraseña de al menos ocho caracteres. Prometo no contárselo a nadie.',
     termos: 'Último paso. Necesito que aceptes los Términos de Uso y la Política de Privacidad, y que autorices el uso de tus datos de salud, como el peso y los entrenamientos, para que la app funcione. ¿Aceptas?',
     criar: '¡Perfecto, {nome}! Estoy preparando tu cuenta y tu perfil ahora.',
@@ -300,7 +300,7 @@ const ES: Textos = {
     estado: { quieto: 'EN ESPERA', ouvindo: 'ESCUCHANDO', pensando: 'PROCESANDO', falando: 'HABLANDO' },
     orbePular: 'RONDIN. Toca para saltar', orbeRepetir: 'RONDIN. Toca para oír la pregunta otra vez', pular: 'Saltar', continuar: 'Continuar',
     entrar: 'Iniciar sesión', entrando: 'Entrando…', email: 'Correo electrónico', senha: 'Contraseña', verSenha: 'Mostrar contraseña', esconderSenha: 'Ocultar contraseña',
-    esqueci: 'Olvidé la contraseña', semConta: 'Todavía no tengo cuenta', semContaPergunta: '¿Todavía no tienes cuenta?', criarContaLink: 'Crear cuenta', comApple: 'Continuar con Apple', comGoogle: 'Continuar con Google', comEmail: 'Continuar con correo', outrasFormas: 'Otras formas de entrar', tentar: 'Intentar de nuevo', abreNoNavegador: 'se abre en el navegador',
+    esqueci: 'Olvidé la contraseña', semConta: 'Todavía no tengo cuenta', semContaPergunta: '¿Todavía no tienes cuenta?', criarContaLink: 'Crear cuenta', comApple: 'Continuar con Apple', comGoogle: 'Continuar con Google', comEmail: 'Continuar con correo', outrasFormas: 'Otras formas de entrar', ou: 'o', tentar: 'Intentar de nuevo', abreNoNavegador: 'se abre en el navegador',
     termos: 'Términos de Uso', privacidade: 'Política de Privacidad', dias: '{n} días',
   },
   rec: {

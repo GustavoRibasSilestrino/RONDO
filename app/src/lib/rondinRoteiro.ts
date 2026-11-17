@@ -60,6 +60,7 @@ export type Passo =
   | (Base & { tipo: 'multi'; opcoes: Opcao[]; exclusiva?: string; todas?: string })   // `exclusiva`: desmarca as outras; `todas`: marca todas as outras
   | (Base & { tipo: 'campo'; campo: Campo; rotulo: string; sufixo?: string; validar: (v: string, r: Respostas) => string | undefined; comentario?: (v: string, r: Respostas) => Dita | undefined })
   | (Base & { tipo: 'entrar' })     // os campos de e-mail e senha de quem já tem conta
+  | (Base & { tipo: 'credenciais' })   // cadastro: e-mail e senha na mesma tela, com o Google em cima (2026-11-17)
   | (Base & { tipo: 'criar' });     // cria a conta (cadastro)
 
 /* ---------- ajudas de leitura ---------- */
@@ -153,14 +154,8 @@ export function passosCadastro(r: Respostas, idioma: Idioma): Passo[] {
     { id: 'foco', tipo: 'multi', todas: 'corpo', fala: () => f.foco, opcoes: opcoes(t, 'foco', ['peito_braco', 'costas', 'pernas', 'ombros', 'abdomen', 'corpo']) },
     { id: 'lesoes', tipo: 'multi', exclusiva: 'nenhuma', fala: () => f.lesoes, opcoes: opcoes(t, 'lesoes', ['nenhuma', 'joelho', 'ombro', 'coluna', 'punho', 'outra']) },
     { id: 'dia', tipo: 'opcoes', fala: () => f.dia, opcoes: opcoes(t, 'dia', ['sentado', 'leve', 'moderado', 'pesado']) },
-    {
-      id: 'email', tipo: 'campo', campo: 'email', rotulo: t.campo.email, fala: () => f.email,
-      validar: (v) => (!emailValido(v) ? e.email : undefined),
-    },
-    {
-      id: 'senha', tipo: 'campo', campo: 'senha', rotulo: t.campo.senha, fala: () => f.senha,
-      validar: (v) => (v.length < 8 ? e.senha : undefined),
-    },
+    /* a conta: e-mail e senha numa tela só, com "Continuar com o Google" em cima (pedido do dono, 2026-11-17) */
+    { id: 'email', tipo: 'credenciais', fala: () => f.email },
     {
       id: 'termos', tipo: 'opcoes', links: true, fala: () => f.termos, opcoes: opcoes(t, 'termos', ['aceito', 'ler']),
       barra: (id) => (id === 'aceito' ? undefined : t.barra.termos),
