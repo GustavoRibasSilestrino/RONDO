@@ -186,6 +186,32 @@ function Lista() {
             </View>
           ))}
         </View>
+        {/* as últimas 8 semanas, compacto, dentro do cartão da semana (pedido do dono, 2026-11-17: o gráfico grande ficava colado
+            nas pastas). O número da semana e a troca Constância / Evolução numa linha; embaixo, a linha das 8 semanas, baixinha,
+            e o resumo em texto (quem não enxerga o gráfico lê o mesmo). */}
+        <View style={st.divisor} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, flexShrink: 1 }}>
+            <T tam={24} peso="300">{serie === 'constancia' ? atualSemana.ativos : fmt(atualSemana.volume, 1)}</T>
+            <T tam={12} cor={cores.texto2} linhas={1}>{serie === 'constancia' ? (atualSemana.ativos === 1 ? 'dia ativo' : 'dias ativos') : 't levantadas'}</T>
+          </View>
+          <View style={st.alternar}>
+            {([['constancia', 'Constância'], ['evolucao', 'Evolução']] as const).map(([id, rotulo]) => {
+              const ativa = serie === id;
+              return (
+                <Pressable key={id} accessibilityRole="button" accessibilityState={{ selected: ativa }} onPress={() => setSerie(id)} hitSlop={6} style={[st.opcao, ativa && st.opcaoAtiva]}>
+                  <T tam={11.5} peso={ativa ? '500' : '300'} cor={ativa ? '#ffffff' : cores.texto2}>{rotulo}</T>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+        <View style={{ marginTop: 4 }}>
+          <GraficoLinha pontos={pontos} largura={larg} altura={74} formato={(v) => (serie === 'constancia' ? `${Math.round(v)} ${Math.round(v) === 1 ? 'dia' : 'dias'}` : `${fmt(v, 1)} t`)} />
+        </View>
+        <T tam={11} cor={cores.texto2}>
+          {serie === 'constancia' ? `Últimas 8 semanas · média de ${fmt(mediaAtivos, 1)} dias por semana` : `Últimas 8 semanas · ${dif >= 0 ? '+' : '−'}${fmt(Math.abs(dif), 1)} t em relação à semana passada`}
+        </T>
       </View>
 
       {/* os treinos, em pastas lado a lado (desde 2026-11-17). Os sugeridos foram montados para o corpo da pessoa: o aviso em
@@ -215,31 +241,6 @@ function Lista() {
           <T tam={13} peso="500" cor={cores.destaque2}>Mostrar os treinos sugeridos de novo</T>
         </Pressable>
       ) : null}
-
-
-      {/* gráfico de constância e evolução */}
-      <View style={st.grafico}>
-        <View style={st.alternar}>
-          {([['constancia', 'Constância'], ['evolucao', 'Evolução']] as const).map(([id, rotulo]) => {
-            const ativa = serie === id;
-            return (
-              <Pressable key={id} accessibilityRole="button" accessibilityState={{ selected: ativa }} onPress={() => setSerie(id)} style={[st.opcao, ativa && st.opcaoAtiva]}>
-                <T tam={13} peso={ativa ? '500' : '300'} cor={ativa ? '#ffffff' : cores.texto2}>{rotulo}</T>
-              </Pressable>
-            );
-          })}
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 14 }}>
-          <T tam={32} peso="200">{serie === 'constancia' ? atualSemana.ativos : fmt(atualSemana.volume, 1)}</T>
-          <T tam={13}>{serie === 'constancia' ? (atualSemana.ativos === 1 ? 'dia ativo nesta semana' : 'dias ativos nesta semana') : 't levantadas nesta semana'}</T>
-        </View>
-        <View style={{ marginTop: 6 }}>
-          <GraficoLinha pontos={pontos} largura={larg} altura={120} formato={(v) => (serie === 'constancia' ? `${Math.round(v)} ${Math.round(v) === 1 ? 'dia' : 'dias'}` : `${fmt(v, 1)} t`)} />
-        </View>
-        <T tam={11.5} style={{ marginTop: 4, opacity: 0.75 }}>
-          {serie === 'constancia' ? `Últimas 8 semanas · média de ${fmt(mediaAtivos, 1)} dias por semana.` : `Últimas 8 semanas · ${dif >= 0 ? '+' : '−'}${fmt(Math.abs(dif), 1)} t em relação à semana passada.`}
-        </T>
-      </View>
 
 
       {/* a pasta aberta: o treino com os exercícios e o botão de começar */}
@@ -564,9 +565,9 @@ const st = estilos(() => StyleSheet.create({
   numero: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
   botaoCamera: { right: undefined, left: 0 },
   botaoCalendario: { position: 'absolute', right: 0, top: -9, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
-  grafico: { marginTop: 14, padding: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
-  alternar: { flexDirection: 'row', padding: 4, borderRadius: 999, backgroundColor: cores.cartao2 },
-  opcao: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 38, borderRadius: 999 },
+  divisor: { height: 1, backgroundColor: cores.linha, marginTop: 14, marginBottom: 12 },
+  alternar: { flexDirection: 'row', padding: 3, borderRadius: 999, backgroundColor: cores.cartao2 },
+  opcao: { alignItems: 'center', justifyContent: 'center', minHeight: 32, paddingHorizontal: 12, borderRadius: 999 },   // + hitSlop 6: alvo de 44 px
   opcaoAtiva: { backgroundColor: cores.destaqueForte },
 
   /* sessão */
