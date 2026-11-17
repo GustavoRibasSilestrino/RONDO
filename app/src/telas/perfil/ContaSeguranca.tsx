@@ -18,7 +18,7 @@ function Linha({ icone, titulo, sub, direita, aoPressionar }: { icone: NomeIcone
         <T tam={15} peso="500">{titulo}</T>
         <T tam={12.5} style={{ marginTop: 1, opacity: 0.85 }} linhas={1}>{sub}</T>
       </View>
-      {direita ?? (aoPressionar ? <Icone nome="setaDireita" tamanho={18} cor="#ffffff" /> : null)}
+      {direita ?? (aoPressionar ? <Icone nome="setaDireita" tamanho={18} cor={cores.texto3} /> : null)}
     </Pressable>
   );
 }

@@ -62,7 +62,7 @@ function PuloCheers({ disparo }: { disparo: number }) {
   if (disparo === 0 || reduzido) return null;
   return (
     <Animated.View pointerEvents="none" style={[st.pulo, { opacity: opacidade, transform: [{ translateY: y }, { scale: escala }] }]}>
-      <T tam={11.5} peso="500" style={{ letterSpacing: 0.6 }}>Cheers</T>
+      <T tam={11.5} peso="500" cor="#ffffff" style={{ letterSpacing: 0.6 }}>Cheers</T>
     </Animated.View>
   );
 }

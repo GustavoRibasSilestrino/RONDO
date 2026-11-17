@@ -1,29 +1,45 @@
-/* A foto de paisagem que fica no fundo das telas de dentro do app (as mesmas do site, em assets/cenas).
-   Para o texto continuar fácil de ler, a foto entra a meia força e nasce do preto: degradê cheio do preto no alto e embaixo.
-   (As telas do Rondin, a inicial e a conversa, não usam foto: o fundo delas é preto e animado, em componentes/FundoRondin.) */
+/* O fundo das telas de dentro do app. Desde 2026-11-17 (o vidro claro, pedido do dono): em vez das fotos de paisagem, um
+   degradê lilás acinzentado com dois brilhos suaves, que dá ao vidro dos cartões algo para desfocar e refletir.
+   Cada aba muda um pouco o lugar dos brilhos, para as telas não ficarem idênticas.
+   (As telas do Rondin, a inicial e a conversa, não usam este fundo: o delas é preto e animado, em componentes/FundoRondin.) */
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 
 export type NomeCena = 'dia' | 'noite' | 'vale' | 'picos';
 
-const CENAS: Record<NomeCena, number> = {
-  dia: require('../../assets/cenas/serra-dia.webp'),
-  noite: require('../../assets/cenas/serra-noite.webp'),
-  vale: require('../../assets/cenas/vale-nuvens.webp'),
-  picos: require('../../assets/cenas/picos-noite.webp'),
+/* o lugar dos dois brilhos (em % da tela) em cada cena */
+const BRILHOS: Record<NomeCena, [number, number, number, number]> = {
+  dia: [18, 14, 86, 62],
+  noite: [82, 10, 12, 70],
+  vale: [70, 22, 20, 84],
+  picos: [24, 30, 80, 88],
 };
 
-/* a foto de cada tela: as cinco abas têm fotos diferentes entre si */
+/* a cena de cada tela: as cinco abas têm cenas diferentes entre si */
 const DA_TELA: Record<string, NomeCena> = { home: 'picos', treino: 'dia', comunidade: 'vale', dieta: 'dia', perfil: 'noite', hoje: 'vale', evolucao: 'dia', recado: 'picos', colecoes: 'noite', notificacoes: 'picos' };
 export const cenaDaTela = (tela: string): NomeCena => DA_TELA[tela] ?? 'noite';
 
-export function FundoCena({ cena, forca = 0.55, veu = true }: { cena: NomeCena; forca?: number; veu?: boolean }) {
+export function FundoCena({ cena }: { cena: NomeCena; forca?: number; veu?: boolean }) {
+  const [x1, y1, x2, y2] = BRILHOS[cena];
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
-      <Image source={CENAS[cena]} resizeMode="cover" accessibilityIgnoresInvertColors style={[StyleSheet.absoluteFill, { width: '100%', height: '100%', opacity: forca }]} />
-      {/* a foto nasce do preto: preto cheio no alto e embaixo, meia força no meio */}
-      {veu ? <LinearGradient colors={['#07060b', 'rgba(7,6,11,0.55)', 'rgba(7,6,11,0.22)', 'rgba(7,6,11,0.55)', '#07060b']} locations={[0, 0.16, 0.45, 0.8, 1]} style={StyleSheet.absoluteFill} /> : null}
+      <LinearGradient colors={['#cfc5dd', '#b3a6c9', '#8d7fa6']} locations={[0, 0.5, 1]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={StyleSheet.absoluteFill} />
+      <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
+        <Defs>
+          <RadialGradient id="brilho-claro" cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor="#ffffff" stopOpacity={0.55} />
+            <Stop offset="1" stopColor="#ffffff" stopOpacity={0} />
+          </RadialGradient>
+          <RadialGradient id="brilho-roxo" cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor="#7c3aed" stopOpacity={0.32} />
+            <Stop offset="1" stopColor="#7c3aed" stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Ellipse cx={`${x1}%`} cy={`${y1}%`} rx="48%" ry="30%" fill="url(#brilho-claro)" />
+        <Ellipse cx={`${x2}%`} cy={`${y2}%`} rx="52%" ry="34%" fill="url(#brilho-roxo)" />
+      </Svg>
     </View>
   );
 }

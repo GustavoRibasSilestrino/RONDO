@@ -43,14 +43,14 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
         <View style={[st.coluna, { paddingTop: insets.top + 10 }]}>
           <View style={st.topo}>
             <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={aoFechar} style={st.voltar}>
-              <Icone nome="voltar" tamanho={22} cor="#ffffff" />
+              <Icone nome="voltar" tamanho={22} cor={cores.texto} />
             </Pressable>
             <T tam={20} peso="300" style={{ flex: 1 }}>{rotulo.plural}</T>
           </View>
 
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 40 }}>
             <View style={st.busca}>
-              <Icone nome="busca" tamanho={19} cor="#ffffff" />
+              <Icone nome="busca" tamanho={19} cor={cores.texto} />
               <TextInput
                 value={busca}
                 onChangeText={setBusca}
@@ -69,7 +69,7 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
                 const ativo = e === filtro;
                 return (
                   <Pressable key={e ?? 'todas'} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => setFiltro(e)} style={[st.filtro, ativo && st.filtroAtivo]}>
-                    <T tam={13} peso={ativo ? '500' : '300'}>{e ?? 'Todos'}</T>
+                    <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#ffffff' : cores.texto}>{e ?? 'Todos'}</T>
                   </Pressable>
                 );
               })}
@@ -101,7 +101,7 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
                     </View>
                     <View style={st.meta}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                        <Icone nome="estrela" tamanho={15} cor="#ffffff" />
+                        <Icone nome="estrela" tamanho={15} cor={cores.destaque2} />
                         <T tam={13} peso="500">{p.nota.toFixed(1).replace('.', ',')}</T>
                         <T tam={12.5}>({p.avaliacoes})</T>
                       </View>

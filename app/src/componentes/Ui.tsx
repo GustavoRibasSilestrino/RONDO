@@ -1,11 +1,15 @@
 /* Blocos básicos de interface: texto fino, cartão, botão, chip, passo (+/−), anel, barra, segmentos e campo. */
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle, Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { CINZA_SOBRE, cores, DEGRADE, FIM_DIAGONAL, FONTE, INICIO_DIAGONAL, PesoFonte, raio, estilos } from '../tema';
+import { CINZA_SOBRE, cores, escuro, SOMBRA_VIDRO, VIDRO, DEGRADE, FIM_DIAGONAL, FONTE, INICIO_DIAGONAL, PesoFonte, raio, estilos } from '../tema';
 import { Icone, NomeIcone } from './Icone';
+
+/* ---------- telas escuras ----------
+   As telas do RONDIN continuam escuras (tema.ts). Dentro de <EscuroContexto.Provider value>, o `T` sem cor usa o texto claro. */
+export const EscuroContexto = createContext(false);
 
 /* ---------- texto ---------- */
 type TProps = {
@@ -18,7 +22,9 @@ type TProps = {
   linhas?: number;
   style?: StyleProp<TextStyle>;
 };
-export function T({ children, tam = 15, peso = '300', cor = cores.texto, mono, centro, linhas, style }: TProps) {
+export function T({ children, tam = 15, peso = '300', cor: corDada, mono, centro, linhas, style }: TProps) {
+  const naTelaEscura = useContext(EscuroContexto);
+  const cor = corDada ?? (naTelaEscura ? escuro.texto : cores.texto);
   return (
     <Text
       numberOfLines={linhas}
@@ -35,7 +41,8 @@ export function T({ children, tam = 15, peso = '300', cor = cores.texto, mono, c
 }
 
 /* ---------- cartão ---------- */
-/* um brilho leve de cima para baixo e um fio de luz no alto da borda; no destaque, o brilho é roxo. */
+/* vidro: branco translúcido com desfoque do fundo (no navegador), borda clara e um brilho de cima para baixo; no destaque, o
+   brilho é lilás */
 export function Cartao({ children, style, destaque }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; destaque?: boolean }) {
   return (
     <View style={[st.cartao, destaque && st.cartaoDestaque, style]}>
@@ -109,8 +116,12 @@ type BotaoProps = {
 };
 export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, carregando, orbita, icone, pequeno, style }: BotaoProps) {
   const inativo = !!desabilitado || !!carregando;
+  /* vidro (desde 2026-11-17): nas telas claras do app o botão é de vidro (branco translúcido, borda clara, texto roxo quase
+     preto) e, aceso, vira a pílula roxo-escura com texto branco, como a aba ativa. Nas telas do RONDIN, que são escuras,
+     continua o botão de antes (cinza escuro que acende em violeta). */
+  const vidro = !useContext(EscuroContexto);
   /* o conteúdo em duas cores: a do botão apagado e o branco do aceso (um some enquanto o outro aparece) */
-  const corApagado = tipo === 'perigo' ? cores.erro : tipo === 'primario' ? 'rgba(255,255,255,0.62)' : 'rgba(244,241,251,0.82)';
+  const corApagado = tipo === 'perigo' ? (vidro ? cores.erro : escuro.erro) : vidro ? cores.texto : tipo === 'primario' ? 'rgba(255,255,255,0.62)' : 'rgba(244,241,251,0.82)';
   const miolo2 = (cor: string) => (
     <View style={[st.botaoMiolo, pequeno && st.botaoMioloPequeno]}>
       {carregando ? <ActivityIndicator size="small" color={cor} /> : icone ? <Icone nome={icone} tamanho={pequeno ? 16 : 18} cor={cor} /> : null}
@@ -166,18 +177,18 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
       onBlur={() => setFoco(false)}
       style={({ hovered }: { pressed: boolean; hovered?: boolean }) => [
         st.botao, comOrbita && { borderRadius: raio.pilula },
-        st.botaoApagado, perigo && st.botaoApagadoPerigo,
-        /* o cursor em cima: só o cinza */
-        cursor && !desabilitado && CINZA_SOBRE,
+        vidro ? st.botaoVidro : st.botaoApagado, perigo && (vidro ? st.botaoVidroPerigo : st.botaoApagadoPerigo),
+        /* o cursor em cima: só o cinza (no vidro, um cinza claro) */
+        cursor && !desabilitado && (vidro ? st.botaoVidroSobre : CINZA_SOBRE),
         { opacity: desabilitado ? 0.45 : 1 },
       ]}
     >
       {() => (
         <>
           {/* aceso: a cor, o brilho que passeia, a luz de cima e a borda clara aparecem juntos, por cima do cinza apagado */}
-          <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, st.acesoBorda, perigo && st.acesoBordaPerigo, { opacity: luz }]}>
-            <LinearGradient pointerEvents="none" colors={perigo ? ['#ff7a8e', '#e5485f', '#c42f4b'] : ['#9168ff', '#7648ff', '#6639f4']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
-            <BrilhoAndante forte={cursor || tocando} perigo={perigo} />
+          <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, st.acesoBorda, perigo && st.acesoBordaPerigo, vidro && st.acesoVidro, { opacity: luz }]}>
+            <LinearGradient pointerEvents="none" colors={perigo ? (vidro ? ['#c42f4b', '#b3203a', '#9a1830'] : ['#ff7a8e', '#e5485f', '#c42f4b']) : vidro ? ['#3a2370', '#2a1650', '#1f1040'] : ['#9168ff', '#7648ff', '#6639f4']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+            {vidro ? null : <BrilhoAndante forte={cursor || tocando} perigo={perigo} />}
             <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.26)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }} style={StyleSheet.absoluteFill} />
           </Animated.View>
           <Animated.View style={{ opacity: luz.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }}>{miolo2(corApagado)}</Animated.View>
@@ -207,8 +218,8 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
 
   return (
     <Animated.View style={[{ transform: [{ scale: escala }], borderRadius: raio.pilula }, style]}>
-      {!desabilitado ? (
-        /* a luz que se espalha em volta quando ele acende (no toque, um pouco mais) */
+      {!desabilitado && !vidro ? (
+        /* a luz que se espalha em volta quando ele acende (no toque, um pouco mais); no vidro, não */
         <Animated.View pointerEvents="none" style={[st.aura, { opacity: Animated.add(Animated.multiply(luz, primario ? 0.85 : 0.6), Animated.multiply(realce, 0.15)) }]}>
           <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
             <Defs>
@@ -326,7 +337,7 @@ export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar }:
         const ativo = o.valor === valor;
         return (
           <Pressable key={String(o.valor)} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => aoMudar(o.valor)} style={[st.segmento, ativo && (normal ? st.segmentoAtivoNormal : st.segmentoAtivo)]}>
-            {ativo && normal ? <LinearGradient pointerEvents="none" colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={[StyleSheet.absoluteFill, { borderRadius: raio.pilula }]} /> : null}
+            {ativo && normal ? <LinearGradient pointerEvents="none" colors={DEGRADE.ativo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={[StyleSheet.absoluteFill, { borderRadius: raio.pilula }]} /> : null}
             <T tam={12.5} peso={ativo ? '500' : '300'} cor={ativo ? (normal ? '#ffffff' : cores.fundo) : cores.texto2}>{o.nome}</T>
           </Pressable>
         );
@@ -370,10 +381,10 @@ export function Titulo({ children, direita }: { children: React.ReactNode; direi
 const st = estilos(() => StyleSheet.create({
   cartao: {
     backgroundColor: cores.cartao, borderColor: cores.linha, borderWidth: 1, borderRadius: raio.g, padding: 18, overflow: 'hidden',
-    boxShadow: '0 24px 44px -30px rgba(0,0,0,0.95)',
+    boxShadow: SOMBRA_VIDRO, ...VIDRO,
     ...(Platform.OS === 'web' ? ({ contentVisibility: 'auto', containIntrinsicSize: 'auto 240px' } as object) : null),
   },
-  cartaoDestaque: { borderColor: 'rgba(139,92,246,0.55)', backgroundColor: cores.cartao, boxShadow: '0 24px 50px -30px rgba(106,0,212,0.55)' },
+  cartaoDestaque: { borderColor: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.46)', boxShadow: '0 22px 46px -24px rgba(76,29,149,0.5)' },
   fio: { position: 'absolute', top: 0, left: 24, right: 24, height: 1 },
   orbita: { borderRadius: raio.pilula, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(196,168,255,0.2)' },
   campoFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.06)` },
@@ -384,6 +395,10 @@ const st = estilos(() => StyleSheet.create({
   },
   /* apagado (todos os tipos): cinza escuro quase sem cor; o aceso (acesoBorda + degradê) aparece por cima */
   botaoApagado: { backgroundColor: '#1b1a21', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  botaoVidro: { backgroundColor: 'rgba(255,255,255,0.42)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.85)', boxShadow: '0 10px 24px -16px rgba(42,22,80,0.5)', ...VIDRO },
+  botaoVidroPerigo: { borderColor: 'rgba(179,32,58,0.45)' },
+  botaoVidroSobre: { backgroundColor: 'rgba(214,212,220,0.92)', borderColor: 'rgba(196,193,204,1)' },   // o cursor em cima: cinza claro
+  acesoVidro: { borderColor: 'rgba(255,255,255,0.25)' },
   botaoApagadoPerigo: { borderColor: 'rgba(255,107,129,0.28)' },
   acesoBorda: { borderRadius: raio.pilula, borderWidth: 1, borderColor: 'rgba(206,186,255,0.65)', overflow: 'hidden', margin: -1 },
   acesoBordaPerigo: { borderColor: 'rgba(255,190,200,0.7)' },
@@ -399,7 +414,7 @@ const st = estilos(() => StyleSheet.create({
   segmentos: { flexDirection: 'row', backgroundColor: cores.cartao2, borderRadius: raio.pilula, padding: 4, borderWidth: 1, borderColor: cores.linha },
   segmento: { flexGrow: 1, flexBasis: 'auto', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderRadius: raio.pilula },
   segmentoAtivo: { backgroundColor: cores.texto },
-  segmentoAtivoNormal: { overflow: 'hidden', boxShadow: '0 6px 16px -8px rgba(106,0,212,0.9)' },
+  segmentoAtivoNormal: { overflow: 'hidden', boxShadow: '0 6px 16px -8px rgba(42,22,80,0.7)' },
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
   campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },

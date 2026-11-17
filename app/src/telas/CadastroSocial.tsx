@@ -8,7 +8,7 @@ import { CampoFlutuante } from '../componentes/CampoFlutuante';
 import { Icone } from '../componentes/Icone';
 import { Botao, T } from '../componentes/Ui';
 import { emailValido, lerData, mascararData } from '../lib/rondinRoteiro';
-import { cores, estilos } from '../tema';
+import { escuro as cores, estilos } from '../tema';
 import type { Usuario } from '../tipos';
 import { SITE } from './Login';
 

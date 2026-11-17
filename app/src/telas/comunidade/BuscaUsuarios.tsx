@@ -48,10 +48,10 @@ export function BuscaUsuarios({ aberto, aoFechar, aoAbrirPerfil }: Props) {
         <View style={[st.coluna, { paddingTop: insets.top + 8 }]}>
           <View style={st.topo}>
             <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={fechar} style={st.voltar}>
-              <Icone nome="voltar" tamanho={22} cor="#ffffff" />
+              <Icone nome="voltar" tamanho={22} cor={cores.texto} />
             </Pressable>
             <View style={st.busca}>
-              <Icone nome="busca" tamanho={18} cor="#ffffff" />
+              <Icone nome="busca" tamanho={18} cor={cores.texto} />
               <TextInput
                 autoFocus
                 value={busca}
@@ -67,7 +67,7 @@ export function BuscaUsuarios({ aberto, aoFechar, aoAbrirPerfil }: Props) {
               />
               {busca ? (
                 <Pressable accessibilityRole="button" accessibilityLabel="Limpar a busca" onPress={() => setBusca('')} hitSlop={8} style={{ padding: 6 }}>
-                  <Icone nome="fechar" tamanho={16} cor="#ffffff" />
+                  <Icone nome="fechar" tamanho={16} cor={cores.texto2} />
                 </Pressable>
               ) : null}
             </View>
@@ -77,7 +77,7 @@ export function BuscaUsuarios({ aberto, aoFechar, aoAbrirPerfil }: Props) {
             <T tam={13} peso="500" style={{ marginBottom: 10 }}>{q ? `${lista.length} ${lista.length === 1 ? 'resultado' : 'resultados'}` : 'Sugestões para você'}</T>
             {lista.length === 0 ? (
               <View style={st.vazio}>
-                <Icone nome="busca" tamanho={28} cor="#ffffff" />
+                <Icone nome="busca" tamanho={28} cor={cores.texto3} />
                 <T tam={15} peso="500" style={{ marginTop: 10 }}>{erro ? 'Sem conexão' : carregando ? 'Buscando...' : q ? 'Ninguém encontrado' : 'Sem sugestões por enquanto'}</T>
                 <T tam={13} centro style={{ marginTop: 4, lineHeight: 19 }}>{erro || (q ? 'Tente outro nome ou o @usuário da pessoa.' : 'Quando mais gente entrar no RONDO, ela aparece aqui.')}</T>
               </View>

@@ -39,7 +39,7 @@ function Opcao({ icone, titulo, sub, pro, indisponivel, aoPressionar }: OpcaoPro
         </View>
         <T tam={13} style={{ marginTop: 3, lineHeight: 18 }}>{sub}</T>
       </View>
-      <Icone nome="setaDireita" tamanho={18} cor="#ffffff" />
+      <Icone nome="setaDireita" tamanho={18} cor={cores.texto} />
     </Pressable>
   );
 }
@@ -96,7 +96,7 @@ export function CriarPlano({ tipo }: Props) {
           <T tam={15} centro style={{ lineHeight: 22 }}>A RONDO AI ainda está indisponível. Ainda não adicionamos a API dela ao app. Quando chegar, ela será um recurso do plano PRO.</T>
           <T tam={13} centro style={{ lineHeight: 19 }}>Enquanto isso, você pode procurar um profissional verificado aqui mesmo.</T>
           <Pressable accessibilityRole="button" onPress={() => { setIndisponivel(false); setBusca(true); }} style={st.botaoProf}>
-            <T tam={14.5} peso="500">{t.profissional}</T>
+            <T tam={14.5} peso="500" cor="#ffffff">{t.profissional}</T>
           </Pressable>
         </View>
       </Folha>

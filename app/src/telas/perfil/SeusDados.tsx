@@ -35,8 +35,8 @@ function Medida({ nome, valor, unidade, passo, min, max, casas, aoMudar }: { nom
         <T tam={12}>{unidade}</T>
       </View>
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel={`Diminuir ${nome.toLowerCase()}`} onPress={() => mudar(-passo)} style={st.passo}><Icone nome="menos" tamanho={18} cor="#ffffff" /></Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel={`Aumentar ${nome.toLowerCase()}`} onPress={() => mudar(passo)} style={st.passo}><Icone nome="mais" tamanho={18} cor="#ffffff" /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Diminuir ${nome.toLowerCase()}`} onPress={() => mudar(-passo)} style={st.passo}><Icone nome="menos" tamanho={18} cor={cores.texto} /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={`Aumentar ${nome.toLowerCase()}`} onPress={() => mudar(passo)} style={st.passo}><Icone nome="mais" tamanho={18} cor={cores.texto} /></Pressable>
       </View>
     </View>
   );

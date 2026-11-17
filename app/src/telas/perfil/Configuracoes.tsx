@@ -70,7 +70,7 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
         <View style={[st.coluna, { paddingTop: insets.top + 8 }]}>
           <View style={st.topo}>
             <Pressable accessibilityRole="button" accessibilityLabel={secao ? 'Voltar às configurações' : 'Fechar'} onPress={() => (secao ? setSecao(null) : sair())} style={st.voltar}>
-              <Icone nome={secao ? 'voltar' : 'fechar'} tamanho={22} cor="#ffffff" />
+              <Icone nome={secao ? 'voltar' : 'fechar'} tamanho={22} cor={cores.texto} />
             </Pressable>
             <T tam={17} peso="500" style={{ flex: 1 }}>{titulo}</T>
           </View>
@@ -86,7 +86,7 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
                       <T tam={15.5} peso="500">Editar perfil</T>
                       <T tam={12.5} style={{ marginTop: 1 }}>Foto, nome, nome de usuário e descrição</T>
                     </View>
-                    <Icone nome="setaDireita" tamanho={18} cor="#ffffff" />
+                    <Icone nome="setaDireita" tamanho={18} cor={cores.texto3} />
                   </Pressable>
                 ) : null}
                 {ITENS.filter((i) => i.id !== 'denuncias' || estado.usuario?.papel === 'dono').map((i) => (
@@ -96,7 +96,7 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
                       <T tam={15.5} peso="500">{i.titulo}</T>
                       <T tam={12.5} style={{ marginTop: 1 }}>{i.sub}</T>
                     </View>
-                    <Icone nome="setaDireita" tamanho={18} cor="#ffffff" />
+                    <Icone nome="setaDireita" tamanho={18} cor={cores.texto3} />
                   </Pressable>
                 ))}
                 <T tam={11.5} style={{ marginTop: 14 }}>RONDO · versão 0.1.0</T>
@@ -113,7 +113,7 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
                     <View key={b.nivel} style={[st.linhaBeneficio, aberto2 && { borderColor: cores.linha2 }]}>
                       <View style={[st.nivelBeneficio, aberto2 && { backgroundColor: cores.destaqueForte }]}><T tam={13} peso="500">{b.nivel}</T></View>
                       <T tam={14} style={{ flex: 1, lineHeight: 19, opacity: aberto2 ? 1 : 0.6 }}>{b.texto}</T>
-                      {aberto2 ? <Icone nome="ok" tamanho={18} cor={cores.bom} /> : <Icone nome="cadeado" tamanho={16} cor="#ffffff" />}
+                      {aberto2 ? <Icone nome="ok" tamanho={18} cor={cores.bom} /> : <Icone nome="cadeado" tamanho={16} cor={cores.texto3} />}
                     </View>
                   );
                 })}

@@ -28,7 +28,7 @@ export function TodosTreinos({ aberto, rotinas, aoFechar, aoIniciar, aoEditar, u
         <View style={[st.coluna, { paddingTop: insets.top + 8 }]}>
           <View style={st.topo}>
             <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={aoFechar} style={st.botao}>
-              <Icone nome="voltar" tamanho={22} cor="#ffffff" />
+              <Icone nome="voltar" tamanho={22} cor={cores.texto} />
             </Pressable>
             <T tam={17} peso="500" style={{ flex: 1 }}>Todos os treinos</T>
           </View>

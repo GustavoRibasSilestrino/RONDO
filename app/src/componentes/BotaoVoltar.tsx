@@ -15,7 +15,7 @@ export function BotaoVoltar({ rotulo, aoPressionar }: { rotulo: string; aoPressi
     <View pointerEvents="box-none" style={[st.faixa, { top: insets.top + (largo ? 16 : ALTURA_CABECALHO + 8) }]}>
       <View pointerEvents="box-none" style={st.coluna}>
         <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={aoPressionar} hitSlop={6} style={({ pressed }) => [st.botao, pressed && { opacity: 0.8 }]}>
-          <Icone nome="voltar" tamanho={20} cor="#ffffff" />
+          <Icone nome="voltar" tamanho={20} cor={cores.texto} />
         </Pressable>
       </View>
     </View>

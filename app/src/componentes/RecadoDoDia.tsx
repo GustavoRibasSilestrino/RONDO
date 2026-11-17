@@ -29,7 +29,7 @@ export function RecadoDoDia({ aoAbrir }: { aoAbrir: () => void }) {
       })}
     >
       <View style={{ width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: feito ? cores.cartao2 : cores.destaque }}>
-        <Icone nome={feito ? 'ok' : 'recado'} tamanho={22} cor="#ffffff" />
+        <Icone nome={feito ? 'ok' : 'recado'} tamanho={22} cor={feito ? cores.destaque2 : '#ffffff'} />
       </View>
       <View style={{ flex: 1 }}>
         <T tam={12.5} cor={cores.texto3}>{chegou ? 'Um recado seu chegou hoje' : feito ? 'Você já conversou com o RONDIN hoje' : 'Pergunta do dia'}</T>

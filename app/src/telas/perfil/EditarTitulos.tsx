@@ -33,8 +33,8 @@ export function EditarTitulos({ aberta, aoFechar }: { aberta: boolean; aoFechar:
           const ativo = estado.perfilSocial.titulos.includes(t.id) && liberado;
           return (
             <Pressable key={t.id} disabled={!liberado} accessibilityRole="button" accessibilityState={{ selected: ativo, disabled: !liberado }} accessibilityLabel={liberado ? `${t.nome}${ativo ? ', exibido' : ''}` : `${t.nome}, bloqueado: nível ${t.nivel}`} onPress={() => alternar(t.id, liberado)} style={[st.chip, ativo && st.chipAtivo, !liberado && { opacity: 0.55 }]}>
-              {!liberado ? <Icone nome="cadeado" tamanho={13} cor="#ffffff" /> : ativo ? <Icone nome="ok" tamanho={14} cor="#ffffff" /> : null}
-              <T tam={13} peso={ativo ? '500' : '300'}>{t.nome}</T>
+              {!liberado ? <Icone nome="cadeado" tamanho={13} cor={cores.texto2} /> : ativo ? <Icone nome="ok" tamanho={14} cor="#ffffff" /> : null}
+              <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#ffffff' : cores.texto}>{t.nome}</T>
               {!liberado ? <T tam={11.5}>nível {t.nivel}</T> : null}
             </Pressable>
           );

@@ -152,7 +152,7 @@ export function FilaDenuncias() {
       <View accessibilityRole="tablist" style={{ flexDirection: 'row', gap: 8 }}>
         {(['pendente', 'removido', 'mantido'] as const).map((a) => (
           <Pressable key={a} accessibilityRole="tab" accessibilityState={{ selected: aba === a }} onPress={() => setAba(a)} style={[st.aba, aba === a && st.abaAtiva]}>
-            <T tam={13.5} peso={aba === a ? '500' : '300'}>{a === 'pendente' ? 'Pendentes' : a === 'removido' ? 'Removidas' : 'Mantidas'}</T>
+            <T tam={13.5} peso={aba === a ? '500' : '300'} cor={aba === a ? '#ffffff' : cores.texto}>{a === 'pendente' ? 'Pendentes' : a === 'removido' ? 'Removidas' : 'Mantidas'}</T>
           </Pressable>
         ))}
       </View>

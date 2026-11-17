@@ -14,7 +14,7 @@ export function SeloPro() {
   return (
     <View accessibilityLabel="Recurso pago, plano PRO" style={st.selo}>
       <Icone nome="estrela" tamanho={12} cor="#ffffff" espessura={2} />
-      <T tam={10.5} peso="500" style={{ letterSpacing: 0.6 }}>PRO</T>
+      <T tam={10.5} peso="500" cor="#ffffff" style={{ letterSpacing: 0.6 }}>PRO</T>
     </View>
   );
 }

@@ -27,7 +27,7 @@ import { EstadoOrbe } from '../lib/orbe';
 import { Dita, Opcao, Passo, Respostas, emailValido, falasDe, lerData, mascararData, montarPerfil, passosCadastro, passosEntrar, primeiroNome, trechosDe } from '../lib/rondinRoteiro';
 import { TEXTOS, traduzirErro } from '../lib/rondinTextos';
 import { SOTAQUES, Sotaque, acabouDeLiberarSom, falar, parar, sotaquePadrao, useSomBloqueado } from '../lib/rondinVoz';
-import { CINZA_SOBRE, cores, estilos } from '../tema';
+import { CINZA_SOBRE, escuro as cores, estilos } from '../tema';
 import type { Estado, Usuario } from '../tipos';
 import { RecuperarSenha } from './RecuperarSenha';
 import { SITE } from './Login';

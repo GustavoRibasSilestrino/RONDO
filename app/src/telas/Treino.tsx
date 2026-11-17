@@ -9,7 +9,7 @@ import { publicarPost } from '../api/social';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { GraficoLinha } from '../componentes/Grafico';
 import { Icone } from '../componentes/Icone';
-import { Botao, Chip, T } from '../componentes/Ui';
+import { EscuroContexto, Botao, Chip, T } from '../componentes/Ui';
 import type { Rotina } from '../dados';
 import { useLoja } from '../estado/loja';
 import { diaAtivo, epley, estagnado, inicioDaSemana, melhor1RM, proximaCarga, ultimaVez, volumeDe } from '../lib/calc';
@@ -113,11 +113,11 @@ function Lista() {
       <View style={{ justifyContent: 'center' }}>
         {/* a câmera que analisa a execução: no canto, do lado oposto ao calendário, sem ocupar a tela */}
         <Pressable accessibilityRole="button" accessibilityLabel="Analisar a execução com a câmera" onPress={() => setAnalise(true)} hitSlop={8} style={[st.botaoCalendario, st.botaoCamera]}>
-          <Icone nome="camera" tamanho={20} cor="#ffffff" />
+          <Icone nome="camera" tamanho={20} cor={cores.texto} />
         </Pressable>
         <T tam={15} peso="400" centro>Treino</T>
         <Pressable accessibilityRole="button" accessibilityLabel="Abrir o calendário de constância" onPress={() => setCalendario(true)} hitSlop={8} style={st.botaoCalendario}>
-          <Icone nome="calendario" tamanho={20} cor="#ffffff" />
+          <Icone nome="calendario" tamanho={20} cor={cores.texto} />
         </Pressable>
       </View>
 
@@ -146,7 +146,7 @@ function Lista() {
             const ativa = serie === id;
             return (
               <Pressable key={id} accessibilityRole="button" accessibilityState={{ selected: ativa }} onPress={() => setSerie(id)} style={[st.opcao, ativa && st.opcaoAtiva]}>
-                <T tam={13} peso={ativa ? '500' : '300'}>{rotulo}</T>
+                <T tam={13} peso={ativa ? '500' : '300'} cor={ativa ? '#ffffff' : cores.texto2}>{rotulo}</T>
               </Pressable>
             );
           })}
@@ -165,14 +165,14 @@ function Lista() {
 
       {/* o treino sugerido, em destaque */}
       <View style={st.hero}>
-        <View style={st.selo}><T tam={10.5} peso="500" style={{ letterSpacing: 1 }}>SUGERIDO PARA HOJE</T></View>
+        <View style={st.selo}><T tam={10.5} peso="500" cor="#ffffff" style={{ letterSpacing: 1 }}>SUGERIDO PARA HOJE</T></View>
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14, marginTop: 12 }}>
           <View style={{ flex: 1 }}>
             <T tam={28} peso="500" style={{ letterSpacing: -0.5 }}>{sugerida.nome}</T>
             <View style={st.metas}>
-              <View style={st.meta}><Icone nome="relogio" tamanho={15} cor="#ffffff" /><T tam={12.5}>{sugerida.minutos} min</T></View>
-              <View style={st.meta}><Icone nome="treino" tamanho={15} cor="#ffffff" /><T tam={12.5}>{sugerida.exercicios.length} exercícios</T></View>
-              <View style={st.meta}><Icone nome="ok" tamanho={15} cor="#ffffff" /><T tam={12.5}>{totalSeries(sugerida)} séries</T></View>
+              <View style={st.meta}><Icone nome="relogio" tamanho={15} cor={cores.texto} /><T tam={12.5}>{sugerida.minutos} min</T></View>
+              <View style={st.meta}><Icone nome="treino" tamanho={15} cor={cores.texto} /><T tam={12.5}>{sugerida.exercicios.length} exercícios</T></View>
+              <View style={st.meta}><Icone nome="ok" tamanho={15} cor={cores.texto} /><T tam={12.5}>{totalSeries(sugerida)} séries</T></View>
             </View>
           </View>
           <CorpoMusculos grupos={musculosDe(sugerida)} largura={64} />
@@ -209,12 +209,12 @@ function Contador({ rotulo, valor, passo, min, max, formato, unidade, aoMudar, f
   const mudar = (d: number) => aoMudar(Math.min(max, Math.max(min, Math.round((valor + d) * 100) / 100)));
   return (
     <View style={[st.contador, feita && st.contadorFeito]}>
-      <Pressable accessibilityRole="button" accessibilityLabel={`Diminuir ${rotulo}`} onPress={() => mudar(-passo)} hitSlop={4} style={st.botaoContador}><Icone nome="menos" tamanho={16} cor="#ffffff" /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Diminuir ${rotulo}`} onPress={() => mudar(-passo)} hitSlop={4} style={st.botaoContador}><Icone nome="menos" tamanho={16} cor={cores.texto} /></Pressable>
       <View style={{ alignItems: 'center', flex: 1 }}>
         <T tam={17} peso="500">{formato ? formato(valor) : String(valor)}</T>
         <T tam={10.5} style={{ opacity: 0.7, marginTop: -1 }}>{unidade}</T>
       </View>
-      <Pressable accessibilityRole="button" accessibilityLabel={`Aumentar ${rotulo}`} onPress={() => mudar(passo)} hitSlop={4} style={st.botaoContador}><Icone nome="mais" tamanho={16} cor="#ffffff" /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Aumentar ${rotulo}`} onPress={() => mudar(passo)} hitSlop={4} style={st.botaoContador}><Icone nome="mais" tamanho={16} cor={cores.texto} /></Pressable>
     </View>
   );
 }
@@ -302,7 +302,7 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <View style={{ flex: 1 }}>
           <T tam={22} peso="500" linhas={1} style={{ letterSpacing: -0.3 }}>{rotina?.nome}</T>
-          <View style={st.tempo}><Icone nome="relogio" tamanho={14} cor="#ffffff" /><T tam={13} peso="500">{mmss((agora - ta.inicio) / 1000)}</T></View>
+          <View style={st.tempo}><Icone nome="relogio" tamanho={14} cor={cores.texto} /><T tam={13} peso="500">{mmss((agora - ta.inicio) / 1000)}</T></View>
         </View>
         <CorpoMusculos grupos={rotina ? musculosDe(rotina) : []} largura={40} />
         <Botao pequeno titulo="Finalizar" icone="ok" aoPressionar={finalizar} />
@@ -320,6 +320,7 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
       {/* descanso: aparece depois de marcar uma série */}
       {restante > 0 ? (
         <View style={st.descanso}>
+          <EscuroContexto.Provider value>{/* o cartão do descanso é roxo-escuro: texto claro */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
             <Icone nome="relogio" tamanho={20} cor="#ffffff" />
             <View>
@@ -331,6 +332,7 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
             <T tam={13} peso="500">Pular</T>
           </Pressable>
           <View style={st.descansoTrilho}><View style={[st.descansoEnche, { width: `${(restante * 1000 / DESCANSO_MS) * 100}%` }]} /></View>
+          </EscuroContexto.Provider>
         </View>
       ) : null}
 
@@ -369,7 +371,7 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
 
             {prox ? (
               <View style={st.dica}>
-                <Icone nome="evolucao" tamanho={16} cor="#ffffff" />
+                <Icone nome="evolucao" tamanho={16} cor={cores.texto} />
                 <T tam={12.5} style={{ flex: 1, lineHeight: 17 }}>
                   {prox.sobe ? `Topo da faixa batido. Próxima carga: ${num(prox.kg)} kg` : `Mantenha ${num(prox.kg)} kg até bater ${def.faixa[1]} repetições em todas as séries`}
                 </T>
@@ -396,13 +398,13 @@ function Sessao({ aoConcluir }: { aoConcluir: (r: Resumo) => void }) {
                     onPress={() => alternar(i, j)}
                     style={[st.marcar, s.ok && { backgroundColor: cores.bom, borderColor: cores.bom }]}
                   >
-                    <Icone nome="ok" tamanho={20} cor={s.ok ? '#04140c' : '#ffffff'} espessura={2.2} />
+                    <Icone nome="ok" tamanho={20} cor={s.ok ? '#ffffff' : cores.texto3} espessura={2.2} />
                   </Pressable>
                 </View>
               ))}
             </View>
             <Pressable accessibilityRole="button" onPress={() => adicionarSerie(i)} style={st.adicionar}>
-              <Icone nome="mais" tamanho={15} cor="#ffffff" />
+              <Icone nome="mais" tamanho={15} cor={cores.texto} />
               <T tam={13} peso="500">Adicionar série</T>
             </Pressable>
           </View>

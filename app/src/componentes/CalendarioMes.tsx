@@ -31,9 +31,9 @@ export function CalendarioMes() {
   return (
     <View>
       <View style={st.topo}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Mês anterior" onPress={() => trocar(-1)} hitSlop={8} style={st.seta}><Icone nome="voltar" tamanho={20} cor="#ffffff" /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Mês anterior" onPress={() => trocar(-1)} hitSlop={8} style={st.seta}><Icone nome="voltar" tamanho={20} cor={cores.texto} /></Pressable>
         <T tam={15} peso="500" centro style={{ flex: 1 }}>{mesAno(mes).replace(/^./, (c) => c.toUpperCase())}</T>
-        <Pressable accessibilityRole="button" accessibilityLabel="Próximo mês" disabled={atualMes} onPress={() => trocar(1)} hitSlop={8} style={[st.seta, atualMes && { opacity: 0.3 }]}><Icone nome="setaDireita" tamanho={20} cor="#ffffff" /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Próximo mês" disabled={atualMes} onPress={() => trocar(1)} hitSlop={8} style={[st.seta, atualMes && { opacity: 0.3 }]}><Icone nome="setaDireita" tamanho={20} cor={cores.texto} /></Pressable>
       </View>
 
       <View style={st.linha}>
@@ -49,7 +49,7 @@ export function CalendarioMes() {
           return (
             <View key={k} style={st.celula}>
               <View accessibilityLabel={feito ? `Dia ${d.getDate()}, ativo${naChama ? ', na sequência' : ''}` : undefined} style={[st.dia, feito && st.diaFeito, ehHoje && !feito && st.diaHoje]}>
-                <T tam={13} peso={feito || ehHoje ? '500' : '300'} style={{ opacity: futuro ? 0.35 : 1 }}>{d.getDate()}</T>
+                <T tam={13} peso={feito || ehHoje ? '500' : '300'} cor={feito ? '#ffffff' : cores.texto} style={{ opacity: futuro ? 0.35 : 1 }}>{d.getDate()}</T>
                 {naChama ? <View pointerEvents="none" style={st.joia}><ChamaJoia tamanho={16} /></View> : null}
               </View>
             </View>

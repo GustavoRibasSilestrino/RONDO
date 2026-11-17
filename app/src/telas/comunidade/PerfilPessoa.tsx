@@ -53,12 +53,12 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
         <View style={[st.coluna, { paddingTop: insets.top + 8 }]}>
           <View style={st.topo}>
             <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={voltar} style={st.voltar}>
-              <Icone nome="voltar" tamanho={22} cor="#ffffff" />
+              <Icone nome="voltar" tamanho={22} cor={cores.texto} />
             </Pressable>
             <T tam={16} peso="500" style={{ flex: 1 }} linhas={1}>{perfil ? `@${perfil.arroba ?? arrobaDe(nome)}` : erro ? "Perfil" : ""}</T>
             {perfil && !perfil.voce ? (
               <Pressable accessibilityRole="button" accessibilityLabel={`Denunciar ou bloquear ${nome}`} onPress={() => setDenunciando(true)} style={st.voltar}>
-                <Icone nome="pontos" tamanho={22} cor="#ffffff" />
+                <Icone nome="pontos" tamanho={22} cor={cores.texto} />
               </Pressable>
             ) : null}
           </View>
@@ -104,7 +104,7 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
               </View>
             ) : null}
 
-            <View style={st.divisor}><Icone nome="grade" tamanho={20} cor="#ffffff" /><T tam={13} peso="500">Publicações</T></View>
+            <View style={st.divisor}><Icone nome="grade" tamanho={20} cor={cores.texto} /><T tam={13} peso="500">Publicações</T></View>
             {posts.length ? (
               <View style={{ gap: 14 }}>
                 {posts.map((p) => <CartaoPost key={p.id} post={p} timeline aoAbrirMidia={aoAbrirMidia} aoApagar={(pid) => lista.mudar((l) => l.filter((x) => x.id !== pid))} aoBloquear={() => voltar()} />)}

@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { cores, estilos, larguraMax } from '../tema';
+import { cores, estilos, larguraMax, VIDRO } from '../tema';
 import { useRolada } from '../lib/rolagem';
 import { Icone } from './Icone';
 import { SeloSequencia } from './SeloSequencia';
@@ -43,10 +43,10 @@ export function CabecalhoApp({ aoBuscar, mostrarNome, mostrarSino, naoLidas, abe
             hitSlop={2}
             style={st.sino}
           >
-            <Icone nome="sino" tamanho={24} cor="#ffffff" />
+            <Icone nome="sino" tamanho={24} cor={cores.texto} />
             {naoLidas > 0 ? (
               <View style={st.selo}>
-                <T tam={10.5} peso="500">{naoLidas > 9 ? '9+' : String(naoLidas)}</T>
+                <T tam={10.5} peso="500" cor="#ffffff">{naoLidas > 9 ? '9+' : String(naoLidas)}</T>
               </View>
             ) : null}
           </Pressable> : null}
@@ -62,7 +62,7 @@ export function CabecalhoApp({ aoBuscar, mostrarNome, mostrarSino, naoLidas, abe
 
         {aoBuscar ? (
           <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={aoBuscar} style={st.busca}>
-            <Icone nome="busca" tamanho={23} cor="#ffffff" />
+            <Icone nome="busca" tamanho={23} cor={cores.texto} />
           </Pressable>
         ) : null}
       </View>
@@ -71,7 +71,7 @@ export function CabecalhoApp({ aoBuscar, mostrarNome, mostrarSino, naoLidas, abe
 }
 
 const st = estilos(() => StyleSheet.create({
-  fundo: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: cores.cabecalho, borderBottomWidth: 1, borderBottomColor: cores.linha, alignItems: 'center', zIndex: 20 },
+  fundo: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: cores.cabecalho, borderBottomWidth: 1, borderBottomColor: cores.linha, alignItems: 'center', zIndex: 20, ...VIDRO },
   linha: { width: '100%', maxWidth: larguraMax, height: ALTURA_CABECALHO, justifyContent: 'center', paddingHorizontal: 12 },
   esquerda: { position: 'absolute', left: 10, flexDirection: 'row', alignItems: 'center' },
   joia: { marginRight: 3 },

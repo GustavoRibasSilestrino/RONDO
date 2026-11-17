@@ -25,7 +25,7 @@ import { PERGUNTAS_DO_DIA, indiceDaPergunta } from '../lib/perguntas';
 import { CONVERSA, encerrarConversa, escolher, reagir } from '../lib/rondinConversa';
 import { achaSotaque, sotaquePadrao } from '../lib/rondinVoz';
 import { useFalaRondin } from '../lib/useFalaRondin';
-import { cores, estilos } from '../tema';
+import { escuro as cores, estilos } from '../tema';
 
 type Fase = 'pergunta' | 'gravando' | 'reagindo' | 'fim' | 'salvando' | 'pronto';
 type Final = 'guardado' | 'descartado' | 'pulou' | 'bloqueado';

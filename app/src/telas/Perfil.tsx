@@ -157,10 +157,10 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         {/* o microfone do recado e o lápis saíram daqui (2026-11-13): o recado continua no cartão do dia e no diário, e
             "Editar perfil" fica dentro das Configurações */}
         <Pressable accessibilityRole="button" accessibilityLabel="Diário de recados" onPress={() => ir('diario')} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
-          <Icone nome="calendario" tamanho={19} cor="#ffffff" />
+          <Icone nome="calendario" tamanho={19} cor={cores.texto} />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Configurações" onPress={() => setConfig(true)} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
-          <Icone nome="engrenagem" tamanho={20} cor="#ffffff" />
+          <Icone nome="engrenagem" tamanho={20} cor={cores.texto} />
         </Pressable>
       </View>
 
@@ -191,7 +191,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       <View style={st.titulos}>
         {exibidos.map((t) => <View key={t.id} style={st.titulo}><T tam={12} peso="500">{t.nome}</T></View>)}
         <Pressable accessibilityRole="button" accessibilityLabel="Editar títulos" onPress={() => setEditandoTitulos(true)} hitSlop={8} style={st.lapis}>
-          <Icone nome="lapis" tamanho={15} cor="#ffffff" />
+          <Icone nome="lapis" tamanho={15} cor={cores.texto} />
         </Pressable>
       </View>
       <T tam={14} style={{ marginTop: 10, lineHeight: 20, opacity: estado.perfilSocial.bio ? 1 : 0.6 }}>{estado.perfilSocial.bio || 'Conte em uma frase quem você é.'}</T>
@@ -202,7 +202,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
           const ativa = aba === id;
           return (
             <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: ativa }} accessibilityLabel={rotulo} onPress={() => setAba(id)} style={[st.aba, ativa && st.abaAtiva]}>
-              <Icone nome={icone} tamanho={22} cor="#ffffff" />
+              <Icone nome={icone} tamanho={22} cor={cores.texto} />
             </Pressable>
           );
         })}
@@ -216,7 +216,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
           </View>
         ) : (
           <View style={st.vazio}>
-            <Icone nome="camera" tamanho={30} cor="#ffffff" />
+            <Icone nome="camera" tamanho={30} cor={cores.texto3} />
             <T tam={15} peso="500" style={{ marginTop: 10 }}>Nenhuma publicação ainda</T>
             <T tam={13} centro style={{ marginTop: 4, lineHeight: 19 }}>Toque no + do Feed para compartilhar um treino, uma refeição ou uma conquista.</T>
           </View>
@@ -335,7 +335,7 @@ const st = estilos(() => StyleSheet.create({
   titulo: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: `rgba(${cores.tom},0.16)` },
   abas: { flexDirection: 'row', marginTop: 20, borderTopWidth: 1, borderTopColor: cores.linha },
   aba: { flex: 1, height: 48, alignItems: 'center', justifyContent: 'center', borderTopWidth: 2, borderTopColor: 'transparent', marginTop: -1, opacity: 0.55 },
-  abaAtiva: { borderTopColor: '#ffffff', opacity: 1 },
+  abaAtiva: { borderTopColor: cores.texto, opacity: 1 },
   linhaDoTempo: { marginTop: 4 },
   tile: { width: '32.7%', aspectRatio: 1, backgroundColor: cores.cartao, overflow: 'hidden' },
   tileTexto: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 8, backgroundColor: cores.cartao2 },

@@ -1,12 +1,11 @@
-/* Navegação do app: uma barra contínua de vidro escuro no pé da tela, com todas as abas à vista.
-   Cada aba é só o ícone, todas do mesmo tamanho; a atual ganha um círculo roxo. */
+/* Navegação do app: uma pílula de vidro claro flutuando no pé da tela, com todas as abas à vista (desde 2026-11-17).
+   Cada aba é só o ícone, roxo-escuro, todas do mesmo tamanho; a atual ganha um círculo roxo quase preto com o ícone branco. */
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { cores, DEGRADE, FIM_DIAGONAL, INICIO_DIAGONAL, larguraMax, estilos } from '../tema';
+import { cores, larguraMax, estilos, VIDRO } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 
 export type ItemAba = { id: string; rotulo: string; icone: NomeIcone };
@@ -30,11 +29,9 @@ function Aba({ item, largura, ativo, aoPressionar, movimentoReduzido }: { item: 
       <Animated.View
         pointerEvents="none"
         style={{ position: 'absolute', width: ALTURA, height: ALTURA, borderRadius: ALTURA / 2, overflow: 'hidden', backgroundColor: cores.destaqueForte, opacity: luz, transform: [{ scale: luz.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}
-      >
-        <LinearGradient colors={DEGRADE.roxo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={StyleSheet.absoluteFill} />
-      </Animated.View>
+      />
       <View pointerEvents="none">
-        <Icone nome={item.icone} tamanho={23} cor="#ffffff" />
+        <Icone nome={item.icone} tamanho={23} cor={ativo ? '#ffffff' : cores.texto} />
       </View>
     </Pressable>
   );
@@ -80,8 +77,8 @@ const st = estilos(() => StyleSheet.create({
   doca: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   barra: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: ALTURA + 2 * RECHEIO + 2, borderRadius: (ALTURA + 2 * RECHEIO + 2) / 2, overflow: 'hidden',
-    backgroundColor: cores.barra, borderWidth: 1, borderColor: cores.linha2,
-    shadowColor: '#000', shadowOpacity: 0.5, shadowRadius: 22, shadowOffset: { width: 0, height: 10 }, elevation: 12,
+    backgroundColor: cores.barra, borderWidth: 1, borderColor: cores.linha2, ...VIDRO,
+    shadowColor: '#2a1650', shadowOpacity: 0.28, shadowRadius: 22, shadowOffset: { width: 0, height: 10 }, elevation: 12,
   },
   aba: { height: ALTURA, alignItems: 'center', justifyContent: 'center' },
 }));

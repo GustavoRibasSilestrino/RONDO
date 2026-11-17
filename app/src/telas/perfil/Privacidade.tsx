@@ -85,7 +85,7 @@ export function Privacidade() {
         {DOCUMENTOS.map((d) => (
           <Pressable key={d.caminho} accessibilityRole="link" accessibilityLabel={`${d.titulo}, abre no navegador`} onPress={() => Linking.openURL(`${SITE_LEGAL}${d.caminho}`)} style={({ pressed }) => [st.doc, pressed && { opacity: 0.8 }]}>
             <T tam={14}>{d.titulo}</T>
-            <Icone nome="setaDireita" tamanho={16} cor="#ffffff" />
+            <Icone nome="setaDireita" tamanho={16} cor={cores.texto3} />
           </Pressable>
         ))}
       </View>

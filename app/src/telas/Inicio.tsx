@@ -11,7 +11,7 @@ import { BotoesSociais } from '../componentes/BotoesSociais';
 import { FundoRondin } from '../componentes/FundoRondin';
 import { Orbe } from '../componentes/Orbe';
 import { Botao, T } from '../componentes/Ui';
-import { cores, estilos } from '../tema';
+import { escuro as cores, estilos } from '../tema';
 
 export function Inicio({ aoCriar, aoEntrar, aoSocial }: { aoCriar: () => void; aoEntrar: () => void; aoSocial: (r: ResultadoSocial) => void }) {
   const { width, height } = useWindowDimensions();

@@ -81,7 +81,7 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
       </T>
 
       <Pressable accessibilityRole="button" accessibilityLabel="Clube em destaque, recurso PRO" onPress={() => setPro(true)} style={st.destaque}>
-        <Icone nome="estrela" tamanho={20} cor="#ffffff" />
+        <Icone nome="estrela" tamanho={20} cor={cores.destaque2} />
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <T tam={14.5} peso="500">Clube em destaque</T>
@@ -89,7 +89,7 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
           </View>
           <T tam={12.5} style={{ marginTop: 2, lineHeight: 17 }}>Aparece no topo da busca de clubes.</T>
         </View>
-        <Icone nome="cadeado" tamanho={17} cor="#ffffff" />
+        <Icone nome="cadeado" tamanho={17} cor={cores.texto2} />
       </Pressable>
       <AvisoPro aberto={pro} aoFechar={() => setPro(false)} recurso="Clube em destaque" site={SITE} />
 

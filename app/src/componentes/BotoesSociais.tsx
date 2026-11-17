@@ -7,7 +7,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { entrarComProvedor, type ResultadoSocial } from '../api/loginSocial';
 import { appleDisponivel, desenharBotaoGoogle, entrarComAppleNoNavegador, googleDisponivel } from '../lib/loginSocial';
-import { CINZA_SOBRE, cores, estilos, raio } from '../tema';
+import { CINZA_SOBRE, escuro as cores, estilos, raio } from '../tema';
 import { Icone } from './Icone';
 import { T } from './Ui';
 

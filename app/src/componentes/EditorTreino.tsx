@@ -77,7 +77,7 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
         <View style={[st.coluna, { paddingTop: insets.top + 8 }]}>
           <View style={st.topo}>
             <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={aoFechar} style={st.voltar}>
-              <Icone nome="voltar" tamanho={22} cor="#ffffff" />
+              <Icone nome="voltar" tamanho={22} cor={cores.texto} />
             </Pressable>
             <T tam={17} peso="500" style={{ flex: 1 }}>{editando ? 'Editar treino' : 'Novo treino'}</T>
             <Botao pequeno titulo="Salvar" icone="ok" aoPressionar={salvar} desabilitado={!podeSalvar && tentou} />
@@ -98,7 +98,7 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
                     const on = marcado(o.grupos);
                     return (
                       <Pressable key={o.rotulo} accessibilityRole="button" accessibilityState={{ selected: on }} onPress={() => alternar(o.grupos)} style={[st.chip, on && st.chipOn]}>
-                        <T tam={13} peso={on ? '500' : '300'}>{o.rotulo}</T>
+                        <T tam={13} peso={on ? '500' : '300'} cor={on ? '#ffffff' : cores.texto}>{o.rotulo}</T>
                       </Pressable>
                     );
                   })}
@@ -132,7 +132,7 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
                 </View>
               ))}
               <Pressable accessibilityRole="button" accessibilityLabel="Adicionar exercício" onPress={() => setExercicios((l) => [...l, novoExercicio()])} style={({ pressed }) => [st.adicionar, pressed && { opacity: 0.8 }]}>
-                <Icone nome="mais" tamanho={18} cor="#ffffff" />
+                <Icone nome="mais" tamanho={18} cor={cores.texto} />
                 <T tam={14} peso="500">Adicionar exercício</T>
               </Pressable>
               {tentou && validos.length === 0 ? <T tam={12.5} cor={cores.erro}>Preencha o nome de pelo menos um exercício.</T> : null}
@@ -145,7 +145,7 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
                   <T tam={14} peso="500">Sem aparelho, para fazer em casa</T>
                   <T tam={12.5} cor={cores.texto2} style={{ marginTop: 2 }}>Toque para adicionar. Carga 0 kg é só o peso do corpo.</T>
                 </View>
-                <Icone nome={semAberto ? 'menos' : 'mais'} tamanho={18} cor="#ffffff" />
+                <Icone nome={semAberto ? 'menos' : 'mais'} tamanho={18} cor={cores.texto} />
               </Pressable>
               {semAberto ? (
                 <View style={{ gap: 14, marginTop: 14 }}>

@@ -2,11 +2,11 @@
    O rótulo nunca some (some só o "placeholder"), o erro aparece colado ao campo com ícone e texto, e o foco acende a borda.
    Desde 2026-11-16 é mais baixo e mais discreto (pedido do dono), e no navegador o preenchimento automático não pinta mais
    o meio do campo de cinza-azulado. */
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
+import React, { forwardRef, useContext, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Platform, StyleSheet, TextInput, TextInputProps, View } from 'react-native';
-import { cores, FONTE, estilos } from '../tema';
+import { cores as coresClaras, escuro, FONTE, estilos } from '../tema';
 import { Icone, NomeIcone } from './Icone';
-import { T } from './Ui';
+import { EscuroContexto, T } from './Ui';
 
 export type CampoRef = React.ElementRef<typeof TextInput>;
 
@@ -23,7 +23,7 @@ type Props = TextInputProps & {
 if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getElementById('campo-sem-autofill')) {
   const css = document.createElement('style');
   css.id = 'campo-sem-autofill';
-  css.textContent = 'input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus{-webkit-text-fill-color:#f4f1fb;caret-color:#f4f1fb;-webkit-box-shadow:0 0 0 1000px transparent inset;box-shadow:0 0 0 1000px transparent inset;transition:background-color 99999s ease-in-out 0s;}';
+  css.textContent = 'input:-webkit-autofill,input:-webkit-autofill:hover,input:-webkit-autofill:focus{-webkit-text-fill-color:currentColor;caret-color:currentColor;-webkit-box-shadow:0 0 0 1000px transparent inset;box-shadow:0 0 0 1000px transparent inset;transition:background-color 99999s ease-in-out 0s;}';
   document.head.appendChild(css);
 }
 
@@ -32,6 +32,9 @@ export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuant
   ref,
 ) {
   const [foco, setFoco] = useState(false);
+  /* nas telas do RONDIN (escuras) o campo é escuro; nas de dentro do app, de vidro claro */
+  const naTelaEscura = useContext(EscuroContexto);
+  const cores = naTelaEscura ? escuro : coresClaras;
   const alto = !!resto.multiline;   // várias linhas: o campo cresce e o texto começa logo abaixo do rótulo
   const subiu = foco || !!value;
   const sobe = useRef(new Animated.Value(subiu ? 1 : 0)).current;
@@ -46,7 +49,7 @@ export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuant
 
   return (
     <View>
-      <View style={[st.caixa, alto && st.caixaAlta, foco && st.caixaFoco, !!erro && st.caixaErro]}>
+      <View style={[st.caixa, !naTelaEscura && st.caixaClara, alto && st.caixaAlta, foco && st.caixaFoco, foco && !naTelaEscura && { borderColor: coresClaras.destaque }, !!erro && { borderColor: cores.erro }]}>
         {icone ? (
           <View style={[st.icone, alto && { alignSelf: 'flex-start', marginTop: 20 }]}>
             <Icone nome={icone} tamanho={18} cor={corIcone} />
@@ -75,7 +78,7 @@ export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuant
             accessibilityLabel={rotulo}
             selectionColor={cores.destaque}
             placeholderTextColor={cores.placeholder}
-            style={[st.entrada, alto && st.entradaAlta, style]}
+            style={[st.entrada, { color: cores.texto }, alto && st.entradaAlta, style]}
             onFocus={(e) => { setFoco(true); onFocus?.(e); }}
             onBlur={(e) => { setFoco(false); onBlur?.(e); }}
             {...resto}
@@ -103,12 +106,12 @@ const st = estilos(() => StyleSheet.create({
     borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.03)',
   },
   caixaAlta: { height: undefined, minHeight: 112, alignItems: 'stretch' },
-  caixaFoco: { borderColor: `rgba(${cores.tom},0.7)`, backgroundColor: 'rgba(255,255,255,0.04)' },
-  caixaErro: { borderColor: cores.erro },
+  caixaFoco: { borderColor: `rgba(${escuro.tom},0.7)`, backgroundColor: 'rgba(255,255,255,0.04)' },
+  caixaClara: { borderColor: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(255,255,255,0.45)' },
   icone: { marginRight: 11 },
   meio: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
   rotulo: { position: 'absolute', left: 0, top: 15, fontSize: 15, fontFamily: FONTE['300'], transformOrigin: 'left center' },
-  entrada: { height: 50, paddingTop: 16, paddingBottom: 0, paddingHorizontal: 0, color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
+  entrada: { height: 50, paddingTop: 16, paddingBottom: 0, paddingHorizontal: 0, color: escuro.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   entradaAlta: { height: undefined, minHeight: 112, paddingTop: 32, paddingBottom: 12, textAlignVertical: 'top' },
   valido: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   erroLinha: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 8, paddingHorizontal: 6 },

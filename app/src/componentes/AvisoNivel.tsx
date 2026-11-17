@@ -67,7 +67,7 @@ export function AvisoNivel() {
             </Animated.View>
           ) : (
             <Animated.View style={[st.selo, { transform: [{ scale: numero }] }]}>
-              <T tam={44} peso="500">{mostrar.para}</T>
+              <T tam={44} peso="500" cor="#ffffff">{mostrar.para}</T>
             </Animated.View>
           )}
         </View>

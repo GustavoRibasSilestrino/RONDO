@@ -11,7 +11,7 @@ import { Botao, T } from '../componentes/Ui';
 import { useLayoutLargo } from '../lib/largura';
 import type { Idioma } from '../lib/rondinSotaques';
 import { TEXTOS, traduzirErro } from '../lib/rondinTextos';
-import { cores, estilos } from '../tema';
+import { escuro as cores, estilos } from '../tema';
 
 type Props = { idioma?: Idioma; emailInicial: string; aoVoltar: () => void; aoConcluir: (email: string) => void };
 

@@ -8,12 +8,13 @@ import { useLayoutLargo } from '../lib/largura';
 import type { EstadoOrbe } from '../lib/orbe';
 import type { Sotaque } from '../lib/rondinVoz';
 import type { FalaRondin } from '../lib/useFalaRondin';
-import { CINZA_SOBRE, cores, estilos } from '../tema';
+import { CINZA_SOBRE, escuro as cores, estilos } from '../tema';
 import { Legenda } from '../telas/Rondin';
 import { BotaoVoz } from './BotaoVoz';
 import { FundoRondin } from './FundoRondin';
 import { Icone } from './Icone';
 import { Orbe } from './Orbe';
+import { EscuroContexto } from './Ui';
 
 type Props = {
   sotaque: Sotaque;
@@ -28,7 +29,12 @@ type Props = {
   children?: React.ReactNode;             // o que fica embaixo da legenda
 };
 
-export function CenaRondin({ sotaque, fala, estadoOrbe, rotuloOrbe, rotuloVoltar, aoVoltar, iconeVoltar = 'voltar', direita, zIndex = 60, children }: Props) {
+/* a cena do RONDIN é escura (o `T` sem cor usa o texto claro), também quando aparece por cima das telas claras do app */
+export function CenaRondin(props: Props) {
+  return <EscuroContexto.Provider value><CenaRondinMiolo {...props} /></EscuroContexto.Provider>;
+}
+
+function CenaRondinMiolo({ sotaque, fala, estadoOrbe, rotuloOrbe, rotuloVoltar, aoVoltar, iconeVoltar = 'voltar', direita, zIndex = 60, children }: Props) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const { largo } = useLayoutLargo();
