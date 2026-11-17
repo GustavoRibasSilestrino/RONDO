@@ -15,7 +15,7 @@ import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, S
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cadastrar, entrar, nomeEstaLivre } from '../api/conta';
 import type { ResultadoSocial } from '../api/loginSocial';
-import { BotoesSociais } from '../componentes/BotoesSociais';
+import { BotoesSociais, temLoginSocial } from '../componentes/BotoesSociais';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
 import { FundoRondin } from '../componentes/FundoRondin';
 import { Icone } from '../componentes/Icone';
@@ -168,6 +168,8 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [enviando, setEnviando] = useState(false);
+  /* entrar: com Google ou Apple configurados, primeiro as formas de entrar (Apple, Google, e-mail); o e-mail abre os campos */
+  const [porEmail, setPorEmail] = useState(false);
   const [recuperando, setRecuperando] = useState(false);   // a tela de esqueci a senha, no lugar da conversa
   const campoRef = useRef<CampoRef>(null), senhaRef = useRef<CampoRef>(null);
   const [teclas, setTeclas] = useState(0);            // cada tecla digitada solta uma onda no orbe
@@ -516,7 +518,22 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                   </View>
                 ) : null}
 
-                {passo.tipo === 'entrar' ? (
+                {passo.tipo === 'entrar' && aoSocial && temLoginSocial && !porEmail ? (
+                  <View style={st.formulario}>
+                    <BotoesSociais
+                      aoResultado={aoSocial} aoEmail={() => setPorEmail(true)}
+                      textos={{ apple: ui.comApple, google: ui.comGoogle, email: ui.comEmail, locale: idioma === 'pt' ? 'pt-BR' : idioma === 'es' ? 'es' : 'en' }}
+                    />
+                    {aoTrocarModo ? (
+                      <Pressable accessibilityRole="button" accessibilityLabel={`${ui.semContaPergunta} ${ui.criarContaLink}`} onPress={() => { parar(); aoTrocarModo(); }} style={st.rodapeConta}>
+                        <T tam={14} cor={cores.texto2}>{ui.semContaPergunta} </T>
+                        <T tam={14} peso="500" cor={cores.destaque2}>{ui.criarContaLink}</T>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                ) : null}
+
+                {passo.tipo === 'entrar' && !(aoSocial && temLoginSocial && !porEmail) ? (
                   <View style={st.formulario}>
                     <CampoFlutuante
                       ref={campoRef} rotulo={ui.email} icone="email" value={email} onChangeText={(v) => { setEmail(v); setErro(''); setTeclas((n) => n + 1); }} autoFocus={Platform.OS === 'web'}
@@ -543,7 +560,11 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                       <T tam={13} cor={cores.texto2}>{ui.esqueci}</T>
                     </Pressable>
                     <Botao orbita carregando={enviando} titulo={enviando ? ui.entrando : ui.entrar} aoPressionar={fazerLogin} />
-                    {aoSocial ? <BotoesSociais aoResultado={aoSocial} /> : null}
+                    {aoSocial && temLoginSocial ? (
+                      <Pressable accessibilityRole="button" onPress={() => { setPorEmail(false); setErro(''); }} hitSlop={6} style={st.rodapeConta}>
+                        <T tam={13.5} cor={cores.texto2}>{ui.outrasFormas}</T>
+                      </Pressable>
+                    ) : null}
                     {aoTrocarModo ? (
                       /* uma linha só: a pergunta apagada e a ação em destaque */
                       <Pressable accessibilityRole="button" accessibilityLabel={`${ui.semContaPergunta} ${ui.criarContaLink}`} onPress={() => { parar(); aoTrocarModo(); }} style={st.rodapeConta}>

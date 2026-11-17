@@ -26,13 +26,13 @@ function carregar(src: string): Promise<void> {
 }
 
 /* o botão do Google dentro do elemento: quando a pessoa escolhe a conta, `aoToken` recebe o id_token */
-export async function desenharBotaoGoogle(alvo: HTMLElement, largura: number, aoToken: (idToken: string) => void): Promise<void> {
+export async function desenharBotaoGoogle(alvo: HTMLElement, largura: number, aoToken: (idToken: string) => void, locale = 'pt-BR'): Promise<void> {
   await carregar('https://accounts.google.com/gsi/client');
   const g = (window as unknown as { google?: { accounts: { id: { initialize: (c: object) => void; renderButton: (el: HTMLElement, o: object) => void } } } }).google;
   if (!g) throw new Error('google');
   g.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: (r: { credential?: string }) => { if (r.credential) aoToken(r.credential); }, ux_mode: 'popup' });
   alvo.innerHTML = '';
-  g.accounts.id.renderButton(alvo, { type: 'standard', theme: 'filled_black', size: 'large', text: 'continue_with', shape: 'rectangular', logo_alignment: 'left', width: Math.round(largura) });
+  g.accounts.id.renderButton(alvo, { type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', shape: 'pill', logo_alignment: 'left', width: Math.round(largura), locale });
 }
 
 /* abre a janela da Apple e devolve o id_token (e o nome, que a Apple só dá na primeira vez) */
