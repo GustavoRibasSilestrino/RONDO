@@ -82,29 +82,60 @@ function Pasta({ rotina, largura, topo, esquerda, escolhida, reduzido, aoTocar, 
       if (reduzido) { pos.setValue({ x: 0, y: 0 }); setArrastando(false); return; }
       Animated.spring(pos, { toValue: { x: 0, y: 0 }, useNativeDriver: nativo, speed: 14, bounciness: 9 }).start(() => setArrastando(false));
     };
+    /* o arrasto em andamento. No navegador, com o mouse, o aviso de "soltou o botão" às vezes não chega à pasta (o botão é solto
+       em cima de outro elemento) e ela ficava presa ao ponteiro (2026-11-17). Por isso a página inteira escuta o soltar: qualquer
+       soltar encerra o arrasto, e só uma vez (`ativo`). */
+    const ativo = { atual: false };
+    let tirarOuvintes = () => {};
+    const soltar = () => {
+      if (!ativo.atual) return;
+      ativo.atual = false;
+      tirarOuvintes();
+      /* decide pelo último movimento: na soltura, o navegador às vezes não traz a posição do dedo */
+      if (!sobreRef.current || !arrastoRef.current.lixeira.current) { voltar(); arrastoRef.current.aoCancelar(); return; }
+      /* caiu na lixeira: a pasta vai até o centro dela, encolhe e some */
+      const r = arrastoRef.current.lixeira.current;
+      const u = ultimo.current;
+      const alvo = { x: u.dx + (r.x + r.w / 2 - u.x), y: u.dy + (r.y + r.h / 2 - u.y) };
+      vibrar(true);
+      const fim = () => { marcar(false); arrastoRef.current.aoJogarNaLixeira(rotina.id); };
+      if (reduzido) { fim(); return; }
+      Animated.parallel([
+        Animated.timing(pos, { toValue: alvo, duration: 240, easing: Easing.in(Easing.cubic), useNativeDriver: nativo }),
+        Animated.timing(some, { toValue: 0, duration: 260, easing: Easing.in(Easing.cubic), useNativeDriver: nativo }),
+      ]).start(fim);
+    };
+    const ouvirSoltar = () => {
+      if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+      const f = () => soltar();
+      const sair = (e: PointerEvent | MouseEvent) => { if (e.buttons === 0) soltar(); };   // o botão já está solto (soltou fora da janela)
+      window.addEventListener('pointerup', f, true);
+      window.addEventListener('mouseup', f, true);
+      window.addEventListener('touchend', f, true);
+      window.addEventListener('pointercancel', f, true);
+      window.addEventListener('blur', f);
+      window.addEventListener('pointermove', sair, true);
+      tirarOuvintes = () => {
+        window.removeEventListener('pointerup', f, true);
+        window.removeEventListener('mouseup', f, true);
+        window.removeEventListener('touchend', f, true);
+        window.removeEventListener('pointercancel', f, true);
+        window.removeEventListener('blur', f);
+        window.removeEventListener('pointermove', sair, true);
+      };
+    };
     return PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_e, g) => pode(g),
       onMoveShouldSetPanResponderCapture: (_e, g) => pode(g),
       onPanResponderTerminationRequest: () => false,
-      onPanResponderGrant: () => { setArrastando(true); vibrar(false); },
-      onPanResponderMove: (_e, g) => { ultimo.current = { dx: g.dx, dy: g.dy, x: g.moveX, y: g.moveY }; pos.setValue({ x: g.dx, y: g.dy }); marcar(dentro(g.moveX, g.moveY)); },
-      onPanResponderRelease: () => {
-        /* decide pelo último movimento: na soltura, o navegador às vezes não traz a posição do dedo */
-        if (!sobreRef.current || !arrastoRef.current.lixeira.current) { voltar(); arrastoRef.current.aoCancelar(); return; }
-        /* caiu na lixeira: a pasta vai até o centro dela, encolhe e some */
-        const r = arrastoRef.current.lixeira.current;
-        const u = ultimo.current;
-        const alvo = { x: u.dx + (r.x + r.w / 2 - u.x), y: u.dy + (r.y + r.h / 2 - u.y) };
-        vibrar(true);
-        const fim = () => { marcar(false); arrastoRef.current.aoJogarNaLixeira(rotina.id); };
-        if (reduzido) { fim(); return; }
-        Animated.parallel([
-          Animated.timing(pos, { toValue: alvo, duration: 240, easing: Easing.in(Easing.cubic), useNativeDriver: nativo }),
-          Animated.timing(some, { toValue: 0, duration: 260, easing: Easing.in(Easing.cubic), useNativeDriver: nativo }),
-        ]).start(fim);
+      onPanResponderGrant: () => { ativo.atual = true; ouvirSoltar(); setArrastando(true); vibrar(false); },
+      onPanResponderMove: (_e, g) => {
+        if (!ativo.atual) return;   // já soltou: a pasta não segue mais o ponteiro
+        ultimo.current = { dx: g.dx, dy: g.dy, x: g.moveX, y: g.moveY }; pos.setValue({ x: g.dx, y: g.dy }); marcar(dentro(g.moveX, g.moveY));
       },
-      onPanResponderTerminate: voltar,
+      onPanResponderRelease: soltar,
+      onPanResponderTerminate: () => { if (ativo.atual) { ativo.atual = false; tirarOuvintes(); voltar(); arrastoRef.current.aoCancelar(); } },
     });
   }, [rotina.id, pos, some, reduzido]);
 
