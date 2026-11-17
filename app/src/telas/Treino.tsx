@@ -15,7 +15,7 @@ import { EscuroContexto, Botao, Chip, T } from '../componentes/Ui';
 import type { Rotina } from '../dados';
 import { useLoja } from '../estado/loja';
 import { diaAtivo, epley, estagnado, inicioDaSemana, melhor1RM, proximaCarga, ultimaVez, volumeDe } from '../lib/calc';
-import { exercicioDe, guardarRotina, musculosDe, rotinaDe, todasRotinas } from '../lib/rotinas';
+import { exercicioDe, guardarRotina, musculosDe, rotinaDe, todasRotinas, treinosOcultos } from '../lib/rotinas';
 import { descricaoDos } from '../lib/musculos';
 import { diaDaSemana, fmt, haQuanto, iso, mmss, num, somarDias } from '../lib/datas';
 import { explicacaoDaSugestao } from '../lib/treinoSugerido';
@@ -126,18 +126,18 @@ function Lista() {
   const totalSeries = (r: Rotina) => r.exercicios.reduce((t, x) => t + x.series, 0);
   const colunaUtil = Math.min(width, larguraMax) - 40;   // a largura da pilha de pastas
 
-  /* excluir um treino pela lixeira: o próprio sai da lista; o sugerido fica escondido (perfilFit.treinosOcultos). Qualquer um sai,
-     inclusive o último (pedido do dono, 2026-11-17). Dá para desfazer por 5 s. */
+  /* excluir um treino pela lixeira: o próprio sai da lista; o sugerido e o fixo ficam escondidos (perfil.treinosOcultos). Qualquer
+     um sai, inclusive o último (pedido do dono, 2026-11-17). Dá para desfazer por 5 s. */
   const podeExcluir = (id: string): boolean => {
     const x = rotinas.find((y) => y.id === id);
-    return !!x && (!!x.propria || !!x.sugerida);
+    return !!x;
   };
   const excluir = (id: string) => {
     const x = rotinas.find((y) => y.id === id);
     if (!x || !podeExcluir(id)) return;
     commit((e) => {
       if (x.propria) e.rotinasProprias = e.rotinasProprias.filter((y) => y.id !== id);
-      else if (e.perfilFit) e.perfilFit.treinosOcultos = [...new Set([...(e.perfilFit.treinosOcultos ?? []), id])];
+      else e.perfil.treinosOcultos = [...new Set([...(e.perfil.treinosOcultos ?? []), id])];
     });
     setEscolhida(null);
     setSobreLixeira(false);
@@ -148,11 +148,14 @@ function Lista() {
     if (!x) return;
     commit((e) => {
       if (x.propria) guardarRotina(e, x);
-      else if (e.perfilFit) e.perfilFit.treinosOcultos = (e.perfilFit.treinosOcultos ?? []).filter((y) => y !== x.id);
+      else {
+        e.perfil.treinosOcultos = (e.perfil.treinosOcultos ?? []).filter((y) => y !== x.id);
+        if (e.perfilFit?.treinosOcultos) e.perfilFit.treinosOcultos = e.perfilFit.treinosOcultos.filter((y) => y !== x.id);
+      }
     });
     setDesfazer(null);
   };
-  const ocultos = estado.perfilFit?.treinosOcultos ?? [];
+  const ocultos = treinosOcultos(estado);
   const avisoLixeira = escolhida && !podeExcluir(escolhida) ? 'Este treino não pode ser excluído' : undefined;
   const rotinaAberta = aberto ? rotinas.find((x) => x.id === aberto) : undefined;
 
@@ -237,8 +240,8 @@ function Lista() {
         </View>
       ) : null}
       {ocultos.length ? (
-        <Pressable accessibilityRole="button" onPress={() => commit((e) => { if (e.perfilFit) e.perfilFit.treinosOcultos = []; })} hitSlop={8} style={{ alignSelf: 'center', paddingVertical: 8 }}>
-          <T tam={13} peso="500" cor={cores.destaque2}>Mostrar os treinos sugeridos de novo</T>
+        <Pressable accessibilityRole="button" onPress={() => commit((e) => { e.perfil.treinosOcultos = []; if (e.perfilFit) e.perfilFit.treinosOcultos = []; })} hitSlop={8} style={{ alignSelf: 'center', paddingVertical: 8 }}>
+          <T tam={13} peso="500" cor={cores.destaque2}>Mostrar os treinos excluídos de novo</T>
         </Pressable>
       ) : null}
 

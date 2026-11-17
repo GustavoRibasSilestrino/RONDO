@@ -13,6 +13,7 @@ export type Perfil = {
   altura: number;    // cm
   atividade: number; // multiplicador: 1.2 sedentário, 1.375 leve, 1.55 moderado, 1.725 intenso
   objetivo: number;  // multiplicador da meta: 0.85 perder, 1 manter, 1.1 ganhar
+  treinosOcultos?: string[];   // treinos (sugeridos ou fixos) que a pessoa jogou na lixeira da aba Treino; vale para toda conta
 };
 
 /* O que o RONDIN pergunta no cadastro e o app guarda no perfil da conta (chave "perfilFit" no servidor).

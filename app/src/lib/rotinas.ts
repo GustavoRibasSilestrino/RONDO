@@ -5,13 +5,16 @@ import type { Estado } from '../tipos';
 import { rotinasSugeridas } from './treinoSugerido';
 import { MUSCULOS_DA_ROTINA, type GrupoMuscular } from './musculos';
 
-type ComRotinas = Pick<Estado, 'rotinasProprias'> & { perfilFit?: Estado['perfilFit'] };
+type ComRotinas = Pick<Estado, 'rotinasProprias'> & { perfilFit?: Estado['perfilFit']; perfil?: Estado['perfil'] };
+
+/* os treinos que a pessoa jogou na lixeira: guardados no perfil (toda conta tem); os de antes podem estar em perfilFit */
+export const treinosOcultos = (e: ComRotinas): string[] => [...new Set([...(e.perfil?.treinosOcultos ?? []), ...(e.perfilFit?.treinosOcultos ?? [])])];
 
 export const todasRotinas = (e: ComRotinas): Rotina[] => {
   const sugeridas = rotinasSugeridas(e.perfilFit);
-  /* os sugeridos que a pessoa jogou na lixeira ficam escondidos (perfilFit.treinosOcultos) */
-  const ocultos = new Set(e.perfilFit?.treinosOcultos ?? []);
-  const base = sugeridas.length ? sugeridas.filter((r) => !ocultos.has(r.id)) : ROTINAS;
+  /* os que a pessoa jogou na lixeira ficam escondidos: sugeridos e também os fixos (contas sem o cadastro do RONDIN) */
+  const ocultos = new Set(treinosOcultos(e));
+  const base = (sugeridas.length ? sugeridas : ROTINAS).filter((r) => !ocultos.has(r.id));
   return [...base, ...(e.rotinasProprias ?? [])];
 };
 /* para achar no histórico: tudo o que o app conhece, inclusive os fixos antigos */
