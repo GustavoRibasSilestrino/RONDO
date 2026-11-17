@@ -30,6 +30,7 @@ export type PerfilFit = {
   lesoes: string[];
   dia: string;              // movimento fora do treino
   criadoEm: string;         // ISO
+  treinosOcultos?: string[]; // treinos sugeridos que a pessoa jogou na lixeira (ids de lib/treinoSugerido.ts)
   /* o cadastro já teve estas perguntas (saíram em 2026-11-10, só ficaram as essenciais): contas antigas ainda as têm */
   pesoMeta?: number; duracao?: number; horario?: string; dieta?: string; sono?: string; agua?: string;
   trilha?: string; motivacao?: string; inimigo?: string; meta90?: string;

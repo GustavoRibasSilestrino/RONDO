@@ -9,7 +9,10 @@ type ComRotinas = Pick<Estado, 'rotinasProprias'> & { perfilFit?: Estado['perfil
 
 export const todasRotinas = (e: ComRotinas): Rotina[] => {
   const sugeridas = rotinasSugeridas(e.perfilFit);
-  return [...(sugeridas.length ? sugeridas : ROTINAS), ...(e.rotinasProprias ?? [])];
+  /* os sugeridos que a pessoa jogou na lixeira ficam escondidos (perfilFit.treinosOcultos) */
+  const ocultos = new Set(e.perfilFit?.treinosOcultos ?? []);
+  const base = sugeridas.length ? sugeridas.filter((r) => !ocultos.has(r.id)) : ROTINAS;
+  return [...base, ...(e.rotinasProprias ?? [])];
 };
 /* para achar no histórico: tudo o que o app conhece, inclusive os fixos antigos */
 const conhecidas = (e: ComRotinas): Rotina[] => [...todasRotinas(e), ...ROTINAS];

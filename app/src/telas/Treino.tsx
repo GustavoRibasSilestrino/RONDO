@@ -1,5 +1,5 @@
 /* Treino: escolher a rotina, registrar série a série, descansar, bater recordes e finalizar. */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { AnaliseExecucao } from '../componentes/AnaliseExecucao';
 import { CalendarioMes } from '../componentes/CalendarioMes';
@@ -10,6 +10,7 @@ import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { GraficoLinha } from '../componentes/Grafico';
 import { Icone } from '../componentes/Icone';
 import { PilhaPastas } from '../componentes/PilhaPastas';
+import { Lixeira, type Retangulo } from '../componentes/Lixeira';
 import { EscuroContexto, Botao, Chip, T } from '../componentes/Ui';
 import type { Rotina } from '../dados';
 import { useLoja } from '../estado/loja';
@@ -50,6 +51,15 @@ function Lista() {
   const [serie, setSerie] = useState<'constancia' | 'evolucao'>('constancia');
   const [escolhida, setEscolhida] = useState<string | null>(null);   // a pasta que subiu (primeiro toque)
   const [aberto, setAberto] = useState<string | null>(null);         // a pasta aberta (segundo toque): a janela do treino
+  /* a lixeira: onde ela está na tela, se a pasta está em cima dela e o último treino excluído (para desfazer) */
+  const lixeira = useRef<Retangulo | null>(null);
+  const [sobreLixeira, setSobreLixeira] = useState(false);
+  const [desfazer, setDesfazer] = useState<Rotina | null>(null);
+  useEffect(() => {
+    if (!desfazer) return undefined;
+    const t = setTimeout(() => setDesfazer(null), 5000);
+    return () => clearTimeout(t);
+  }, [desfazer]);
 
   const iniciar = (rotinaId: string) =>
     commit((e) => {
@@ -116,9 +126,41 @@ function Lista() {
 
   const totalSeries = (r: Rotina) => r.exercicios.reduce((t, x) => t + x.series, 0);
   const colunaUtil = Math.min(width, larguraMax) - 40;   // a largura da pilha de pastas
+
+  /* excluir um treino pela lixeira: o próprio sai da lista; o sugerido fica escondido (perfilFit.treinosOcultos). O último que
+     sobrar não sai (a aba e o Hoje sempre têm um treino). Dá para desfazer por 5 s. */
+  const podeExcluir = (id: string): boolean => {
+    const x = rotinas.find((y) => y.id === id);
+    return !!x && rotinas.length > 1 && (!!x.propria || !!x.sugerida);
+  };
+  const excluir = (id: string) => {
+    const x = rotinas.find((y) => y.id === id);
+    if (!x || !podeExcluir(id)) return;
+    commit((e) => {
+      if (x.propria) e.rotinasProprias = e.rotinasProprias.filter((y) => y.id !== id);
+      else if (e.perfilFit) e.perfilFit.treinosOcultos = [...new Set([...(e.perfilFit.treinosOcultos ?? []), id])];
+    });
+    setEscolhida(null);
+    setSobreLixeira(false);
+    setDesfazer(x);
+  };
+  const voltarExcluido = () => {
+    const x = desfazer;
+    if (!x) return;
+    commit((e) => {
+      if (x.propria) guardarRotina(e, x);
+      else if (e.perfilFit) e.perfilFit.treinosOcultos = (e.perfilFit.treinosOcultos ?? []).filter((y) => y !== x.id);
+    });
+    setDesfazer(null);
+  };
+  const ocultos = estado.perfilFit?.treinosOcultos ?? [];
+  const avisoLixeira = escolhida && !podeExcluir(escolhida)
+    ? (rotinas.length <= 1 ? 'Deixe pelo menos um treino' : 'Este treino não pode ser excluído')
+    : undefined;
   const rotinaAberta = aberto ? rotinas.find((x) => x.id === aberto) : undefined;
 
   return (
+    <>
     <Tela>
       <View style={{ justifyContent: 'center' }}>
         {/* a câmera que analisa a execução: no canto, do lado oposto ao calendário, sem ocupar a tela */}
@@ -163,7 +205,13 @@ function Lista() {
         rotinas={rotinas} largura={colunaUtil} escolhida={escolhida}
         aoEscolher={setEscolhida}
         aoAbrir={(id) => { setEscolhida(id); setAberto(id); }}
+        arrasto={{ lixeira, podeExcluir, aoSobreLixeira: setSobreLixeira, aoJogarNaLixeira: excluir }}
       />
+      {ocultos.length ? (
+        <Pressable accessibilityRole="button" onPress={() => commit((e) => { if (e.perfilFit) e.perfilFit.treinosOcultos = []; })} hitSlop={8} style={{ alignSelf: 'center', paddingVertical: 8 }}>
+          <T tam={13} peso="500" cor={cores.destaque2}>Mostrar os treinos sugeridos de novo</T>
+        </Pressable>
+      ) : null}
 
       {/* o treino sugerido, em destaque */}
       <View style={st.hero}>
@@ -255,6 +303,22 @@ function Lista() {
       </Folha>
       <AnaliseExecucao aberta={analise} aoFechar={() => setAnalise(false)} />
     </Tela>
+    <Lixeira
+      visivel={!!escolhida && !aberto}
+      sobre={sobreLixeira}
+      aviso={avisoLixeira}
+      aoTocar={() => { if (escolhida) excluir(escolhida); }}
+      aoMedir={(ret) => { lixeira.current = ret; }}
+    />
+    {desfazer ? (
+      <View pointerEvents="box-none" style={st.desfazerFaixa}>
+        <View style={st.desfazer} accessibilityLiveRegion="polite">
+          <T tam={13.5} cor="#ffffff" style={{ flex: 1 }} linhas={1}>{desfazer.nome} excluído</T>
+          <Pressable accessibilityRole="button" onPress={voltarExcluido} hitSlop={10}><T tam={13.5} peso="500" cor="#c4b5fd">Desfazer</T></Pressable>
+        </View>
+      </View>
+    ) : null}
+    </>
   );
 }
 
@@ -515,6 +579,8 @@ const st = estilos(() => StyleSheet.create({
   selo: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.destaqueForte },
   metas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
+  desfazerFaixa: { position: 'absolute', left: 0, right: 0, bottom: 16 + 62 + 12 + 58 + 14, alignItems: 'center' },   // acima do + do canto, para não ficar por baixo dele
+  desfazer: { flexDirection: 'row', alignItems: 'center', gap: 16, width: 300, maxWidth: '86%', paddingVertical: 12, paddingHorizontal: 18, borderRadius: 999, backgroundColor: cores.aviso, boxShadow: '0 16px 34px -14px rgba(42,22,80,0.8)' },
   anatomiaFigura: { padding: 8, borderRadius: 16, backgroundColor: cores.destaqueForte },
   anatomia: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao2 },
   linhaEx: { flexDirection: 'row', alignItems: 'center', gap: 12 },
