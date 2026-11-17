@@ -1,7 +1,7 @@
 /* Notificações: tudo o que chegou para o seu perfil (cheers, comentários, novos seguidores e medalhas), da mais nova para a mais antiga.
    Cheers, comentários e seguidores vêm do servidor; as medalhas são avisos guardados no aparelho. */
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { lerAvisos, limparAvisos, marcarAvisosLidos } from '../api/social';
 import { Tela } from '../componentes/Estrutura';
 import { Icone, NomeIcone } from '../componentes/Icone';
@@ -17,7 +17,8 @@ const ICONE: Record<Notificacao['tipo'], NomeIcone> = { cheers: 'cheers', coment
 
 type Linha = { chave: string; tipo: Notificacao['tipo']; texto: string; quando: number; nova: boolean; ref?: string };
 
-export function Notificacoes() {
+/* `aoFechar`: o X no alto volta para a tela de onde a pessoa veio (pedido do dono, 2026-11-17) */
+export function Notificacoes({ aoFechar }: { aoFechar?: () => void }) {
   const { estado, commit, atualizarSocial } = useLoja();
   const servidor = useLista((cursor) => lerAvisos(cursor), []);
 
@@ -49,7 +50,15 @@ export function Notificacoes() {
 
   return (
     <Tela>
-      <T tam={15} peso="400" centro>Notificações</T>
+      <View style={{ justifyContent: 'center' }}>
+        {aoFechar ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Fechar as notificações" onPress={aoFechar} hitSlop={8}
+            style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.fechar, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}>
+            <Icone nome="fechar" tamanho={20} cor={cores.texto} />
+          </Pressable>
+        ) : null}
+        <T tam={15} peso="400" centro>Notificações</T>
+      </View>
       <T tam={13} centro style={{ marginTop: 6 }}>Tudo o que chega para o seu perfil fica guardado aqui.</T>
       <View style={{ gap: 10, marginTop: 22 }}>
         {lista.length === 0 ? (
@@ -82,6 +91,7 @@ export function Notificacoes() {
 }
 
 const st = estilos(() => StyleSheet.create({
+  fechar: { position: 'absolute', left: 0, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   item: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
   nova: { borderColor: cores.destaqueForte },
   icone: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },

@@ -168,6 +168,13 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [enviando, setEnviando] = useState(false);
+  /* o servidor demorou (estava dormindo): passados 3 s, avisa que ele está acordando, para não parecer travado */
+  const [demorando, setDemorando] = useState(false);
+  useEffect(() => {
+    if (!enviando) { setDemorando(false); return undefined; }
+    const t = setTimeout(() => setDemorando(true), 3000);
+    return () => clearTimeout(t);
+  }, [enviando]);
   /* cadastro pelo Google: o token do provedor, guardado até a conta ser criada no fim da conversa */
   const tokenSocial = useRef<string | null>(null);
   const [recuperando, setRecuperando] = useState(false);   // a tela de esqueci a senha, no lugar da conversa
@@ -607,6 +614,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                       <T tam={13} cor={cores.texto2}>{ui.esqueci}</T>
                     </Pressable>
                     <Botao orbita pequeno carregando={enviando} titulo={enviando ? ui.entrando : ui.entrar} aoPressionar={fazerLogin} />
+                    {demorando ? <T tam={12.5} cor={cores.texto3} centro>{ui.acordando}</T> : null}
                     {aoTrocarModo ? (
                       /* uma linha só: a pergunta apagada e a ação em destaque */
                       <Pressable accessibilityRole="button" accessibilityLabel={`${ui.semContaPergunta} ${ui.criarContaLink}`} onPress={() => { parar(); aoTrocarModo(); }} style={st.rodapeConta}>

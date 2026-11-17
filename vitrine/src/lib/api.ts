@@ -3,6 +3,13 @@ const API = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://loca
 
 export class ErroApi extends Error {}
 
+/* O servidor do plano grátis do Render dorme depois de 15 minutos parado e leva de 30 a 60 s para acordar: era isso que deixava
+   o "Entrar" do app tão lento (2026-11-17). O site o acorda assim que a página abre: enquanto a pessoa lê o site e assiste à
+   apresentação do RONDIN, ele já está ligando. A resposta não importa; falhar não faz mal. */
+export function acordarServidor(): void {
+  try { void fetch(`${API}/saude`, { cache: "no-store" }).catch(() => {}); } catch { /* sem rede: nada a fazer */ }
+}
+
 async function enviar<T>(caminho: string, corpo: unknown): Promise<T> {
   let resp: Response;
   try {

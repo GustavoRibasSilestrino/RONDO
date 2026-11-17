@@ -154,7 +154,7 @@ function Raiz() {
       {tela === 'recado' && <Recado aoSair={() => setTela(voltarPara)} aoDiario={() => irPara('diario')} />}
       {tela === 'diario' && <Diario ir={irPara} />}
       {tela === 'colecoes' && <Colecoes />}
-      {tela === 'notificacoes' && <Notificacoes />}
+      {tela === 'notificacoes' && <Notificacoes aoFechar={() => setTela(antes)} />}
       {tela === 'perfil' && <Perfil ir={irPara} />}
       {DO_PERFIL.includes(tela) && tela !== 'recado' ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
       {largo || tela === 'perfil' ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} mostrarNome={tela === 'home'} mostrarSino={tela === 'home' || tela === 'notificacoes'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}

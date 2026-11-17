@@ -22,7 +22,7 @@ export type Textos = {
     voltarInicio: string; voltarPergunta: string; criarConta: string; etapa: string;
     estado: Record<EstadoDoOrbe, string>;
     orbePular: string; orbeRepetir: string; pular: string; continuar: string;
-    entrar: string; entrando: string; email: string; senha: string; verSenha: string; esconderSenha: string; esqueci: string; semConta: string; semContaPergunta: string; criarContaLink: string; comApple: string; comGoogle: string; comEmail: string; outrasFormas: string; ou: string;
+    entrar: string; entrando: string; acordando: string; email: string; senha: string; verSenha: string; esconderSenha: string; esqueci: string; semConta: string; semContaPergunta: string; criarContaLink: string; comApple: string; comGoogle: string; comEmail: string; outrasFormas: string; ou: string;
     tentar: string; abreNoNavegador: string; termos: string; privacidade: string; dias: string;
   };
   rec: Record<string, string>;         // a tela "esqueci a senha"
@@ -107,7 +107,7 @@ const PT: Textos = {
     voltarInicio: 'Voltar para o início', voltarPergunta: 'Voltar uma pergunta', criarConta: 'CRIAR CONTA', etapa: 'ETAPA',
     estado: { quieto: 'EM ESPERA', ouvindo: 'OUVINDO', pensando: 'PROCESSANDO', falando: 'FALANDO' },
     orbePular: 'RONDIN. Tocar para pular a fala', orbeRepetir: 'RONDIN. Tocar para ouvir a pergunta de novo', pular: 'Pular fala', continuar: 'Continuar',
-    entrar: 'Entrar', entrando: 'Entrando…', email: 'E-mail', senha: 'Senha', verSenha: 'Mostrar senha', esconderSenha: 'Esconder senha',
+    entrar: 'Entrar', entrando: 'Entrando…', acordando: 'O servidor está acordando, só um instante…', email: 'E-mail', senha: 'Senha', verSenha: 'Mostrar senha', esconderSenha: 'Esconder senha',
     esqueci: 'Esqueci a senha', semConta: 'Ainda não tenho conta', semContaPergunta: 'Ainda não tem conta?', criarContaLink: 'Criar conta', comApple: 'Continuar com a Apple', comGoogle: 'Continuar com o Google', comEmail: 'Continuar com e-mail', outrasFormas: 'Outras formas de entrar', ou: 'ou', tentar: 'Tentar de novo', abreNoNavegador: 'abre no navegador',
     termos: 'Termos de Uso', privacidade: 'Política de Privacidade', dias: '{n} dias',
   },
@@ -201,7 +201,7 @@ const EN: Textos = {
     voltarInicio: 'Back to the start', voltarPergunta: 'Back one question', criarConta: 'CREATE ACCOUNT', etapa: 'STEP',
     estado: { quieto: 'STANDBY', ouvindo: 'LISTENING', pensando: 'PROCESSING', falando: 'SPEAKING' },
     orbePular: 'RONDIN. Tap to skip', orbeRepetir: 'RONDIN. Tap to hear the question again', pular: 'Skip', continuar: 'Continue',
-    entrar: 'Sign in', entrando: 'Signing in…', email: 'Email', senha: 'Password', verSenha: 'Show password', esconderSenha: 'Hide password',
+    entrar: 'Sign in', entrando: 'Signing in…', acordando: 'The server is waking up, just a moment…', email: 'Email', senha: 'Password', verSenha: 'Show password', esconderSenha: 'Hide password',
     esqueci: 'Forgot password', semConta: "I don't have an account yet", semContaPergunta: "Don't have an account?", criarContaLink: 'Sign up', comApple: 'Continue with Apple', comGoogle: 'Continue with Google', comEmail: 'Continue with email', outrasFormas: 'Other ways to sign in', ou: 'or', tentar: 'Try again', abreNoNavegador: 'opens in the browser',
     termos: 'Terms of Use', privacidade: 'Privacy Policy', dias: '{n} days',
   },
@@ -299,7 +299,7 @@ const ES: Textos = {
     voltarInicio: 'Volver al inicio', voltarPergunta: 'Volver una pregunta', criarConta: 'CREAR CUENTA', etapa: 'PASO',
     estado: { quieto: 'EN ESPERA', ouvindo: 'ESCUCHANDO', pensando: 'PROCESANDO', falando: 'HABLANDO' },
     orbePular: 'RONDIN. Toca para saltar', orbeRepetir: 'RONDIN. Toca para oír la pregunta otra vez', pular: 'Saltar', continuar: 'Continuar',
-    entrar: 'Iniciar sesión', entrando: 'Entrando…', email: 'Correo electrónico', senha: 'Contraseña', verSenha: 'Mostrar contraseña', esconderSenha: 'Ocultar contraseña',
+    entrar: 'Iniciar sesión', entrando: 'Entrando…', acordando: 'El servidor está despertando, un momento…', email: 'Correo electrónico', senha: 'Contraseña', verSenha: 'Mostrar contraseña', esconderSenha: 'Ocultar contraseña',
     esqueci: 'Olvidé la contraseña', semConta: 'Todavía no tengo cuenta', semContaPergunta: '¿Todavía no tienes cuenta?', criarContaLink: 'Crear cuenta', comApple: 'Continuar con Apple', comGoogle: 'Continuar con Google', comEmail: 'Continuar con correo', outrasFormas: 'Otras formas de entrar', ou: 'o', tentar: 'Intentar de nuevo', abreNoNavegador: 'se abre en el navegador',
     termos: 'Términos de Uso', privacidade: 'Política de Privacidad', dias: '{n} días',
   },

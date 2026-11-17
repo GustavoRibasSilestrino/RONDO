@@ -24,6 +24,7 @@ import "./styles/acabamento.css";
 import "./styles/cenas.css";
 import "./styles/rondin.css";
 import "./styles/botoes.css";
+import { acordarServidor } from "./lib/api";
 
 /* sem zoom de pinça: o Safari do iPhone ignora o user-scalable=no do index.html, mas respeita cancelar o gesto
    (esses eventos só existem no Safari) */
@@ -33,6 +34,8 @@ for (const ev of ["gesturestart", "gesturechange"]) document.addEventListener(ev
 const rota = location.pathname.replace(/\/+$/, "") || "/";
 const legal = PAGINAS_LEGAIS[rota];
 if (legal) document.title = `${legal.titulo} · RONDO`;
+
+acordarServidor();   // o app vai precisar dele daqui a pouco (lib/api.ts)
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

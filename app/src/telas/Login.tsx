@@ -15,6 +15,7 @@ import { CadastroSocial } from './CadastroSocial';
 import { Apresentacao } from './Apresentacao';
 import { Inicio } from './Inicio';
 import { Rondin } from './Rondin';
+import { aquecerApi } from '../api/cliente';
 import { EscuroContexto } from '../componentes/Ui';
 
 export const SITE = 'https://userondo.vercel.app';
@@ -34,6 +35,8 @@ export function Login(props: { aoEntrar: (usuario: Usuario, extra?: Partial<Esta
 }
 
 function LoginTelas({ aoEntrar }: { aoEntrar: (usuario: Usuario, extra?: Partial<Estado>) => void }) {
+  /* acorda o servidor já na apresentação: até a pessoa digitar e tocar em Entrar, ele tem tempo de ligar */
+  useEffect(() => { aquecerApi(); }, []);
   const [tela, setTela] = useState<TelaLogin>(telaDoEndereco);
   const [apresentando, setApresentando] = useState(!apresentou);
   /* entrou com Google ou Apple pela primeira vez: falta a data de nascimento e o aceite dos documentos */
