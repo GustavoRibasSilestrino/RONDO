@@ -512,7 +512,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                       ))}
                     </View>
                     <View style={{ marginTop: 18 }}>
-                      <Botao orbita titulo={ui.continuar} desabilitado={marcadas.length === 0} aoPressionar={() => responder(marcadas)} />
+                      <Botao orbita pequeno titulo={ui.continuar} desabilitado={marcadas.length === 0} aoPressionar={() => responder(marcadas)} />
                     </View>
                   </View>
                 ) : null}
@@ -536,7 +536,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                         </Pressable>
                       ) : passo.sufixo ? <T tam={14} cor={cores.texto2} style={{ paddingRight: 16 }}>{passo.sufixo}</T> : undefined}
                     />
-                    <Botao orbita titulo={ui.continuar} icone="setaDireita" aoPressionar={() => enviarCampo(passo)} />
+                    <Botao orbita pequeno titulo={ui.continuar} icone="setaDireita" aoPressionar={() => enviarCampo(passo)} />
                   </View>
                 ) : null}
 
@@ -569,7 +569,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                         <T tam={13.5} cor={cores.erro} style={{ flex: 1, lineHeight: 19 }}>{erro}</T>
                       </View>
                     ) : null}
-                    <Botao orbita carregando={enviando} titulo={ui.continuar} icone="setaDireita" aoPressionar={enviarCredenciais} />
+                    <Botao orbita pequeno carregando={enviando} titulo={ui.continuar} icone="setaDireita" aoPressionar={enviarCredenciais} />
                   </View>
                 ) : null}
 
@@ -606,7 +606,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                     <Pressable accessibilityRole="button" onPress={() => { parar(); setRecuperando(true); }} hitSlop={8} style={st.esqueci}>
                       <T tam={13} cor={cores.texto2}>{ui.esqueci}</T>
                     </Pressable>
-                    <Botao orbita carregando={enviando} titulo={enviando ? ui.entrando : ui.entrar} aoPressionar={fazerLogin} />
+                    <Botao orbita pequeno carregando={enviando} titulo={enviando ? ui.entrando : ui.entrar} aoPressionar={fazerLogin} />
                     {aoTrocarModo ? (
                       /* uma linha só: a pergunta apagada e a ação em destaque */
                       <Pressable accessibilityRole="button" accessibilityLabel={`${ui.semContaPergunta} ${ui.criarContaLink}`} onPress={() => { parar(); aoTrocarModo(); }} style={st.rodapeConta}>
@@ -620,7 +620,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                 {passo.tipo === 'criar' && falhou ? (
                   <View style={{ gap: 12 }}>
                     {erro ? <T tam={13.5} cor={cores.erro} centro style={{ lineHeight: 19 }}>{erro}</T> : null}
-                    <Botao orbita titulo={ui.tentar} aoPressionar={() => void criarConta()} />
+                    <Botao orbita pequeno titulo={ui.tentar} aoPressionar={() => void criarConta()} />
                   </View>
                 ) : null}
               </View>
@@ -646,23 +646,24 @@ const st = estilos(() => StyleSheet.create({
   contador: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
   setaCanto: { position: 'absolute', width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
   legenda: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 16, minHeight: 88, paddingHorizontal: 4 },
-  opcoes: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 },
+  /* as respostas: numa coluna mais estreita e mais compactas (pedido do dono, 2026-11-17) */
+  opcoes: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 7, width: '100%', maxWidth: 400, alignSelf: 'center' },
   pilula: {
-    minHeight: 44, paddingVertical: 9, paddingHorizontal: 15, borderRadius: 12, borderWidth: 1, borderColor: cores.linha2,
+    minHeight: 38, paddingVertical: 7, paddingHorizontal: 13, borderRadius: 11, borderWidth: 1, borderColor: cores.linha2,
     backgroundColor: `rgba(${cores.tom},0.07)`, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, maxWidth: '100%',
   },
   pilulaSobre: { ...CINZA_SOBRE },   // o cursor em cima: só o cinza, sem brilho (pedido do dono, 2026-11-16)
   pilulaMarcada: { backgroundColor: cores.destaqueForte, borderColor: cores.destaque2, boxShadow: '0 0 18px -6px rgba(139,92,246,0.95)' },
   tecla: { width: 20, height: 20, borderRadius: 5, borderWidth: 1, borderColor: 'rgba(196,168,255,0.4)', alignItems: 'center', justifyContent: 'center' },
-  grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, width: '100%', maxWidth: 400, alignSelf: 'center' },
   cartaoIdioma: {
-    flexGrow: 1, flexBasis: '100%', minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9, paddingHorizontal: 16,
+    flexGrow: 1, flexBasis: '100%', minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 11, paddingVertical: 7, paddingHorizontal: 14,
     borderRadius: 12, borderWidth: 1, borderColor: cores.linha2, backgroundColor: `rgba(${cores.tom},0.07)`,
   },
   cartaoIdiomaLargo: { flexBasis: '30%', minWidth: 140 },   // computador: as três línguas lado a lado; no celular, uma embaixo da outra
   olho: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   /* os campos de digitar: mais estreitos que o texto da fala, no meio (pedido do dono, 2026-11-16) */
-  formulario: { gap: 12, width: '100%', maxWidth: 380, alignSelf: 'center' },
+  formulario: { gap: 10, width: '100%', maxWidth: 320, alignSelf: 'center' },
   esqueci: { alignSelf: 'flex-end', marginTop: -4, paddingVertical: 2 },
   ou: { flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 2 },
   ouLinha: { flex: 1, height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },

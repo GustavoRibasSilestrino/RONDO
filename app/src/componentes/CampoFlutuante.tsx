@@ -102,7 +102,7 @@ export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuant
 
 const st = estilos(() => StyleSheet.create({
   caixa: {
-    height: 50, flexDirection: 'row', alignItems: 'center', paddingLeft: 14, paddingRight: 4,
+    height: 46, flexDirection: 'row', alignItems: 'center', paddingLeft: 13, paddingRight: 4,
     borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.03)',
   },
   caixaAlta: { height: undefined, minHeight: 112, alignItems: 'stretch' },
@@ -110,8 +110,8 @@ const st = estilos(() => StyleSheet.create({
   caixaClara: { borderColor: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(255,255,255,0.45)' },
   icone: { marginRight: 11 },
   meio: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
-  rotulo: { position: 'absolute', left: 0, top: 15, fontSize: 15, fontFamily: FONTE['300'], transformOrigin: 'left center' },
-  entrada: { height: 50, paddingTop: 16, paddingBottom: 0, paddingHorizontal: 0, color: escuro.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
+  rotulo: { position: 'absolute', left: 0, top: 13, fontSize: 14.5, fontFamily: FONTE['300'], transformOrigin: 'left center' },
+  entrada: { height: 46, paddingTop: 15, paddingBottom: 0, paddingHorizontal: 0, color: escuro.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   entradaAlta: { height: undefined, minHeight: 112, paddingTop: 32, paddingBottom: 12, textAlignVertical: 'top' },
   valido: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   erroLinha: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: 8, paddingHorizontal: 6 },
