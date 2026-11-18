@@ -1,13 +1,22 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode, type RefObject } from "react";
 import { gsap } from "../lib/gsap";
 import { finePointer, reduceMotion, vars } from "../lib/util";
+import { NOME, SIMBOLO } from "../marca";
 
 /* ---------- símbolo da marca ---------- */
+/* a marca nova (2026-11-18): o R sozinho (Mark) e o nome RONDO (Nome), traçados da arte do dono (src/marca.ts) */
 export function Mark({ className }: { className?: string }) {
   return (
-    <svg className={className} viewBox="290 370 690 520" aria-hidden="true">
-      <path fill="currentColor" d="M304 376H762C872 376 950 452 950 538C950 622 882 698 762 698H714L970 886H784C752 886 732 876 714 862L398 610C410 598 428 588 448 588H758C788 588 806 566 806 543C806 518 786 498 758 498H424Z" />
-      <path fill="currentColor" fillOpacity=".7" d="M398 610C372 632 356 668 346 700L292 864H478L532 722Z" />
+    <svg className={className} viewBox={`0 0 ${SIMBOLO.largura} ${SIMBOLO.altura}`} aria-hidden="true">
+      <path fill="currentColor" fillRule="evenodd" d={SIMBOLO.d} />
+    </svg>
+  );
+}
+
+export function Nome({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox={`0 0 ${NOME.largura} ${NOME.altura}`} aria-hidden="true">
+      <path fill="currentColor" fillRule="evenodd" d={NOME.d} />
     </svg>
   );
 }

@@ -9,7 +9,8 @@ import { cores, DEGRADE, estilos, FIM_DIAGONAL, INICIO_DIAGONAL } from '../tema'
 import type { ItemAba } from './BarraAbas';
 import { Icone, NomeIcone } from './Icone';
 import { IconeMenu } from './IconeMenu';
-import { T } from './Ui';
+import { T } from './Ui';import { NomeMarca } from './Marca';
+
 
 type Props = {
   itens: ItemAba[]; atual: string; aoEscolher: (id: string) => void;
@@ -69,7 +70,7 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
         </Pressable>
         {recolhido ? null : (
           <View style={st.marca}>
-            <T tam={16} peso="500" style={{ letterSpacing: 5 }}>RONDO</T>
+            <NomeMarca altura={18} cor={cores.texto} />
           </View>
         )}
       </View>

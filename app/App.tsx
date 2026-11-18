@@ -44,7 +44,8 @@ import { Recado } from './src/telas/Recado';
 import { Social } from './src/telas/Social';
 import { Treino } from './src/telas/Treino';
 import { nivelDe, xpTotal } from './src/lib/nivel';
-import { cores, estilos } from './src/tema';
+import { cores, estilos } from './src/tema';import { NomeMarca } from './src/componentes/Marca';
+
 
 /* o app abre no Início (o feed), e o botão voltar do Android leva para ele */
 const INICIO = 'home';
@@ -110,7 +111,7 @@ function Raiz() {
     /* enquanto carrega: a tela preta com o nome RONDO, igual à abertura (no navegador, igual à tela de carregamento) */
     return (
       <View style={st.centro}>
-        <T tam={30} peso="200" style={{ letterSpacing: 10 }}>RONDO</T>
+        <NomeMarca altura={30} cor="#ffffff" />
       </View>
     );
   }
@@ -168,7 +169,7 @@ function Raiz() {
           {tela === 'perfil' && <Perfil ir={irPara} />}
         </DeslizarEntreAbas>
       ) : (
-        <DeslizarParaVoltar key={tela} aoVoltar={voltarDaTela} ativo={tela !== 'recado'}>
+        <DeslizarParaVoltar key={tela} aoVoltar={voltarDaTela} ativo={tela !== 'recado'} surgir>
           {tela === 'hoje' && <Hoje ir={irPara} />}
           {tela === 'evolucao' && <Evolucao />}
           {tela === 'recado' && <Recado aoSair={() => setTela(voltarPara)} aoDiario={() => irPara('diario')} />}

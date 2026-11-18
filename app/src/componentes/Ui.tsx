@@ -103,27 +103,6 @@ function BrilhoAndante({ forte, perigo }: { forte: boolean; perigo?: boolean }) 
     </View>
   );
 }
-/* o vidro brilhante do botão principal e da opção escolhida (pedido do dono, 2026-11-18, a partir de uma referência em azul,
-   trazida para o lilás do app): as pontas em lilás forte, o centro quase branco, uma luz branca no meio e o reflexo em cima.
-   O texto fica escuro, como na referência. */
-export function BrilhoVidro({ raioBorda = raio.pilula }: { raioBorda?: number }) {
-  return (
-    <View pointerEvents="none" style={[StyleSheet.absoluteFill, { borderRadius: raioBorda, overflow: 'hidden' }]}>
-      <LinearGradient colors={['#9a78f0', '#cdb9ff', '#f6f2ff', '#dccdff', '#9e7ef1']} locations={[0, 0.26, 0.52, 0.76, 1]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} />
-      <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={StyleSheet.absoluteFill}>
-        <Defs>
-          <RadialGradient id="luzVidro" cx="52%" cy="45%" r="50%">
-            <Stop offset="0" stopColor="#ffffff" stopOpacity={0.85} />
-            <Stop offset="1" stopColor="#ffffff" stopOpacity={0} />
-          </RadialGradient>
-        </Defs>
-        <Ellipse cx="52" cy="45" rx="34" ry="46" fill="url(#luzVidro)" />
-      </Svg>
-      <LinearGradient colors={['rgba(255,255,255,0.6)', 'rgba(255,255,255,0)', 'rgba(110,70,210,0.18)']} locations={[0, 0.48, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
-    </View>
-  );
-}
-
 type BotaoProps = {
   titulo: string;
   aoPressionar: () => void;
@@ -135,7 +114,55 @@ type BotaoProps = {
   pequeno?: boolean;
   style?: StyleProp<ViewStyle>;
 };
-export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, carregando, orbita, icone, pequeno, style }: BotaoProps) {
+/* Nas telas claras (o app inteiro), o botão é o BotaoChapado: pequeno, roxo pastel, chapado (pedido do dono, 2026-11-18).
+   Nas telas escuras do RONDIN continua o de antes. A escolha é pelo EscuroContexto, que não muda durante a vida do botão. */
+export function Botao(props: BotaoProps) {
+  return useContext(EscuroContexto) ? <BotaoEscuro {...props} /> : <BotaoChapado {...props} />;
+}
+
+/* ---------- o botão chapado (telas claras) ----------
+   Uma pílula baixa (40 px; 34 no pequeno) do tamanho do texto, sem brilho, degradê, sombra nem borda. O principal é roxo pastel
+   com texto roxo-escuro (contraste ≈ 11:1); o secundário (fantasma/discreto) é só um contorno fino; o de perigo, rosa pastel com
+   texto vinho. Ao tocar, escurece um tom e afunda 3%; com o cursor em cima, escurece meio tom. A área de toque vai a 44 px com
+   hitSlop, mesmo com o botão menor por fora. */
+const CHAPADO = {
+  primario: { fundo: '#d8c9ff', sobre: '#cdb9fd', toque: '#c1aaf8', borda: 'transparent', texto: '#24154a' },
+  fantasma: { fundo: 'transparent', sobre: 'rgba(36,21,74,0.06)', toque: 'rgba(36,21,74,0.12)', borda: 'rgba(36,21,74,0.22)', texto: '#24154a' },
+  discreto: { fundo: 'transparent', sobre: 'rgba(36,21,74,0.06)', toque: 'rgba(36,21,74,0.12)', borda: 'rgba(36,21,74,0.14)', texto: '#3b2f50' },
+  perigo: { fundo: '#ffd6dd', sobre: '#ffc9d2', toque: '#ffbac6', borda: 'transparent', texto: '#8a1730' },
+} as const;
+
+function BotaoChapado({ titulo, aoPressionar, tipo = 'primario', desabilitado, carregando, icone, pequeno, style }: BotaoProps) {
+  const c = CHAPADO[tipo];
+  const inativo = !!desabilitado || !!carregando;
+  const altura = pequeno ? 34 : 40;
+  const escala = useRef(new Animated.Value(1)).current;
+  const nativo = Platform.OS !== 'web';
+  const mola = (para: number) => Animated.spring(escala, { toValue: para, useNativeDriver: nativo, speed: 40, bounciness: 4 }).start();
+  return (
+    <Animated.View style={[{ alignSelf: 'flex-start', transform: [{ scale: escala }] }, style]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={titulo}
+        accessibilityState={{ disabled: inativo, busy: !!carregando }}
+        disabled={inativo}
+        onPress={aoPressionar}
+        onPressIn={() => mola(0.97)}
+        onPressOut={() => mola(1)}
+        hitSlop={{ top: (44 - altura) / 2, bottom: (44 - altura) / 2, left: 4, right: 4 }}
+        style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [
+          st.chapado, { height: altura, paddingHorizontal: pequeno ? 14 : 18, backgroundColor: pressed ? c.toque : hovered ? c.sobre : c.fundo, borderColor: c.borda },
+          { opacity: desabilitado ? 0.45 : 1 },
+        ]}
+      >
+        {carregando ? <ActivityIndicator size="small" color={c.texto} /> : icone ? <Icone nome={icone} tamanho={pequeno ? 15 : 16} cor={c.texto} /> : null}
+        <T tam={pequeno ? 13 : 14} peso="500" cor={c.texto} linhas={1}>{titulo}</T>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+function BotaoEscuro({ titulo, aoPressionar, tipo = 'primario', desabilitado, carregando, orbita, icone, pequeno, style }: BotaoProps) {
   const inativo = !!desabilitado || !!carregando;
   /* vidro (desde 2026-11-17): nas telas claras do app o botão é de vidro (branco translúcido, borda clara, texto roxo quase
      preto) e, aceso, vira a pílula de vidro brilhante lilás com texto escuro (BrilhoVidro, desde 2026-11-18). Nas telas do RONDIN, que são escuras,
@@ -208,7 +235,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
         <>
           {/* aceso: a cor, o brilho que passeia, a luz de cima e a borda clara aparecem juntos, por cima do cinza apagado */}
           <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, st.acesoBorda, perigo && st.acesoBordaPerigo, vidro && st.acesoVidro, { opacity: luz }]}>
-            {vidro && !perigo ? <BrilhoVidro /> : (
+            {vidro && !perigo ? null : (
               <>
                 <LinearGradient pointerEvents="none" colors={perigo ? (vidro ? ['#c42f4b', '#b3203a', '#9a1830'] : ['#ff7a8e', '#e5485f', '#c42f4b']) : ['#9168ff', '#7648ff', '#6639f4']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
                 {vidro ? null : <BrilhoAndante forte={cursor || tocando} perigo={perigo} />}
@@ -362,7 +389,7 @@ export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar }:
         const ativo = o.valor === valor;
         return (
           <Pressable key={String(o.valor)} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => aoMudar(o.valor)} style={[st.segmento, ativo && (normal ? st.segmentoAtivoNormal : st.segmentoAtivo)]}>
-            {ativo && normal ? <BrilhoVidro /> : null}
+            
             <T tam={12.5} peso={ativo ? '500' : '300'} cor={ativo ? (normal ? cores.texto : cores.fundo) : cores.texto2}>{o.nome}</T>
           </Pressable>
         );
@@ -440,7 +467,8 @@ const st = estilos(() => StyleSheet.create({
   segmentos: { flexDirection: 'row', backgroundColor: cores.cartao2, borderRadius: raio.pilula, padding: 4, borderWidth: 1, borderColor: cores.linha },
   segmento: { flexGrow: 1, flexBasis: 'auto', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderRadius: raio.pilula },
   segmentoAtivo: { backgroundColor: cores.texto },
-  segmentoAtivoNormal: { overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.95)', boxShadow: '0 6px 18px -8px rgba(124,88,224,0.7)' },
+  chapado: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 999, borderWidth: 1 },
+  segmentoAtivoNormal: { backgroundColor: '#d8c9ff' },   // a opção escolhida: roxo pastel chapado, como o botão (2026-11-18)
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
   campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },

@@ -11,7 +11,7 @@ import { OPCOES_MUSCULO, inferirMusculos, type GrupoMuscular } from '../lib/musc
 import { cores, estilos, larguraMax } from '../tema';
 import { CorpoMusculos } from './CorpoMusculos';
 import { Icone } from './Icone';
-import { Botao, Campo, Passo, T, BrilhoVidro } from './Ui';
+import { Botao, Campo, Passo, T } from './Ui';
 import { DeslizarParaVoltar } from './Deslizar';
 
 /* um treino em edição: `id` vazio é um treino novo */
@@ -105,7 +105,6 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
                     const on = marcado(o.grupos);
                     return (
                       <Pressable key={o.rotulo} accessibilityRole="button" accessibilityState={{ selected: on }} onPress={() => alternar(o.grupos)} style={[st.chip, on && st.chipOn]}>
-                        {on ? <BrilhoVidro /> : null}
                         <T tam={13} peso={on ? '500' : '300'} cor={cores.texto}>{o.rotulo}</T>
                       </Pressable>
                     );
@@ -205,7 +204,7 @@ const st = estilos(() => StyleSheet.create({
   chipPronto: { borderColor: 'rgba(196,168,255,0.45)' },
   sem: { padding: 16, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   semTopo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  chipOn: { overflow: 'hidden', borderColor: 'rgba(255,255,255,0.95)', boxShadow: '0 6px 16px -8px rgba(124,88,224,0.7)' },   // marcado: o vidro brilhante lilás do botão principal
+  chipOn: { backgroundColor: '#d8c9ff', borderColor: '#d8c9ff' },   // marcado: roxo pastel chapado, como o botão principal
   exercicio: { padding: 14, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, gap: 14 },
   numero: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, marginBottom: 12 },
   remover: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },

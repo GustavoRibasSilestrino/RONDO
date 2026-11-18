@@ -8,11 +8,25 @@
    dobro do vertical) e de pelo menos 14 px; o arrasto de dentro (as pastas do treino, listas que rolam de lado) tem prioridade,
    porque estes gestos não "capturam" o toque. A rolagem vertical continua normal (no navegador, touch-action: pan-y). Parados
    (sem acompanhar o dedo) para quem pede menos movimento. */
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Animated, Easing, GestureResponderEvent, PanResponder, Platform, StyleProp, View, ViewStyle, useWindowDimensions } from 'react-native';
 import { useMovimentoReduzido } from '../lib/movimento';
 
 const nativo = Platform.OS !== 'web';
+
+/* a troca de tela (pedido do dono, 2026-11-18, a partir de um vídeo de referência): a tela nova surge já meio visível e fica nítida
+   em 160 ms, um esmaecimento curto, sem deslizar. Quem pede menos movimento vê a troca direta. */
+function useSurgir(): Animated.Value {
+  const reduzido = useMovimentoReduzido();
+  const op = useRef(new Animated.Value(reduzido ? 1 : 0.35)).current;
+  useEffect(() => {
+    if (reduzido) { op.setValue(1); return undefined; }
+    const a = Animated.timing(op, { toValue: 1, duration: 160, easing: Easing.out(Easing.quad), useNativeDriver: nativo });
+    a.start();
+    return () => a.stop();
+  }, [op, reduzido]);
+  return op;
+}
 const horizontal = (dx: number, dy: number) => Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 2;
 const soVertical = Platform.OS === 'web' ? ({ touchAction: 'pan-y' } as object) : null;
 
@@ -31,8 +45,9 @@ function emRolagemLateral(e: GestureResponderEvent): boolean {
   return false;
 }
 
-export function DeslizarParaVoltar({ aoVoltar, children, style, ativo = true }: { aoVoltar: () => void; children: React.ReactNode; style?: StyleProp<ViewStyle>; ativo?: boolean }) {
+export function DeslizarParaVoltar({ aoVoltar, children, style, ativo = true, surgir = false }: { aoVoltar: () => void; children: React.ReactNode; style?: StyleProp<ViewStyle>; ativo?: boolean; surgir?: boolean }) {
   const { width } = useWindowDimensions();
+  const op = useSurgir();
   const reduzido = useMovimentoReduzido();
   const x = useRef(new Animated.Value(0)).current;
   const voltarRef = useRef(aoVoltar);
@@ -54,7 +69,7 @@ export function DeslizarParaVoltar({ aoVoltar, children, style, ativo = true }: 
     onPanResponderTerminate: () => { Animated.spring(x, { toValue: 0, useNativeDriver: nativo }).start(); },
   }), [x, width, reduzido]);
   return (
-    <Animated.View {...resp.panHandlers} style={[{ flex: 1 }, soVertical, style, { transform: [{ translateX: x }] }]}>
+    <Animated.View {...resp.panHandlers} style={[{ flex: 1 }, soVertical, style, surgir && { opacity: op }, { transform: [{ translateX: x }] }]}>
       {children}
     </Animated.View>
   );
@@ -64,6 +79,7 @@ export function DeslizarEntreAbas({ aoAnterior, aoProxima, children }: { aoAnter
   const { width } = useWindowDimensions();
   const reduzido = useMovimentoReduzido();
   const x = useRef(new Animated.Value(0)).current;
+  const op = useSurgir();
   const cb = useRef({ aoAnterior, aoProxima });
   cb.current = { aoAnterior, aoProxima };
   const resp = useMemo(() => PanResponder.create({
@@ -78,7 +94,7 @@ export function DeslizarEntreAbas({ aoAnterior, aoProxima, children }: { aoAnter
     onPanResponderTerminate: () => { Animated.spring(x, { toValue: 0, useNativeDriver: nativo }).start(); },
   }), [x, width, reduzido]);
   return (
-    <Animated.View {...resp.panHandlers} style={[{ flex: 1 }, soVertical, { transform: [{ translateX: x }] }]}>
+    <Animated.View {...resp.panHandlers} style={[{ flex: 1 }, soVertical, { opacity: op, transform: [{ translateX: x }] }]}>
       <View style={{ flex: 1 }}>{children}</View>
     </Animated.View>
   );

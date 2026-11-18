@@ -7,7 +7,8 @@ import { Animated, Easing, Platform, StyleSheet, View } from 'react-native';
 import { DURACAO_ABERTURA } from '../lib/abertura';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { estilos } from '../tema';
-import { T } from './Ui';
+import { T } from './Ui';import { NomeMarca } from './Marca';
+
 
 export function Abertura() {
   const reduzido = useMovimentoReduzido();
@@ -35,7 +36,7 @@ export function Abertura() {
         }}
       >
         <View>
-          <T tam={30} peso="200" style={{ letterSpacing: 10 }}>RONDO</T>
+          <NomeMarca altura={34} cor="#ffffff" />
         </View>
       </Animated.View>
     </Animated.View>

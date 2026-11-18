@@ -75,7 +75,7 @@ export function TreinosVazio({ aoNovo }: { aoNovo: () => void }) {
 
       <T tam={19} peso="500" centro style={{ marginTop: 6, letterSpacing: -0.2 }}>Nenhum treino salvo</T>
       <T tam={14} cor={cores.texto2} centro style={{ marginTop: 6, lineHeight: 20, maxWidth: 280 }}>Crie treinos para utilizá-los quando quiser.</T>
-      <Botao icone="mais" titulo="Novo treino" aoPressionar={aoNovo} style={{ marginTop: 18, alignSelf: 'stretch' }} />
+      <Botao icone="mais" titulo="Novo treino" aoPressionar={aoNovo} style={{ marginTop: 18, alignSelf: 'center' }} />
     </View>
   );
 }

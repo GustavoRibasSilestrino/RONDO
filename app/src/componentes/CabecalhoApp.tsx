@@ -75,7 +75,7 @@ export function CabecalhoApp({ titulo, aoBuscar, aoOpcoes, rotuloOpcoes, mostrar
 }
 
 const st = estilos(() => StyleSheet.create({
-  fundo: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: cores.cabecalho, borderBottomWidth: 1, borderBottomColor: cores.linha, alignItems: 'center', zIndex: 20, ...VIDRO },
+  fundo: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: cores.cabecalho, alignItems: 'center', zIndex: 20, ...VIDRO },
   linha: { width: '100%', maxWidth: larguraMax, height: ALTURA_CABECALHO, justifyContent: 'center', paddingHorizontal: 12 },
   esquerda: { position: 'absolute', left: 10, flexDirection: 'row', alignItems: 'center', zIndex: 1 },
   joia: { marginRight: 3 },

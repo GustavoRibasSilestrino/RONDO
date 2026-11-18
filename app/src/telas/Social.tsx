@@ -1,8 +1,9 @@
 /* Início e Comunidade. O Início é o feed: as publicações de quem você segue e dos clubes (texto, fotos e vídeos).
    A Comunidade tem os clubes (criar, entrar, convidar e publicar dentro) e o ranking semanal de constância.
    O botão + roxo, sobre a barra, cria uma publicação. Feed, clubes e perfis vêm do servidor e são os mesmos para todo mundo. */
-import React, { useCallback, useEffect, useState } from 'react';
-import { BackHandler, Pressable, Share, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, BackHandler, Easing, Platform, Pressable, Share, StyleSheet, View } from 'react-native';
+import { useMovimentoReduzido } from '../lib/movimento';
 import { lerFeed } from '../api/social';
 import type { Pessoa } from '../api/social';
 import { Tela, useAviso } from '../componentes/Estrutura';
@@ -37,20 +38,59 @@ const SEPARACOES: { id: Separacao; nome: string; vazio: string }[] = [
   { id: 'todos', nome: 'Explorar', vazio: 'Seja a primeira pessoa a compartilhar algo hoje.' },
 ];
 
+/* as separações, sem linhas (pedido do dono, 2026-11-18): o marcador é um só e DESLIZA até a escolhida com mola, e o feed troca
+   como um carrossel (CarrosselFeed). Parado para quem pede menos movimento. */
 function SeparacoesFeed({ valor, aoMudar }: { valor: Separacao; aoMudar: (v: Separacao) => void }) {
+  const reduzido = useMovimentoReduzido();
+  const [largura, setLargura] = useState(0);
+  const i = SEPARACOES.findIndex((x) => x.id === valor);
+  const pos = useRef(new Animated.Value(i)).current;
+  useEffect(() => {
+    if (reduzido) { pos.setValue(i); return; }
+    Animated.spring(pos, { toValue: i, useNativeDriver: Platform.OS !== 'web', speed: 18, bounciness: 5 }).start();
+  }, [i, reduzido, pos]);
+  const coluna = largura / SEPARACOES.length;
   return (
-    <View accessibilityRole="tablist" style={st.separacoes}>
+    <View accessibilityRole="tablist" style={st.separacoes} onLayout={(e) => setLargura(e.nativeEvent.layout.width)}>
       {SEPARACOES.map((x) => {
         const ativa = x.id === valor;
         return (
           <Pressable key={x.id} accessibilityRole="tab" accessibilityState={{ selected: ativa }} onPress={() => aoMudar(x.id)} style={st.separacao}>
             <T tam={14.5} peso={ativa ? '500' : '400'} cor={ativa ? cores.texto : cores.texto2}>{x.nome}</T>
-            <View style={[st.marcador, ativa && st.marcadorAtivo]} />
           </Pressable>
         );
       })}
+      {largura ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[st.marcador, { transform: [{ translateX: pos.interpolate({ inputRange: [0, SEPARACOES.length - 1], outputRange: [(coluna - 28) / 2, coluna * (SEPARACOES.length - 1) + (coluna - 28) / 2] }) }] }]}
+        />
+      ) : null}
     </View>
   );
+}
+
+/* o feed de cada separação entra pelo lado de onde ela fica: indo para a direita (Seguindo -> Explorar), o novo vem da direita;
+   voltando, vem da esquerda. Curto (240 ms), só 36 px de caminho e esmaecendo: um carrossel discreto. */
+function CarrosselFeed({ indice, children }: { indice: number; children: React.ReactNode }) {
+  const reduzido = useMovimentoReduzido();
+  const anterior = useRef(indice);
+  const x = useRef(new Animated.Value(0)).current;
+  const op = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (indice === anterior.current) return;
+    const lado = indice > anterior.current ? 1 : -1;
+    anterior.current = indice;
+    if (reduzido) return;
+    const nativo = Platform.OS !== 'web';
+    x.setValue(36 * lado);
+    op.setValue(0);
+    Animated.parallel([
+      Animated.timing(x, { toValue: 0, duration: 240, easing: Easing.bezier(0.16, 1, 0.3, 1), useNativeDriver: nativo }),
+      Animated.timing(op, { toValue: 1, duration: 200, easing: Easing.out(Easing.quad), useNativeDriver: nativo }),
+    ]).start();
+  }, [indice, reduzido, x, op]);
+  return <Animated.View style={{ opacity: op, transform: [{ translateX: x }] }}>{children}</Animated.View>;
 }
 
 export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' | 'comunidade'; ir: (tela: string) => void; buscaAberta: boolean; aoFecharBusca: () => void }) {
@@ -108,6 +148,7 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
             <SeparacoesFeed valor={separacao} aoMudar={setSeparacao} />
             <BarraStories aoAbrirPerfil={abrirPerfil} />
             <View style={{ marginTop: 14 }}><RecadoDoDia aoAbrir={() => ir('recado')} /></View>
+            <CarrosselFeed indice={SEPARACOES.findIndex((x) => x.id === separacao)}>
             <View style={{ marginTop: 16 }}>
               {posts.length ? (
                 <>
@@ -137,6 +178,7 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
                 </Cartao>
               )}
             </View>
+            </CarrosselFeed>
           </>
         ) : (
           <>
@@ -173,9 +215,8 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
 }
 
 const st = estilos(() => StyleSheet.create({
-  separacoes: { flexDirection: 'row', alignSelf: 'stretch', marginHorizontal: -20, marginTop: -6, marginBottom: 14, borderBottomWidth: 1, borderBottomColor: cores.linha },
-  separacao: { flex: 1, alignItems: 'center', paddingTop: 6, minHeight: 44, justifyContent: 'flex-end' },
-  marcador: { marginTop: 9, height: 3, width: 28, borderRadius: 2, backgroundColor: 'transparent' },
-  marcadorAtivo: { backgroundColor: cores.destaqueForte },
+  separacoes: { flexDirection: 'row', alignSelf: 'stretch', marginHorizontal: -20, marginTop: -6, marginBottom: 14, paddingBottom: 8 },
+  separacao: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 44 },
+  marcador: { position: 'absolute', left: 0, bottom: 4, height: 3, width: 28, borderRadius: 2, backgroundColor: cores.destaqueForte },
   lista: { marginHorizontal: -20, borderTopWidth: 1, borderTopColor: cores.linha },
 }));

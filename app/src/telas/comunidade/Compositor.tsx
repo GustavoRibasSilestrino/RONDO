@@ -1,12 +1,17 @@
-/* Nova publicação em tela cheia: barra com fechar e Publicar, texto grande, fotos e vídeos em destaque (até 4, galeria ou câmera)
-   e o destino (feed geral ou um dos seus grupos). Se a pessoa fechar sem publicar, o rascunho fica guardado até a próxima vez. */
+/* Nova publicação em tela cheia: Cancelar e Publicar no alto; o destino (feed geral ou um dos seus clubes); um SUBTÍTULO (o
+   assunto da publicação, gravado no campo `destaque`) e o texto; logo abaixo, só quatro ferramentas (pedido do dono, 2026-11-18):
+   foto da galeria, câmera, treino (põe no texto o resumo de um treino concluído) e @ (busca uma pessoa e põe o @ dela no texto).
+   Se a pessoa fechar sem publicar, o rascunho fica guardado até a próxima vez. */
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { listarClubes, publicarPost } from '../../api/social';
-import { useAviso } from '../../componentes/Estrutura';
+import { buscarPessoas, listarClubes, publicarPost, type Pessoa } from '../../api/social';
+import { Folha, useAviso } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
-import { T } from '../../componentes/Ui';
+import { Botao, T } from '../../componentes/Ui';
+import { volumeDe } from '../../lib/calc';
+import { dataCurta, fmt } from '../../lib/datas';
+import { arrobaDe } from './util';
 import { useLista } from '../../estado/lista';
 import { useLoja } from '../../estado/loja';
 import { useConta } from '../../lib/beneficios';
@@ -19,6 +24,7 @@ import { Miniatura } from './Midia';
 import { DeslizarParaVoltar } from '../../componentes/Deslizar';
 
 const LIMITE_TEXTO = 600;
+const LIMITE_SUBTITULO = 120;
 
 export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean; aoFechar: () => void; grupoInicial: number | null }) {
   const { estado, atualizarSocial } = useLoja();
@@ -29,6 +35,9 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
   const nome = estado.usuario?.nome ?? 'Você';
 
   const [texto, setTexto] = useState('');
+  const [subtitulo, setSubtitulo] = useState('');
+  const [escolherTreino, setEscolherTreino] = useState(false);
+  const [marcar, setMarcar] = useState(false);
   const [midia, setMidia] = useState<Midia[]>([]);
   const [destino, setDestino] = useState<number | null>(grupoInicial);
   const [origem, setOrigem] = useState<'galeria' | 'camera' | null>(null);   // qual botão está esperando o seletor
@@ -43,7 +52,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
     return () => clearTimeout(t);
   }, [aberto, grupoInicial]);
 
-  const pode = (texto.trim().length > 0 || midia.length > 0) && origem === null && !enviando;
+  const pode = (texto.trim().length > 0 || subtitulo.trim().length > 0 || midia.length > 0) && origem === null && !enviando;
   const { limites } = useConta();
   const MAX_MIDIAS = limites.midias;
   const cheio = midia.length >= MAX_MIDIAS;
@@ -71,7 +80,19 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
     removerMidia(midia.map((m) => m.id));
     setMidia([]);
     setTexto('');
+    setSubtitulo('');
     setErro('');
+  };
+
+  /* põe um trecho no fim do texto (o resumo do treino, o @ de alguém), sem passar do limite */
+  const acrescentar = (trecho: string, separador: string) =>
+    setTexto((t) => (t.trim() ? `${t.replace(/\s+$/, '')}${separador}${trecho}` : trecho).slice(0, LIMITE_TEXTO));
+  const treinos = [...estado.treinos].reverse().slice(0, 8);
+  const resumoTreino = (t: (typeof treinos)[number]) => {
+    const series = t.exercicios.reduce((n, x) => n + x.series.length, 0);
+    const volume = t.exercicios.reduce((n, x) => n + volumeDe(x.series), 0);
+    const min = Math.max(1, Math.round((t.fim - t.inicio) / 60000));
+    return `${t.nome} · ${series} séries · ${fmt(volume / 1000, 1)} t · ${min} min`;
   };
 
   const publicar = async () => {
@@ -81,7 +102,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
     try {
       const enviadas = [];
       for (const m of midia) enviadas.push(await enviarMidia(m));   // sobe as fotos antes, para os outros verem
-      await publicarPost({ texto: texto.trim(), midia: enviadas.length ? enviadas : undefined, clubeId: destino });
+      await publicarPost({ texto: texto.trim(), destaque: subtitulo.trim() || undefined, midia: enviadas.length ? enviadas : undefined, clubeId: destino });
     } catch (e) {
       setErro(e instanceof Error ? e.message : 'Não foi possível publicar agora. Tente de novo.');
       setEnviando(false);
@@ -89,6 +110,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
     }
     setEnviando(false);
     setTexto('');
+    setSubtitulo('');
     setMidia([]);
     aoFechar();
     void atualizarSocial(true);
@@ -96,28 +118,20 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
   };
 
   if (!montada && !aberto) return null;
-  const rascunho = texto.length > 0 || midia.length > 0;
+  const rascunho = texto.length > 0 || subtitulo.length > 0 || midia.length > 0;
 
   const botaoFechar = (
-    <Pressable accessibilityRole="button" accessibilityLabel="Fechar" onPress={aoFechar} hitSlop={8} style={[st.circulo, largo && st.circuloGrande]}>
-      <Icone nome="fechar" tamanho={largo ? 26 : 21} cor={cores.texto} />
+    <Pressable accessibilityRole="button" accessibilityLabel="Cancelar e fechar" onPress={aoFechar} hitSlop={10} style={({ pressed }) => [st.cancelar, pressed && { opacity: 0.6 }]}>
+      <T tam={largo ? 16 : 15} peso="400">Cancelar</T>
     </Pressable>
   );
-  const botaoPublicar = (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled: !pode }}
-      disabled={!pode}
-      onPress={publicar}
-      style={[st.publicar, largo && st.publicarGrande, !pode && { backgroundColor: 'rgba(255,255,255,0.08)' }]}
-    >
-      <T tam={largo ? 15.5 : 14} peso="500" cor={pode ? '#ffffff' : cores.texto3}>Publicar</T>
-    </Pressable>
-  );
+  const botaoPublicar = <Botao pequeno titulo="Publicar" aoPressionar={publicar} desabilitado={!pode} carregando={enviando} />;
   const ferramentas = (
     <>
-      <Ferramenta grande={largo} icone="imagem" rotulo="Fotos e vídeos" ocupado={origem === 'galeria'} desabilitado={cheio || origem === 'camera'} aoTocar={() => adicionar('galeria')} />
+      <Ferramenta grande={largo} icone="imagem" rotulo="Foto ou vídeo da galeria" ocupado={origem === 'galeria'} desabilitado={cheio || origem === 'camera'} aoTocar={() => adicionar('galeria')} />
       <Ferramenta grande={largo} icone="camera" rotulo="Câmera" ocupado={origem === 'camera'} desabilitado={cheio || origem === 'galeria'} aoTocar={() => adicionar('camera')} />
+      <Ferramenta grande={largo} icone="halter" rotulo="Adicionar um treino" ocupado={false} desabilitado={false} aoTocar={() => { if (treinos.length) setEscolherTreino(true); else avisar('Você ainda não concluiu nenhum treino.'); }} />
+      <Ferramenta grande={largo} icone="arroba" rotulo="Marcar alguém" ocupado={false} desabilitado={false} aoTocar={() => setMarcar(true)} />
     </>
   );
 
@@ -129,7 +143,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
           <View style={[st.coluna, { paddingTop: insets.top + 10 }]}>
             <View style={st.barra}>
               <View style={{ flex: 1, alignItems: 'flex-start' }}>{largo ? null : botaoFechar}</View>
-              <T tam={17} peso="300">Nova publicação</T>
+              <T tam={16} peso="500" linhas={1} style={{ flexShrink: 1, paddingHorizontal: 8 }}>Nova publicação</T>
               <View style={{ flex: 1, alignItems: 'flex-end' }}>{largo ? null : botaoPublicar}</View>
             </View>
 
@@ -147,18 +161,35 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
               </ScrollView>
 
               <TextInput
+                value={subtitulo}
+                onChangeText={setSubtitulo}
+                maxLength={LIMITE_SUBTITULO}
+                placeholder="Adicione um subtítulo"
+                placeholderTextColor={cores.placeholder}
+                selectionColor={cores.destaque}
+                accessibilityLabel="Subtítulo da publicação"
+                returnKeyType="next"
+                style={st.subtitulo}
+              />
+              <TextInput
                 value={texto}
                 onChangeText={setTexto}
                 multiline
                 maxLength={LIMITE_TEXTO}
-                autoFocus
-                placeholder="Compartilhe um treino, uma refeição, uma conquista…"
+                placeholder="O que você fez hoje?"
                 placeholderTextColor={cores.placeholder}
                 selectionColor={cores.destaque}
                 accessibilityLabel="Texto da publicação"
                 style={st.texto}
               />
-              <T tam={11.5} mono cor={texto.length > LIMITE_TEXTO - 40 ? cores.alerta : cores.texto3} style={{ alignSelf: 'flex-end' }}>{texto.length}/{LIMITE_TEXTO}</T>
+              {/* as ferramentas, logo abaixo do texto: foto, câmera, treino e @ */}
+              {largo ? null : (
+                <View style={st.linhaFerramentas}>
+                  {ferramentas}
+                  <View style={{ flex: 1 }} />
+                  <T tam={11.5} mono cor={texto.length > LIMITE_TEXTO - 40 ? cores.alerta : cores.texto3}>{texto.length}/{LIMITE_TEXTO}</T>
+                </View>
+              )}
 
               {midia.length ? (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.miniaturas} keyboardShouldPersistTaps="handled">
@@ -192,13 +223,6 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
               ) : null}
             </ScrollView>
 
-            {largo ? null : (
-              <View style={[st.ferramentas, { paddingBottom: insets.bottom + 12 }]}>
-                {ferramentas}
-                <View style={{ flex: 1 }} />
-                <T tam={12.5} cor={cores.texto3}>{midia.length} de {MAX_MIDIAS}</T>
-              </View>
-            )}
           </View>
         </KeyboardAvoidingView>
 
@@ -215,19 +239,79 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
         ) : null}
       </View>
       </DeslizarParaVoltar>
+
+      {/* treino: um dos últimos concluídos vira uma linha no texto */}
+      <Folha aberta={escolherTreino} aoFechar={() => setEscolherTreino(false)} titulo="Adicionar um treino">
+        <View style={{ gap: 8, paddingBottom: 4 }}>
+          {treinos.map((t, i) => (
+            <Pressable key={`${t.inicio}-${i}`} accessibilityRole="button" onPress={() => { acrescentar(resumoTreino(t), '\n\n'); setEscolherTreino(false); }} style={({ pressed }) => [st.opcaoTreino, pressed && { opacity: 0.7 }]}>
+              <Icone nome="halter" tamanho={20} cor={cores.texto} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <T tam={15} peso="500" linhas={1}>{t.nome}</T>
+                <T tam={12.5} cor={cores.texto2} linhas={1}>{dataCurta(t.data)} · {resumoTreino(t).split(' · ').slice(1).join(' · ')}</T>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      </Folha>
+
+      <MarcarPessoa aberta={marcar} aoFechar={() => setMarcar(false)} aoEscolher={(p) => { acrescentar(`@${p.arroba ?? arrobaDe(p.nome)} `, ' '); setMarcar(false); }} />
     </Modal>
+  );
+}
+
+/* @: busca a pessoa pelo nome ou pelo @ e põe o @ dela no texto */
+function MarcarPessoa({ aberta, aoFechar, aoEscolher }: { aberta: boolean; aoFechar: () => void; aoEscolher: (p: Pessoa) => void }) {
+  const [q, setQ] = useState('');
+  const [achadas, setAchadas] = useState<Pessoa[]>([]);
+  const [buscando, setBuscando] = useState(false);
+  useEffect(() => { if (!aberta) { setQ(''); setAchadas([]); } }, [aberta]);
+  useEffect(() => {
+    const termo = q.trim().replace(/^@/, '');
+    if (termo.length < 2) { setAchadas([]); return undefined; }
+    let vivo = true;
+    setBuscando(true);
+    const t = setTimeout(() => {
+      buscarPessoas(termo)
+        .then((r) => { if (vivo) setAchadas(r.itens.filter((p) => !p.voce)); })
+        .catch(() => { if (vivo) setAchadas([]); })
+        .finally(() => { if (vivo) setBuscando(false); });
+    }, 250);
+    return () => { vivo = false; clearTimeout(t); };
+  }, [q]);
+  const termo = q.trim().replace(/^@/, '');
+  return (
+    <Folha aberta={aberta} aoFechar={aoFechar} titulo="Marcar alguém">
+      <View style={st.busca}>
+        <Icone nome="arroba" tamanho={18} cor={cores.texto2} />
+        <TextInput value={q} onChangeText={setQ} autoFocus autoCapitalize="none" autoCorrect={false} placeholder="Nome ou @" placeholderTextColor={cores.placeholder} selectionColor={cores.destaque} accessibilityLabel="Buscar pessoa para marcar" style={st.buscaCampo} />
+      </View>
+      <View style={{ gap: 4, marginTop: 10, minHeight: 60 }}>
+        {achadas.map((p) => (
+          <Pressable key={p.id} accessibilityRole="button" accessibilityLabel={`Marcar ${p.nome}`} onPress={() => aoEscolher(p)} style={({ pressed }) => [st.pessoa, pressed && { opacity: 0.7 }]}>
+            <Avatar nome={p.nome} tamanho={36} foto={p.foto ?? undefined} />
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <T tam={14.5} peso="500" linhas={1}>{p.nome}</T>
+              <T tam={12.5} cor={cores.texto2} linhas={1}>@{p.arroba ?? arrobaDe(p.nome)}</T>
+            </View>
+          </Pressable>
+        ))}
+        {termo.length >= 2 && !buscando && !achadas.length ? <T tam={13} cor={cores.texto2}>Ninguém encontrado.</T> : null}
+        {termo.length < 2 ? <T tam={13} cor={cores.texto2}>Digite pelo menos 2 letras do nome ou do @.</T> : null}
+      </View>
+    </Folha>
   );
 }
 
 function Destino({ nome, ativo, aoTocar }: { nome: string; ativo: boolean; aoTocar: () => void }) {
   return (
     <Pressable accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={aoTocar} style={[st.destino, ativo && st.destinoAtivo]}>
-      <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#ffffff' : cores.texto2}>{nome}</T>
+      <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#24154a' : cores.texto2}>{nome}</T>
     </Pressable>
   );
 }
 
-function Ferramenta({ icone, rotulo, ocupado, desabilitado, aoTocar, grande }: { icone: 'imagem' | 'camera'; rotulo: string; ocupado: boolean; desabilitado: boolean; aoTocar: () => void; grande?: boolean }) {
+function Ferramenta({ icone, rotulo, ocupado, desabilitado, aoTocar, grande }: { icone: 'imagem' | 'camera' | 'halter' | 'arroba'; rotulo: string; ocupado: boolean; desabilitado: boolean; aoTocar: () => void; grande?: boolean }) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -237,7 +321,7 @@ function Ferramenta({ icone, rotulo, ocupado, desabilitado, aoTocar, grande }: {
       onPress={aoTocar}
       style={[st.ferramenta, grande && st.ferramentaGrande, { opacity: desabilitado ? 0.4 : 1 }]}
     >
-      <Icone nome={icone} tamanho={grande ? 28 : 24} cor={ocupado ? cores.texto3 : cores.destaque2} />
+      <Icone nome={icone} tamanho={grande ? 26 : 23} cor={ocupado ? cores.texto3 : cores.destaqueForte} />
     </Pressable>
   );
 }
@@ -247,13 +331,19 @@ const st = estilos(() => StyleSheet.create({
   coluna: { flex: 1, width: '100%', maxWidth: larguraMax },
   barra: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 10 },
   circulo: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha },
-  publicar: { height: 40, paddingHorizontal: 20, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
+  cancelar: { minHeight: 44, justifyContent: 'center', paddingHorizontal: 4 },
+  subtitulo: { color: cores.texto, fontSize: 19, fontFamily: FONTE['500'], paddingVertical: 6, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
+  linhaFerramentas: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, marginTop: 4, borderTopWidth: 1, borderTopColor: cores.linha },
+  opcaoTreino: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  busca: { flexDirection: 'row', alignItems: 'center', gap: 8, height: 46, paddingHorizontal: 14, borderRadius: 23, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
+  buscaCampo: { flex: 1, minWidth: 0, height: 46, color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
+  pessoa: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8, minHeight: 48 },
   corpo: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24 },
   autor: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   destinos: { gap: 8, paddingVertical: 16 },
   destino: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
-  destinoAtivo: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
-  texto: { minHeight: 150, color: cores.texto, fontSize: 21, fontFamily: FONTE['200'], lineHeight: 30, textAlignVertical: 'top', paddingVertical: 4, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
+  destinoAtivo: { backgroundColor: '#d8c9ff', borderColor: '#d8c9ff' },   // escolhido: o roxo pastel dos botões
+  texto: { minHeight: 110, color: cores.texto, fontSize: 21, fontFamily: FONTE['200'], lineHeight: 30, textAlignVertical: 'top', paddingVertical: 4, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   miniaturas: { gap: 10, paddingTop: 16, paddingBottom: 8 },
   tile: { width: 132, height: 132 },
   x: { position: 'absolute', top: -6, right: -6, width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#17122a', borderWidth: 1, borderColor: cores.linha2 },
@@ -266,5 +356,5 @@ const st = estilos(() => StyleSheet.create({
   cantoEsq: { position: 'absolute', left: 28 },
   cantoDir: { position: 'absolute', right: 28 },
   cantoBaixo: { position: 'absolute', left: 28, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  ferramenta: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(${cores.tom},0.12)` },
+  ferramenta: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
 }));
