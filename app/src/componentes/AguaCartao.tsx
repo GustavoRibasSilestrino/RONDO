@@ -10,7 +10,7 @@ import { Cartao, T } from './Ui';
 export function AguaCartao({ ml, meta, aoMudar, style }: { ml: number; meta: number; aoMudar: (ml: number) => void; style?: object }) {
   const p = Math.min(1, meta ? ml / meta : 0);
   const bateu = ml >= meta;
-  const atalho = (rotulo: string, delta: number, icone: 'gota' | 'menos', desligado = false) => (
+  const atalho = (rotulo: string, delta: number, icone?: 'gota', desligado = false) => (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={delta > 0 ? `Somar ${delta} mililitros` : `Tirar ${-delta} mililitros`}
@@ -18,7 +18,7 @@ export function AguaCartao({ ml, meta, aoMudar, style }: { ml: number; meta: num
       onPress={() => aoMudar(Math.max(0, Math.min(8000, ml + delta)))}
       style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.atalho, delta < 0 && st.atalhoMenos, (pressed || hovered) && { backgroundColor: cores.cartao2 }, desligado && { opacity: 0.4 }]}
     >
-      <Icone nome={icone} tamanho={15} cor={delta > 0 ? cores.destaque2 : cores.texto2} />
+      {icone ? <Icone nome={icone} tamanho={15} cor={cores.destaque2} /> : null}
       <T tam={13} peso="500" cor={delta > 0 ? cores.texto : cores.texto2}>{rotulo}</T>
     </Pressable>
   );
@@ -38,7 +38,7 @@ export function AguaCartao({ ml, meta, aoMudar, style }: { ml: number; meta: num
       <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap' }}>
         {atalho(`+${COPO_ML} ml`, COPO_ML, 'gota')}
         {atalho(`+${GARRAFA_ML} ml`, GARRAFA_ML, 'gota')}
-        {atalho(`−${COPO_ML} ml`, -COPO_ML, 'menos', ml <= 0)}
+        {atalho(`−${COPO_ML} ml`, -COPO_ML, undefined, ml <= 0)}
       </View>
     </Cartao>
   );
