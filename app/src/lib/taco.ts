@@ -606,21 +606,40 @@ export const TACO: LinhaTaco[] = [
   ["Noz, crua", 620, 14, 59.4, 18.4, 7.2],
 ];
 
-/* busca na TACO: todas as palavras digitadas precisam aparecer no nome (sem acento, em qualquer ordem); quem começa com a primeira
-   palavra vem antes. Devolve no formato dos alimentos do app (valores por 100 g). */
-const semAcento = (s: string): string => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-const NOMES = TACO.map((l) => semAcento(l[0]));
+import { FONTE_IBGE, IBGE } from './ibge';
 
-export function buscarTaco(consulta: string, limite = 40): { id: string; nome: string; kcal: number; p: number; c: number; g: number }[] {
-  const palavras = semAcento(consulta).split(/[\s,]+/).filter((p) => p.length >= 2);
+/* a busca nas duas tabelas oficiais: a TACO primeiro (alimentos básicos) e o IBGE depois (pratos prontos e preparações; lib/ibge.ts).
+   Todas as palavras digitadas precisam aparecer no nome (sem acento, em qualquer ordem); quem começa com a primeira palavra vem antes.
+   Algumas grafias comuns viram a da tabela (esfiha -> esfirra, mussarela -> muçarela...). Devolve no formato dos alimentos do app. */
+const semAcento = (s: string): string => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const SINONIMOS: [RegExp, string][] = [
+  [/esfiha|esfirha|sfiha/g, 'esfirra'], [/mussarela|mozzarella|mozarela/g, 'mucarela'], [/estrogonofe|strogonofe|stroganoff/g, 'strogonoff'],
+  [/hamburguer/g, 'hamburguer'], [/misto quente/g, 'misto'], [/xis /g, 'sanduiche '],
+];
+type Achado = { id: string; nome: string; kcal: number; p: number; c: number; g: number; fonte: string };
+
+let indice: { nome: string; norm: string; linha: LinhaTaco; fonte: string; id: string }[] | null = null;
+/* o índice das duas tabelas é montado só na primeira busca */
+function montarIndice() {
+  const vistos = new Set<string>();
+  indice = [];
+  TACO.forEach((l, i) => { const norm = semAcento(l[0]); vistos.add(norm); indice!.push({ nome: l[0], norm, linha: l, fonte: FONTE_TACO, id: `taco${i + 1}` }); });
+  IBGE.forEach((l, i) => { const norm = semAcento(l[0]); if (vistos.has(norm)) return; indice!.push({ nome: l[0], norm, linha: l, fonte: FONTE_IBGE, id: `ibge${i + 1}` }); });
+  return indice;
+}
+
+export function buscarTaco(consulta: string, limite = 40): Achado[] {
+  let q = semAcento(consulta);
+  for (const [re, troca] of SINONIMOS) q = q.replace(re, troca);
+  const palavras = q.split(/[\s,]+/).filter((p) => p.length >= 2);
   if (!palavras.length) return [];
-  const achados: { i: number; peso: number }[] = [];
-  NOMES.forEach((n, i) => {
-    if (!palavras.every((p) => n.includes(p))) return;
-    achados.push({ i, peso: (n.startsWith(palavras[0]) ? 0 : 1) * 1000 + n.length });
-  });
-  return achados.sort((a, b) => a.peso - b.peso).slice(0, limite).map(({ i }) => {
-    const [nome, kcal, p, g, c] = TACO[i];
-    return { id: `taco${i + 1}`, nome, kcal, p, c, g };
+  const achados: { e: NonNullable<typeof indice>[number]; peso: number }[] = [];
+  for (const e of indice ?? montarIndice()) {
+    if (!palavras.every((p) => e.norm.includes(p))) continue;
+    achados.push({ e, peso: (e.norm.startsWith(palavras[0]) ? 0 : 1) * 1000 + (e.fonte === FONTE_TACO ? 0 : 500) + e.norm.length });
+  }
+  return achados.sort((a, b) => a.peso - b.peso).slice(0, limite).map(({ e }) => {
+    const [nome, kcal, p, g, c] = e.linha;
+    return { id: e.id, nome, kcal, p, c, g, fonte: e.fonte };
   });
 }
