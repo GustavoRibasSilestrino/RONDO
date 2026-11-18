@@ -18,6 +18,7 @@ import { Janela } from '../componentes/Janela';
 import { Icone } from '../componentes/Icone';
 import { Anel, Barra, Botao, Campo, Cartao, Segmentos, T } from '../componentes/Ui';
 import { ALIMENTOS, Alimento } from '../dados';
+import { buscarTaco, FONTE_TACO } from '../lib/taco';
 import { useLoja } from '../estado/loja';
 import { macrosDe, macrosMeta, metaKcal, totaisDia } from '../lib/calc';
 import { dataCurta, doIso, fmt, iso, num, somarDias } from '../lib/datas';
@@ -191,7 +192,7 @@ export function Dieta() {
       />
 
       <T tam={11} cor={cores.texto3} style={{ marginTop: 18, lineHeight: 17 }}>
-        Valores aproximados, no estilo da Tabela TACO. Meta calculada por Mifflin-St Jeor. O RONDO organiza e acompanha, mas não substitui avaliação profissional.
+        Valores da Tabela Brasileira de Composição de Alimentos (TACO, NEPA/UNICAMP, 4ª ed., 2011). Meta calculada por Mifflin-St Jeor. O RONDO organiza e acompanha, mas não substitui avaliação profissional.
       </T>
 
       <AdicionarAlimento
@@ -239,12 +240,14 @@ function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeica
   const [refeicao, setRefeicao] = useState<TipoRefeicao>('almoco');
   const [novo, setNovo] = useState({ nome: '', kcal: '', p: '', c: '', g: '' });
   const [erroNovo, setErroNovo] = useState('');
+  const sugestoesTaco = useMemo(() => (novo.nome.trim().length >= 3 ? buscarTaco(novo.nome, 5) : []), [novo.nome]);
 
   const proprios = estado.alimentosProprios ?? [];
   const resultados = useMemo(() => {
     const q = semAcento(busca.trim());
-    const todos = [...proprios, ...ALIMENTOS];
-    return q ? todos.filter((a) => semAcento(a.nome).includes(q)) : todos;
+    /* sem nada digitado: os seus e os mais comuns; digitando: os seus e a tabela TACO inteira (597 alimentos, lib/taco.ts) */
+    if (!q) return [...proprios, ...ALIMENTOS];
+    return [...proprios.filter((a) => semAcento(a.nome).includes(q)), ...buscarTaco(busca, 40)];
   }, [busca, proprios]);
   const ehProprio = (id: string) => proprios.some((x) => x.id === id);
 
@@ -275,7 +278,7 @@ function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeica
       {modo === 'buscar' ? (
         <View style={{ gap: 12 }}>
           <Campo rotulo="Buscar" value={busca} onChangeText={setBusca} placeholder="Arroz, frango, banana..." autoCorrect={false} />
-          <T tam={12.5} cor={cores.texto3}>Toque no alimento para escolher o peso.</T>
+          <T tam={12.5} cor={cores.texto3}>Toque no alimento para escolher o peso. Valores da {FONTE_TACO}.</T>
           {/* não achou? criar um alimento novo (já com o nome buscado) */}
           <Pressable accessibilityRole="button" onPress={abrirCriar} style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderStyle: 'dashed', borderColor: cores.linha2 }, (pressed || hovered) && { backgroundColor: cores.cartao }]}>
             <Icone nome="mais" tamanho={16} cor={cores.destaque2} />
@@ -341,7 +344,20 @@ function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeica
     <Janela aberta={!!refeicaoInicial && modo === 'criar'} aoFechar={() => setModo('buscar')} titulo="Criar alimento">
         <View style={{ gap: 12 }}>
           <Campo rotulo="Nome do alimento" value={novo.nome} onChangeText={(t) => setNovo((n) => ({ ...n, nome: t }))} placeholder="Ex.: Tapioca com queijo" maxLength={60} />
-          <T tam={12.5} cor={cores.texto3}>Valores em 100 g (veja no rótulo da embalagem). Só as calorias são obrigatórias.</T>
+          {/* enquanto digita: os parecidos da tabela oficial (TACO); tocar preenche os valores, que ainda dá para ajustar */}
+          {sugestoesTaco.length ? (
+            <View style={{ gap: 6 }}>
+              <T tam={12} peso="500" cor={cores.texto2}>Da tabela {FONTE_TACO}, toque para preencher:</T>
+              {sugestoesTaco.map((a) => (
+                <Pressable key={a.id} accessibilityRole="button" accessibilityLabel={`Usar os valores de ${a.nome}`} onPress={() => setNovo((n) => ({ ...n, kcal: String(a.kcal), p: String(a.p).replace('.', ','), c: String(a.c).replace('.', ','), g: String(a.g).replace('.', ',') }))}
+                  style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 9, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: cores.linha2 }, (pressed || hovered) && { backgroundColor: cores.cartao }]}>
+                  <T tam={13.5} linhas={1} style={{ flex: 1 }}>{a.nome}</T>
+                  <T tam={12} cor={cores.texto3}>{a.kcal} kcal</T>
+                </Pressable>
+              ))}
+            </View>
+          ) : novo.nome.trim().length >= 3 ? <T tam={12.5} cor={cores.texto3}>Não está na tabela TACO: preencha com os valores do rótulo.</T> : null}
+          <T tam={12.5} cor={cores.texto3}>Valores em 100 g. Só as calorias são obrigatórias.</T>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Calorias (kcal)" value={novo.kcal} onChangeText={(t) => setNovo((n) => ({ ...n, kcal: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
             <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Proteína (g)" value={novo.p} onChangeText={(t) => setNovo((n) => ({ ...n, p: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
