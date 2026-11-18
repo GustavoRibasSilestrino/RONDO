@@ -74,8 +74,27 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
         </Pressable>
       </View>
 
-      <View accessibilityRole="tablist" style={{ gap: 2, marginTop: 14 }}>
-        {itens.map((it) => (
+      {/* a sua conta, no topo (pedido do dono, 2026-11-18): é o Perfil, por isso o item "Perfil" saiu da lista. Acesa quando o
+          Perfil está aberto, como as outras abas. */}
+      <Pressable
+        accessibilityRole="tab"
+        accessibilityLabel={`Seu perfil: ${nome}, nível ${nivel}`}
+        accessibilityState={{ selected: atual === 'perfil' && !notificacoesAbertas }}
+        onPress={aoAbrirConta}
+        style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.conta, recolhido && { justifyContent: 'center', paddingHorizontal: 0 }, atual === 'perfil' && !notificacoesAbertas ? st.itemAtivo : (pressed || hovered) && st.itemSobre]}
+      >
+        {/* a foto da conta (a mesma do perfil); sem foto, a inicial no círculo roxo */}
+        <Avatar nome={nome || '?'} voce tamanho={34} />
+        {recolhido ? null : (
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <T tam={14} peso="500" linhas={1}>{nome}</T>
+            <T tam={12} cor={cores.texto3}>Nível {nivel}</T>
+          </View>
+        )}
+      </Pressable>
+
+      <View accessibilityRole="tablist" style={{ gap: 2, marginTop: 10 }}>
+        {itens.filter((it) => it.id !== 'perfil').map((it) => (
           <Item key={it.id} icone={it.icone} rotulo={it.rotulo} recolhido={recolhido} ativo={it.id === atual && !notificacoesAbertas} aoPressionar={() => aoEscolher(it.id)} />
         ))}
       </View>
@@ -84,21 +103,6 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
 
       <View style={st.rodape}>
         <Item papel="button" icone="sino" rotulo="Notificações" recolhido={recolhido} ativo={notificacoesAbertas} selo={naoLidas} aoPressionar={aoAbrirNotificacoes} />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={`Sua conta: ${nome}, nível ${nivel}`}
-          onPress={aoAbrirConta}
-          style={({ pressed }) => [st.conta, recolhido && { justifyContent: 'center', paddingHorizontal: 0 }, pressed && { backgroundColor: cores.cartao2 }]}
-        >
-          {/* a foto da conta (a mesma do perfil); sem foto, a inicial no círculo roxo */}
-          <Avatar nome={nome || '?'} voce tamanho={34} />
-          {recolhido ? null : (
-            <View style={{ flex: 1 }}>
-              <T tam={14} peso="500" linhas={1}>{nome}</T>
-              <T tam={12} cor={cores.texto3}>Nível {nivel}</T>
-            </View>
-          )}
-        </Pressable>
       </View>
     </Animated.View>
   );
@@ -117,5 +121,5 @@ const st = estilos(() => StyleSheet.create({
   selo: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   dica: { position: 'absolute', left: 64, top: 8, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10, backgroundColor: cores.painel, borderWidth: 1, borderColor: cores.linha2, zIndex: 20, minWidth: 90 },
   rodape: { gap: 2, paddingTop: 12, borderTopWidth: 1, borderTopColor: cores.linha },
-  conta: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 56, paddingHorizontal: 8, borderRadius: 14, marginTop: 6, borderTopWidth: 1, borderTopColor: cores.linha },
+  conta: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 56, paddingHorizontal: 8, borderRadius: 14, marginTop: 10, overflow: 'hidden' },
 }));

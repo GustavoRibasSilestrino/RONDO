@@ -187,42 +187,113 @@ export function Dieta() {
 }
 
 /* ---------- painel: buscar e escolher o alimento ---------- */
+/* Adicionar alimento: buscar na lista (a da tabela e os criados pela pessoa) e escolher o PESO, digitado ou num atalho (50, 100, 150,
+   200 g). Se o alimento não estiver na lista, a pessoa CRIA um (nome, calorias e macros por 100 g; pedido do dono, 2026-11-18): ele
+   fica guardado na conta e aparece na busca dali em diante. */
+type Modo = 'buscar' | 'peso' | 'criar';
+const ATALHOS = [50, 100, 150, 200];
+const numero = (t: string): number => Number(t.replace(',', '.').replace(/[^0-9.]/g, '')) || 0;
+
 function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeicaoInicial: TipoRefeicao | null; aoFechar: () => void; aoAdicionar: (r: TipoRefeicao, a: Alimento, gramas: number) => void }) {
+  const { estado, commit } = useLoja();
   const [busca, setBusca] = useState('');
+  const [modo, setModo] = useState<Modo>('buscar');
   const [escolhido, setEscolhido] = useState<Alimento | null>(null);
   const [gramas, setGramas] = useState(100);
   const [refeicao, setRefeicao] = useState<TipoRefeicao>('almoco');
+  const [novo, setNovo] = useState({ nome: '', kcal: '', p: '', c: '', g: '' });
+  const [erroNovo, setErroNovo] = useState('');
 
+  const proprios = estado.alimentosProprios ?? [];
   const resultados = useMemo(() => {
     const q = semAcento(busca.trim());
-    return q ? ALIMENTOS.filter((a) => semAcento(a.nome).includes(q)) : ALIMENTOS;
-  }, [busca]);
+    const todos = [...proprios, ...ALIMENTOS];
+    return q ? todos.filter((a) => semAcento(a.nome).includes(q)) : todos;
+  }, [busca, proprios]);
+  const ehProprio = (id: string) => proprios.some((x) => x.id === id);
 
   // ao abrir, a refeição escolhida na lista vira o padrão e o painel recomeça do zero
   React.useEffect(() => {
-    if (refeicaoInicial) { setRefeicao(refeicaoInicial); setEscolhido(null); setBusca(''); setGramas(100); }
+    if (refeicaoInicial) { setRefeicao(refeicaoInicial); setEscolhido(null); setModo('buscar'); setBusca(''); setGramas(100); }
   }, [refeicaoInicial]);
 
+  const escolher = (a: Alimento) => { setEscolhido(a); setGramas(100); setModo('peso'); };
+  const abrirCriar = () => { setNovo({ nome: busca.trim(), kcal: '', p: '', c: '', g: '' }); setErroNovo(''); setModo('criar'); };
+  const salvarNovo = () => {
+    const nome = novo.nome.trim();
+    const kcal = numero(novo.kcal);
+    if (nome.length < 2) { setErroNovo('Dê um nome ao alimento.'); return; }
+    if (kcal <= 0 || kcal > 900) { setErroNovo('Informe as calorias em 100 g (entre 1 e 900).'); return; }
+    const a: Alimento = { id: `p${Date.now().toString(36)}`, nome, kcal: Math.round(kcal), p: numero(novo.p), c: numero(novo.c), g: numero(novo.g) };
+    commit((e) => { (e.alimentosProprios ??= []).unshift(a); });
+    escolher(a);
+  };
+  const apagarProprio = (id: string) => commit((e) => { e.alimentosProprios = (e.alimentosProprios ?? []).filter((x) => x.id !== id); });
+
   const prev = escolhido ? macrosDe(escolhido, gramas) : null;
+  const titulo = modo === 'peso' && escolhido ? escolhido.nome : modo === 'criar' ? 'Criar alimento' : 'Adicionar alimento';
 
   return (
-    <Folha aberta={!!refeicaoInicial} aoFechar={aoFechar} titulo={escolhido ? escolhido.nome : 'Adicionar alimento'}>
-      {!escolhido ? (
+    <Folha aberta={!!refeicaoInicial} aoFechar={aoFechar} titulo={titulo}>
+      {modo === 'buscar' ? (
         <View style={{ gap: 12 }}>
           <Campo rotulo="Buscar" value={busca} onChangeText={setBusca} placeholder="Arroz, frango, banana..." autoCorrect={false} />
-          {resultados.length === 0 ? <T tam={14} cor={cores.texto2}>Nenhum alimento encontrado.</T> : null}
+          <T tam={12.5} cor={cores.texto3}>Toque no alimento para escolher o peso.</T>
+          {/* não achou? criar um alimento novo (já com o nome buscado) */}
+          <Pressable accessibilityRole="button" onPress={abrirCriar} style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderStyle: 'dashed', borderColor: cores.linha2 }, (pressed || hovered) && { backgroundColor: cores.cartao }]}>
+            <Icone nome="mais" tamanho={16} cor={cores.destaque2} />
+            <T tam={14} peso="500" cor={cores.destaque2} linhas={1} style={{ flex: 1 }}>{busca.trim() ? `Criar “${busca.trim()}”` : 'Criar um alimento'}</T>
+          </Pressable>
+          {resultados.length === 0 ? <T tam={14} cor={cores.texto2}>Nenhum alimento encontrado. Crie o seu no botão acima.</T> : null}
           {resultados.map((a) => (
-            <Pressable key={a.id} accessibilityRole="button" onPress={() => setEscolhido(a)} style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: cores.linha }}>
-              <T tam={15} style={{ flex: 1 }}>{a.nome}</T>
-              <T tam={12} cor={cores.texto3} mono>{a.kcal} kcal/100 g</T>
-            </Pressable>
+            <View key={a.id} style={{ flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: cores.linha }}>
+              <Pressable accessibilityRole="button" accessibilityLabel={`${a.nome}, escolher o peso`} onPress={() => escolher(a)} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, gap: 10 }}>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <T tam={15} linhas={1}>{a.nome}</T>
+                  {ehProprio(a.id) ? <T tam={11.5} cor={cores.destaque2}>Criado por você</T> : null}
+                </View>
+                <T tam={12} cor={cores.texto3} mono>{a.kcal} kcal/100 g</T>
+              </Pressable>
+              {ehProprio(a.id) ? (
+                <Pressable accessibilityRole="button" accessibilityLabel={`Apagar ${a.nome} dos seus alimentos`} onPress={() => apagarProprio(a.id)} hitSlop={8} style={{ paddingLeft: 12, paddingVertical: 12 }}>
+                  <Icone nome="lixo" tamanho={16} cor={cores.texto3} />
+                </Pressable>
+              ) : null}
+            </View>
           ))}
         </View>
-      ) : (
+      ) : modo === 'criar' ? (
+        <View style={{ gap: 12 }}>
+          <Campo rotulo="Nome do alimento" value={novo.nome} onChangeText={(t) => setNovo((n) => ({ ...n, nome: t }))} placeholder="Ex.: Tapioca com queijo" maxLength={60} />
+          <T tam={12.5} cor={cores.texto3}>Valores em 100 g (veja no rótulo da embalagem). Só as calorias são obrigatórias.</T>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Calorias (kcal)" value={novo.kcal} onChangeText={(t) => setNovo((n) => ({ ...n, kcal: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
+            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Proteína (g)" value={novo.p} onChangeText={(t) => setNovo((n) => ({ ...n, p: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Carboidratos (g)" value={novo.c} onChangeText={(t) => setNovo((n) => ({ ...n, c: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
+            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Gorduras (g)" value={novo.g} onChangeText={(t) => setNovo((n) => ({ ...n, g: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
+          </View>
+          {erroNovo ? <View accessibilityRole="alert" accessibilityLiveRegion="polite"><T tam={13} cor={cores.erro}>{erroNovo}</T></View> : null}
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
+            <Botao titulo="Salvar e escolher o peso" icone="ok" aoPressionar={salvarNovo} />
+            <Botao tipo="discreto" titulo="Voltar" aoPressionar={() => setModo('buscar')} />
+          </View>
+        </View>
+      ) : escolhido ? (
         <View style={{ gap: 16 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <T tam={13} cor={cores.texto2}>Quantidade</T>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+            <T tam={13} cor={cores.texto2}>Peso</T>
             <Passo10 valor={gramas} aoMudar={setGramas} />
+          </View>
+          {/* atalhos de peso comuns */}
+          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+            {ATALHOS.map((g) => (
+              <Pressable key={g} accessibilityRole="button" accessibilityState={{ selected: gramas === g }} onPress={() => setGramas(g)}
+                style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: gramas === g ? cores.acao : cores.linha2, backgroundColor: gramas === g ? cores.acao : 'transparent' }}>
+                <T tam={13} peso="500" cor={gramas === g ? '#ffffff' : cores.texto2}>{g} g</T>
+              </Pressable>
+            ))}
           </View>
           {prev ? (
             <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -240,10 +311,12 @@ function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeica
             </View>
           ) : null}
           <Segmentos opcoes={REFEICOES.map((r) => ({ valor: r.id, nome: r.nome.split(' ')[0] }))} valor={refeicao} aoMudar={setRefeicao} />
-          <Botao titulo="Adicionar" icone="mais" aoPressionar={() => aoAdicionar(refeicao, escolhido, gramas)} />
-          <Botao tipo="discreto" titulo="Escolher outro alimento" aoPressionar={() => setEscolhido(null)} />
+          <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+            <Botao titulo="Adicionar" icone="mais" aoPressionar={() => aoAdicionar(refeicao, escolhido, gramas)} />
+            <Botao tipo="discreto" titulo="Trocar alimento" aoPressionar={() => { setEscolhido(null); setModo('buscar'); }} />
+          </View>
         </View>
-      )}
+      ) : null}
     </Folha>
   );
 }

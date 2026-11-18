@@ -110,6 +110,7 @@ export type Estado = {
   refeicoes: Record<string, Refeicao[]>;
   /* a foto de cada refeição, por dia (o id da mídia guardada no aparelho; lib/midia.ts) e quando foi tirada: a mais recente vira o
      ícone do dia no calendário da Dieta. Fica só no aparelho, como as outras fotos. */
+  alimentosProprios: { id: string; nome: string; kcal: number; p: number; c: number; g: number }[];   // alimentos que a pessoa criou (valores por 100 g)
   fotosRefeicao: Record<string, Partial<Record<TipoRefeicao, { id: string; quando: number }>>>;
   agua: Record<string, number>;
   checkins: Record<string, boolean>;

@@ -470,6 +470,6 @@ const st = estilos(() => StyleSheet.create({
   chapado: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 999, borderWidth: 1 },
   segmentoAtivoNormal: { backgroundColor: cores.acao },   // a opção escolhida: o violeta de ação, como o botão principal
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
-  campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
+  campoTexto: { flex: 1, minWidth: 0, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },
 }));

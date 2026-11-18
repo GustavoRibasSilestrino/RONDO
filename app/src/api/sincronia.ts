@@ -4,7 +4,7 @@ import type { Estado } from '../tipos';
 import { chamar } from './cliente';
 
 export const CHAVES_SINCRONIZADAS = [
-  'perfil', 'perfilFit', 'treinos', 'treinoAtual', 'rotinasProprias', 'refeicoes', 'agua', 'checkins', 'pesos',
+  'perfil', 'perfilFit', 'treinos', 'treinoAtual', 'rotinasProprias', 'refeicoes', 'alimentosProprios', 'agua', 'checkins', 'pesos',
   'perfilSocial',
   'recados', 'notificacoes', 'profissionais', 'storiesVistos', 'nivelAvisado', 'medalhasAvisadas',
 ] as const satisfies readonly (keyof Estado)[];

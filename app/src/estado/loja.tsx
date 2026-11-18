@@ -24,6 +24,7 @@ export const estadoVazio = (): Estado => ({
   rotinasProprias: [],
   refeicoes: {},
   fotosRefeicao: {},
+  alimentosProprios: [],
   agua: {},
   checkins: {},
   pesos: [],
