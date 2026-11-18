@@ -45,7 +45,7 @@ export function PlanoPro({ aberto, aoFechar }: { aberto: boolean; aoFechar: () =
         <View style={{ gap: 10, marginTop: 18 }}>
           <Botao icone="estrela" titulo="Ver os planos no site" aoPressionar={abrirSite} />
           <T tam={12} centro style={{ opacity: 0.85, lineHeight: 17 }}>
-            {ativo ? 'O seu plano PRO está ativo.' : 'Os planos pagos ainda não estão à venda: nada é cobrado hoje.'} Quando abrirem: R$ 49,90 por mês (ou R$ 399,00 por ano),
+            {ativo ? 'O seu plano PRO está ativo.' : 'Os planos pagos ainda não estão à venda: nada é cobrado hoje.'} Quando abrirem: R$ 44,90 por mês (ou R$ 329,90 por ano),
             renovação automática avisada antes, cancelamento a qualquer momento e reembolso em até 7 dias.
           </T>
         </View>

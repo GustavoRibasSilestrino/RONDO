@@ -27,6 +27,11 @@ class Usuario(Base):
     nascimento: Mapped[date | None] = mapped_column(Date, nullable=True)
     # e-mails de novidades: só com consentimento separado, desligado por padrão; o histórico fica em consentimentos
     marketing: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+
+    @property
+    def tem_selo(self) -> bool:
+        """O selo de verificado ao lado do nome: quem foi verificado à mão, quem assina o PRO e o dono do app (2026-11-18)."""
+        return bool(self.verificado or self.pro or self.papel == "dono")
     # o nome e o @ sem acento e em minúsculas, para a busca de pessoas; preenchido sozinho ao gravar (ver abaixo)
     busca: Mapped[str] = mapped_column(String(200), default='', server_default='')
     # a política de conteúdo (servicos/penalidades.py): avisos do ciclo atual (0 a 3), suspensões já tomadas, até quando

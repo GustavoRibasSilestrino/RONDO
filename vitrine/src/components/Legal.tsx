@@ -4,7 +4,7 @@
 import type { ComponentType, ReactNode } from "react";
 import { abrirPreferenciasCookies } from "../lib/consentimento";
 import { ExcluirConta } from "./ExcluirConta";
-import { NomePilula } from "./ui";
+import { Nome } from "./ui";
 
 export const CONTATO = "rondooficial.dev@gmail.com";
 export const RESPONSAVEL = "Gustavo Ribas Silestrino";
@@ -17,7 +17,7 @@ export function Pagina({ titulo, children }: { titulo: string; children: ReactNo
     <>
       <header className="legal-topo">
         <div className="wrap legal-topo-in">
-          <a href="/" className="logo logo-nome" aria-label="RONDO, voltar ao início"><NomePilula className="logo-pilula" /></a>
+          <a href="/" className="logo logo-nome" aria-label="RONDO, voltar ao início"><Nome /></a>
           <a href="/" className="legal-voltar">Voltar ao site</a>
         </div>
       </header>

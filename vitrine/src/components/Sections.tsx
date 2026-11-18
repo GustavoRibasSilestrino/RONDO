@@ -101,7 +101,7 @@ export function Profissionais() {
 /* ---------- planos ---------- */
 const PLANS = [
   { nome: "Grátis", preco: "R$ 0", per: "", itens: ["Treino, dieta e água", "Streak e check-ins", "Feed e clubes", "Um recado por dia e um para o futuro por vez"], cta: "Começar", kind: "ghost" as const },
-  { nome: "PRO", preco: "R$ 49,90", per: " /mês", itens: ["Selo de verificado no perfil", "RONDO AI no treino e na dieta (em breve)", "Recados para o futuro sem limite", "Estatísticas completas e clubes VIP", "Anual: R$ 399 (R$ 33,25 /mês)"], cta: "Criar conta grátis", kind: "primary" as const, hot: true, breve: true },
+  { nome: "PRO", preco: "R$ 44,90", per: " /mês", itens: ["Selo de verificado no perfil", "RONDO AI no treino e na dieta (em breve)", "Recados para o futuro sem limite", "Estatísticas completas e clubes VIP", "Anual: R$ 329,90 (R$ 27,49 /mês)"], cta: "Criar conta grátis", kind: "primary" as const, hot: true, breve: true },
   { nome: "Profissional", preco: "R$ 59", per: " /mês", itens: ["Perfil conferido na busca", "Até 25 alunos", "Planos, painel e conversa", "Profissional+ (R$ 99 /mês): alunos ilimitados"], cta: "Cadastrar perfil", kind: "ghost" as const, href: "#cadastro-profissional", breve: true },
 ];
 

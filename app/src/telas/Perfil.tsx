@@ -195,7 +195,11 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       </View>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
-        <T tam={17} peso="500" linhas={1}>{nome}</T>
+        {/* o nome e, para quem tem (verificado, PRO ou o dono), o selo de verificado ao lado */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <T tam={17} peso="500" linhas={1} style={{ flexShrink: 1 }}>{nome}</T>
+          {estado.usuario?.verificado || estado.pro ? <View accessible accessibilityLabel="Verificado"><Icone nome="verificado" tamanho={17} cor={cores.destaque2} /></View> : null}
+        </View>
         {tipoDeSelo(estado.usuario?.selo) ? <Selo tipo={tipoDeSelo(estado.usuario?.selo)!} /> : null}
       </View>
       <T tam={13} style={{ marginTop: 2 }}>Nível {nivel.nivel}{patente ? ` · ${patente.nome}` : ''}</T>

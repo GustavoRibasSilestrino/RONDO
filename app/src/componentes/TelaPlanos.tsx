@@ -16,7 +16,7 @@ import { NomeMarca } from './Marca';
 import { Botao, T } from './Ui';
 
 type Plano = 'mensal' | 'anual';
-const PRECOS = { mensal: 'R$ 49,90', anual: 'R$ 399,00', anualCheio: 'R$ 598,80', anualPorMes: 'R$ 33,25/mês' };
+const PRECOS = { mensal: 'R$ 44,90', anual: 'R$ 329,90', anualCheio: 'R$ 538,80', anualPorMes: 'R$ 27,49/mês' };
 
 /* o que o PRO inclui (2026-11-18, pedido do dono: benefícios mais fortes). O que ainda não existe no app está marcado "em breve" */
 const INCLUI: { icone: NomeIcone; texto: string }[] = [
@@ -127,7 +127,7 @@ export function TelaPlanos({ aberto, aoFechar }: { aberto: boolean; aoFechar: ()
 
               <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', gap: 12, marginTop: 26 }}>
                 <Cartao id="mensal" titulo="MENSAL" preco={PRECOS.mensal} />
-                <Cartao id="anual" titulo="ANUAL" preco={PRECOS.anual} riscado={PRECOS.anualCheio} sub={PRECOS.anualPorMes} selo="ECONOMIZE 33%" />
+                <Cartao id="anual" titulo="ANUAL" preco={PRECOS.anual} riscado={PRECOS.anualCheio} sub={PRECOS.anualPorMes} selo="ECONOMIZE 38%" />
               </View>
 
               <Botao
