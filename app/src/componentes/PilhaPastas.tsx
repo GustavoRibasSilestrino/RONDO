@@ -29,6 +29,15 @@ const LIMIAR = 8;       // px de movimento antes de o arrasto começar
 const FOLGA = 28;       // a lixeira "pega" a pasta um pouco antes da borda dela
 
 const nativo = Platform.OS !== 'web';
+
+/* iPhone (Safari): segurar a pasta abria a seleção de texto e o menu de toque longo. O React Native Web descarta a regra
+   -webkit-touch-callout dos estilos, então ela vai numa folha de estilo da página, para tudo que tiver data-sem-selecao. */
+if (Platform.OS === 'web' && typeof document !== 'undefined' && !document.getElementById('pastas-sem-selecao')) {
+  const css = document.createElement('style');
+  css.id = 'pastas-sem-selecao';
+  css.textContent = '[data-sem-selecao],[data-sem-selecao] *{-webkit-touch-callout:none!important;-webkit-user-select:none!important;user-select:none!important;-webkit-tap-highlight-color:transparent!important;}';
+  document.head.appendChild(css);
+}
 const vibrar = (forte: boolean) => {
   if (!nativo) return;
   Haptics.impactAsync(forte ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -146,9 +155,9 @@ function Pasta({ rotina, largura, topo, esquerda, escolhida, reduzido, aoTocar, 
     <Animated.View
       {...resp.panHandlers}
       style={{
-        position: 'absolute', top: topo, left: esquerda, width: largura, height: ALTURA, zIndex: arrastando ? 50 : undefined,
+        position: 'absolute', top: topo, left: esquerda, width: largura, height: ALTURA, zIndex: arrastando ? 999 : undefined,   // arrastada, fica por cima de todas
         opacity: some,
-        ...(Platform.OS === 'web' ? ({ filter: arrastando ? 'drop-shadow(0 22px 30px rgba(42,22,80,0.35))' : 'drop-shadow(0 10px 18px rgba(42,22,80,0.22))', touchAction: podeArrastar ? 'none' : 'auto', cursor: podeArrastar ? 'grab' : 'pointer', userSelect: 'none' } as object) : null),
+        ...(Platform.OS === 'web' ? ({ filter: arrastando ? 'drop-shadow(0 22px 30px rgba(42,22,80,0.35))' : 'drop-shadow(0 10px 18px rgba(42,22,80,0.22))', touchAction: podeArrastar ? 'none' : 'manipulation', cursor: podeArrastar ? 'grab' : 'pointer', userSelect: 'none' } as object) : null),
         transform: [
           { translateX: pos.x },
           { translateY: Animated.add(pos.y, sobe.interpolate({ inputRange: [0, 1], outputRange: [0, -SOBE] })) },
@@ -201,7 +210,7 @@ export function PilhaPastas({ rotinas, largura, escolhida, aoEscolher, aoAbrir, 
   /* espaço em cima para a pasta subir; a altura total deixa à mostra a pasta da frente inteira */
   const altura = SOBE + PASSO * Math.max(0, n - 1) + ALTURA;
   return (
-    <View style={{ width: largura, height: altura, marginTop: 6 }}>
+    <View {...({ dataSet: { semSelecao: '1' } } as object)} style={{ width: largura, height: altura, marginTop: 6 }}>
       {rotinas.map((r, i) => (
         <Pasta
           key={r.id}
