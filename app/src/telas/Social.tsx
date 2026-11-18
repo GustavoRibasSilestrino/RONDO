@@ -2,7 +2,7 @@
    A Comunidade tem os clubes (criar, entrar, convidar e publicar dentro) e o ranking semanal de constância.
    O botão + roxo, sobre a barra, cria uma publicação. Feed, clubes e perfis vêm do servidor e são os mesmos para todo mundo. */
 import React, { useCallback, useEffect, useState } from 'react';
-import { BackHandler, Share, StyleSheet, View } from 'react-native';
+import { BackHandler, Pressable, Share, StyleSheet, View } from 'react-native';
 import { lerFeed } from '../api/social';
 import type { Pessoa } from '../api/social';
 import { Tela, useAviso } from '../componentes/Estrutura';
@@ -28,10 +28,36 @@ import { Ranking } from './comunidade/Ranking';
 
 type Aba = 'grupos' | 'ranking';
 
+/* as separações do Feed, logo abaixo do cabeçalho (pedido do dono, 2026-11-18): quem você segue, os seus clubes e o explorar
+   (tudo o que você pode ver). O servidor já filtra (filtro do GET /social/feed). */
+type Separacao = 'seguindo' | 'clubes' | 'todos';
+const SEPARACOES: { id: Separacao; nome: string; vazio: string }[] = [
+  { id: 'seguindo', nome: 'Seguindo', vazio: 'Quem você segue ainda não publicou. Siga mais gente pela lupa, no alto.' },
+  { id: 'clubes', nome: 'Comunidade', vazio: 'Nada nos seus clubes ainda. Entre em um clube na aba Comunidade.' },
+  { id: 'todos', nome: 'Explorar', vazio: 'Seja a primeira pessoa a compartilhar algo hoje.' },
+];
+
+function SeparacoesFeed({ valor, aoMudar }: { valor: Separacao; aoMudar: (v: Separacao) => void }) {
+  return (
+    <View accessibilityRole="tablist" style={st.separacoes}>
+      {SEPARACOES.map((x) => {
+        const ativa = x.id === valor;
+        return (
+          <Pressable key={x.id} accessibilityRole="tab" accessibilityState={{ selected: ativa }} onPress={() => aoMudar(x.id)} style={st.separacao}>
+            <T tam={14.5} peso={ativa ? '500' : '400'} cor={ativa ? cores.texto : cores.texto2}>{x.nome}</T>
+            <View style={[st.marcador, ativa && st.marcadorAtivo]} />
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' | 'comunidade'; ir: (tela: string) => void; buscaAberta: boolean; aoFecharBusca: () => void }) {
   const { estado } = useLoja();
   const avisar = useAviso();
   const [aba, setAba] = useState<Aba>('grupos');
+  const [separacao, setSeparacao] = useState<Separacao>('todos');
   const [grupoAberto, setGrupoAberto] = useState<number | null>(null);
   const [compor, setCompor] = useState<{ aberto: boolean; grupo: number | null }>({ aberto: false, grupo: null });
   const [criando, setCriando] = useState(false);
@@ -52,8 +78,8 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
   const hoje = new Date();
   /* o servidor decide o que a pessoa pode ver: o geral, os clubes públicos e os clubes em que ela está (privado nunca vaza) */
   const feed = useLista(
-    (cursor) => lerFeed({ filtro: 'todos', antes: cursor }),   // um feed só, com tudo: o geral, quem você segue e os seus clubes
-    [],
+    (cursor) => lerFeed({ filtro: separacao, antes: cursor }),
+    [separacao],
     modo === 'home' && grupoAberto === null,
   );
   const posts = feed.itens;
@@ -79,6 +105,7 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
         ) : modo === 'home' ? (
           <>
             {/* a lupa mora no alto do app (ao lado do tema no celular; no canto do feed no computador) */}
+            <SeparacoesFeed valor={separacao} aoMudar={setSeparacao} />
             <BarraStories aoAbrirPerfil={abrirPerfil} />
             <View style={{ marginTop: 14 }}><RecadoDoDia aoAbrir={() => ir('recado')} /></View>
             <View style={{ marginTop: 16 }}>
@@ -105,7 +132,7 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
               ) : (
                 <Cartao>
                   <T tam={16}>Nada por aqui ainda.</T>
-                  <T tam={13.5} style={{ marginTop: 6, lineHeight: 20 }}>Seja a primeira pessoa a compartilhar algo hoje.</T>
+                  <T tam={13.5} style={{ marginTop: 6, lineHeight: 20 }}>{SEPARACOES.find((x) => x.id === separacao)!.vazio}</T>
                   <Botao pequeno tipo="fantasma" titulo="Criar publicação" aoPressionar={() => abrirCompositor(null)} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
                 </Cartao>
               )}
@@ -146,5 +173,9 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
 }
 
 const st = estilos(() => StyleSheet.create({
+  separacoes: { flexDirection: 'row', alignSelf: 'stretch', marginHorizontal: -20, marginTop: -6, marginBottom: 14, borderBottomWidth: 1, borderBottomColor: cores.linha },
+  separacao: { flex: 1, alignItems: 'center', paddingTop: 6, minHeight: 44, justifyContent: 'flex-end' },
+  marcador: { marginTop: 9, height: 3, width: 28, borderRadius: 2, backgroundColor: 'transparent' },
+  marcadorAtivo: { backgroundColor: cores.destaqueForte },
   lista: { marginHorizontal: -20, borderTopWidth: 1, borderTopColor: cores.linha },
 }));

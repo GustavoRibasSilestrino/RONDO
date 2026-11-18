@@ -20,10 +20,10 @@ import { T } from './Ui';
 const TINTA = cores.texto;           // o texto: roxo quase preto
 const ROXO = cores.destaqueForte;    // o selo da sugestão e o contorno da pasta escolhida
 
-const ALTURA = 168;     // altura de cada pasta
-const ABA = 28;         // altura da aba
-const PASSO = 84;       // quanto de cada pasta aparece (a aba e uma faixa do corpo); mais espaço = mais fácil de tocar (pedido do dono)
-const DESLOCA = 10;     // cada pasta de trás anda isto para a direita
+export const ALTURA = 168;     // altura de cada pasta
+export const ABA = 28;         // altura da aba
+export const PASSO = 84;       // quanto de cada pasta aparece (a aba e uma faixa do corpo); mais espaço = mais fácil de tocar (pedido do dono)
+export const DESLOCA = 10;     // cada pasta de trás anda isto para a direita
 const SOBE = 52;        // quanto a pasta escolhida sobe
 const LIMIAR = 8;       // px de movimento antes de o arrasto começar
 const FOLGA = 28;       // a lixeira "pega" a pasta um pouco antes da borda dela
@@ -44,7 +44,7 @@ const vibrar = (forte: boolean) => {
 };
 
 /* o contorno da pasta: aba à esquerda (com a borda direita inclinada) e o corpo com cantos arredondados */
-const contorno = (w: number, h: number, aba: number): string =>
+export const contorno = (w: number, h: number, aba: number): string =>
   `M10 1.5 H${aba - 8} Q${aba - 2} 1.5 ${aba + 2} 6 L${aba + 20} ${ABA} H${w - 12} Q${w - 1.5} ${ABA} ${w - 1.5} ${ABA + 10} V${h - 12} Q${w - 1.5} ${h - 1.5} ${w - 12} ${h - 1.5} H12 Q1.5 ${h - 1.5} 1.5 ${h - 12} V12 Q1.5 1.5 10 1.5 Z`;
 
 type Arrasto = {

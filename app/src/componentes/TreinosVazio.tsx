@@ -1,19 +1,55 @@
-/* O Treino sem nenhum treino salvo (pedido do dono, 2026-11-18): no lugar dos treinos sugeridos, um celular de vidro mostra como
-   a lista "Meus treinos" vai ficar, com as linhas de exemplo sumindo para baixo (o celular se dissolve no fundo), e embaixo o
+/* O Treino sem nenhum treino salvo (pedido do dono, 2026-11-18): no lugar dos treinos sugeridos, um celular de vidro mostra a pilha
+   de pastas de treino igual à do app, em miniatura (pedido do dono, 2026-11-18), com "Meus treinos" em cima e as pastas sumindo para baixo (o celular se dissolve no fundo), e embaixo o
    convite: "Nenhum treino salvo", "Crie treinos para utilizá-los quando quiser." e o botão Novo treino.
    O celular é só ilustração: o leitor de tela pula ele e lê o texto e o botão. */
 import React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { cores, estilos, VIDRO } from '../tema';
-import { Icone } from './Icone';
+import { LinearGradient as FundoTela } from 'expo-linear-gradient';
+import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+import { ABA, ALTURA, contorno, DESLOCA, PASSO } from './PilhaPastas';
 import { Botao, T } from './Ui';
 
+/* as pastas de exemplo, de trás para a frente, como a pilha da aba (componentes/PilhaPastas.tsx), em miniatura */
 const EXEMPLOS = [
-  { nome: 'Peito e tríceps', info: '6 exercícios · 50 min' },
-  { nome: 'Costas e bíceps', info: '6 exercícios · 45 min' },
-  { nome: 'Pernas', info: '7 exercícios · 55 min' },
-  { nome: 'Ombros e abdômen', info: '5 exercícios · 40 min' },
+  { nome: 'OMBROS', info: '5 exercícios · 40 min' },
+  { nome: 'PERNAS', info: '7 exercícios · 55 min' },
+  { nome: 'COSTAS', info: '6 exercícios · 45 min' },
+  { nome: 'PEITO', info: '6 exercícios · 50 min' },
 ];
+const VIRTUAL = 300;   // a pilha é desenhada nesta largura e reduzida para caber na tela do celular
+const MINI = 158;      // a largura útil da tela do celular
+const K = MINI / VIRTUAL;
+
+function PastasMini() {
+  const n = EXEMPLOS.length;
+  const w = VIRTUAL - DESLOCA * (n - 1);
+  const aba = Math.min(w * 0.5, 190);
+  return (
+    <View style={{ width: MINI, height: (PASSO * (n - 1) + ALTURA) * K, marginTop: 12 }}>
+      {EXEMPLOS.map((x, i) => (
+        <View key={x.nome} style={{ position: 'absolute', top: PASSO * i * K, left: DESLOCA * (n - 1 - i) * K, width: w * K, height: ALTURA * K, transform: [{ skewY: '-3deg' }] }}>
+          <Svg width={w * K} height={ALTURA * K} viewBox={`0 0 ${w} ${ALTURA}`} style={{ position: 'absolute' }}>
+            <Defs>
+              <LinearGradient id={`mini-${i}`} x1="0" y1="0" x2="0.35" y2="1">
+                <Stop offset="0" stopColor="#ffffff" stopOpacity={0.8} />
+                <Stop offset="0.55" stopColor="#ffffff" stopOpacity={0.66} />
+                <Stop offset="1" stopColor="#ede6f7" stopOpacity={0.6} />
+              </LinearGradient>
+            </Defs>
+            <Path d={contorno(w, ALTURA, aba)} fill={`url(#mini-${i})`} stroke="rgba(255,255,255,0.95)" strokeWidth={1.5} strokeLinejoin="round" />
+          </Svg>
+          <View style={{ position: 'absolute', left: 14 * K, top: 5 * K }}>
+            <T tam={8.5} peso="500" style={{ letterSpacing: 0.4 }} linhas={1}>{x.nome}</T>
+          </View>
+          <View style={{ position: 'absolute', left: 14 * K, top: (ABA + 9) * K }}>
+            <T tam={7} cor={cores.texto2} linhas={1}>{x.info}</T>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
 
 /* no navegador, uma máscara apaga o pé do celular; no aparelho, as linhas vão ficando mais claras */
 const dissolver = Platform.OS === 'web' ? ({ maskImage: 'linear-gradient(to bottom, #000 45%, transparent 96%)', WebkitMaskImage: 'linear-gradient(to bottom, #000 45%, transparent 96%)' } as object) : null;
@@ -23,6 +59,8 @@ export function TreinosVazio({ aoNovo }: { aoNovo: () => void }) {
     <View style={st.raiz}>
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[st.janela, dissolver]}>
         <View style={st.celular}>
+          {/* a tela do celular com o fundo do app (o mesmo degradê de componentes/FundoCena.tsx) */}
+          <FundoTela colors={['#cfc5dd', '#b3a6c9', '#8d7fa6']} locations={[0, 0.5, 1]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={StyleSheet.absoluteFill} />
           <View style={st.ilha} />
           <View style={st.topoCelular}>
             <T tam={9} peso="500">9:41</T>
@@ -31,17 +69,7 @@ export function TreinosVazio({ aoNovo }: { aoNovo: () => void }) {
             </View>
           </View>
           <T tam={17} peso="500" style={{ marginTop: 14, letterSpacing: -0.3 }}>Meus treinos</T>
-          <View style={{ gap: 7, marginTop: 10 }}>
-            {EXEMPLOS.map((x, i) => (
-              <View key={x.nome} style={[st.exemplo, Platform.OS !== 'web' && { opacity: 1 - i * 0.24 }]}>
-                <View style={st.exemploIcone}><Icone nome="halter" tamanho={14} cor="#ffffff" /></View>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <T tam={11.5} peso="500" linhas={1}>{x.nome}</T>
-                  <T tam={9.5} cor={cores.texto2} linhas={1}>{x.info}</T>
-                </View>
-              </View>
-            ))}
-          </View>
+          <PastasMini />
         </View>
       </View>
 
@@ -56,13 +84,11 @@ const st = estilos(() => StyleSheet.create({
   raiz: { alignItems: 'center', marginTop: 18, paddingHorizontal: 8 },
   janela: { height: 268, width: 210, overflow: 'hidden', alignItems: 'center' },
   celular: {
-    width: 196, height: 360, marginTop: 6, borderRadius: 34, padding: 14, paddingTop: 10,
+    width: 196, height: 360, marginTop: 6, borderRadius: 34, padding: 14, paddingTop: 10, overflow: 'hidden',
     backgroundColor: 'rgba(255,255,255,0.55)', borderWidth: 5, borderColor: 'rgba(255,255,255,0.9)', ...VIDRO,
     shadowColor: '#2a1650', shadowOpacity: 0.22, shadowRadius: 20, shadowOffset: { width: 0, height: 10 },
   },
   ilha: { position: 'absolute', top: 8, alignSelf: 'center', left: 63, width: 60, height: 16, borderRadius: 8, backgroundColor: '#1e1430' },
   topoCelular: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 6, height: 18 },
   ponto: { width: 7, height: 7, borderRadius: 2, backgroundColor: cores.texto },
-  exemplo: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 8, borderRadius: 14, backgroundColor: cores.cartao, borderWidth: 1, borderColor: cores.linha2 },
-  exemploIcone: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
 }));

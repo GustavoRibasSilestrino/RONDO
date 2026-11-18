@@ -97,6 +97,7 @@ export const raio = { p: 8, m: 14, g: 22, pilula: 999 } as const;
 /* degradês: o roxo da marca indo para o violeta claro, sempre na diagonal (do canto de cima à esquerda) */
 export const DEGRADE = {
   roxo: ['#5a0fc4', '#7426ec', '#8a45f5'] as const,
+  vidroAtivo: ['rgba(132,98,222,0.86)', 'rgba(108,74,202,0.86)', 'rgba(92,60,184,0.88)'] as const,   // o botão principal e o segmento escolhido: vidro violeta (2026-11-18)
   ativo: ['#3a2370', '#2a1650', '#1f1040'] as const,         // o item ativo no vidro claro (menu, segmentos): a pílula roxo-escura          // botão principal, aba ativa, seleção (branco por cima: 4,9:1 ou mais)
   barra: ['#7b2cf0', '#c4a8ff'] as const,                       // progresso
   brilhoCartao: ['rgba(255,255,255,0.32)', 'rgba(255,255,255,0)'] as const,      // o reflexo de cima do vidro

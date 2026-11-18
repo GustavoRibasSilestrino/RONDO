@@ -1,6 +1,6 @@
 /* Aba Clubes: busca, entrar com código de convite, os seus clubes e os que vale descobrir. Tudo vem do servidor. */
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { entrarNoClube, entrarPorCodigo, listarClubes, sairDoClube } from '../../api/social';
 import type { Clube } from '../../api/social';
 import { useAviso } from '../../componentes/Estrutura';
@@ -101,7 +101,15 @@ export function Grupos({ aoAbrir, aoCriar }: { aoAbrir: (id: number) => void; ao
           onSubmitEditing={usarCodigo}
           style={st.campoBusca}
         />
-        <Botao pequeno tipo="fantasma" titulo="Entrar" aoPressionar={usarCodigo} carregando={entrando} desabilitado={codigo.trim().length !== 6} />
+        {/* compacto, para caber dentro da caixa (pedido do dono, 2026-11-18) */}
+        <Pressable
+          accessibilityRole="button" accessibilityLabel="Entrar no clube com o código"
+          accessibilityState={{ disabled: codigo.trim().length !== 6 || entrando, busy: entrando }}
+          disabled={codigo.trim().length !== 6 || entrando} onPress={usarCodigo} hitSlop={6}
+          style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.entrar, (pressed || hovered) && st.entrarSobre, codigo.trim().length !== 6 && { opacity: 0.5 }]}
+        >
+          {entrando ? <ActivityIndicator size="small" color={cores.texto} /> : <T tam={13} peso="500">Entrar</T>}
+        </Pressable>
       </View>
 
       {meus.length ? (
@@ -184,6 +192,8 @@ function GrupoCartao({ g, aoAbrir, aoAlternar }: { g: Clube; aoAbrir: () => void
 
 const st = estilos(() => StyleSheet.create({
   busca: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 50, paddingLeft: 16, paddingRight: 8, borderRadius: 25, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)' },
+  entrar: { height: 34, paddingHorizontal: 14, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' },
+  entrarSobre: { backgroundColor: 'rgba(214,212,220,0.92)' },
   campoBusca: { flex: 1, minWidth: 0, height: 50,   /* minWidth 0: no Safari do iPhone o campo encolhe e o botão Entrar cabe dentro da caixa */ color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { marginTop: 10, letterSpacing: -0.4 },
   selo: { position: 'absolute', left: 12, top: 12, flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(5,5,7,0.55)' },

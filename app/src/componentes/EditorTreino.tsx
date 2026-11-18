@@ -85,6 +85,7 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
               <Icone nome="voltar" tamanho={22} cor={cores.texto} />
             </Pressable>
             <T tam={17} peso="500" style={{ flex: 1 }}>{editando ? 'Editar treino' : 'Novo treino'}</T>
+            {/* um só salvar, no alto: fica sempre à vista enquanto a pessoa rola (o do pé da tela saiu, pedido do dono, 2026-11-18) */}
             <Botao pequeno titulo="Salvar" icone="ok" aoPressionar={salvar} desabilitado={!podeSalvar && tentou} />
           </View>
 
@@ -183,7 +184,6 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
               ) : null}
             </View>
 
-            <Botao titulo="Salvar treino" icone="ok" aoPressionar={salvar} />
             {editando && aoExcluir ? <Botao tipo="perigo" icone="lixo" titulo="Excluir treino" aoPressionar={() => aoExcluir(inicial!.id)} /> : null}
           </ScrollView>
         </View>
@@ -204,7 +204,7 @@ const st = estilos(() => StyleSheet.create({
   chipPronto: { borderColor: 'rgba(196,168,255,0.45)' },
   sem: { padding: 16, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   semTopo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  chipOn: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
+  chipOn: { backgroundColor: 'rgba(108,74,202,0.86)', borderColor: 'rgba(255,255,255,0.6)' },   // marcado: vidro violeta, como o botão principal
   exercicio: { padding: 14, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, gap: 14 },
   numero: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, marginBottom: 12 },
   remover: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },

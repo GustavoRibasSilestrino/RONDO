@@ -117,7 +117,7 @@ type BotaoProps = {
 export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, carregando, orbita, icone, pequeno, style }: BotaoProps) {
   const inativo = !!desabilitado || !!carregando;
   /* vidro (desde 2026-11-17): nas telas claras do app o botão é de vidro (branco translúcido, borda clara, texto roxo quase
-     preto) e, aceso, vira a pílula roxo-escura com texto branco, como a aba ativa. Nas telas do RONDIN, que são escuras,
+     preto) e, aceso, vira uma pílula de vidro violeta com texto branco (desde 2026-11-18; antes era roxo quase preto). Nas telas do RONDIN, que são escuras,
      continua o botão de antes (cinza escuro que acende em violeta). */
   const vidro = !useContext(EscuroContexto);
   /* o conteúdo em duas cores: a do botão apagado e o branco do aceso (um some enquanto o outro aparece) */
@@ -187,7 +187,7 @@ export function Botao({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
         <>
           {/* aceso: a cor, o brilho que passeia, a luz de cima e a borda clara aparecem juntos, por cima do cinza apagado */}
           <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, st.acesoBorda, perigo && st.acesoBordaPerigo, vidro && st.acesoVidro, { opacity: luz }]}>
-            <LinearGradient pointerEvents="none" colors={perigo ? (vidro ? ['#c42f4b', '#b3203a', '#9a1830'] : ['#ff7a8e', '#e5485f', '#c42f4b']) : vidro ? ['#3a2370', '#2a1650', '#1f1040'] : ['#9168ff', '#7648ff', '#6639f4']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+            <LinearGradient pointerEvents="none" colors={perigo ? (vidro ? ['#c42f4b', '#b3203a', '#9a1830'] : ['#ff7a8e', '#e5485f', '#c42f4b']) : vidro ? DEGRADE.vidroAtivo : ['#9168ff', '#7648ff', '#6639f4']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
             {vidro ? null : <BrilhoAndante forte={cursor || tocando} perigo={perigo} />}
             <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.26)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }} style={StyleSheet.absoluteFill} />
           </Animated.View>
@@ -337,7 +337,7 @@ export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar }:
         const ativo = o.valor === valor;
         return (
           <Pressable key={String(o.valor)} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => aoMudar(o.valor)} style={[st.segmento, ativo && (normal ? st.segmentoAtivoNormal : st.segmentoAtivo)]}>
-            {ativo && normal ? <LinearGradient pointerEvents="none" colors={DEGRADE.ativo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={[StyleSheet.absoluteFill, { borderRadius: raio.pilula }]} /> : null}
+            {ativo && normal ? <LinearGradient pointerEvents="none" colors={DEGRADE.vidroAtivo} start={INICIO_DIAGONAL} end={FIM_DIAGONAL} style={[StyleSheet.absoluteFill, { borderRadius: raio.pilula }]} /> : null}
             <T tam={12.5} peso={ativo ? '500' : '300'} cor={ativo ? (normal ? '#ffffff' : cores.fundo) : cores.texto2}>{o.nome}</T>
           </Pressable>
         );
@@ -398,7 +398,8 @@ const st = estilos(() => StyleSheet.create({
   botaoVidro: { backgroundColor: 'rgba(255,255,255,0.42)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.85)', boxShadow: '0 10px 24px -16px rgba(42,22,80,0.5)', ...VIDRO },
   botaoVidroPerigo: { borderColor: 'rgba(179,32,58,0.45)' },
   botaoVidroSobre: { backgroundColor: 'rgba(214,212,220,0.92)', borderColor: 'rgba(196,193,204,1)' },   // o cursor em cima: cinza claro
-  acesoVidro: { borderColor: 'rgba(255,255,255,0.25)' },
+  /* o principal aceso, no vidro: violeta translúcido com desfoque (antes era roxo quase preto; pedido do dono, 2026-11-18) */
+  acesoVidro: { borderColor: 'rgba(255,255,255,0.6)', boxShadow: '0 12px 26px -14px rgba(76,45,150,0.65)', ...VIDRO },
   botaoApagadoPerigo: { borderColor: 'rgba(255,107,129,0.28)' },
   acesoBorda: { borderRadius: raio.pilula, borderWidth: 1, borderColor: 'rgba(206,186,255,0.65)', overflow: 'hidden', margin: -1 },
   acesoBordaPerigo: { borderColor: 'rgba(255,190,200,0.7)' },
@@ -414,7 +415,7 @@ const st = estilos(() => StyleSheet.create({
   segmentos: { flexDirection: 'row', backgroundColor: cores.cartao2, borderRadius: raio.pilula, padding: 4, borderWidth: 1, borderColor: cores.linha },
   segmento: { flexGrow: 1, flexBasis: 'auto', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderRadius: raio.pilula },
   segmentoAtivo: { backgroundColor: cores.texto },
-  segmentoAtivoNormal: { overflow: 'hidden', boxShadow: '0 6px 16px -8px rgba(42,22,80,0.7)' },
+  segmentoAtivoNormal: { overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.55)', boxShadow: '0 6px 16px -8px rgba(76,45,150,0.65)' },
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
   campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },

@@ -56,8 +56,11 @@ export function BarraAbas({ itens, atual, aoEscolher }: Props) {
   const barra = Math.min(width - 2 * MARGEM, larguraMax - 2 * MARGEM);
   const util = barra - 2 * RECHEIO - 2;   // 2 = a borda de 1px de cada lado
   /* a ativa leva o espaço do nome; as outras dividem o resto (sem aba ativa, todas iguais) */
-  const temAtiva = itens.some((i) => i.id === atual);
-  const larguraAtiva = Math.min(150, Math.max(112, util * 0.36));
+  const ativa = itens.find((i) => i.id === atual);
+  const temAtiva = !!ativa;
+  /* a ativa tem a largura do nome dela, com folga (ícone 22 + espaço 8 + margens 34): "Comunidade" ficava apertado (2026-11-18).
+     As outras nunca ficam com menos de 44 px, o mínimo de toque. */
+  const larguraAtiva = Math.min(util - 44 * (n - 1), Math.max(108, (ativa?.rotulo.length ?? 6) * 7.8 + 64));
   const larguraInativa = temAtiva ? (util - larguraAtiva) / (n - 1) : util / n;
 
   return (
