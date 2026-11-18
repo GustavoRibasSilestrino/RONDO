@@ -8,6 +8,7 @@ import { LARGURA_MENU, LARGURA_MENU_FECHADO } from '../lib/largura';
 import { cores, DEGRADE, estilos, FIM_DIAGONAL, INICIO_DIAGONAL } from '../tema';
 import type { ItemAba } from './BarraAbas';
 import { Icone, NomeIcone } from './Icone';
+import { IconeMenu } from './IconeMenu';
 import { T } from './Ui';
 
 type Props = {
@@ -64,7 +65,7 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
           onPress={aoAlternar}
           style={({ pressed }) => [st.hamburguer, pressed && { backgroundColor: cores.cartao2 }]}
         >
-          <Icone nome="menu" tamanho={22} cor={cores.texto} />
+          {({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => <IconeMenu tamanho={22} ativo={!!hovered || pressed} />}
         </Pressable>
         {recolhido ? null : (
           <View style={st.marca}>

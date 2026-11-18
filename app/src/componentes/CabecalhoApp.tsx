@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cores, estilos, larguraMax, VIDRO } from '../tema';
 import { Icone } from './Icone';
+import { IconeMenu } from './IconeMenu';
 import { SeloSequencia } from './SeloSequencia';
 import { T } from './Ui';
 
@@ -65,7 +66,7 @@ export function CabecalhoApp({ titulo, aoBuscar, aoOpcoes, rotuloOpcoes, mostrar
           </Pressable>
         ) : aoOpcoes ? (
           <Pressable accessibilityRole="button" accessibilityLabel={rotuloOpcoes ?? `Opções de ${titulo}`} onPress={aoOpcoes} style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.direita, (hovered || pressed) && st.direitaSobre]}>
-            <Icone nome="opcoes" tamanho={24} cor={cores.texto} />
+            {({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => <IconeMenu tamanho={24} ativo={!!hovered || pressed} />}
           </Pressable>
         ) : null}
       </View>
