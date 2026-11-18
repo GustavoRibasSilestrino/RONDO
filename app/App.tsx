@@ -18,6 +18,7 @@ import { Icone } from './src/componentes/Icone';
 import { RondinChamado } from './src/componentes/RondinChamado';
 import { MenuLateral } from './src/componentes/MenuLateral';
 import { tirarCarregando } from './src/lib/carregando';
+import { guardarColuna } from './src/lib/coluna';
 import { atrasoDaAbertura } from './src/lib/abertura';
 import { useMenuRecolhido } from './src/lib/largura';
 import { PainelLateral } from './src/componentes/PainelLateral';
@@ -155,7 +156,8 @@ function Raiz() {
   return (
     <View style={{ flex: 1, flexDirection: largo ? 'row' : 'column' }}>
       {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} recolhido={menuRecolhido} aoAlternar={alternarMenu} nome={estado.usuario?.nome ?? ""} nivel={nivelDe(xpTotal(estado))} aoAbrirConta={() => setTela("perfil")} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} /> : null}
-      <View style={{ flex: 1 }}>
+      {/* a coluna do conteúdo: medida para os painéis de baixo se centralizarem nela (lib/coluna.ts) */}
+      <View style={{ flex: 1 }} onLayout={(e) => guardarColuna({ x: e.nativeEvent.layout.x, w: e.nativeEvent.layout.width })}>
       {/* a paisagem ilustrada da tela (as bolhas roxas saíram: tingiam o desenho todo de roxo) */}
       <FundoCena cena={cenaDaTela(tela)} />
       {/* as abas: deslizar o dedo para os lados troca de aba; as telas de dentro (notificações, Hoje, Evolução...) voltam

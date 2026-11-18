@@ -1,18 +1,23 @@
-/* Dieta: meta de calorias e macros, refeições do dia e a água. */
-import React, { useMemo, useState } from 'react';
-import { Pressable, View } from 'react-native';
+/* Dieta: meta de calorias e macros, refeições do dia e a água.
+   Desde 2026-11-18 (pedidos do dono): o dia se escolhe também num calendário (o ícone ao lado das setas, que abre no meio da tela);
+   cada refeição com alimentos ganha uma foto do prato (câmera ou galeria), e a mais recente vira o ícone do dia no calendário;
+   a quantidade do alimento se digita (antes era só de 10 em 10 g). */
+import React, { useEffect, useMemo, useState } from 'react';
+import { Image, Platform, Pressable, TextInput, View } from 'react-native';
+import { SeletorData } from '../componentes/SeletorData';
+import { escolherMidia, removerMidia, useUriMidia } from '../lib/midia';
 import { BotaoMais } from '../componentes/BotaoMais';
 import { Copos } from '../componentes/Copos';
 import { MenuMais } from '../componentes/MenuMais';
 import { BuscaProfissionais } from './BuscaProfissionais';
-import { Folha, Tela } from '../componentes/Estrutura';
+import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
 import { Anel, Barra, Botao, Campo, Cartao, Segmentos, T } from '../componentes/Ui';
 import { ALIMENTOS, Alimento, REFEICOES } from '../dados';
 import { useLoja } from '../estado/loja';
 import { macrosDe, macrosMeta, metaKcal, totaisDia } from '../lib/calc';
 import { dataCurta, doIso, fmt, iso, num, somarDias } from '../lib/datas';
-import { cores } from '../tema';
+import { cores, FONTE } from '../tema';
 import type { TipoRefeicao } from '../tipos';
 
 const semAcento = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -24,6 +29,8 @@ export function Dieta() {
   const [adicionando, setAdicionando] = useState<TipoRefeicao | null>(null);
   const [menu, setMenu] = useState(false);     // o + do canto: um menu só com texto (componentes/MenuMais.tsx)
   const [busca, setBusca] = useState(false);   // procurar nutricionista
+  const [calendario, setCalendario] = useState(false);
+  const avisar = useAviso();
 
   const meta = metaKcal(estado.perfil);
   const metas = macrosMeta(estado.perfil, meta);
@@ -36,6 +43,25 @@ export function Dieta() {
   const mudarDia = (n: number) => {
     const novo = iso(somarDias(doIso(dia), n));
     if (novo <= hoje) setDia(novo);
+  };
+
+  /* a foto do prato: no celular abre a câmera; no navegador, o seletor de fotos (que no celular também oferece a câmera) */
+  const fotografar = async (refeicao: TipoRefeicao) => {
+    try {
+      const [m] = await escolherMidia(Platform.OS === 'web' ? 'galeria' : 'camera', 1);
+      if (!m) return;
+      if (m.tipo !== 'imagem') { removerMidia([m.id]); avisar('Escolha uma foto (vídeo não vale aqui).'); return; }
+      const antiga = estado.fotosRefeicao[dia]?.[refeicao]?.id;
+      commit((e) => { (e.fotosRefeicao[dia] ??= {})[refeicao] = { id: m.id, quando: Date.now() }; });
+      if (antiga) removerMidia([antiga]);
+    } catch (e) {
+      avisar(e instanceof Error ? e.message : 'Não foi possível abrir a câmera agora.');
+    }
+  };
+  const tirarFoto = (refeicao: TipoRefeicao) => {
+    const antiga = estado.fotosRefeicao[dia]?.[refeicao]?.id;
+    commit((e) => { if (e.fotosRefeicao[dia]) delete e.fotosRefeicao[dia][refeicao]; });
+    if (antiga) removerMidia([antiga]);
   };
 
   return (
@@ -51,7 +77,13 @@ export function Dieta() {
             <View style={{ transform: [{ rotate: '180deg' }] }}><Icone nome="seta" tamanho={16} cor={cores.texto2} /></View>
           </Pressable>
         </View>
+        {/* o calendário: escolher o dia direto, sem passar seta por seta */}
+        <Pressable accessibilityRole="button" accessibilityLabel="Escolher o dia no calendário" onPress={() => setCalendario(true)} hitSlop={4}
+          style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [{ marginLeft: 8, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 }, (pressed || hovered) && { backgroundColor: cores.linha2 }]}>
+          <Icone nome="calendario" tamanho={18} cor={cores.texto} />
+        </Pressable>
       </View>
+      <SeletorData aberto={calendario} valor={dia} aoEscolher={setDia} aoFechar={() => setCalendario(false)} fotoDoDia={(d) => fotoDoDia(estado.fotosRefeicao[d])} />
 
       <Cartao style={{ marginTop: 22 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18 }}>
@@ -83,9 +115,13 @@ export function Dieta() {
         const kcal = lista.reduce((t, x) => t + x.kcal, 0);
         return (
           <Cartao key={r.id} style={{ marginTop: 14 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <T tam={18} peso="300">{r.nome}</T>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+              <T tam={18} peso="300" style={{ flex: 1 }}>{r.nome}</T>
               <T tam={13} cor={cores.texto2}>{kcal > 0 ? `${fmt(kcal)} kcal` : ''}</T>
+              {/* depois de registrar os alimentos: a foto do prato (tocar troca; o x tira) */}
+              {lista.length ? (
+                <FotoRefeicao id={estado.fotosRefeicao[dia]?.[r.id]?.id} nome={r.nome} aoFotografar={() => { void fotografar(r.id); }} aoTirar={() => tirarFoto(r.id)} />
+              ) : null}
             </View>
             {lista.map((x) => (
               <View key={x.id} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: cores.linha }}>
@@ -212,18 +248,68 @@ function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeica
   );
 }
 
-/* passo de 10 em 10 gramas */
+/* a quantidade: digitada (1 a 2000 g) ou ajustada de 10 em 10 nos botões */
 function Passo10({ valor, aoMudar }: { valor: number; aoMudar: (v: number) => void }) {
+  const [texto, setTexto] = useState(String(valor));
+  useEffect(() => { setTexto(String(valor)); }, [valor]);
+  const aplicar = (t: string) => {
+    const so = t.replace(/[^0-9]/g, '').slice(0, 4);
+    setTexto(so);
+    const n = Number(so);
+    if (n >= 1) aoMudar(Math.min(2000, n));
+  };
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderRadius: 8, borderWidth: 1, borderColor: cores.linha }}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Menos gramas" onPress={() => aoMudar(Math.max(10, valor - 10))} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderRadius: 12, borderWidth: 1, borderColor: cores.linha }}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Menos 10 gramas" onPress={() => aoMudar(Math.max(1, valor - 10))} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
         <Icone nome="menos" tamanho={16} cor={cores.texto2} />
       </Pressable>
-      <View style={{ minWidth: 70, alignItems: 'center' }}>
-        <T tam={18} peso="400">{valor} g</T>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', minWidth: 76, justifyContent: 'center' }}>
+        <TextInput
+          value={texto}
+          onChangeText={aplicar}
+          onBlur={() => { if (!Number(texto)) setTexto(String(valor)); }}
+          keyboardType="number-pad"
+          inputMode="numeric"
+          maxLength={4}
+          selectTextOnFocus
+          accessibilityLabel="Quantidade em gramas"
+          selectionColor={cores.destaque}
+          style={{ width: 52, textAlign: 'right', color: cores.texto, fontSize: 18, fontFamily: FONTE['400'], paddingVertical: 6, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' }}
+        />
+        <T tam={18} peso="400"> g</T>
       </View>
-      <Pressable accessibilityRole="button" accessibilityLabel="Mais gramas" onPress={() => aoMudar(Math.min(2000, valor + 10))} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Mais 10 gramas" onPress={() => aoMudar(Math.min(2000, valor + 10))} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
         <Icone nome="mais" tamanho={16} cor={cores.texto2} />
+      </Pressable>
+    </View>
+  );
+}
+
+/* o ícone do dia: a foto de refeição tirada por último */
+function fotoDoDia(fotos: Partial<Record<TipoRefeicao, { id: string; quando: number }>> | undefined): string | undefined {
+  const lista = Object.values(fotos ?? {}).filter(Boolean) as { id: string; quando: number }[];
+  return lista.sort((x, y) => y.quando - x.quando)[0]?.id;
+}
+
+/* a foto do prato no cartão da refeição: sem foto, o botão da câmera; com foto, a miniatura (tocar troca) e um x para tirar */
+function FotoRefeicao({ id, nome, aoFotografar, aoTirar }: { id?: string; nome: string; aoFotografar: () => void; aoTirar: () => void }) {
+  const uri = useUriMidia(id ?? '');
+  if (!id) {
+    return (
+      <Pressable accessibilityRole="button" accessibilityLabel={`Tirar uma foto do ${nome.toLowerCase()}`} onPress={aoFotografar} hitSlop={4}
+        style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 }, (pressed || hovered) && { backgroundColor: cores.linha2 }]}>
+        <Icone nome="camera" tamanho={18} cor={cores.texto} />
+      </Pressable>
+    );
+  }
+  return (
+    <View>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Trocar a foto do ${nome.toLowerCase()}`} onPress={aoFotografar} style={{ width: 44, height: 44, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao2 }}>
+        {uri ? <Image source={{ uri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" accessibilityIgnoresInvertColors /> : null}
+      </Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Tirar a foto do ${nome.toLowerCase()}`} onPress={aoTirar} hitSlop={8}
+        style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.painel, borderWidth: 1, borderColor: cores.linha2 }}>
+        <Icone nome="fechar" tamanho={10} cor={cores.texto} />
       </Pressable>
     </View>
   );

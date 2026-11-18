@@ -1,0 +1,62 @@
+/* O vidro escuro do site (pedido do dono, 2026-11-18, o mesmo do app, a partir de uma referência): o fundo da página ganha uma
+   luz roxa forte e fixa, e os cartões, o menu e as janelas que abrem por cima viram VIDRO: translúcidos e desfocados (20 px,
+   com mais saturação), deixando a luz e as fotos do fundo passarem por eles, como se refletissem. Preto e roxo, com o violeta
+   como destaque. Carregado por último (main.tsx), por cima dos estilos de cada parte. */
+:root {
+  --vidro-desfoque: blur(20px) saturate(170%);
+  --vidro-fundo: rgba(22, 16, 36, .52);
+  --vidro-fundo-forte: rgba(18, 13, 30, .68);
+  --vidro-borda: rgba(255, 255, 255, .12);
+  --vidro-reflexo: linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, 0) 45%);
+}
+
+/* a luz roxa do fundo: fica parada enquanto a página rola, para o vidro sempre ter cor para desfocar */
+html {
+  background:
+    radial-gradient(55% 45% at 78% 88%, rgba(124, 58, 237, .34), transparent 70%),
+    radial-gradient(40% 35% at 12% 18%, rgba(196, 168, 255, .12), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+/* cartões de conteúdo */
+.s-card, .cadastro-pro {
+  background: var(--vidro-reflexo), var(--vidro-fundo);
+  border-color: var(--vidro-borda);
+  backdrop-filter: var(--vidro-desfoque); -webkit-backdrop-filter: var(--vidro-desfoque);
+}
+
+/* os cartões sobre as fotos das seções: antes quase opacos; agora vidro, com a foto passando desfocada */
+#recado .recorder, #recado .mini, #constancia .streak-board, #constancia .points li, #planos .plan {
+  background-color: var(--vidro-fundo-forte);
+  background-image: var(--vidro-reflexo);
+  border-color: var(--vidro-borda);
+  backdrop-filter: var(--vidro-desfoque); -webkit-backdrop-filter: var(--vidro-desfoque);
+}
+#planos .plan.hot { background: var(--vidro-reflexo), linear-gradient(170deg, rgba(124, 58, 237, .5), rgba(18, 13, 30, .62) 62%); }
+
+/* o menu que abre do alto */
+.mega-card {
+  background: var(--vidro-reflexo), var(--vidro-fundo-forte);
+  border-color: var(--vidro-borda);
+  backdrop-filter: var(--vidro-desfoque); -webkit-backdrop-filter: var(--vidro-desfoque);
+}
+
+/* o RONDIN do canto: a fala e o balão aberto */
+.rondin-fala {
+  background: var(--vidro-fundo-forte);
+  backdrop-filter: var(--vidro-desfoque); -webkit-backdrop-filter: var(--vidro-desfoque);
+}
+.rondin-balao {
+  background: radial-gradient(120% 80% at 50% 0%, rgba(139, 92, 246, .22), transparent 60%), var(--vidro-fundo-forte);
+  backdrop-filter: var(--vidro-desfoque); -webkit-backdrop-filter: var(--vidro-desfoque);
+}
+.rondin-balao::after { background: rgba(18, 13, 30, .9); }
+
+/* a barra do alto (o fundo dela aparece depois de rolar): o mesmo vidro */
+.nav::before { backdrop-filter: var(--vidro-desfoque); -webkit-backdrop-filter: var(--vidro-desfoque); }
+
+/* sem desfoque no navegador (raro): o vidro fica mais fechado, para o texto continuar legível */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root { --vidro-fundo: rgba(18, 13, 30, .9); --vidro-fundo-forte: rgba(14, 10, 24, .94); }
+}

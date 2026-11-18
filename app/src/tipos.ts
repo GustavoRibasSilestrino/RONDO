@@ -108,6 +108,9 @@ export type Estado = {
   treinoAtual: TreinoAtual | null;
   rotinasProprias: Rotina[];                   // treinos que a pessoa criou ou enviou; somam-se aos fixos de dados.ts
   refeicoes: Record<string, Refeicao[]>;
+  /* a foto de cada refeição, por dia (o id da mídia guardada no aparelho; lib/midia.ts) e quando foi tirada: a mais recente vira o
+     ícone do dia no calendário da Dieta. Fica só no aparelho, como as outras fotos. */
+  fotosRefeicao: Record<string, Partial<Record<TipoRefeicao, { id: string; quando: number }>>>;
   agua: Record<string, number>;
   checkins: Record<string, boolean>;
   pesos: { data: string; kg: number }[];

@@ -4,7 +4,7 @@
    ela sai, ele volta subindo com mola, depois de ela sumir (as duas não disputam o pé da tela ao mesmo tempo). */
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { useBotaoMaisEscondido } from '../lib/botaoMais';
+import { guardarPosicaoMais, useBotaoMaisEscondido } from '../lib/botaoMais';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayoutLargo } from '../lib/largura';
@@ -12,6 +12,9 @@ import { cores, larguraMax, estilos, VIDRO } from '../tema';
 import { Icone } from './Icone';
 
 export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPressionar: () => void }) {
+  const caixa = useRef<React.ElementRef<typeof View>>(null);
+  /* mede onde o + ficou (ao montar, ao mudar de tamanho e na hora do toque) */
+  const medir = () => caixa.current?.measureInWindow((x, y, w, h) => { if (w) guardarPosicaoMais({ x, y, w, h }); });
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { largo } = useLayoutLargo();   // no computador não há barra embaixo
@@ -37,9 +40,11 @@ export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPression
           transform: [{ translateY: mostra.interpolate({ inputRange: [0, 1], outputRange: [86, 0] }) }, { scale: mostra.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) }],
         }}
       >
-        <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={aoPressionar} style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.mais, hovered && st.maisSobre, pressed && { transform: [{ scale: 0.94 }] }]}>
+        <View ref={caixa} onLayout={medir}>
+        <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={() => { medir(); aoPressionar(); }} style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.mais, hovered && st.maisSobre, pressed && { transform: [{ scale: 0.94 }] }]}>
           <View pointerEvents="none" style={{ zIndex: 1 }}><Icone nome="mais" tamanho={28} cor={cores.texto} espessura={2} /></View>
         </Pressable>
+        </View>
       </Animated.View>
     </View>
   );

@@ -10,6 +10,7 @@ import type { ItemAba } from './BarraAbas';
 import { Icone, NomeIcone } from './Icone';
 import { IconeMenu } from './IconeMenu';
 import { T } from './Ui';
+import { Avatar } from '../telas/comunidade/Avatar';
 
 type Props = {
   itens: ItemAba[]; atual: string; aoEscolher: (id: string) => void;
@@ -58,8 +59,8 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
   return (
     <Animated.View style={[st.menu, { width: largura }]} accessibilityRole="navigation">
       {/* no meio, sem o nome do app (pedido do dono, 2026-11-18). Fechado: o ícone do menu, para abrir. Aberto: uma seta para a
-          esquerda, mostrando onde clicar para recolher. */}
-      <View style={[st.topo, { justifyContent: 'center' }]}>
+          esquerda, encostada na margem direita, mostrando onde clicar para recolher. */}
+      <View style={[st.topo, { justifyContent: recolhido ? 'center' : 'flex-end' }]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={recolhido ? 'Abrir o menu' : 'Fechar o menu'}
@@ -89,7 +90,8 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
           onPress={aoAbrirConta}
           style={({ pressed }) => [st.conta, recolhido && { justifyContent: 'center', paddingHorizontal: 0 }, pressed && { backgroundColor: cores.cartao2 }]}
         >
-          <View style={st.inicial}><T tam={14} peso="500" cor="#ffffff">{(nome || '?').charAt(0).toUpperCase()}</T></View>
+          {/* a foto da conta (a mesma do perfil); sem foto, a inicial no círculo roxo */}
+          <Avatar nome={nome || '?'} voce tamanho={34} />
           {recolhido ? null : (
             <View style={{ flex: 1 }}>
               <T tam={14} peso="500" linhas={1}>{nome}</T>
@@ -116,5 +118,4 @@ const st = estilos(() => StyleSheet.create({
   dica: { position: 'absolute', left: 64, top: 8, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10, backgroundColor: cores.painel, borderWidth: 1, borderColor: cores.linha2, zIndex: 20, minWidth: 90 },
   rodape: { gap: 2, paddingTop: 12, borderTopWidth: 1, borderTopColor: cores.linha },
   conta: { flexDirection: 'row', alignItems: 'center', gap: 12, height: 56, paddingHorizontal: 8, borderRadius: 14, marginTop: 6, borderTopWidth: 1, borderTopColor: cores.linha },
-  inicial: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
 }));

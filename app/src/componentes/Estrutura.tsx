@@ -3,6 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { Animated, Easing, KeyboardAvoidingView, Modal, PanResponder, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayoutLargo } from '../lib/largura';
+import { useColuna } from '../lib/coluna';
 import { definirRolagem } from '../lib/rolagem';
 import { cores, larguraMax, raio, estilos, VIDRO } from '../tema';
 import { T } from './Ui';
@@ -47,6 +48,10 @@ export function Tela({ children, comDoca = true, animada = true, compacto = fals
 /* ---------- Folha: painel que sobe de baixo ---------- */
 export function Folha({ aberta, aoFechar, titulo, children }: { aberta: boolean; aoFechar: () => void; titulo?: string; children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
+  /* no computador, centralizada na coluna do conteúdo (entre o menu lateral e o painel da direita), alinhada com os textos de trás */
+  const { largo } = useLayoutLargo();
+  const coluna = useColuna();
+  const naColuna = largo && coluna ? { alignSelf: 'flex-start' as const, width: Math.min(coluna.w, larguraMax), marginLeft: coluna.x + (coluna.w - Math.min(coluna.w, larguraMax)) / 2 } : null;
   /* garantia de saída: o Modal só se desmonta quando o sistema avisa que a animação terminou; se esse aviso não vier
      (janela em segundo plano, por exemplo), a folha ficaria aberta por cima de tudo. Passados 400 ms, ela sai de qualquer jeito. */
   const [montada, setMontada] = useState(aberta);
@@ -84,7 +89,7 @@ export function Folha({ aberta, aoFechar, titulo, children }: { aberta: boolean;
     <Modal visible={aberta} transparent animationType="slide" onRequestClose={aoFechar} statusBarTranslucent>
       <View style={st.fundo}>
         <Pressable style={StyleSheet.absoluteFill} onPress={aoFechar} accessibilityLabel="Fechar" />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={st.espaco} pointerEvents="box-none">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[st.espaco, naColuna]} pointerEvents="box-none">
           <Animated.View style={[st.corpo, { paddingBottom: insets.bottom + 18, transform: [{ translateY: arraste }] }]} {...(nativo ? arrasteCorpo.panHandlers : {})}>
             <View {...arrasteAlca.panHandlers} accessibilityLabel="Arraste para baixo para fechar" style={[st.zonaAlca, !nativo && ({ touchAction: 'none', cursor: 'grab', userSelect: 'none' } as object)]}>
               <View style={st.alca} />
