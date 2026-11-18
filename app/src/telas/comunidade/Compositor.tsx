@@ -1,6 +1,7 @@
 /* Nova publicação em tela cheia: Cancelar e Publicar no alto; o destino (feed geral ou um dos seus clubes); um SUBTÍTULO (o
    assunto da publicação, gravado no campo `destaque`) e o texto; logo abaixo, só quatro ferramentas (pedido do dono, 2026-11-18):
-   foto da galeria, câmera, treino (põe no texto o resumo de um treino concluído) e @ (busca uma pessoa e põe o @ dela no texto).
+   foto da galeria, câmera, treino (põe no texto o resumo de um treino concluído), refeição (o resumo de uma refeição registrada na
+   Dieta) e @ (busca uma pessoa e põe o @ dela no texto).
    Se a pessoa fechar sem publicar, o rascunho fica guardado até a próxima vez. */
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
@@ -12,6 +13,7 @@ import { Botao, T } from '../../componentes/Ui';
 import { volumeDe } from '../../lib/calc';
 import { dataCurta, fmt } from '../../lib/datas';
 import { arrobaDe } from './util';
+import { REFEICOES } from '../../dados';
 import { useLista } from '../../estado/lista';
 import { useLoja } from '../../estado/loja';
 import { useConta } from '../../lib/beneficios';
@@ -38,6 +40,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
   const [subtitulo, setSubtitulo] = useState('');
   const [escolherTreino, setEscolherTreino] = useState(false);
   const [marcar, setMarcar] = useState(false);
+  const [escolherRefeicao, setEscolherRefeicao] = useState(false);
   const [midia, setMidia] = useState<Midia[]>([]);
   const [destino, setDestino] = useState<number | null>(grupoInicial);
   const [origem, setOrigem] = useState<'galeria' | 'camera' | null>(null);   // qual botão está esperando o seletor
@@ -88,6 +91,13 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
   const acrescentar = (trecho: string, separador: string) =>
     setTexto((t) => (t.trim() ? `${t.replace(/\s+$/, '')}${separador}${trecho}` : trecho).slice(0, LIMITE_TEXTO));
   const treinos = [...estado.treinos].reverse().slice(0, 8);
+  /* as refeições registradas nos últimos 7 dias, da mais nova para a mais antiga */
+  const refeicoes = Object.keys(estado.refeicoes ?? {}).sort().reverse().slice(0, 7).flatMap((dia) =>
+    REFEICOES.map((r) => {
+      const lista = (estado.refeicoes[dia] ?? []).filter((x) => x.refeicao === r.id);
+      return { dia, nome: r.nome, kcal: lista.reduce((t, x) => t + x.kcal, 0), alimentos: lista.map((x) => x.alimento) };
+    }).filter((x) => x.alimentos.length).reverse());
+  const resumoRefeicao = (x: (typeof refeicoes)[number]) => `${x.nome}: ${x.alimentos.join(', ')} · ${fmt(x.kcal)} kcal`;
   const resumoTreino = (t: (typeof treinos)[number]) => {
     const series = t.exercicios.reduce((n, x) => n + x.series.length, 0);
     const volume = t.exercicios.reduce((n, x) => n + volumeDe(x.series), 0);
@@ -131,6 +141,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
       <Ferramenta grande={largo} icone="imagem" rotulo="Foto ou vídeo da galeria" ocupado={origem === 'galeria'} desabilitado={cheio || origem === 'camera'} aoTocar={() => adicionar('galeria')} />
       <Ferramenta grande={largo} icone="camera" rotulo="Câmera" ocupado={origem === 'camera'} desabilitado={cheio || origem === 'galeria'} aoTocar={() => adicionar('camera')} />
       <Ferramenta grande={largo} icone="halter" rotulo="Adicionar um treino" ocupado={false} desabilitado={false} aoTocar={() => { if (treinos.length) setEscolherTreino(true); else avisar('Você ainda não concluiu nenhum treino.'); }} />
+      <Ferramenta grande={largo} icone="salada" rotulo="Adicionar uma refeição" ocupado={false} desabilitado={false} aoTocar={() => { if (refeicoes.length) setEscolherRefeicao(true); else avisar('Você ainda não registrou nenhuma refeição na Dieta.'); }} />
       <Ferramenta grande={largo} icone="arroba" rotulo="Marcar alguém" ocupado={false} desabilitado={false} aoTocar={() => setMarcar(true)} />
     </>
   );
@@ -249,6 +260,21 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
         </View>
       </Folha>
 
+      {/* refeição: uma das registradas na Dieta vira uma linha no texto */}
+      <Folha aberta={escolherRefeicao} aoFechar={() => setEscolherRefeicao(false)} titulo="Adicionar uma refeição">
+        <View style={{ gap: 8, paddingBottom: 4 }}>
+          {refeicoes.map((x, i) => (
+            <Pressable key={`${x.dia}-${x.nome}-${i}`} accessibilityRole="button" onPress={() => { acrescentar(resumoRefeicao(x), '\n\n'); setEscolherRefeicao(false); }} style={({ pressed }) => [st.opcaoTreino, pressed && { opacity: 0.7 }]}>
+              <Icone nome="salada" tamanho={20} cor={cores.texto} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <T tam={15} peso="500" linhas={1}>{x.nome} · {dataCurta(x.dia)}</T>
+                <T tam={12.5} cor={cores.texto2} linhas={1}>{x.alimentos.join(', ')} · {fmt(x.kcal)} kcal</T>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      </Folha>
+
       <MarcarPessoa aberta={marcar} aoFechar={() => setMarcar(false)} aoEscolher={(p) => { acrescentar(`@${p.arroba ?? arrobaDe(p.nome)} `, ' '); setMarcar(false); }} />
     </Modal>
   );
@@ -305,7 +331,7 @@ function Destino({ nome, ativo, aoTocar }: { nome: string; ativo: boolean; aoToc
   );
 }
 
-function Ferramenta({ icone, rotulo, ocupado, desabilitado, aoTocar, grande }: { icone: 'imagem' | 'camera' | 'halter' | 'arroba'; rotulo: string; ocupado: boolean; desabilitado: boolean; aoTocar: () => void; grande?: boolean }) {
+function Ferramenta({ icone, rotulo, ocupado, desabilitado, aoTocar, grande }: { icone: 'imagem' | 'camera' | 'halter' | 'salada' | 'arroba'; rotulo: string; ocupado: boolean; desabilitado: boolean; aoTocar: () => void; grande?: boolean }) {
   return (
     <Pressable
       accessibilityRole="button"
