@@ -4,7 +4,7 @@ import { SECTIONS, type Sec } from "../data/sections";
 import { goMoment } from "../lib/bus";
 import { APP_CRIAR, APP_ENTRAR } from "../lib/rotas";
 import { reduceMotion, vars } from "../lib/util";
-import { Btn, Nome } from "./ui";
+import { Btn, NomePilula } from "./ui";
 
 /* ---------- menu com painéis (abre ao passar o mouse, só em tela larga) ---------- */
 /* o painel começa na borda esquerda do item; se não couber à direita, é empurrado para dentro da tela */
@@ -137,7 +137,7 @@ export function Nav() {
     <>
       <header className={`nav${scrolled ? " scrolled" : ""}${closing ? " closing" : ""}${menuOpen ? " menu-open" : ""}`} id="nav" onClick={onNavClick}>
         <div className="nav-in">
-          <a href="#" className="logo logo-nome" aria-label="RONDO"><Nome /></a>
+          <a href="#" className="logo logo-nome" aria-label="RONDO"><NomePilula className="logo-pilula" /></a>
           <nav className="nav-links" aria-label="Principal">
             {MENU.map((m) => (
               <div className="nav-item" key={m.key} onPointerEnter={(e) => posicionar(e.currentTarget)} onFocusCapture={(e) => posicionar(e.currentTarget)}>

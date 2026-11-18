@@ -13,6 +13,30 @@ export function Mark({ className }: { className?: string }) {
   );
 }
 
+/* a marca em roxo (Logotipo RONDO.png, 2026-11-18): o nome branco dentro da pílula roxa, e o R branco no quadrado roxo. Mesmas
+   proporções da arte; o roxo é o dela (#2d0161), com um fio lilás bem fino para a peça não sumir no fundo preto do site. */
+const ROXO_MARCA = "#2d0161";
+const PAD_X = 78, PAD_Y = 72;
+export function NomePilula({ className }: { className?: string }) {
+  const w = NOME.largura + PAD_X * 2, h = NOME.altura + PAD_Y * 2;
+  return (
+    <svg className={className} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+      <rect x="3" y="3" width={w - 6} height={h - 6} rx={92} fill={ROXO_MARCA} stroke="rgba(196,168,255,.35)" strokeWidth="6" />
+      <path fill="#fff" fillRule="evenodd" transform={`translate(${PAD_X} ${PAD_Y})`} d={NOME.d} />
+    </svg>
+  );
+}
+export function IconeMarca({ className }: { className?: string }) {
+  const L = 1024, rw = L * 0.6, e = rw / SIMBOLO.largura;
+  const x = (L - rw) / 2 + rw * 0.015, y = (L - SIMBOLO.altura * e) / 2 - SIMBOLO.altura * e * 0.01;
+  return (
+    <svg className={className} viewBox={`0 0 ${L} ${L}`} aria-hidden="true">
+      <rect x="6" y="6" width={L - 12} height={L - 12} rx={L * 0.23} fill={ROXO_MARCA} stroke="rgba(196,168,255,.35)" strokeWidth="12" />
+      <path fill="#fff" fillRule="evenodd" transform={`translate(${x} ${y}) scale(${e})`} d={SIMBOLO.d} />
+    </svg>
+  );
+}
+
 export function Nome({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox={`0 0 ${NOME.largura} ${NOME.altura}`} aria-hidden="true">
