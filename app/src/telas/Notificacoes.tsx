@@ -17,7 +17,7 @@ const ICONE: Record<Notificacao['tipo'], NomeIcone> = { cheers: 'cheers', coment
 
 type Linha = { chave: string; tipo: Notificacao['tipo']; texto: string; quando: number; nova: boolean; ref?: string };
 
-/* `aoFechar`: o X no alto volta para a tela de onde a pessoa veio (pedido do dono, 2026-11-17) */
+/* `aoFechar`: tocar em qualquer lugar volta para a tela de onde a pessoa veio (desde 2026-11-18; antes era um X) */
 export function Notificacoes({ aoFechar }: { aoFechar?: () => void }) {
   const { estado, commit, atualizarSocial } = useLoja();
   const servidor = useLista((cursor) => lerAvisos(cursor), []);
@@ -49,17 +49,11 @@ export function Notificacoes({ aoFechar }: { aoFechar?: () => void }) {
   };
 
   return (
+    /* tocar em qualquer parte da tela fecha as notificações e volta para a aba de antes (pedido do dono, 2026-11-18); o título
+       já está no cabeçalho, então o X e o título repetido saíram. Os botões de dentro (Limpar) continuam funcionando. */
+    <Pressable accessible={false} onPress={aoFechar} disabled={!aoFechar} style={{ flex: 1 }} {...({ dataSet: { semSelecao: '1' } } as object)}>
     <Tela>
-      <View style={{ justifyContent: 'center' }}>
-        {aoFechar ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Fechar as notificações" onPress={aoFechar} hitSlop={8}
-            style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.fechar, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}>
-            <Icone nome="fechar" tamanho={20} cor={cores.texto} />
-          </Pressable>
-        ) : null}
-        <T tam={15} peso="400" centro>Notificações</T>
-      </View>
-      <T tam={13} centro style={{ marginTop: 6 }}>Tudo o que chega para o seu perfil fica guardado aqui.</T>
+      <T tam={13} centro cor={cores.texto2}>Tudo o que chega para o seu perfil fica guardado aqui. Toque em qualquer lugar para fechar.</T>
       <View style={{ gap: 10, marginTop: 22 }}>
         {lista.length === 0 ? (
           <Cartao>
@@ -87,11 +81,11 @@ export function Notificacoes({ aoFechar }: { aoFechar?: () => void }) {
       {servidor.temMais ? <Botao pequeno tipo="discreto" titulo="Ver mais" aoPressionar={servidor.maisItens} carregando={servidor.carregando} style={{ marginTop: 14 }} /> : null}
       {lista.length > 0 ? <Botao tipo="discreto" titulo="Limpar notificações" aoPressionar={limpar} style={{ marginTop: 20 }} /> : null}
     </Tela>
+    </Pressable>
   );
 }
 
 const st = estilos(() => StyleSheet.create({
-  fechar: { position: 'absolute', left: 0, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   item: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
   nova: { borderColor: cores.destaqueForte },
   icone: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },

@@ -9,8 +9,7 @@ import { cores, DEGRADE, estilos, FIM_DIAGONAL, INICIO_DIAGONAL } from '../tema'
 import type { ItemAba } from './BarraAbas';
 import { Icone, NomeIcone } from './Icone';
 import { IconeMenu } from './IconeMenu';
-import { T } from './Ui';import { NomeMarca } from './Marca';
-
+import { T } from './Ui';
 
 type Props = {
   itens: ItemAba[]; atual: string; aoEscolher: (id: string) => void;
@@ -58,7 +57,8 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
 
   return (
     <Animated.View style={[st.menu, { width: largura }]} accessibilityRole="navigation">
-      <View style={[st.topo, recolhido && { justifyContent: 'center' }]}>
+      {/* aberto ou fechado, só o ícone do menu, no meio (pedido do dono, 2026-11-18: sem o nome do app) */}
+      <View style={[st.topo, { justifyContent: 'center' }]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={recolhido ? 'Abrir o menu' : 'Fechar o menu'}
@@ -68,11 +68,6 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
         >
           {({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => <IconeMenu tamanho={22} ativo={!!hovered || pressed} />}
         </Pressable>
-        {recolhido ? null : (
-          <View style={st.marca}>
-            <NomeMarca altura={18} cor={cores.texto} />
-          </View>
-        )}
       </View>
 
       <View accessibilityRole="tablist" style={{ gap: 2, marginTop: 14 }}>
@@ -108,7 +103,6 @@ const st = estilos(() => StyleSheet.create({
   menu: { height: '100%', paddingHorizontal: 12, paddingTop: 14, paddingBottom: 14, borderRightWidth: 1, borderRightColor: cores.linha2, backgroundColor: cores.fundo2, zIndex: 10 },
   topo: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 44 },
   hamburguer: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 14 },
-  marca: { flexDirection: 'row', alignItems: 'center', gap: 10, marginLeft: 4 },
   item: { flexDirection: 'row', alignItems: 'center', gap: 14, height: 46, paddingHorizontal: 10, borderRadius: 14, overflow: 'hidden' },
   itemFechado: { justifyContent: 'center', paddingHorizontal: 0 },
   itemSobre: { backgroundColor: cores.cartao2 },
