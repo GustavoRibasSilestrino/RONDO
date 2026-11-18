@@ -14,6 +14,7 @@ import { MenuMais } from '../componentes/MenuMais';
 import { BuscaProfissionais } from './BuscaProfissionais';
 import { GaleriaRefeicoes } from './GaleriaRefeicoes';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
+import { Janela } from '../componentes/Janela';
 import { Icone } from '../componentes/Icone';
 import { Anel, Barra, Botao, Campo, Cartao, Segmentos, T } from '../componentes/Ui';
 import { ALIMENTOS, Alimento } from '../dados';
@@ -269,7 +270,8 @@ function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeica
   const titulo = modo === 'peso' && escolhido ? escolhido.nome : modo === 'criar' ? 'Criar alimento' : 'Adicionar alimento';
 
   return (
-    <Folha aberta={!!refeicaoInicial} aoFechar={aoFechar} titulo={titulo}>
+    <>
+    <Folha aberta={!!refeicaoInicial && modo !== 'criar'} aoFechar={aoFechar} titulo={titulo}>
       {modo === 'buscar' ? (
         <View style={{ gap: 12 }}>
           <Campo rotulo="Buscar" value={busca} onChangeText={setBusca} placeholder="Arroz, frango, banana..." autoCorrect={false} />
@@ -296,24 +298,6 @@ function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeica
               ) : null}
             </View>
           ))}
-        </View>
-      ) : modo === 'criar' ? (
-        <View style={{ gap: 12 }}>
-          <Campo rotulo="Nome do alimento" value={novo.nome} onChangeText={(t) => setNovo((n) => ({ ...n, nome: t }))} placeholder="Ex.: Tapioca com queijo" maxLength={60} />
-          <T tam={12.5} cor={cores.texto3}>Valores em 100 g (veja no rótulo da embalagem). Só as calorias são obrigatórias.</T>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Calorias (kcal)" value={novo.kcal} onChangeText={(t) => setNovo((n) => ({ ...n, kcal: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
-            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Proteína (g)" value={novo.p} onChangeText={(t) => setNovo((n) => ({ ...n, p: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Carboidratos (g)" value={novo.c} onChangeText={(t) => setNovo((n) => ({ ...n, c: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
-            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Gorduras (g)" value={novo.g} onChangeText={(t) => setNovo((n) => ({ ...n, g: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
-          </View>
-          {erroNovo ? <View accessibilityRole="alert" accessibilityLiveRegion="polite"><T tam={13} cor={cores.erro}>{erroNovo}</T></View> : null}
-          <View style={{ flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
-            <Botao titulo="Salvar e escolher o peso" icone="ok" aoPressionar={salvarNovo} />
-            <Botao tipo="discreto" titulo="Voltar" aoPressionar={() => setModo('buscar')} />
-          </View>
         </View>
       ) : escolhido ? (
         <View style={{ gap: 16 }}>
@@ -353,6 +337,27 @@ function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeica
         </View>
       ) : null}
     </Folha>
+    {/* criar um alimento: numa janela no centro da tela (pedido do dono, 2026-11-18) */}
+    <Janela aberta={!!refeicaoInicial && modo === 'criar'} aoFechar={() => setModo('buscar')} titulo="Criar alimento">
+        <View style={{ gap: 12 }}>
+          <Campo rotulo="Nome do alimento" value={novo.nome} onChangeText={(t) => setNovo((n) => ({ ...n, nome: t }))} placeholder="Ex.: Tapioca com queijo" maxLength={60} />
+          <T tam={12.5} cor={cores.texto3}>Valores em 100 g (veja no rótulo da embalagem). Só as calorias são obrigatórias.</T>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Calorias (kcal)" value={novo.kcal} onChangeText={(t) => setNovo((n) => ({ ...n, kcal: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
+            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Proteína (g)" value={novo.p} onChangeText={(t) => setNovo((n) => ({ ...n, p: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
+          </View>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Carboidratos (g)" value={novo.c} onChangeText={(t) => setNovo((n) => ({ ...n, c: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
+            <View style={{ flex: 1, minWidth: 0 }}><Campo rotulo="Gorduras (g)" value={novo.g} onChangeText={(t) => setNovo((n) => ({ ...n, g: t }))} keyboardType="decimal-pad" inputMode="decimal" placeholder="0" /></View>
+          </View>
+          {erroNovo ? <View accessibilityRole="alert" accessibilityLiveRegion="polite"><T tam={13} cor={cores.erro}>{erroNovo}</T></View> : null}
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap' }}>
+            <Botao titulo="Salvar e escolher o peso" icone="ok" aoPressionar={salvarNovo} />
+            <Botao tipo="discreto" titulo="Voltar" aoPressionar={() => setModo('buscar')} />
+          </View>
+        </View>
+    </Janela>
+    </>
   );
 }
 
