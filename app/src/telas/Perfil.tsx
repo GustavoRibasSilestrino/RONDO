@@ -10,6 +10,7 @@ import { Icone } from '../componentes/Icone';
 import { Selo, tipoDeSelo } from '../componentes/Selos';
 import { Medalha3D } from '../componentes/Medalha3D';
 import { PlanoPro } from '../componentes/PlanoPro';
+import { TelaPlanos } from '../componentes/TelaPlanos';
 import { AnelStory } from '../componentes/stories/AnelStory';
 import { CriarStory } from '../componentes/stories/CriarStory';
 import { VisorStory } from '../componentes/stories/VisorStory';
@@ -49,6 +50,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const [editando, setEditando] = useState(false);
   const [config, setConfig] = useState(false);
   const [plano, setPlano] = useState(false);   // a folha do plano PRO, aberta pela estrela do topo
+  const [planos, setPlanos] = useState(false);   // a tela de planos, aberta por "Melhorar plano"
   const [criandoStory, setCriandoStory] = useState(false);
   const [verStory, setVerStory] = useState(false);
   const [postAberto, setPostAberto] = useState<PostSocial | null>(null);
@@ -151,9 +153,18 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       {/* topo: @usuário e as ações (sem o cabeçalho do app e sem o fogo da sequência: o perfil começa perto do topo) */}
       <View style={st.barra}>
         <T tam={17} peso="500" linhas={1} style={{ flex: 1 }}>@{arrobaAtual}</T>
-        <Pressable accessibilityRole="button" accessibilityLabel={estado.pro ? 'Seu plano: PRO' : 'Plano PRO: conhecer o plano'} onPress={() => setPlano(true)} style={({ pressed }) => [st.redondo, st.pro, pressed && { opacity: 0.8 }]}>
-          <Icone nome="estrela" tamanho={19} cor="#ffffff" />
-        </Pressable>
+        {/* o plano: quem é PRO vê a estrela (o resumo do plano); quem não é, o convite "Melhorar plano" (a tela de planos) */}
+        {estado.pro ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Seu plano: PRO" onPress={() => setPlano(true)} style={({ pressed }) => [st.redondo, st.pro, pressed && { opacity: 0.8 }]}>
+            <Icone nome="estrela" tamanho={19} cor="#ffffff" />
+          </Pressable>
+        ) : (
+          <Pressable accessibilityRole="button" accessibilityLabel="Melhorar plano: conhecer o PRO" onPress={() => setPlanos(true)} hitSlop={4}
+            style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 38, paddingHorizontal: 14, borderRadius: 19, backgroundColor: cores.acao }, (pressed || hovered) && { opacity: 0.85 }]}>
+            <Icone nome="estrela" tamanho={14} cor="#ffffff" espessura={2} />
+            <T tam={13} peso="500" cor="#ffffff">Melhorar plano</T>
+          </Pressable>
+        )}
         {/* o microfone do recado e o lápis saíram daqui (2026-11-13): o recado continua no cartão do dia e no diário, e
             "Editar perfil" fica dentro das Configurações */}
         <Pressable accessibilityRole="button" accessibilityLabel="Diário de recados" onPress={() => ir('diario')} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
@@ -305,6 +316,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
       <Configuracoes aberto={config} aoFechar={() => setConfig(false)} aoEditarPerfil={abrirEdicao} />
       <PlanoPro aberto={plano} aoFechar={() => setPlano(false)} />
+      <TelaPlanos aberto={planos} aoFechar={() => setPlanos(false)} />
       <EditarTitulos aberta={editandoTitulos} aoFechar={() => setEditandoTitulos(false)} />
       <CriarStory aberto={criandoStory} aoFechar={() => setCriandoStory(false)} aoPublicar={() => { recarregarStories().catch(() => {}); }} />
       <VisorStory aberto={verStory} listas={[{ autor: 'Você', itens: stories }]} aoFechar={() => setVerStory(false)} aoExcluir={(s) => excluirStory(s.id)} />

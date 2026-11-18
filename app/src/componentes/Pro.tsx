@@ -1,13 +1,14 @@
 /* Recursos pagos: o selo com a estrela (SeloPro) e o aviso que explica o plano PRO (AvisoPro).
    No navegador o aviso leva aos planos no site. No app instalado não há link nem preço: a Apple e o Google recusam app que
    manda a pessoa pagar fora da loja; quando o PRO for vendido, no celular será pela compra dentro do app. */
-import React from 'react';
+import React, { useState } from 'react';
 import { Linking, Platform, StyleSheet, View } from 'react-native';
 import { useLoja } from '../estado/loja';
 import { cores, estilos } from '../tema';
 import { Folha } from './Estrutura';
 import { Icone } from './Icone';
 import { Botao, T } from './Ui';
+import { TelaPlanos } from './TelaPlanos';
 
 /* a estrela de recurso pago, pequena, para ficar do lado do nome */
 export function SeloPro() {
@@ -23,8 +24,9 @@ const NO_SITE = Platform.OS === 'web';
 
 type Props = { aberto: boolean; aoFechar: () => void; recurso: string; site: string };
 
-export function AvisoPro({ aberto, aoFechar, recurso, site }: Props) {
+export function AvisoPro({ aberto, aoFechar, recurso }: Props) {
   const { estado } = useLoja();
+  const [planos, setPlanos] = useState(false);   // a tela de planos (componentes/TelaPlanos.tsx)
   if (estado.pro) {
     return (
       <Folha aberta={aberto} aoFechar={aoFechar} titulo="Recurso PRO liberado">
@@ -32,7 +34,6 @@ export function AvisoPro({ aberto, aoFechar, recurso, site }: Props) {
           <View style={st.grande}><Icone nome="estrela" tamanho={30} cor="#ffffff" espessura={2} /></View>
           <T tam={16} peso="500" centro>{recurso}</T>
           <T tam={14} centro style={{ lineHeight: 21 }}>O seu plano PRO está ativo. Este recurso ainda não está pronto no app: falta ligar a IA.</T>
-          <View style={{ alignSelf: 'stretch', marginTop: 6 }}><Botao tipo="discreto" titulo="Entendi" aoPressionar={aoFechar} /></View>
         </View>
       </Folha>
     );
@@ -43,12 +44,10 @@ export function AvisoPro({ aberto, aoFechar, recurso, site }: Props) {
         <View style={st.grande}><Icone nome="estrela" tamanho={30} cor="#ffffff" espessura={2} /></View>
         <T tam={16} peso="500" centro>{recurso}</T>
         <T tam={14} centro style={{ lineHeight: 21 }}>
-          {NO_SITE ? 'Este recurso faz parte do plano PRO. A assinatura é feita no site da RONDO.' : 'Este recurso faz parte do plano PRO, que ainda não está disponível.'}
+          Este recurso faz parte do plano PRO.
         </T>
-        <View style={{ alignSelf: 'stretch', gap: 10, marginTop: 6 }}>
-          {NO_SITE ? <Botao icone="estrela" titulo="Ver os planos no site" aoPressionar={() => { Linking.openURL(site); aoFechar(); }} /> : null}
-          <Botao tipo="discreto" titulo={NO_SITE ? 'Agora não' : 'Entendi'} aoPressionar={aoFechar} />
-        </View>
+        <Botao icone="estrela" titulo="Ver os planos" aoPressionar={() => setPlanos(true)} style={{ marginTop: 6 }} />
+        <TelaPlanos aberto={planos} aoFechar={() => { setPlanos(false); aoFechar(); }} />
       </View>
     </Folha>
   );

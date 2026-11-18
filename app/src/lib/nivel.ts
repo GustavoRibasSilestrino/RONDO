@@ -1,5 +1,6 @@
 /* Nível da conta: sobe com o que a pessoa registra e publica. Cada nível libera títulos para mostrar no perfil. */
 import type { Estado } from '../tipos';
+import { bateuAgua } from './agua';
 
 /* XP de cada atividade (os mesmos pesos do ranking semanal, mais publicar e comentar) */
 export const XP = { treino: 30, refeicoes: 20, checkin: 10, agua: 5, post: 15, comentario: 3 } as const;
@@ -7,7 +8,7 @@ export const XP = { treino: 30, refeicoes: 20, checkin: 10, agua: 5, post: 15, c
 export function xpTotal(e: Estado): number {
   const refeicoes = Object.values(e.refeicoes).filter((l) => l.length >= 3).length;
   const checkins = Object.values(e.checkins).filter(Boolean).length;
-  const agua = Object.values(e.agua).filter((n) => n >= 8).length;
+  const agua = Object.keys(e.agua).filter((d) => bateuAgua(e, d)).length;   // dias em que bateu a meta de água
   return e.treinos.length * XP.treino + refeicoes * XP.refeicoes + checkins * XP.checkin + agua * XP.agua + e.social.posts * XP.post + e.social.comentarios * XP.comentario + (e.xpExtra ?? 0);
 }
 

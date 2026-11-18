@@ -60,7 +60,7 @@ export const MENU: MenuEntry[] = [
   { key: "planos", href: "#planos", trigger: "Planos", label: "Planos", cols: [
     { t: "Para você", d: "Grátis para começar, PRO para ir além.", items: [
       { t: "Grátis", d: "Treino, dieta, água, streak e feed.", href: "#planos" },
-      { t: "PRO · R$ 14,90 (em breve)", d: "Recados ilimitados; ranking com prêmios depois.", href: "#planos" },
+      { t: "PRO · R$ 49,90 (em breve)", d: "Selo de verificado, recados ilimitados e a RONDO AI depois.", href: "#planos" },
     ] },
     { t: "Profissionais", d: "Para quem acompanha alunos pelo app.", items: [
       { t: "Profissional · R$ 59 (em breve)", d: "Perfil conferido, até 25 alunos e painel.", href: "#planos" },

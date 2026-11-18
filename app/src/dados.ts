@@ -80,7 +80,7 @@ export const ALIMENTOS: Alimento[] = [
   { id: 'azeite', nome: 'Azeite de oliva', kcal: 884, p: 0, c: 0, g: 100 },
 ];
 
-export const REFEICOES: { id: TipoRefeicao; nome: string }[] = [
+export const REFEICOES: { id: TipoRefeicao; nome: string }[] = [   // as de sempre; as da pessoa: lib/refeicoes.ts
   { id: 'cafe', nome: 'Café da manhã' },
   { id: 'almoco', nome: 'Almoço' },
   { id: 'lanche', nome: 'Lanche' },

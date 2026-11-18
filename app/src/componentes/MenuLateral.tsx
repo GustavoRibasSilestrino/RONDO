@@ -11,9 +11,9 @@ import { Icone, NomeIcone } from './Icone';
 import { IconeMenu } from './IconeMenu';
 import { T } from './Ui';
 import { Avatar } from '../telas/comunidade/Avatar';
-import { SITE } from '../telas/Login';
 import { useLoja } from '../estado/loja';
-import { AvisoPro } from './Pro';
+import { PlanoPro } from './PlanoPro';
+import { TelaPlanos } from './TelaPlanos';
 
 type Props = {
   itens: ItemAba[]; atual: string; aoEscolher: (id: string) => void;
@@ -59,7 +59,7 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
   }, [recolhido, reduzido, largura]);
 
   const { estado } = useLoja();
-  const [pro, setPro] = useState(false);   // a explicação do plano PRO (componentes/Pro.tsx)
+  const [pro, setPro] = useState(false);   // a tela de planos (ou, para quem já é PRO, o resumo do plano)
   const perfilAtivo = atual === 'perfil' && !notificacoesAbertas;
 
   const botaoMenu = (
@@ -147,7 +147,7 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
         <Item papel="button" icone="sino" rotulo="Notificações" recolhido={recolhido} ativo={notificacoesAbertas} selo={naoLidas} aoPressionar={aoAbrirNotificacoes} />
       </View>
 
-      <AvisoPro aberto={pro} aoFechar={() => setPro(false)} recurso="Plano PRO" site={SITE} />
+      {estado.pro ? <PlanoPro aberto={pro} aoFechar={() => setPro(false)} /> : <TelaPlanos aberto={pro} aoFechar={() => setPro(false)} />}
     </Animated.View>
   );
 }

@@ -1,7 +1,6 @@
 /* Hoje: o painel do dia. O que você fez comparado com a sua semana passada, o treino, as calorias e a água. */
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { Copos } from '../componentes/Copos';
 import { Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
 import { Anel, Barra, Botao, Cartao, Chip, T } from '../componentes/Ui';
@@ -11,6 +10,8 @@ import { comparar, diaDaComparacao, macrosMeta, metaKcal, situacaoDaSequencia, s
 import { ChamaJoia } from '../componentes/ChamaJoia';
 import { diaExtenso, fmt, iso, nomeDoDia, num } from '../lib/datas';
 import { cores } from '../tema';
+import { AguaCartao } from '../componentes/AguaCartao';
+import { aguaDoDia, litros, metaAgua } from '../lib/agua';
 
 const delta = (v: number | null): string => (v === null ? '—' : `${v >= 0 ? '+' : ''}${Math.round(v)}%`);
 const corDelta = (v: number | null): string => (v === null ? cores.texto3 : v >= 0 ? cores.bom : cores.alerta);
@@ -37,7 +38,7 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
   const idxUltima = ultima ? rotinas.findIndex((r) => r.id === ultima.rotina) : -1;
   const sugerida = rotinas.length ? rotinas[(idxUltima + 1) % rotinas.length] : undefined;   // pode não haver treino: a pessoa excluiu todos
   const treinouHoje = estado.treinos.some((t) => t.data === d);
-  const agua = estado.agua[d] ?? 0;
+  const agua = aguaDoDia(estado, d);
   const checkin = !!estado.checkins[d];
 
   return (
@@ -71,7 +72,7 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
             { nome: 'Treinos', valor: String(cur.treinos), d: cmp.treinos },
             { nome: 'Volume', valor: `${fmt(cur.volume / 1000, 1)} t`, d: cmp.volume },
             { nome: 'Refeições', valor: String(cur.refeicoes), d: cmp.refeicoes },
-            { nome: 'Água/dia', valor: fmt(cur.agua, 1), d: cmp.agua },
+            { nome: 'Água/dia', valor: litros(cur.agua), d: cmp.agua },
           ].map((m) => (
             <View key={m.nome} style={{ width: '50%', paddingRight: 8 }}>
               <T tam={11} mono cor={cores.texto3}>{m.nome.toUpperCase()}</T>
@@ -140,10 +141,7 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
       </Pressable>
 
       {/* Água */}
-      <Cartao style={{ marginTop: 14 }}>
-        <T tam={24} peso="300" style={{ marginBottom: 12 }}>{agua} de 8 copos</T>
-        <Copos cheios={agua} aoMudar={(n) => commit((e) => { e.agua[d] = n; })} />
-      </Cartao>
+      <AguaCartao style={{ marginTop: 14 }} ml={agua} meta={metaAgua(estado.perfil)} aoMudar={(ml) => commit((e) => { e.agua[d] = ml; })} />
 
       {/* Check-in */}
       <Cartao style={{ marginTop: 14 }}>

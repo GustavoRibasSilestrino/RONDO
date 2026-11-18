@@ -7,14 +7,16 @@ import { Image, Platform, Pressable, TextInput, View } from 'react-native';
 import { SeletorData } from '../componentes/SeletorData';
 import { escolherMidia, removerMidia, useUriMidia } from '../lib/midia';
 import { BotaoMais } from '../componentes/BotaoMais';
-import { Copos } from '../componentes/Copos';
+import { AguaCartao } from '../componentes/AguaCartao';
+import { aguaDoDia, COPO_ML, metaAgua } from '../lib/agua';
+import { refeicoesDe } from '../lib/refeicoes';
 import { MenuMais } from '../componentes/MenuMais';
 import { BuscaProfissionais } from './BuscaProfissionais';
 import { GaleriaRefeicoes } from './GaleriaRefeicoes';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
 import { Anel, Barra, Botao, Campo, Cartao, Segmentos, T } from '../componentes/Ui';
-import { ALIMENTOS, Alimento, REFEICOES } from '../dados';
+import { ALIMENTOS, Alimento } from '../dados';
 import { useLoja } from '../estado/loja';
 import { macrosDe, macrosMeta, metaKcal, totaisDia } from '../lib/calc';
 import { dataCurta, doIso, fmt, iso, num, somarDias } from '../lib/datas';
@@ -38,7 +40,9 @@ export function Dieta() {
   const metas = macrosMeta(estado.perfil, meta);
   const tot = totaisDia(estado, dia);
   const itens = estado.refeicoes[dia] ?? [];
-  const agua = estado.agua[dia] ?? 0;
+  const agua = aguaDoDia(estado, dia);   // ml
+  const refeicoes = refeicoesDe(estado);
+  const [editando, setEditando] = useState<{ id: string | null; nome: string } | null>(null);   // a refeição em edição (id null = nova)
   const rotuloDia = dia === hoje ? 'Hoje' : dia === iso(somarDias(new Date(), -1)) ? 'Ontem' : dataCurta(dia);
   const restante = meta - tot.kcal;
 
@@ -112,13 +116,17 @@ export function Dieta() {
         </View>
       </Cartao>
 
-      {REFEICOES.map((r) => {
+      {refeicoes.map((r) => {
         const lista = itens.filter((x) => x.refeicao === r.id);
         const kcal = lista.reduce((t, x) => t + x.kcal, 0);
         return (
           <Cartao key={r.id} style={{ marginTop: 14 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-              <T tam={18} peso="300" style={{ flex: 1 }}>{r.nome}</T>
+              {/* o nome: tocar edita (renomear ou excluir) */}
+              <Pressable accessibilityRole="button" accessibilityLabel={`Editar a refeição ${r.nome}`} onPress={() => setEditando({ id: r.id, nome: r.nome })} hitSlop={6} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start' }}>
+                <T tam={18} peso="300" linhas={1} style={{ flexShrink: 1 }}>{r.nome}</T>
+                <Icone nome="lapis" tamanho={14} cor={cores.texto3} />
+              </Pressable>
               <T tam={13} cor={cores.texto2}>{kcal > 0 ? `${fmt(kcal)} kcal` : ''}</T>
               {/* depois de registrar os alimentos: a foto do prato (tocar troca; o x tira) */}
               {lista.length ? (
@@ -150,13 +158,36 @@ export function Dieta() {
         );
       })}
 
-      <Cartao style={{ marginTop: 14 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-          <T tam={18} peso="300">Água</T>
-          <T tam={13} cor={cores.texto2}>{agua} de 8 copos</T>
-        </View>
-        <Copos cheios={agua} aoMudar={(n) => commit((e) => { e.agua[dia] = n; })} />
-      </Cartao>
+      {/* criar uma refeição (uma ceia, um pré-treino...) */}
+      <Pressable accessibilityRole="button" onPress={() => setEditando({ id: null, nome: '' })}
+        style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 14, minHeight: 52, borderRadius: 22, borderWidth: 1, borderStyle: 'dashed', borderColor: cores.linha2 }, (pressed || hovered) && { backgroundColor: cores.cartao }]}>
+        <Icone nome="mais" tamanho={16} cor={cores.destaque2} />
+        <T tam={14} peso="500" cor={cores.destaque2}>Nova refeição</T>
+      </Pressable>
+
+      <AguaCartao style={{ marginTop: 14 }} ml={agua} meta={metaAgua(estado.perfil)} aoMudar={(ml) => commit((e) => { e.agua[dia] = ml; })} />
+
+      <EditarRefeicao
+        editando={editando}
+        aoFechar={() => setEditando(null)}
+        podeExcluir={refeicoes.length > 1}
+        aoSalvar={(nome) => {
+          const alvo = editando;
+          commit((e) => {
+            const lista = [...refeicoesDe(e)];
+            if (alvo?.id) { const i = lista.findIndex((x) => x.id === alvo.id); if (i >= 0) lista[i] = { ...lista[i], nome }; }
+            else lista.push({ id: `r${Date.now().toString(36)}`, nome });
+            e.refeicoesConfig = lista;
+          });
+          setEditando(null);
+        }}
+        aoExcluir={() => {
+          const alvo = editando;
+          if (!alvo?.id) return;
+          commit((e) => { e.refeicoesConfig = refeicoesDe(e).filter((x) => x.id !== alvo.id); });
+          setEditando(null);
+        }}
+      />
 
       <T tam={11} cor={cores.texto3} style={{ marginTop: 18, lineHeight: 17 }}>
         Valores aproximados, no estilo da Tabela TACO. Meta calculada por Mifflin-St Jeor. O RONDO organiza e acompanha, mas não substitui avaliação profissional.
@@ -181,8 +212,8 @@ export function Dieta() {
       aberto={menu} aoFechar={() => setMenu(false)} rotulo="Adicionar na dieta"
       itens={[
         { rotulo: 'Ver refeições', aoPressionar: () => setGaleria(true) },
-        ...REFEICOES.map((r) => ({ rotulo: `Adicionar ao ${r.nome.toLowerCase()}`, aoPressionar: () => setAdicionando(r.id) })),
-        { rotulo: 'Beber um copo de água', desligado: agua >= 8, aoPressionar: () => commit((e) => { e.agua[dia] = Math.min(8, (e.agua[dia] ?? 0) + 1); }) },
+        ...refeicoes.map((r) => ({ rotulo: `Adicionar em ${r.nome}`, aoPressionar: () => setAdicionando(r.id) })),
+        { rotulo: `Beber um copo de água (${COPO_ML} ml)`, aoPressionar: () => commit((e) => { e.agua[dia] = aguaDoDia(e, dia) + COPO_ML; }) },
         { rotulo: 'Procurar nutricionista', aoPressionar: () => setBusca(true) },
       ]}
     />
@@ -314,7 +345,7 @@ function AdicionarAlimento({ refeicaoInicial, aoFechar, aoAdicionar }: { refeica
               ))}
             </View>
           ) : null}
-          <Segmentos opcoes={REFEICOES.map((r) => ({ valor: r.id, nome: r.nome.split(' ')[0] }))} valor={refeicao} aoMudar={setRefeicao} />
+          <Segmentos opcoes={refeicoesDe(estado).map((r) => ({ valor: r.id, nome: r.nome.split(' ')[0] }))} valor={refeicao} aoMudar={setRefeicao} />
           <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
             <Botao titulo="Adicionar" icone="mais" aoPressionar={() => aoAdicionar(refeicao, escolhido, gramas)} />
             <Botao tipo="discreto" titulo="Trocar alimento" aoPressionar={() => { setEscolhido(null); setModo('buscar'); }} />
@@ -389,5 +420,30 @@ function FotoRefeicao({ id, nome, aoFotografar, aoTirar }: { id?: string; nome: 
         <Icone nome="fechar" tamanho={10} cor={cores.texto} />
       </Pressable>
     </View>
+  );
+}
+
+/* renomear, criar ou excluir uma refeição. Excluir só tira a refeição da lista: os alimentos já registrados nela deixam de aparecer. */
+function EditarRefeicao({ editando, aoFechar, aoSalvar, aoExcluir, podeExcluir }: { editando: { id: string | null; nome: string } | null; aoFechar: () => void; aoSalvar: (nome: string) => void; aoExcluir: () => void; podeExcluir: boolean }) {
+  const [nome, setNome] = useState('');
+  const [confirmar, setConfirmar] = useState(false);
+  useEffect(() => { if (editando) { setNome(editando.nome); setConfirmar(false); } }, [editando]);
+  const ok = nome.trim().length >= 2;
+  const novo = !editando?.id;
+  return (
+    <Folha aberta={!!editando} aoFechar={aoFechar} titulo={novo ? 'Nova refeição' : 'Editar refeição'}>
+      <View style={{ gap: 14 }}>
+        <Campo rotulo="Nome" value={nome} onChangeText={setNome} placeholder="Ex.: Ceia, Pré-treino" maxLength={24} autoFocus onSubmitEditing={() => { if (ok) aoSalvar(nome.trim()); }} />
+        <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+          <Botao titulo={novo ? 'Criar refeição' : 'Salvar'} icone="ok" desabilitado={!ok} aoPressionar={() => aoSalvar(nome.trim())} />
+          {!novo && podeExcluir ? (
+            confirmar
+              ? <Botao tipo="perigo" icone="lixo" titulo="Excluir mesmo" aoPressionar={aoExcluir} />
+              : <Botao tipo="discreto" icone="lixo" titulo="Excluir refeição" aoPressionar={() => setConfirmar(true)} />
+          ) : null}
+        </View>
+        {confirmar ? <T tam={12.5} cor={cores.texto3} style={{ lineHeight: 18 }}>Os alimentos já registrados nesta refeição deixam de aparecer na Dieta.</T> : null}
+      </View>
+    </Folha>
   );
 }

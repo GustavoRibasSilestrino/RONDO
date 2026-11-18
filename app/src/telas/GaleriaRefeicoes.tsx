@@ -10,7 +10,7 @@ import { DeslizarParaVoltar } from '../componentes/Deslizar';
 import { Icone } from '../componentes/Icone';
 import { GradeMes } from '../componentes/SeletorData';
 import { T } from '../componentes/Ui';
-import { REFEICOES } from '../dados';
+import { refeicoesDe } from '../lib/refeicoes';
 import { useLoja } from '../estado/loja';
 import { useColuna } from '../lib/coluna';
 import { dataCurta, doIso, fmt, iso } from '../lib/datas';
@@ -59,6 +59,7 @@ export function GaleriaRefeicoes({ aberto, aoFechar }: { aberto: boolean; aoFech
 
   /* as refeições do dia escolhido */
   const itens = estado.refeicoes[dia] ?? [];
+  const REFEICOES = refeicoesDe(estado);
   const doDia = REFEICOES.map((r) => {
     const lista = itens.filter((x) => x.refeicao === r.id);
     return { ...r, kcal: lista.reduce((t, x) => t + x.kcal, 0), alimentos: lista.map((x) => x.alimento), foto: estado.fotosRefeicao?.[dia]?.[r.id]?.id };

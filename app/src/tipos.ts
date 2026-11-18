@@ -57,7 +57,8 @@ export type TreinoAtual = {
   descansoAte: number | null;
 };
 
-export type TipoRefeicao = 'cafe' | 'almoco' | 'lanche' | 'jantar';
+/* o id da refeição: as quatro de sempre ('cafe', 'almoco', 'lanche', 'jantar') ou uma criada pela pessoa (2026-11-18) */
+export type TipoRefeicao = string;
 export type Refeicao = {
   id: string;
   refeicao: TipoRefeicao;
@@ -108,6 +109,7 @@ export type Estado = {
   treinoAtual: TreinoAtual | null;
   rotinasProprias: Rotina[];                   // treinos que a pessoa criou ou enviou; somam-se aos fixos de dados.ts
   refeicoes: Record<string, Refeicao[]>;
+  refeicoesConfig: { id: string; nome: string }[] | null;   // as refeições da pessoa, na ordem; null = as quatro de sempre
   /* a foto de cada refeição, por dia (o id da mídia guardada no aparelho; lib/midia.ts) e quando foi tirada: a mais recente vira o
      ícone do dia no calendário da Dieta. Fica só no aparelho, como as outras fotos. */
   alimentosProprios: { id: string; nome: string; kcal: number; p: number; c: number; g: number }[];   // alimentos que a pessoa criou (valores por 100 g)

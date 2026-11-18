@@ -7,13 +7,14 @@ import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { buscarPessoas, listarClubes, publicarPost, type Pessoa } from '../../api/social';
-import { Folha, useAviso } from '../../componentes/Estrutura';
+import { useAviso } from '../../componentes/Estrutura';
+import { Janela } from '../../componentes/Janela';
 import { Icone } from '../../componentes/Icone';
 import { Botao, T } from '../../componentes/Ui';
 import { volumeDe } from '../../lib/calc';
 import { dataCurta, fmt } from '../../lib/datas';
 import { arrobaDe } from './util';
-import { REFEICOES } from '../../dados';
+import { refeicoesDe } from '../../lib/refeicoes';
 import { useLista } from '../../estado/lista';
 import { useLoja } from '../../estado/loja';
 import { useConta } from '../../lib/beneficios';
@@ -93,7 +94,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
   const treinos = [...estado.treinos].reverse().slice(0, 8);
   /* as refeições registradas nos últimos 7 dias, da mais nova para a mais antiga */
   const refeicoes = Object.keys(estado.refeicoes ?? {}).sort().reverse().slice(0, 7).flatMap((dia) =>
-    REFEICOES.map((r) => {
+    refeicoesDe(estado).map((r) => {
       const lista = (estado.refeicoes[dia] ?? []).filter((x) => x.refeicao === r.id);
       return { dia, nome: r.nome, kcal: lista.reduce((t, x) => t + x.kcal, 0), alimentos: lista.map((x) => x.alimento) };
     }).filter((x) => x.alimentos.length).reverse());
@@ -246,7 +247,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
       </DeslizarParaVoltar>
 
       {/* treino: um dos últimos concluídos vira uma linha no texto */}
-      <Folha aberta={escolherTreino} aoFechar={() => setEscolherTreino(false)} titulo="Adicionar um treino">
+      <Janela aberta={escolherTreino} aoFechar={() => setEscolherTreino(false)} titulo="Adicionar um treino">
         <View style={{ gap: 8, paddingBottom: 4 }}>
           {treinos.map((t, i) => (
             <Pressable key={`${t.inicio}-${i}`} accessibilityRole="button" onPress={() => { acrescentar(resumoTreino(t), '\n\n'); setEscolherTreino(false); }} style={({ pressed }) => [st.opcaoTreino, pressed && { opacity: 0.7 }]}>
@@ -258,10 +259,10 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
             </Pressable>
           ))}
         </View>
-      </Folha>
+      </Janela>
 
       {/* refeição: uma das registradas na Dieta vira uma linha no texto */}
-      <Folha aberta={escolherRefeicao} aoFechar={() => setEscolherRefeicao(false)} titulo="Adicionar uma refeição">
+      <Janela aberta={escolherRefeicao} aoFechar={() => setEscolherRefeicao(false)} titulo="Adicionar uma refeição">
         <View style={{ gap: 8, paddingBottom: 4 }}>
           {refeicoes.map((x, i) => (
             <Pressable key={`${x.dia}-${x.nome}-${i}`} accessibilityRole="button" onPress={() => { acrescentar(resumoRefeicao(x), '\n\n'); setEscolherRefeicao(false); }} style={({ pressed }) => [st.opcaoTreino, pressed && { opacity: 0.7 }]}>
@@ -273,7 +274,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
             </Pressable>
           ))}
         </View>
-      </Folha>
+      </Janela>
 
       <MarcarPessoa aberta={marcar} aoFechar={() => setMarcar(false)} aoEscolher={(p) => { acrescentar(`@${p.arroba ?? arrobaDe(p.nome)} `, ' '); setMarcar(false); }} />
     </Modal>
@@ -301,7 +302,7 @@ function MarcarPessoa({ aberta, aoFechar, aoEscolher }: { aberta: boolean; aoFec
   }, [q]);
   const termo = q.trim().replace(/^@/, '');
   return (
-    <Folha aberta={aberta} aoFechar={aoFechar} titulo="Marcar alguém">
+    <Janela aberta={aberta} aoFechar={aoFechar} titulo="Marcar alguém">
       <View style={st.busca}>
         <Icone nome="arroba" tamanho={18} cor={cores.texto2} />
         <TextInput value={q} onChangeText={setQ} autoFocus autoCapitalize="none" autoCorrect={false} placeholder="Nome ou @" placeholderTextColor={cores.placeholder} selectionColor={cores.destaque} accessibilityLabel="Buscar pessoa para marcar" style={st.buscaCampo} />
@@ -319,7 +320,7 @@ function MarcarPessoa({ aberta, aoFechar, aoEscolher }: { aberta: boolean; aoFec
         {termo.length >= 2 && !buscando && !achadas.length ? <T tam={13} cor={cores.texto2}>Ninguém encontrado.</T> : null}
         {termo.length < 2 ? <T tam={13} cor={cores.texto2}>Digite pelo menos 2 letras do nome ou do @.</T> : null}
       </View>
-    </Folha>
+    </Janela>
   );
 }
 

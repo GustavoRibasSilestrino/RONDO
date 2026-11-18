@@ -11,6 +11,7 @@ import { T } from '../componentes/Ui';
 import type { Rotina } from '../dados';
 import { useLoja } from '../estado/loja';
 import { macrosMeta, metaKcal } from '../lib/calc';
+import { litros, metaAgua } from '../lib/agua';
 import { fmt } from '../lib/datas';
 import { guardarRotina } from '../lib/rotinas';
 import { montarTreinoEmCasa } from '../lib/semAparelho';
@@ -77,7 +78,7 @@ export function OpcoesDieta({ aberto, aoFechar }: Base) {
             <LinhaOpcao icone="refeicao" titulo="Proteína" valor={`${m.p} g`} />
             <LinhaOpcao icone="refeicao" titulo="Carboidratos" valor={`${m.c} g`} />
             <LinhaOpcao icone="refeicao" titulo="Gorduras" valor={`${m.g} g`} />
-            <LinhaOpcao icone="gota" titulo="Água" valor="8 copos" />
+            <LinhaOpcao icone="gota" titulo="Água" sub="35 ml por kg do seu peso" valor={litros(metaAgua(estado.perfil))} />
           </GrupoOpcoes>
           <GrupoOpcoes titulo="Objetivo">
             <LinhaOpcao icone="evolucao" titulo={objetivo} sub="As metas mudam com as suas medidas" aoPressionar={() => setSecao('Seus dados')} />

@@ -2,6 +2,7 @@
    São as fórmulas do documento do produto. Tudo é cálculo sobre o que a pessoa registra. */
 import type { Estado, ExercicioFeito, Perfil, Serie } from '../tipos';
 import { diaDaSemana, iso, somarDias } from './datas';
+import { aguaDoDia, bateuAgua } from './agua';
 
 /* ---------- treino ---------- */
 export const epley = (kg: number, reps: number): number => kg * (1 + reps / 30);   // 1RM estimado
@@ -125,7 +126,7 @@ export type StatsSemana = { treinos: number; volume: number; refeicoes: number; 
 
 /* até onde comparar: hoje, se já tem registro; senão ontem (hoje ainda está começando e não deve pesar contra você) */
 export function diaDaComparacao(estado: Estado, hoje: Date): Date {
-  return diaAtivo(estado, iso(hoje)) || (estado.agua[iso(hoje)] ?? 0) > 0 ? hoje : somarDias(hoje, -1);
+  return diaAtivo(estado, iso(hoje)) || aguaDoDia(estado, iso(hoje)) > 0 ? hoje : somarDias(hoje, -1);
 }
 
 /* números da semana até o mesmo dia da semana (0 = semana do dia de comparação, 1 = semana anterior) */
@@ -142,7 +143,7 @@ export function statsSemana(estado: Estado, hoje: Date, semanasAtras: number): S
       volume += t.exercicios.reduce((v, e) => v + volumeDe(e.series), 0);
     }
     refeicoes += (estado.refeicoes[d] ?? []).length;
-    agua += estado.agua[d] ?? 0;
+    agua += aguaDoDia(estado, d);   // ml
   }
   return { treinos, volume, refeicoes, agua: agua / decorridos };
 }
@@ -171,7 +172,7 @@ export function pontosSemana(estado: Estado, hoje: Date): number {
     if (estado.treinos.some((t) => t.data === d)) pts += 30;
     if ((estado.refeicoes[d]?.length ?? 0) >= 3) pts += 20;
     if (estado.checkins[d]) pts += 10;
-    if ((estado.agua[d] ?? 0) >= 8) pts += 5;
+    if (bateuAgua(estado, d)) pts += 5;
   }
   return pts;
 }

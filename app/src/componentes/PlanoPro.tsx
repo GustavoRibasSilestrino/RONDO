@@ -10,6 +10,7 @@ import { Icone, NomeIcone } from './Icone';
 import { Botao, T } from './Ui';
 
 const INCLUI: { icone: NomeIcone; titulo: string; sub: string }[] = [
+  { icone: 'verificado', titulo: 'Selo de verificado no perfil', sub: 'O selo aparece ao lado do seu nome no feed, nos clubes e no perfil.' },
   { icone: 'recado', titulo: 'Recados para o futuro sem limite', sub: 'No grátis, um recado por dia e um esperando por vez.' },
   { icone: 'grupo', titulo: 'Clube em destaque (em breve)', sub: 'O seu clube vai aparecer no topo da busca.' },
   { icone: 'ia', titulo: 'Treino e dieta com IA (em breve)', sub: 'Ainda não existe. Quando chegar, o que a IA gerar vai aparecer identificado.' },
@@ -44,7 +45,7 @@ export function PlanoPro({ aberto, aoFechar }: { aberto: boolean; aoFechar: () =
         <View style={{ gap: 10, marginTop: 18 }}>
           <Botao icone="estrela" titulo="Ver os planos no site" aoPressionar={abrirSite} />
           <T tam={12} centro style={{ opacity: 0.85, lineHeight: 17 }}>
-            {ativo ? 'O seu plano PRO está ativo.' : 'Os planos pagos ainda não estão à venda: nada é cobrado hoje.'} Quando abrirem: R$ 14,90 por mês,
+            {ativo ? 'O seu plano PRO está ativo.' : 'Os planos pagos ainda não estão à venda: nada é cobrado hoje.'} Quando abrirem: R$ 49,90 por mês (ou R$ 399,00 por ano),
             renovação automática avisada antes, cancelamento a qualquer momento e reembolso em até 7 dias.
           </T>
         </View>
