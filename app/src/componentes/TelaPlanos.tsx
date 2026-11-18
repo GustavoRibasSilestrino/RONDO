@@ -1,10 +1,12 @@
 /* A tela de planos (pedido do dono, 2026-11-18, inspirada numa referência): tela cheia escura com a luz roxa, o RONDO PRO no alto,
    um gráfico da constância subindo semana a semana (a promessa do app: vencer quem você foi ontem), o que o PRO inclui e os dois
-   planos, mensal e anual, para escolher. AINDA SEM PAGAMENTO: o botão de assinar só avisa que a assinatura ainda não abriu; nada é
-   cobrado. Os preços são os do site (vitrine/src/components/Sections.tsx). Fecha no X, no voltar do Android ou deslizando para a
+   planos, mensal e anual, para escolher. AINDA SEM PAGAMENTO NO APP: o botão de assinar leva para os planos no site (2026-11-18). É a única tela de plano do app:
+   todas as estrelas (Perfil, menu lateral, avisos de PRO) abrem esta. Os preços são os do site (vitrine/src/components/Sections.tsx). Fecha no X, no voltar do Android ou deslizando para a
    direita. */
 import React, { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Linking, Modal, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useLoja } from '../estado/loja';
+import { SITE } from '../telas/Login';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, LinearGradient as Degrade, Line, Path, Stop } from 'react-native-svg';
 import { larguraMax, cores, estilos } from '../tema';
@@ -75,6 +77,7 @@ export function TelaPlanos({ aberto, aoFechar }: { aberto: boolean; aoFechar: ()
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const avisar = useAviso();
+  const { estado } = useLoja();
   const [plano, setPlano] = useState<Plano>('anual');
   const coluna = Math.min(width, larguraMax) - 40;
 
@@ -130,13 +133,18 @@ export function TelaPlanos({ aberto, aoFechar }: { aberto: boolean; aoFechar: ()
                 <Cartao id="anual" titulo="ANUAL" preco={PRECOS.anual} riscado={PRECOS.anualCheio} sub={PRECOS.anualPorMes} selo="ECONOMIZE 38%" />
               </View>
 
-              <Botao
-                titulo={plano === 'anual' ? 'Assinar o anual' : 'Assinar o mensal'}
-                icone="estrela"
-                aoPressionar={() => avisar('A assinatura do PRO ainda não abriu. Nada foi cobrado: avisamos quando estiver disponível.')}
-                style={{ alignSelf: 'stretch', marginTop: 22 }}
-              />
-              <T tam={12.5} centro cor={cores.texto3} style={{ marginTop: 10 }}>Cancele quando quiser. Ainda não há cobrança: os planos abrem em breve.</T>
+              {/* assinar: por enquanto leva para os planos no site (2026-11-18); quem já é PRO vê o plano ativo */}
+              {estado.pro ? (
+                <View style={st.ativo}><Icone nome="verificado" tamanho={18} cor={cores.bom} /><T tam={14.5} peso="500">Seu plano PRO está ativo</T></View>
+              ) : (
+                <Botao
+                  titulo={plano === 'anual' ? 'Assinar o anual' : 'Assinar o mensal'}
+                  icone="estrela"
+                  aoPressionar={() => { Linking.openURL(`${SITE}/#planos`).catch(() => avisar('Não foi possível abrir o site agora.')); }}
+                  style={{ alignSelf: 'stretch', marginTop: 22 }}
+                />
+              )}
+              <T tam={12.5} centro cor={cores.texto3} style={{ marginTop: 10 }}>Cancele quando quiser. A assinatura é feita no site do RONDO.</T>
             </ScrollView>
           </View>
         </DeslizarParaVoltar>
@@ -158,5 +166,6 @@ const st = estilos(() => StyleSheet.create({
   planoAtivo: { borderColor: cores.acao, borderWidth: 1.5, backgroundColor: 'rgba(124,58,237,0.14)' },
   selo: { position: 'absolute', top: -12, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: cores.acao },
   marca: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: cores.linha2, alignItems: 'center', justifyContent: 'center', marginTop: 12 },
+  ativo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 22, minHeight: 48, borderRadius: 24, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   marcaAtiva: { backgroundColor: cores.acao, borderColor: cores.acao },
 }));

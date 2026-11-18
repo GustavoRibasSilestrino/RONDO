@@ -9,7 +9,6 @@ import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
 import { Selo, tipoDeSelo } from '../componentes/Selos';
 import { Medalha3D } from '../componentes/Medalha3D';
-import { PlanoPro } from '../componentes/PlanoPro';
 import { TelaPlanos } from '../componentes/TelaPlanos';
 import { AnelStory } from '../componentes/stories/AnelStory';
 import { CriarStory } from '../componentes/stories/CriarStory';
@@ -49,7 +48,6 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const [aba, setAba] = useState<'posts' | 'conquistas'>('posts');
   const [editando, setEditando] = useState(false);
   const [config, setConfig] = useState(false);
-  const [plano, setPlano] = useState(false);   // a folha do plano PRO, aberta pela estrela do topo
   const [planos, setPlanos] = useState(false);   // a tela de planos, aberta por "Melhorar plano"
   const [criandoStory, setCriandoStory] = useState(false);
   const [verStory, setVerStory] = useState(false);
@@ -153,9 +151,9 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       {/* topo: @usuário e as ações (sem o cabeçalho do app e sem o fogo da sequência: o perfil começa perto do topo) */}
       <View style={st.barra}>
         <T tam={17} peso="500" linhas={1} style={{ flex: 1 }}>@{arrobaAtual}</T>
-        {/* o plano: quem é PRO vê a estrela (o resumo do plano); quem não é, o convite "Melhorar plano" (a tela de planos) */}
+        {/* o plano: quem é PRO vê a estrela; quem não é, o convite "Melhorar plano". Os dois abrem a tela de planos */}
         {estado.pro ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Seu plano: PRO" onPress={() => setPlano(true)} style={({ pressed }) => [st.redondo, st.pro, pressed && { opacity: 0.8 }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Seu plano: PRO" onPress={() => setPlanos(true)} style={({ pressed }) => [st.redondo, st.pro, pressed && { opacity: 0.8 }]}>
             <Icone nome="estrela" tamanho={19} cor="#ffffff" />
           </Pressable>
         ) : (
@@ -319,7 +317,6 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
       </Folha>
 
       <Configuracoes aberto={config} aoFechar={() => setConfig(false)} aoEditarPerfil={abrirEdicao} />
-      <PlanoPro aberto={plano} aoFechar={() => setPlano(false)} />
       <TelaPlanos aberto={planos} aoFechar={() => setPlanos(false)} />
       <EditarTitulos aberta={editandoTitulos} aoFechar={() => setEditandoTitulos(false)} />
       <CriarStory aberto={criandoStory} aoFechar={() => setCriandoStory(false)} aoPublicar={() => { recarregarStories().catch(() => {}); }} />

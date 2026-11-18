@@ -26,7 +26,6 @@ type Props = { aberto: boolean; aoFechar: () => void; recurso: string; site: str
 
 export function AvisoPro({ aberto, aoFechar, recurso }: Props) {
   const { estado } = useLoja();
-  const [planos, setPlanos] = useState(false);   // a tela de planos (componentes/TelaPlanos.tsx)
   if (estado.pro) {
     return (
       <Folha aberta={aberto} aoFechar={aoFechar} titulo="Recurso PRO liberado">
@@ -38,19 +37,8 @@ export function AvisoPro({ aberto, aoFechar, recurso }: Props) {
       </Folha>
     );
   }
-  return (
-    <Folha aberta={aberto} aoFechar={aoFechar} titulo="Recurso PRO">
-      <View style={{ alignItems: 'center', gap: 12, paddingBottom: 6 }}>
-        <View style={st.grande}><Icone nome="estrela" tamanho={30} cor="#ffffff" espessura={2} /></View>
-        <T tam={16} peso="500" centro>{recurso}</T>
-        <T tam={14} centro style={{ lineHeight: 21 }}>
-          Este recurso faz parte do plano PRO.
-        </T>
-        <Botao icone="estrela" titulo="Ver os planos" aoPressionar={() => setPlanos(true)} style={{ marginTop: 6 }} />
-        <TelaPlanos aberto={planos} aoFechar={() => { setPlanos(false); aoFechar(); }} />
-      </View>
-    </Folha>
-  );
+  /* quem não é PRO vai direto para a tela de planos (a única do app) */
+  return <TelaPlanos aberto={aberto} aoFechar={aoFechar} />;
 }
 
 const st = estilos(() => StyleSheet.create({
