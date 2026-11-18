@@ -57,16 +57,19 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
 
   return (
     <Animated.View style={[st.menu, { width: largura }]} accessibilityRole="navigation">
-      {/* aberto ou fechado, só o ícone do menu, no meio (pedido do dono, 2026-11-18: sem o nome do app) */}
+      {/* no meio, sem o nome do app (pedido do dono, 2026-11-18). Fechado: o ícone do menu, para abrir. Aberto: uma seta para a
+          esquerda, mostrando onde clicar para recolher. */}
       <View style={[st.topo, { justifyContent: 'center' }]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={recolhido ? 'Abrir o menu' : 'Fechar o menu'}
           accessibilityState={{ expanded: !recolhido }}
           onPress={aoAlternar}
-          style={({ pressed }) => [st.hamburguer, pressed && { backgroundColor: cores.cartao2 }]}
+          style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.hamburguer, (pressed || (hovered && !recolhido)) && { backgroundColor: cores.cartao2 }]}
         >
-          {({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => <IconeMenu tamanho={22} ativo={!!hovered || pressed} />}
+          {({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => (recolhido
+            ? <IconeMenu tamanho={22} ativo={!!hovered || pressed} />
+            : <Icone nome="voltar" tamanho={22} cor={cores.texto} />)}
         </Pressable>
       </View>
 

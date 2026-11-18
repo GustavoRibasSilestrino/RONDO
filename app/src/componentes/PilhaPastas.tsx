@@ -18,7 +18,7 @@ import type { Retangulo } from './Lixeira';
 import { T } from './Ui';
 
 const TINTA = cores.texto;           // o texto: roxo quase preto
-const ROXO = cores.destaqueForte;    // o selo da sugestão e o contorno da pasta escolhida
+const ROXO = cores.acao;    // o selo da sugestão e o contorno da pasta escolhida
 
 export const ALTURA = 168;     // altura de cada pasta
 export const ABA = 28;         // altura da aba
@@ -157,7 +157,7 @@ function Pasta({ rotina, largura, topo, esquerda, escolhida, reduzido, aoTocar, 
       style={{
         position: 'absolute', top: topo, left: esquerda, width: largura, height: ALTURA, zIndex: arrastando ? 999 : undefined,   // arrastada, fica por cima de todas
         opacity: some,
-        ...(Platform.OS === 'web' ? ({ filter: arrastando ? 'drop-shadow(0 22px 30px rgba(42,22,80,0.35))' : 'drop-shadow(0 10px 18px rgba(42,22,80,0.22))', touchAction: podeArrastar ? 'none' : 'manipulation', cursor: podeArrastar ? 'grab' : 'pointer', userSelect: 'none' } as object) : null),
+        ...(Platform.OS === 'web' ? ({ filter: arrastando ? 'drop-shadow(0 22px 30px rgba(0,0,0,0.55))' : 'drop-shadow(0 10px 18px rgba(0,0,0,0.4))', touchAction: podeArrastar ? 'none' : 'manipulation', cursor: podeArrastar ? 'grab' : 'pointer', userSelect: 'none' } as object) : null),
         transform: [
           { translateX: pos.x },
           { translateY: Animated.add(pos.y, sobe.interpolate({ inputRange: [0, 1], outputRange: [0, -SOBE] })) },
@@ -178,12 +178,12 @@ function Pasta({ rotina, largura, topo, esquerda, escolhida, reduzido, aoTocar, 
           <Defs>
             {/* o vidro: mais claro em cima (o reflexo), mais transparente embaixo */}
             <LinearGradient id={`vidro-${rotina.id}`} x1="0" y1="0" x2="0.35" y2="1">
-              <Stop offset="0" stopColor="#ffffff" stopOpacity={escolhida ? 0.94 : 0.8} />
-              <Stop offset="0.55" stopColor="#ffffff" stopOpacity={escolhida ? 0.86 : 0.66} />
-              <Stop offset="1" stopColor="#ede6f7" stopOpacity={escolhida ? 0.82 : 0.6} />
+              <Stop offset="0" stopColor="#ffffff" stopOpacity={escolhida ? 0.2 : 0.14} />
+              <Stop offset="0.55" stopColor="#ffffff" stopOpacity={escolhida ? 0.14 : 0.09} />
+              <Stop offset="1" stopColor="#8b5cf6" stopOpacity={escolhida ? 0.18 : 0.1} />
             </LinearGradient>
           </Defs>
-          <Path d={contorno(largura, ALTURA, aba)} fill={`url(#vidro-${rotina.id})`} stroke={escolhida ? ROXO : 'rgba(255,255,255,0.95)'} strokeWidth={escolhida ? 2 : 1.5} strokeLinejoin="round" />
+          <Path d={contorno(largura, ALTURA, aba)} fill={`url(#vidro-${rotina.id})`} stroke={escolhida ? ROXO : 'rgba(255,255,255,0.2)'} strokeWidth={escolhida ? 2 : 1.5} strokeLinejoin="round" />
         </Svg>
         {/* o nome, na aba (saindo para fora da pilha) */}
         <View pointerEvents="none" style={{ position: 'absolute', left: 14, top: 5, right: largura - aba - 14 }}>

@@ -126,10 +126,10 @@ export function Botao(props: BotaoProps) {
    texto vinho. Ao tocar, escurece um tom e afunda 3%; com o cursor em cima, escurece meio tom. A área de toque vai a 44 px com
    hitSlop, mesmo com o botão menor por fora. */
 const CHAPADO = {
-  primario: { fundo: '#d8c9ff', sobre: '#cdb9fd', toque: '#c1aaf8', borda: 'transparent', texto: '#24154a' },
-  fantasma: { fundo: 'transparent', sobre: 'rgba(36,21,74,0.06)', toque: 'rgba(36,21,74,0.12)', borda: 'rgba(36,21,74,0.22)', texto: '#24154a' },
-  discreto: { fundo: 'transparent', sobre: 'rgba(36,21,74,0.06)', toque: 'rgba(36,21,74,0.12)', borda: 'rgba(36,21,74,0.14)', texto: '#3b2f50' },
-  perigo: { fundo: '#ffd6dd', sobre: '#ffc9d2', toque: '#ffbac6', borda: 'transparent', texto: '#8a1730' },
+  primario: { fundo: cores.acao, sobre: '#8b4dfa', toque: '#6425d4', borda: 'transparent', texto: '#ffffff' },   // o violeta de ação (pedido do dono, 2026-11-18)
+  fantasma: { fundo: 'transparent', sobre: 'rgba(255,255,255,0.08)', toque: 'rgba(255,255,255,0.14)', borda: 'rgba(255,255,255,0.24)', texto: cores.texto },
+  discreto: { fundo: 'transparent', sobre: 'rgba(255,255,255,0.08)', toque: 'rgba(255,255,255,0.14)', borda: 'rgba(255,255,255,0.14)', texto: cores.texto2 },
+  perigo: { fundo: 'rgba(255,107,129,0.16)', sobre: 'rgba(255,107,129,0.22)', toque: 'rgba(255,107,129,0.3)', borda: 'transparent', texto: '#ff9aab' },
 } as const;
 
 function BotaoChapado({ titulo, aoPressionar, tipo = 'primario', desabilitado, carregando, icone, pequeno, style }: BotaoProps) {
@@ -390,7 +390,7 @@ export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar }:
         return (
           <Pressable key={String(o.valor)} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => aoMudar(o.valor)} style={[st.segmento, ativo && (normal ? st.segmentoAtivoNormal : st.segmentoAtivo)]}>
             
-            <T tam={12.5} peso={ativo ? '500' : '300'} cor={ativo ? (normal ? cores.texto : cores.fundo) : cores.texto2}>{o.nome}</T>
+            <T tam={12.5} peso={ativo ? '500' : '300'} cor={ativo ? (normal ? '#ffffff' : cores.fundo) : cores.texto2}>{o.nome}</T>
           </Pressable>
         );
       })}
@@ -436,7 +436,7 @@ const st = estilos(() => StyleSheet.create({
     boxShadow: SOMBRA_VIDRO, ...VIDRO,
     ...(Platform.OS === 'web' ? ({ contentVisibility: 'auto', containIntrinsicSize: 'auto 240px' } as object) : null),
   },
-  cartaoDestaque: { borderColor: 'rgba(255,255,255,0.9)', backgroundColor: 'rgba(255,255,255,0.46)', boxShadow: '0 22px 46px -24px rgba(76,29,149,0.5)' },
+  cartaoDestaque: { borderColor: 'rgba(196,168,255,0.32)', backgroundColor: 'rgba(139,92,246,0.12)', boxShadow: '0 22px 46px -24px rgba(0,0,0,0.6)' },
   fio: { position: 'absolute', top: 0, left: 24, right: 24, height: 1 },
   orbita: { borderRadius: raio.pilula, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(196,168,255,0.2)' },
   campoFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.06)` },
@@ -468,7 +468,7 @@ const st = estilos(() => StyleSheet.create({
   segmento: { flexGrow: 1, flexBasis: 'auto', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderRadius: raio.pilula },
   segmentoAtivo: { backgroundColor: cores.texto },
   chapado: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, borderRadius: 999, borderWidth: 1 },
-  segmentoAtivoNormal: { backgroundColor: '#d8c9ff' },   // a opção escolhida: roxo pastel chapado, como o botão (2026-11-18)
+  segmentoAtivoNormal: { backgroundColor: cores.acao },   // a opção escolhida: o violeta de ação, como o botão principal
   campo: { flexDirection: 'row', alignItems: 'center', backgroundColor: cores.fundo2, borderWidth: 1, borderColor: cores.linha2, borderRadius: raio.m },
   campoTexto: { flex: 1, color: cores.texto, fontSize: 16, fontFamily: FONTE['300'], paddingVertical: 14, paddingHorizontal: 14, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 26, marginBottom: 12 },

@@ -25,20 +25,20 @@ export function FundoCena({ cena }: { cena: NomeCena; forca?: number; veu?: bool
   const [x1, y1, x2, y2] = BRILHOS[cena];
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
-      <LinearGradient colors={['#cfc5dd', '#b3a6c9', '#8d7fa6']} locations={[0, 0.5, 1]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#1b1430', '#100c1b', '#08070d']} locations={[0, 0.5, 1]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={StyleSheet.absoluteFill} />
       <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
         <Defs>
           <RadialGradient id="brilho-claro" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor="#ffffff" stopOpacity={0.55} />
-            <Stop offset="1" stopColor="#ffffff" stopOpacity={0} />
+            <Stop offset="0" stopColor="#c4a8ff" stopOpacity={0.2} />
+            <Stop offset="1" stopColor="#c4a8ff" stopOpacity={0} />
           </RadialGradient>
           <RadialGradient id="brilho-roxo" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor="#7c3aed" stopOpacity={0.32} />
+            <Stop offset="0" stopColor="#7c3aed" stopOpacity={0.55} />
             <Stop offset="1" stopColor="#7c3aed" stopOpacity={0} />
           </RadialGradient>
         </Defs>
         <Ellipse cx={`${x1}%`} cy={`${y1}%`} rx="48%" ry="30%" fill="url(#brilho-claro)" />
-        <Ellipse cx={`${x2}%`} cy={`${y2}%`} rx="52%" ry="34%" fill="url(#brilho-roxo)" />
+        <Ellipse cx={`${x2}%`} cy={`${y2}%`} rx="70%" ry="42%" fill="url(#brilho-roxo)" />
       </Svg>
     </View>
   );

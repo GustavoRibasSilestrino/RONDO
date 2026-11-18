@@ -192,8 +192,8 @@ function GrupoCartao({ g, aoAbrir, aoAlternar }: { g: Clube; aoAbrir: () => void
 
 const st = estilos(() => StyleSheet.create({
   busca: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 50, paddingLeft: 16, paddingRight: 8, borderRadius: 25, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)' },
-  entrar: { height: 34, paddingHorizontal: 14, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.9)' },
-  entrarSobre: { backgroundColor: 'rgba(214,212,220,0.92)' },
+  entrar: { height: 34, paddingHorizontal: 14, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.09)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
+  entrarSobre: { backgroundColor: 'rgba(255,255,255,0.16)' },
   campoBusca: { flex: 1, minWidth: 0, height: 50,   /* minWidth 0: no Safari do iPhone o campo encolhe e o botão Entrar cabe dentro da caixa */ color: cores.texto, fontSize: 15, fontFamily: FONTE['300'], outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   titulo: { marginTop: 10, letterSpacing: -0.4 },
   selo: { position: 'absolute', left: 12, top: 12, flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 5, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(5,5,7,0.55)' },

@@ -1,7 +1,7 @@
 /* Identidade visual do app (RONDO).
-   Desde 2026-11-17 (pedido do dono, a partir de uma referência de "glassmorphism"): as telas de dentro são de VIDRO CLARO
-   em lilás. Fundo lilás acinzentado com brilhos suaves, cartões de vidro esbranquiçado com borda clara, texto roxo quase
-   preto, a aba ativa numa pílula roxo-escura e a barra de abas como uma pílula de vidro flutuando embaixo. É `cores`.
+   As telas de dentro são de VIDRO (desde 2026-11-17) e, desde 2026-11-18, o tema padrão é o ESCURO (pedido do dono: o mesmo
+   desenho, no escuro): fundo roxo quase preto com brilhos violeta, cartões de vidro translúcido com borda clara fina, texto
+   claro, a aba ativa numa pílula roxa e os botões de ação no violeta vivo (`acao`). É `cores`.
    As telas do RONDIN (apresentação, entrar, cadastro, recado, chegada, chamado e a câmera) continuam ESCURAS: usam
    `escuro`, a paleta de antes (preto com um toque de violeta, texto claro). Nelas, o `T` sem cor pega o texto claro pelo
    `EscuroContexto` (componentes/Ui.tsx).
@@ -11,6 +11,7 @@ export type Paleta = {
   fundo: string; fundo2: string; cartao: string; cartao2: string; linha: string; linha2: string;
   texto: string; texto2: string; texto3: string;
   violeta: string; violetaEscuro: string; destaque: string; destaqueForte: string; destaque2: string;
+  acao: string;     // o destaque dos botões de ação (principal, seguir, a opção escolhida): leva texto branco
   bom: string; alerta: string; erro: string; branco: string; placeholder: string;
   tom: string;      // "r,g,b" da cor de destaque, para fazer tons transparentes: `rgba(${cores.tom},0.14)`
   painel: string;   // fundo das folhas que sobem de baixo
@@ -35,6 +36,7 @@ export const escuro: Paleta = {
   destaque: '#8a3dff',
   destaqueForte: '#6a00d4', /* o roxo puro da marca: leva texto branco (9:1) */
   destaque2: '#c4a8ff', /* lilás para links, números e ícones em destaque (9:1 sobre o cartão) */
+  acao: '#8a3dff',
   bom: '#3ddc97',
   alerta: '#ff9a5c',
   erro: '#ff6b81',
@@ -47,39 +49,42 @@ export const escuro: Paleta = {
   cabecalho: '#07060b',
 };
 
-/* a paleta de vidro claro: as telas de dentro do app. Contraste do texto sobre o vidro (≈ #ddd6e8): texto 14:1, texto2 9:1,
-   texto3 5,3:1; destaque2 (links e números) 8:1. */
+/* a paleta de vidro escuro: as telas de dentro do app (desde 2026-11-18; antes era vidro claro lilás). Contraste do texto sobre
+   o vidro (≈ #1a1526): texto 15:1, texto2 10:1, texto3 6:1; destaque2 (links e números) 9:1; branco sobre `acao` 5,7:1. */
 export const cores: Paleta = {
-  fundo: '#b3a6c9',                       // por baixo do degradê do fundo (FundoCena)
-  fundo2: 'rgba(255,255,255,0.30)',       // campos e caixas dentro dos cartões
-  cartao: 'rgba(255,255,255,0.34)',       // o vidro
-  cartao2: 'rgba(255,255,255,0.55)',      // vidro mais claro: itens por cima do vidro, cursor em cima
-  linha: 'rgba(255,255,255,0.55)',        // a borda clara do vidro
-  linha2: 'rgba(255,255,255,0.8)',
-  texto: '#1e1430',
-  texto2: '#3b2f50',
-  texto3: '#5c5072',
+  fundo: '#0e0b16',                       // por baixo do degradê do fundo (FundoCena)
+  fundo2: 'rgba(255,255,255,0.05)',       // campos e caixas dentro dos cartões
+  cartao: 'rgba(255,255,255,0.055)',      // o vidro
+  cartao2: 'rgba(255,255,255,0.12)',      // vidro mais forte: itens por cima do vidro, cursor em cima
+  linha: 'rgba(255,255,255,0.10)',        // a borda fina do vidro
+  linha2: 'rgba(255,255,255,0.18)',
+  texto: '#f4f1fb',
+  texto2: '#cfc6e3',
+  texto3: '#a59cbf',
   violeta: '#6a00d4',
   violetaEscuro: '#2a1650',
-  destaque: '#6d28d9',
-  destaqueForte: '#2a1650',               // a pílula ativa, roxo quase preto: leva texto branco (14:1)
-  destaque2: '#4c1d95',                   // links, números e ícones em destaque
-  bom: '#0b7a4b',
-  alerta: '#a8480b',
-  erro: '#b3203a',
+  destaque: '#9b6bff',
+  destaqueForte: '#3a2470',               // a pílula da aba ativa: roxo médio, leva texto branco (11:1)
+  destaque2: '#c4a8ff',                   // links, números e ícones em destaque
+  acao: '#7c3aed',                        // os botões de ação: violeta vivo, leva texto branco (5,7:1)
+  bom: '#3ddc97',
+  alerta: '#ff9a5c',
+  erro: '#ff6b81',
   branco: '#ffffff',
-  placeholder: 'rgba(30,20,48,0.45)',
-  tom: '91,33,182',
-  painel: '#eee8f6',                      // as folhas que sobem de baixo: lilás bem claro, opaco (o conteúdo de trás não vaza)
-  aviso: 'rgba(42,22,80,0.94)',           // o aviso rápido: pílula roxo-escura (texto branco)
-  barra: 'rgba(255,255,255,0.42)',        // a pílula de vidro das abas
-  cabecalho: 'rgba(214,206,226,0.72)',    // o cabeçalho de cima: vidro
+  placeholder: 'rgba(207,198,227,0.5)',
+  tom: '139,92,246',
+  painel: 'rgba(22,17,33,0.8)',          // as folhas que sobem de baixo: vidro escuro e desfocado
+  aviso: 'rgba(44,32,70,0.96)',           // o aviso rápido
+  barra: 'rgba(30,24,46,0.62)',           // a pílula de vidro das abas
+  cabecalho: 'rgba(14,11,22,0.74)',       // o cabeçalho de cima: vidro escuro
 };
 
 /* o efeito de vidro: no navegador, o desfoque do que passa por trás; no celular não há desfoque (pesa ao rolar), só a
    transparência e a borda clara */
-export const VIDRO: object = { backdropFilter: 'blur(18px) saturate(140%)', WebkitBackdropFilter: 'blur(18px) saturate(140%)' };
-export const SOMBRA_VIDRO = '0 18px 40px -22px rgba(42,22,80,0.45)';
+/* desde 2026-11-18 (tema escuro, a partir de uma referência do dono): desfoque mais forte e mais saturação, para a luz roxa do fundo
+   passar pelo vidro e ele parecer refletir o fundo */
+export const VIDRO: object = { backdropFilter: 'blur(30px) saturate(170%)', WebkitBackdropFilter: 'blur(30px) saturate(170%)' };
+export const SOMBRA_VIDRO = '0 18px 40px -22px rgba(0,0,0,0.6)';
 
 /* estilos da interface: a fábrica roda uma vez, na primeira leitura (e não ao importar o arquivo, para não depender da ordem dos imports) */
 export function estilos<T extends object>(fabrica: () => T): T {
@@ -99,8 +104,8 @@ export const DEGRADE = {
   roxo: ['#5a0fc4', '#7426ec', '#8a45f5'] as const,
   ativo: ['#3a2370', '#2a1650', '#1f1040'] as const,         // o item ativo no vidro claro (menu, segmentos): a pílula roxo-escura          // botão principal, aba ativa, seleção (branco por cima: 4,9:1 ou mais)
   barra: ['#7b2cf0', '#c4a8ff'] as const,                       // progresso
-  brilhoCartao: ['rgba(255,255,255,0.32)', 'rgba(255,255,255,0)'] as const,      // o reflexo de cima do vidro
-  brilhoDestaque: ['rgba(255,255,255,0.45)', 'rgba(196,168,255,0.08)'] as const,
+  brilhoCartao: ['rgba(255,255,255,0.09)', 'rgba(255,255,255,0)'] as const,      // o reflexo de cima do vidro
+  brilhoDestaque: ['rgba(196,168,255,0.16)', 'rgba(196,168,255,0.02)'] as const,
   fio: ['rgba(255,255,255,0)', 'rgba(255,255,255,0.95)', 'rgba(255,255,255,0)'] as const,   // o fio de luz no alto dos cartões
 };
 export const INICIO_DIAGONAL = { x: 0, y: 0 } as const;

@@ -28,7 +28,7 @@ export function RecadoDoDia({ aoAbrir }: { aoAbrir: () => void }) {
         backgroundColor: cores.cartao, borderWidth: 1, borderColor: cores.linha2, opacity: pressed ? 0.85 : 1,
       })}
     >
-      <View style={{ width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: feito ? cores.cartao2 : cores.destaque }}>
+      <View style={{ width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: feito ? cores.cartao2 : cores.acao }}>
         <Icone nome={feito ? 'ok' : 'recado'} tamanho={22} cor={feito ? cores.destaque2 : '#ffffff'} />
       </View>
       <View style={{ flex: 1 }}>

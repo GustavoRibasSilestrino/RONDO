@@ -42,13 +42,13 @@ export function BotaoSeguir({ pessoa }: { pessoa: Pick<Pessoa, 'id' | 'nome' | '
       hitSlop={6}
       style={[st.pilula, seguindo && st.seguindo]}
     >
-      {seguindo ? <Icone nome="ok" tamanho={13} cor={cores.destaque2} /> : null}
-      <T tam={12.5} peso="500" cor={seguindo ? cores.destaque2 : '#ffffff'}>{seguindo ? 'Seguindo' : 'Seguir'}</T>
+      {seguindo ? <Icone nome="ok" tamanho={13} cor="#ffffff" /> : null}
+      <T tam={12.5} peso="500" cor="#ffffff">{seguindo ? 'Seguindo' : 'Seguir'}</T>
     </Pressable>
   );
 }
 
 const st = estilos(() => StyleSheet.create({
-  pilula: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 7, paddingHorizontal: 14, borderRadius: 999, backgroundColor: cores.destaqueForte, borderWidth: 1, borderColor: cores.destaqueForte },
-  seguindo: { backgroundColor: 'transparent', borderColor: 'rgba(196,168,255,0.4)' },
+  pilula: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 7, paddingHorizontal: 14, borderRadius: 999, backgroundColor: cores.acao, borderWidth: 1, borderColor: cores.acao },
+  seguindo: { opacity: 0.88 },   // seguindo: o mesmo roxo da aba ativa, com o ✓ (pedido do dono, 2026-11-18)
 }));

@@ -68,13 +68,13 @@ export function MenuMais({ aberto, aoFechar, itens, rotulo }: { aberto: boolean;
 }
 
 const st = estilos(() => StyleSheet.create({
-  veu: { backgroundColor: 'rgba(30,16,60,0.12)' },
+  veu: { backgroundColor: 'rgba(0,0,0,0.35)' },
   cartao: {
     position: 'absolute', minWidth: 210, maxWidth: 280, borderRadius: 22, overflow: 'hidden', paddingVertical: 4,
-    backgroundColor: 'rgba(255,255,255,0.72)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.95)', ...VIDRO,
-    shadowColor: '#2a1650', shadowOpacity: 0.25, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 14,
+    backgroundColor: 'rgba(30,24,46,0.86)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', ...VIDRO,
+    shadowColor: '#000000', shadowOpacity: 0.5, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 14,
   },
   item: { minHeight: 48, paddingHorizontal: 20, justifyContent: 'center' },
   divisa: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: cores.linha2 },
-  itemSobre: { backgroundColor: 'rgba(214,212,220,0.55)' },
+  itemSobre: { backgroundColor: 'rgba(255,255,255,0.08)' },
 }));

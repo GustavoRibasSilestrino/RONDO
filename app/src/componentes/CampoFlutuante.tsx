@@ -107,7 +107,7 @@ const st = estilos(() => StyleSheet.create({
   },
   caixaAlta: { height: undefined, minHeight: 112, alignItems: 'stretch' },
   caixaFoco: { borderColor: `rgba(${escuro.tom},0.7)`, backgroundColor: 'rgba(255,255,255,0.04)' },
-  caixaClara: { borderColor: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(255,255,255,0.45)' },
+  caixaClara: { borderColor: 'rgba(255,255,255,0.16)', backgroundColor: 'rgba(255,255,255,0.06)' },
   icone: { marginRight: 11 },
   meio: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
   rotulo: { position: 'absolute', left: 0, top: 13, fontSize: 14.5, fontFamily: FONTE['300'], transformOrigin: 'left center' },

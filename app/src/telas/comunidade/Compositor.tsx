@@ -306,7 +306,7 @@ function MarcarPessoa({ aberta, aoFechar, aoEscolher }: { aberta: boolean; aoFec
 function Destino({ nome, ativo, aoTocar }: { nome: string; ativo: boolean; aoTocar: () => void }) {
   return (
     <Pressable accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={aoTocar} style={[st.destino, ativo && st.destinoAtivo]}>
-      <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#24154a' : cores.texto2}>{nome}</T>
+      <T tam={13} peso={ativo ? '500' : '300'} cor={ativo ? '#ffffff' : cores.texto2}>{nome}</T>
     </Pressable>
   );
 }
@@ -321,7 +321,7 @@ function Ferramenta({ icone, rotulo, ocupado, desabilitado, aoTocar, grande }: {
       onPress={aoTocar}
       style={[st.ferramenta, grande && st.ferramentaGrande, { opacity: desabilitado ? 0.4 : 1 }]}
     >
-      <Icone nome={icone} tamanho={grande ? 26 : 23} cor={ocupado ? cores.texto3 : cores.destaqueForte} />
+      <Icone nome={icone} tamanho={grande ? 26 : 23} cor={ocupado ? cores.texto3 : cores.destaque2} />
     </Pressable>
   );
 }
@@ -342,7 +342,7 @@ const st = estilos(() => StyleSheet.create({
   autor: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   destinos: { gap: 8, paddingVertical: 16 },
   destino: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: cores.linha2 },
-  destinoAtivo: { backgroundColor: '#d8c9ff', borderColor: '#d8c9ff' },   // escolhido: o roxo pastel dos botões
+  destinoAtivo: { backgroundColor: cores.acao, borderColor: cores.acao },   // escolhido: o violeta de ação
   texto: { minHeight: 110, color: cores.texto, fontSize: 21, fontFamily: FONTE['200'], lineHeight: 30, textAlignVertical: 'top', paddingVertical: 4, outlineWidth: 0, ...({ outlineStyle: 'none' } as object), outlineColor: 'transparent' },
   miniaturas: { gap: 10, paddingTop: 16, paddingBottom: 8 },
   tile: { width: 132, height: 132 },

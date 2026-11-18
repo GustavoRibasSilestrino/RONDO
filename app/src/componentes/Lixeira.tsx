@@ -58,7 +58,7 @@ export function Lixeira({ visivel, sobre, aviso, aoTocar, aoMedir, aoCancelar }:
         {/* cancelar sem arrastar: a pasta volta para o lugar dela */}
         <Pressable
           accessibilityRole="button" accessibilityLabel="Cancelar e colocar a pasta de volta" onPress={aoCancelar} hitSlop={8}
-          style={({ hovered }: { pressed: boolean; hovered?: boolean }): ViewStyle[] => [{ height: 40, paddingHorizontal: 16, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.95)', backgroundColor: hovered ? 'rgba(214,212,220,0.95)' : 'rgba(255,255,255,0.6)', opacity: sobre ? 0 : 1 }, VIDRO as ViewStyle]}
+          style={({ hovered }: { pressed: boolean; hovered?: boolean }): ViewStyle[] => [{ height: 40, paddingHorizontal: 16, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', backgroundColor: hovered ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.09)', opacity: sobre ? 0 : 1 }, VIDRO as ViewStyle]}
         >
           <T tam={13} peso="500">Cancelar</T>
         </Pressable>
@@ -71,8 +71,8 @@ export function Lixeira({ visivel, sobre, aviso, aoTocar, aoMedir, aoCancelar }:
             onPress={aoTocar}
             style={({ hovered }: { pressed: boolean; hovered?: boolean }): ViewStyle[] => [{
               width: TAMANHO, height: TAMANHO, borderRadius: TAMANHO / 2, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5,
-              borderColor: sobre ? cores.erro : 'rgba(255,255,255,0.95)',
-              backgroundColor: sobre ? cores.erro : hovered ? 'rgba(214,212,220,0.95)' : 'rgba(255,255,255,0.6)',
+              borderColor: sobre ? cores.erro : 'rgba(255,255,255,0.18)',
+              backgroundColor: sobre ? cores.erro : hovered ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.09)',
               boxShadow: sobre ? '0 12px 30px -10px rgba(179,32,58,0.75)' : '0 12px 28px -12px rgba(42,22,80,0.55)',
             }, VIDRO as ViewStyle]}
           >

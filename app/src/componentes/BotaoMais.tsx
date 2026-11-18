@@ -47,6 +47,6 @@ export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPression
 
 const st = estilos(() => StyleSheet.create({
   faixa: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  mais: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.5)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.95)', boxShadow: '0 12px 28px -12px rgba(42,22,80,0.55)', ...VIDRO },
-  maisSobre: { backgroundColor: 'rgba(214,212,220,0.92)' },   // cursor em cima: cinza claro, como os outros botões
+  mais: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.09)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', boxShadow: '0 12px 28px -12px rgba(0,0,0,0.7)', ...VIDRO },
+  maisSobre: { backgroundColor: 'rgba(255,255,255,0.16)' },   // cursor em cima: cinza claro, como os outros botões
 }));

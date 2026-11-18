@@ -174,7 +174,7 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
                 <Cartao>
                   <T tam={16}>Nada por aqui ainda.</T>
                   <T tam={13.5} style={{ marginTop: 6, lineHeight: 20 }}>{SEPARACOES.find((x) => x.id === separacao)!.vazio}</T>
-                  <Botao pequeno tipo="fantasma" titulo="Criar publicação" aoPressionar={() => abrirCompositor(null)} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
+                  <Botao pequeno titulo="Criar publicação" aoPressionar={() => abrirCompositor(null)} style={{ marginTop: 14, alignSelf: 'flex-start' }} />
                 </Cartao>
               )}
             </View>
@@ -217,6 +217,6 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
 const st = estilos(() => StyleSheet.create({
   separacoes: { flexDirection: 'row', alignSelf: 'stretch', marginHorizontal: -20, marginTop: -6, marginBottom: 14, paddingBottom: 8 },
   separacao: { flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: 44 },
-  marcador: { position: 'absolute', left: 0, bottom: 4, height: 3, width: 28, borderRadius: 2, backgroundColor: cores.destaqueForte },
+  marcador: { position: 'absolute', left: 0, bottom: 4, height: 3, width: 28, borderRadius: 2, backgroundColor: cores.acao },
   lista: { marginHorizontal: -20, borderTopWidth: 1, borderTopColor: cores.linha },
 }));

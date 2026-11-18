@@ -4,7 +4,7 @@ import { Animated, Easing, KeyboardAvoidingView, Modal, PanResponder, Platform, 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayoutLargo } from '../lib/largura';
 import { definirRolagem } from '../lib/rolagem';
-import { cores, larguraMax, raio, estilos } from '../tema';
+import { cores, larguraMax, raio, estilos, VIDRO } from '../tema';
 import { T } from './Ui';
 
 /* ---------- Tela ---------- */
@@ -135,7 +135,7 @@ const st = estilos(() => StyleSheet.create({
   /* sem tela escura por trás: ela subia junto com o painel e escurecia tudo; o toque fora ainda fecha */
   fundo: { flex: 1, backgroundColor: 'transparent', justifyContent: 'flex-end' },
   espaco: { width: '100%', maxWidth: larguraMax, alignSelf: 'center' },
-  corpo: { backgroundColor: cores.painel, borderColor: cores.linha2, borderWidth: 1, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 22, paddingTop: 12, ...({ boxShadow: '0 -10px 40px rgba(0,0,0,0.5)' } as object) },
+  corpo: { backgroundColor: cores.painel, borderColor: cores.linha2, borderWidth: 1, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 22, paddingTop: 12, ...VIDRO, ...({ boxShadow: '0 -10px 40px rgba(0,0,0,0.5)' } as object) },
   zonaAlca: { marginHorizontal: -22, paddingHorizontal: 22, paddingTop: 4 },   // a área de pegar: alça e título, de ponta a ponta
   alca: { alignSelf: 'center', width: 42, height: 5, borderRadius: 3, backgroundColor: cores.linha2, marginTop: 6, marginBottom: 16 },
   aviso: { position: 'absolute', left: 24, right: 24, alignSelf: 'center', maxWidth: 420, backgroundColor: cores.aviso, borderColor: cores.linha2, borderWidth: 1, borderRadius: raio.pilula, paddingVertical: 12, paddingHorizontal: 20, boxShadow: '0 16px 34px -14px rgba(0,0,0,0.9)' },

@@ -105,7 +105,7 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
                     const on = marcado(o.grupos);
                     return (
                       <Pressable key={o.rotulo} accessibilityRole="button" accessibilityState={{ selected: on }} onPress={() => alternar(o.grupos)} style={[st.chip, on && st.chipOn]}>
-                        <T tam={13} peso={on ? '500' : '300'} cor={cores.texto}>{o.rotulo}</T>
+                        <T tam={13} peso={on ? '500' : '300'} cor={on ? '#ffffff' : cores.texto}>{o.rotulo}</T>
                       </Pressable>
                     );
                   })}
@@ -204,7 +204,7 @@ const st = estilos(() => StyleSheet.create({
   chipPronto: { borderColor: 'rgba(196,168,255,0.45)' },
   sem: { padding: 16, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   semTopo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  chipOn: { backgroundColor: '#d8c9ff', borderColor: '#d8c9ff' },   // marcado: roxo pastel chapado, como o botão principal
+  chipOn: { backgroundColor: cores.acao, borderColor: cores.acao },   // marcado: o violeta de ação, como o botão principal
   exercicio: { padding: 14, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, gap: 14 },
   numero: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, marginBottom: 12 },
   remover: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },

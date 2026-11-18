@@ -83,6 +83,6 @@ const st = estilos(() => StyleSheet.create({
   grupo: { borderRadius: 20, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, overflow: 'hidden', ...VIDRO },
   divisa: { height: StyleSheet.hairlineWidth, backgroundColor: cores.linha2, marginLeft: 62 },
   linha: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 14, minHeight: 56 },
-  linhaSobre: { backgroundColor: 'rgba(214,212,220,0.5)' },
+  linhaSobre: { backgroundColor: 'rgba(255,255,255,0.16)' },
   icone: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
 }));
