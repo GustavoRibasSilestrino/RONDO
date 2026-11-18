@@ -21,7 +21,7 @@ router = APIRouter(prefix="/me", tags=["me"])
 
 # o que o app pode guardar. `xpExtra` e `pro` ficam de fora de propósito: quem define é o servidor (papel, selo e PRO)
 CHAVES = {
-    "perfil", "perfilFit", "treinos", "treinoAtual", "rotinasProprias", "refeicoes", "agua", "checkins", "pesos",
+    "perfil", "perfilFit", "treinos", "treinoAtual", "rotinasProprias", "refeicoes", "alimentosProprios", "agua", "checkins", "pesos",
     "perfilSocial",
     "recados", "notificacoes", "profissionais", "storiesVistos", "tema", "nivelAvisado", "medalhasAvisadas",
 }
