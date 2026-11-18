@@ -182,14 +182,12 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
                 accessibilityLabel="Texto da publicação"
                 style={st.texto}
               />
-              {/* as ferramentas, logo abaixo do texto: foto, câmera, treino e @ */}
-              {largo ? null : (
-                <View style={st.linhaFerramentas}>
-                  {ferramentas}
-                  <View style={{ flex: 1 }} />
-                  <T tam={11.5} mono cor={texto.length > LIMITE_TEXTO - 40 ? cores.alerta : cores.texto3}>{texto.length}/{LIMITE_TEXTO}</T>
-                </View>
-              )}
+              {/* as ferramentas, logo abaixo do texto (no celular e no computador; pedido do dono, 2026-11-18): foto, câmera, treino e @ */}
+              <View style={st.linhaFerramentas}>
+                {ferramentas}
+                <View style={{ flex: 1 }} />
+                <T tam={11.5} mono cor={texto.length > LIMITE_TEXTO - 40 ? cores.alerta : cores.texto3}>{midia.length ? `${midia.length}/${MAX_MIDIAS} mídias · ` : ''}{texto.length}/{LIMITE_TEXTO}</T>
+              </View>
 
               {midia.length ? (
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.miniaturas} keyboardShouldPersistTaps="handled">
@@ -226,15 +224,11 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
           </View>
         </KeyboardAvoidingView>
 
-        {/* computador: as opções ficam nos cantos da tela. Fechar e Publicar no alto; fotos, câmera e o contador embaixo, à esquerda */}
+        {/* computador: Cancelar e Publicar nos cantos de cima; as ferramentas ficam logo abaixo do texto, como no celular */}
         {largo ? (
           <>
             <View style={[st.cantoEsq, { top: insets.top + 24 }]}>{botaoFechar}</View>
             <View style={[st.cantoDir, { top: insets.top + 24 }]}>{botaoPublicar}</View>
-            <View style={[st.cantoBaixo, { bottom: insets.bottom + 24 }]}>
-              {ferramentas}
-              <T tam={13.5} cor={cores.texto3} style={{ marginLeft: 8 }}>{midia.length} de {MAX_MIDIAS}</T>
-            </View>
           </>
         ) : null}
       </View>
@@ -355,6 +349,5 @@ const st = estilos(() => StyleSheet.create({
   ferramentaGrande: { width: 58, height: 58, borderRadius: 29 },
   cantoEsq: { position: 'absolute', left: 28 },
   cantoDir: { position: 'absolute', right: 28 },
-  cantoBaixo: { position: 'absolute', left: 28, flexDirection: 'row', alignItems: 'center', gap: 10 },
   ferramenta: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
 }));
