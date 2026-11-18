@@ -94,7 +94,3 @@ html {
 }
 .pastas-orbe span { color: var(--ink-2); }
 
-/* a marca em roxo (2026-11-18): a pílula com o nome no topo e o quadrado com o R no rodapé */
-.logo .logo-pilula { height: 36px; width: auto; }
-.footer .logo .logo-icone { height: 44px; width: auto; }
-@media (max-width: 760px) { .logo .logo-pilula { height: 30px; } }

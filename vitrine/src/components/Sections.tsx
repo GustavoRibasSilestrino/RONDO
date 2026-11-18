@@ -1,7 +1,7 @@
 import { CadastroProfissional } from "./Cadastro";
 import { abrirPreferenciasCookies } from "../lib/consentimento";
 import { APP_CRIAR, APP_ENTRAR } from "../lib/rotas";
-import { Btn, Reveal, Section, Spot, Title, IconeMarca } from "./ui";
+import { Btn, Reveal, Section, Spot, Title, Mark } from "./ui";
 
 /* ---------- clube ---------- */
 const POD = [
@@ -190,7 +190,7 @@ export function Footer() {
       <div className="wrap">
         <div className="footer-grid">
           <div>
-            <a href="#" className="logo" aria-label="RONDO"><IconeMarca className="logo-icone" /></a>
+            <a href="#" className="logo" aria-label="RONDO"><Mark /></a>
             <p style={{ marginTop: ".7rem" }}>Compita com quem você foi ontem.</p>
           </div>
           <nav className="footer-links" aria-label="Rodapé"><a href="#recursos">Recursos</a><a href="#recado">Recado de voz</a><a href="#profissionais">Profissionais</a><a href="#planos">Planos</a></nav>
