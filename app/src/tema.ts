@@ -83,7 +83,7 @@ export const cores: Paleta = {
    transparência e a borda clara */
 /* desde 2026-11-18 (tema escuro, a partir de uma referência do dono): desfoque mais forte e mais saturação, para a luz roxa do fundo
    passar pelo vidro e ele parecer refletir o fundo */
-export const VIDRO: object = { backdropFilter: 'blur(30px) saturate(170%)', WebkitBackdropFilter: 'blur(30px) saturate(170%)' };
+export const VIDRO: object = { backdropFilter: 'blur(20px) saturate(170%)', WebkitBackdropFilter: 'blur(20px) saturate(170%)' };
 export const SOMBRA_VIDRO = '0 18px 40px -22px rgba(0,0,0,0.6)';
 
 /* estilos da interface: a fábrica roda uma vez, na primeira leitura (e não ao importar o arquivo, para não depender da ordem dos imports) */
