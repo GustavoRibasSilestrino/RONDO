@@ -28,7 +28,7 @@ export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPression
     return () => anim.stop();   // interrompível: trocar de ideia no meio muda o rumo na hora
   }, [escondido, reduzido, mostra]);
   return (
-    <View pointerEvents="box-none" style={[st.faixa, { bottom: insets.bottom + (largo ? 28 : 16 + 62 + 12) }]}>
+    <View pointerEvents="box-none" style={[st.faixa, { bottom: insets.bottom + (largo ? 28 : 16 + 64 + 12) }]}>
       <Animated.View
         pointerEvents={escondido ? 'none' : 'box-none'}
         style={{

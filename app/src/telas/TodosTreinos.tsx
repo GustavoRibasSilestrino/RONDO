@@ -10,6 +10,7 @@ import type { Rotina } from '../dados';
 import { haQuanto } from '../lib/datas';
 import { musculosDe } from '../lib/rotinas';
 import { cores, estilos, larguraMax } from '../tema';
+import { DeslizarParaVoltar } from '../componentes/Deslizar';
 
 type Props = {
   aberto: boolean;
@@ -24,6 +25,7 @@ export function TodosTreinos({ aberto, rotinas, aoFechar, aoIniciar, aoEditar, u
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={aberto} animationType="slide" onRequestClose={aoFechar} statusBarTranslucent>
+      <DeslizarParaVoltar aoVoltar={aoFechar}>
       <View style={st.tela}>
         <View style={[st.coluna, { paddingTop: insets.top + 8 }]}>
           <View style={st.topo}>
@@ -58,6 +60,7 @@ export function TodosTreinos({ aberto, rotinas, aoFechar, aoIniciar, aoEditar, u
           </ScrollView>
         </View>
       </View>
+      </DeslizarParaVoltar>
     </Modal>
   );
 }

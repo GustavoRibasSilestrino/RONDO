@@ -2,12 +2,12 @@
    A Comunidade tem os clubes (criar, entrar, convidar e publicar dentro) e o ranking semanal de constância.
    O botão + roxo, sobre a barra, cria uma publicação. Feed, clubes e perfis vêm do servidor e são os mesmos para todo mundo. */
 import React, { useCallback, useEffect, useState } from 'react';
-import { BackHandler, Pressable, Share, StyleSheet, View } from 'react-native';
+import { BackHandler, Share, StyleSheet, View } from 'react-native';
 import { lerFeed } from '../api/social';
 import type { Pessoa } from '../api/social';
-import { Folha, Tela, useAviso } from '../componentes/Estrutura';
+import { Tela, useAviso } from '../componentes/Estrutura';
+import { MenuMais } from '../componentes/MenuMais';
 import { BotaoMais } from '../componentes/BotaoMais';
-import { Icone } from '../componentes/Icone';
 import { Botao, Cartao, Segmentos, T } from '../componentes/Ui';
 import { useLista } from '../estado/lista';
 import { useLoja } from '../estado/loja';
@@ -113,9 +113,8 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
           </>
         ) : (
           <>
-            <T tam={15} peso="400" centro>Comunidade</T>
-            <T tam={13} centro style={{ marginTop: 6 }}>Clubes e gente que também voltou hoje.</T>
-            <Botao icone="mais" titulo="Criar clube" aoPressionar={() => setCriando(true)} style={{ marginTop: 20 }} />
+            <T tam={13.5} cor={cores.texto2} centro>Clubes e gente que também voltou hoje.</T>
+            <Botao icone="mais" titulo="Criar clube" aoPressionar={() => setCriando(true)} style={{ marginTop: 16 }} />
             <View style={{ marginTop: 16 }}>
               <Segmentos<Aba> valor={aba} aoMudar={setAba} opcoes={[{ valor: 'grupos', nome: 'Clubes' }, { valor: 'ranking', nome: 'Ranking' }]} />
             </View>
@@ -133,31 +132,19 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
       {/* o + roxo, sobre a barra: criar uma publicação (dentro de um clube, o botão do próprio clube publica nele) */}
       {grupoAberto ? null : <BotaoMais rotulo="Criar" aoPressionar={() => setMenuMais(true)} />}
 
-      {/* o que o + faz: publicar, ou compartilhar a sua semana */}
-      <Folha aberta={menuMais} aoFechar={() => setMenuMais(false)} titulo="Criar">
-        <View style={{ gap: 10, paddingBottom: 4 }}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Publicar" onPress={() => { setMenuMais(false); abrirCompositor(null); }} style={({ pressed }) => [st.opcao, pressed && { opacity: 0.85 }]}>
-            <View style={st.opcaoIcone}><Icone nome="imagem" tamanho={22} cor="#ffffff" /></View>
-            <View style={{ flex: 1 }}>
-              <T tam={15.5} peso="500">Publicar</T>
-              <T tam={13} style={{ marginTop: 2 }}>Foto, vídeo ou texto no Feed.</T>
-            </View>
-          </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Compartilhar o meu progresso da semana" onPress={() => { setMenuMais(false); compartilhar(); }} style={({ pressed }) => [st.opcao, pressed && { opacity: 0.85 }]}>
-            <View style={st.opcaoIcone}><Icone nome="compartilhar" tamanho={22} cor="#ffffff" /></View>
-            <View style={{ flex: 1 }}>
-              <T tam={15.5} peso="500">Compartilhar minha semana</T>
-              <T tam={13} style={{ marginTop: 2 }}>Envia o seu Você vs. ontem para outros apps.</T>
-            </View>
-          </Pressable>
-        </View>
-      </Folha>
+      {/* o que o + faz, num menu de vidro só com texto: publicar, criar um clube (na Comunidade) ou compartilhar a sua semana */}
+      <MenuMais
+        aberto={menuMais} aoFechar={() => setMenuMais(false)} rotulo="Criar"
+        itens={[
+          { rotulo: 'Nova publicação', aoPressionar: () => abrirCompositor(null) },
+          ...(modo === 'comunidade' ? [{ rotulo: 'Criar clube', aoPressionar: () => setCriando(true) }] : []),
+          { rotulo: 'Compartilhar minha semana', aoPressionar: () => { void compartilhar(); } },
+        ]}
+      />
     </>
   );
 }
 
 const st = estilos(() => StyleSheet.create({
   lista: { marginHorizontal: -20, borderTopWidth: 1, borderTopColor: cores.linha },
-  opcao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao, minHeight: 64 },
-  opcaoIcone: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
 }));

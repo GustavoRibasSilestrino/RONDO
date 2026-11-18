@@ -18,6 +18,7 @@ import { Avatar } from './Avatar';
 import { CartaoPost } from './CartaoPost';
 import { BotaoSeguir } from './Seguir';
 import { arrobaDe } from './util';
+import { DeslizarParaVoltar } from '../../componentes/Deslizar';
 
 type Props = { id: number | null; aoFechar: () => void; aoAbrirMidia: (itens: Midia[], indice: number) => void; aoAbrirClube?: (id: number) => void };
 
@@ -49,6 +50,7 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
 
   return (
     <Modal visible animationType="none" onRequestClose={voltar} statusBarTranslucent>
+      <DeslizarParaVoltar aoVoltar={voltar}>
       <View style={st.tela}>
         <View style={[st.coluna, { paddingTop: insets.top + 8 }]}>
           <View style={st.topo}>
@@ -149,6 +151,7 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
           </T>
         )}
       </Folha>
+      </DeslizarParaVoltar>
     </Modal>
   );
 }

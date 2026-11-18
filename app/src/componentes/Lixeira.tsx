@@ -46,7 +46,7 @@ export function Lixeira({ visivel, sobre, aviso, aoTocar, aoMedir, aoCancelar }:
   useEffect(() => { if (visivel) { const t = setTimeout(medir, 320); return () => clearTimeout(t); } return undefined; });
 
   return (
-    <View pointerEvents="box-none" {...({ dataSet: { semSelecao: '1' } } as object)} style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + (largo ? 28 : 16 + 62 + 12), alignItems: 'center' }}>
+    <View pointerEvents="box-none" {...({ dataSet: { semSelecao: '1' } } as object)} style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + (largo ? 28 : 16 + 64 + 12), alignItems: 'center' }}>
       <Animated.View
         pointerEvents={visivel ? 'box-none' : 'none'}
         style={{ alignItems: 'center', opacity: entra, transform: [{ translateY: entra.interpolate({ inputRange: [0, 1], outputRange: [70, 0] }) }, { scale: entra.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}

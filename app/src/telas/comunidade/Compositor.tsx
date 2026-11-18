@@ -16,6 +16,7 @@ import { cores, larguraMax, FONTE, estilos } from '../../tema';
 import type { Midia } from '../../tipos';
 import { Avatar } from './Avatar';
 import { Miniatura } from './Midia';
+import { DeslizarParaVoltar } from '../../componentes/Deslizar';
 
 const LIMITE_TEXTO = 600;
 
@@ -122,6 +123,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
 
   return (
     <Modal visible={aberto} animationType="slide" onRequestClose={aoFechar} statusBarTranslucent>
+      <DeslizarParaVoltar aoVoltar={aoFechar}>
       <View style={st.tela}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, width: '100%', maxWidth: larguraMax }}>
           <View style={[st.coluna, { paddingTop: insets.top + 10 }]}>
@@ -212,6 +214,7 @@ export function Compositor({ aberto, aoFechar, grupoInicial }: { aberto: boolean
           </>
         ) : null}
       </View>
+      </DeslizarParaVoltar>
     </Modal>
   );
 }

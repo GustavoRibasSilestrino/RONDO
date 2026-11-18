@@ -19,6 +19,7 @@ import { ContaSeguranca } from './ContaSeguranca';
 import { Privacidade } from './Privacidade';
 import { SeusDados } from './SeusDados';
 import { VozDoRondin } from './VozDoRondin';
+import { DeslizarParaVoltar } from '../../componentes/Deslizar';
 
 type Secao = 'dados' | 'beneficios' | 'voz' | 'comunidade' | 'denuncias' | 'privacidade' | 'conta';
 
@@ -66,6 +67,7 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
 
   return (
     <Modal visible={aberto} animationType="slide" onRequestClose={() => (secao ? setSecao(null) : sair())} statusBarTranslucent>
+      <DeslizarParaVoltar aoVoltar={() => (secao ? setSecao(null) : sair())}>
       <View style={st.tela}>
         <View style={[st.coluna, { paddingTop: insets.top + 8 }]}>
           <View style={st.topo}>
@@ -152,6 +154,7 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
           <Botao tipo="perigo" icone="lixo" titulo="Apagar tudo" carregando={apagandoAgora} aoPressionar={apagarConta} style={{ flex: 1 }} />
         </View>
       </Folha>
+      </DeslizarParaVoltar>
     </Modal>
   );
 }

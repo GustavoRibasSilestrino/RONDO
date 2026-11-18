@@ -12,6 +12,7 @@ import { FundoCena, cenaDaTela } from './src/componentes/FundoCena';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
 import { BotaoVoltar } from './src/componentes/BotaoVoltar';
 import { CabecalhoApp } from './src/componentes/CabecalhoApp';
+import { DeslizarEntreAbas, DeslizarParaVoltar } from './src/componentes/Deslizar';
 import { Chegada } from './src/componentes/Chegada';
 import { Icone } from './src/componentes/Icone';
 import { RondinChamado } from './src/componentes/RondinChamado';
@@ -37,6 +38,7 @@ import { Evolucao } from './src/telas/Evolucao';
 import { Hoje } from './src/telas/Hoje';
 import { Login } from './src/telas/Login';
 import { Notificacoes } from './src/telas/Notificacoes';
+import { OpcoesComunidade, OpcoesDieta, OpcoesTreino } from './src/telas/OpcoesAbas';
 import { Perfil } from './src/telas/Perfil';
 import { Recado } from './src/telas/Recado';
 import { Social } from './src/telas/Social';
@@ -50,10 +52,10 @@ const INICIO = 'home';
 /* da esquerda para a direita: o feed (a casinha), o treino, a comunidade, a dieta e o perfil */
 const TELAS: ItemAba[] = [
   { id: 'home', rotulo: 'Feed', icone: 'hoje' },
-  { id: 'treino', rotulo: 'Treino', icone: 'treino' },
+  { id: 'treino', rotulo: 'Treinos', icone: 'halter' },
   { id: 'comunidade', rotulo: 'Comunidade', icone: 'social' },
-  { id: 'dieta', rotulo: 'Dieta', icone: 'dieta' },
-  { id: 'perfil', rotulo: 'Perfil', icone: 'perfil' },
+  { id: 'dieta', rotulo: 'Dieta', icone: 'refeicao' },
+  { id: 'perfil', rotulo: 'Perfil', icone: 'perfilCirculo' },
 ];
 
 /* telas que moram dentro do Perfil: a barra mantém o Perfil aceso e o voltar leva para ele */
@@ -70,7 +72,8 @@ function Raiz() {
   const [tela, setTela] = useState(INICIO);
   const [antes, setAntes] = useState(INICIO);   // a aba em que a pessoa estava ao abrir as notificações: o sino volta para ela
   const [voltarPara, setVoltarPara] = useState('perfil');   // de onde a pessoa veio ao abrir Hoje, Evolução, Recado ou Coleções: o voltar leva para lá (o recado do feed volta para o feed)
-  const [buscando, setBuscando] = useState(false);   // a busca de pessoas, aberta pela lupa (no alto do app, ou no canto do feed no computador)
+  const [buscando, setBuscando] = useState(false);
+  const [opcoes, setOpcoes] = useState<'treino' | 'dieta' | 'comunidade' | null>(null);   // a tela de opções da aba, aberta pelo botão do cabeçalho   // a busca de pessoas, aberta pela lupa (no alto do app, ou no canto do feed no computador)
   /* a chegada (componentes/Chegada.tsx): desde 2026-11-13 o app abre primeiro e o RONDIN chega 5 s depois (pedido do dono),
      fazendo a pergunta do dia. Uma vez por abertura do app. */
   const [chegando, setChegando] = useState(false);
@@ -139,25 +142,54 @@ function Raiz() {
   const irPara = (t: string) => { if (DO_PERFIL.includes(t)) setVoltarPara(DO_PERFIL.includes(tela) ? voltarPara : tela); setTela(t); };
   const aoAbrirNotificacoes = () => { if (tela === 'notificacoes') { setTela(antes); } else { setAntes(tela); setTela('notificacoes'); } };
   const escolher = (id: string) => { if (id !== tela) setTela(id); };
+  const ehAba = TELAS.some((x) => x.id === tela);
+  /* a aba ao lado (-1 à esquerda, 1 à direita), para o deslizar; nas pontas não há para onde ir. Com um treino em andamento a
+     tela do treino é a sessão: lá o deslizar não troca de aba, para um gesto sem querer não tirar a pessoa do treino */
+  const vizinha = (passo: number) => {
+    if (largo || (tela === 'treino' && estado.treinoAtual)) return undefined;
+    const i = TELAS.findIndex((x) => x.id === tela) + passo;
+    return i >= 0 && i < TELAS.length ? () => setTela(TELAS[i].id) : undefined;
+  };
+  const voltarDaTela = () => setTela(tela === 'notificacoes' ? antes : voltarPara);
   return (
     <View style={{ flex: 1, flexDirection: largo ? 'row' : 'column' }}>
       {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} recolhido={menuRecolhido} aoAlternar={alternarMenu} nome={estado.usuario?.nome ?? ""} nivel={nivelDe(xpTotal(estado))} aoAbrirConta={() => setTela("perfil")} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} /> : null}
       <View style={{ flex: 1 }}>
       {/* a paisagem ilustrada da tela (as bolhas roxas saíram: tingiam o desenho todo de roxo) */}
       <FundoCena cena={cenaDaTela(tela)} />
-      {tela === 'home' && <Social modo="home" ir={irPara} buscaAberta={buscando} aoFecharBusca={() => setBuscando(false)} />}
-      {tela === 'comunidade' && <Social modo="comunidade" ir={irPara} buscaAberta={false} aoFecharBusca={() => setBuscando(false)} />}
-      {tela === 'treino' && <><Treino />{estado.treinoAtual ? null : <CriarPlano tipo="treino" />}</>}
-      {tela === 'dieta' && <><Dieta /><CriarPlano tipo="dieta" /></>}
-      {tela === 'hoje' && <Hoje ir={irPara} />}
-      {tela === 'evolucao' && <Evolucao />}
-      {tela === 'recado' && <Recado aoSair={() => setTela(voltarPara)} aoDiario={() => irPara('diario')} />}
-      {tela === 'diario' && <Diario ir={irPara} />}
-      {tela === 'colecoes' && <Colecoes />}
-      {tela === 'notificacoes' && <Notificacoes aoFechar={() => setTela(antes)} />}
-      {tela === 'perfil' && <Perfil ir={irPara} />}
-      {DO_PERFIL.includes(tela) && tela !== 'recado' ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
-      {largo || tela === 'perfil' ? null : <CabecalhoApp aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined} mostrarNome={tela === 'home'} mostrarSino={tela === 'home' || tela === 'notificacoes'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} />}
+      {/* as abas: deslizar o dedo para os lados troca de aba; as telas de dentro (notificações, Hoje, Evolução...) voltam
+          deslizando para a direita (componentes/Deslizar.tsx, pedido do dono, 2026-11-18) */}
+      {ehAba ? (
+        <DeslizarEntreAbas key={tela} aoAnterior={vizinha(-1)} aoProxima={vizinha(1)}>
+          {tela === 'home' && <Social modo="home" ir={irPara} buscaAberta={buscando} aoFecharBusca={() => setBuscando(false)} />}
+          {tela === 'comunidade' && <Social modo="comunidade" ir={irPara} buscaAberta={false} aoFecharBusca={() => setBuscando(false)} />}
+          {tela === 'treino' && <><Treino />{estado.treinoAtual ? null : <CriarPlano />}</>}
+          {tela === 'dieta' && <Dieta />}
+          {tela === 'perfil' && <Perfil ir={irPara} />}
+        </DeslizarEntreAbas>
+      ) : (
+        <DeslizarParaVoltar key={tela} aoVoltar={voltarDaTela} ativo={tela !== 'recado'}>
+          {tela === 'hoje' && <Hoje ir={irPara} />}
+          {tela === 'evolucao' && <Evolucao />}
+          {tela === 'recado' && <Recado aoSair={() => setTela(voltarPara)} aoDiario={() => irPara('diario')} />}
+          {tela === 'diario' && <Diario ir={irPara} />}
+          {tela === 'colecoes' && <Colecoes />}
+          {tela === 'notificacoes' && <Notificacoes aoFechar={() => setTela(antes)} />}
+          {DO_PERFIL.includes(tela) && tela !== 'recado' ? <BotaoVoltar rotulo={voltarPara === 'perfil' ? 'Voltar ao perfil' : 'Voltar'} aoPressionar={() => setTela(voltarPara)} /> : null}
+        </DeslizarParaVoltar>
+      )}
+      {largo || tela === 'perfil' ? null : (
+        <CabecalhoApp
+          titulo={tela === 'notificacoes' ? 'Notificações' : (TELAS.find((x) => x.id === naBarra)?.rotulo ?? '')}
+          aoBuscar={tela === 'home' ? () => setBuscando(true) : undefined}
+          aoOpcoes={tela === 'treino' || tela === 'dieta' || tela === 'comunidade' ? () => setOpcoes(tela) : undefined}
+          rotuloOpcoes={tela === 'treino' ? 'Configurações do treino' : tela === 'dieta' ? 'Configurações da dieta' : 'Opções da comunidade'}
+          mostrarSino={tela === 'home' || tela === 'notificacoes'} naoLidas={naoLidas(estado)} aberto={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes}
+        />
+      )}
+      <OpcoesTreino aberto={opcoes === 'treino'} aoFechar={() => setOpcoes(null)} />
+      <OpcoesDieta aberto={opcoes === 'dieta'} aoFechar={() => setOpcoes(null)} />
+      <OpcoesComunidade aberto={opcoes === 'comunidade'} aoFechar={() => setOpcoes(null)} aoNotificacoes={() => { setAntes('comunidade'); setTela('notificacoes'); }} />
       {largo ? null : <BarraAbas itens={TELAS} atual={naBarra} aoEscolher={setTela} />}
       {/* computador: a joia da sequência fica no canto de cima, à esquerda da área (no celular ela mora no cabeçalho); no
           Perfil ela não aparece, nem o cabeçalho do celular (pedido do dono, 2026-11-13) */}

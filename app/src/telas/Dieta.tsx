@@ -1,7 +1,10 @@
 /* Dieta: meta de calorias e macros, refeições do dia e a água. */
 import React, { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
+import { BotaoMais } from '../componentes/BotaoMais';
 import { Copos } from '../componentes/Copos';
+import { MenuMais } from '../componentes/MenuMais';
+import { BuscaProfissionais } from './BuscaProfissionais';
 import { Folha, Tela } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
 import { Anel, Barra, Botao, Campo, Cartao, Segmentos, T } from '../componentes/Ui';
@@ -19,6 +22,8 @@ export function Dieta() {
   const hoje = iso();
   const [dia, setDia] = useState(hoje);
   const [adicionando, setAdicionando] = useState<TipoRefeicao | null>(null);
+  const [menu, setMenu] = useState(false);     // o + do canto: um menu só com texto (componentes/MenuMais.tsx)
+  const [busca, setBusca] = useState(false);   // procurar nutricionista
 
   const meta = metaKcal(estado.perfil);
   const metas = macrosMeta(estado.perfil, meta);
@@ -34,9 +39,9 @@ export function Dieta() {
   };
 
   return (
+    <>
     <Tela>
-      <T tam={15} peso="400" centro>Dieta</T>
-      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: cores.cartao2, borderRadius: 99 }}>
           <Pressable accessibilityRole="button" accessibilityLabel="Dia anterior" onPress={() => mudarDia(-1)} style={{ padding: 10 }}>
             <Icone nome="seta" tamanho={16} cor={cores.texto2} />
@@ -130,7 +135,18 @@ export function Dieta() {
           setAdicionando(null);
         }}
       />
+      <BuscaProfissionais aberto={busca} aoFechar={() => setBusca(false)} tipo="nutricionista" />
     </Tela>
+    <BotaoMais rotulo="Adicionar na dieta" aoPressionar={() => setMenu(true)} />
+    <MenuMais
+      aberto={menu} aoFechar={() => setMenu(false)} rotulo="Adicionar na dieta"
+      itens={[
+        ...REFEICOES.map((r) => ({ rotulo: `Adicionar ao ${r.nome.toLowerCase()}`, aoPressionar: () => setAdicionando(r.id) })),
+        { rotulo: 'Beber um copo de água', desligado: agua >= 8, aoPressionar: () => commit((e) => { e.agua[dia] = Math.min(8, (e.agua[dia] ?? 0) + 1); }) },
+        { rotulo: 'Procurar nutricionista', aoPressionar: () => setBusca(true) },
+      ]}
+    />
+    </>
   );
 }
 

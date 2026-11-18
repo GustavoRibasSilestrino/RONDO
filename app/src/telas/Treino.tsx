@@ -1,8 +1,6 @@
 /* Treino: escolher a rotina, registrar série a série, descansar, bater recordes e finalizar. */
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
-import { AnaliseExecucao } from '../componentes/AnaliseExecucao';
-import { CalendarioMes } from '../componentes/CalendarioMes';
 import { CorpoMusculos } from '../componentes/CorpoMusculos';
 import { EditorTreino, type Rascunho } from '../componentes/EditorTreino';
 import { publicarPost } from '../api/social';
@@ -10,15 +8,15 @@ import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { GraficoLinha } from '../componentes/Grafico';
 import { Icone } from '../componentes/Icone';
 import { PilhaPastas } from '../componentes/PilhaPastas';
+import { TreinosVazio } from '../componentes/TreinosVazio';
 import { Lixeira, type Retangulo } from '../componentes/Lixeira';
 import { EscuroContexto, Botao, Chip, T } from '../componentes/Ui';
 import type { Rotina } from '../dados';
 import { useLoja } from '../estado/loja';
 import { diaAtivo, epley, estagnado, inicioDaSemana, melhor1RM, proximaCarga, ultimaVez, volumeDe } from '../lib/calc';
-import { exercicioDe, guardarRotina, musculosDe, rotinaDe, todasRotinas, treinosOcultos } from '../lib/rotinas';
+import { exercicioDe, guardarRotina, musculosDe, rotinaDe, todasRotinas } from '../lib/rotinas';
 import { descricaoDos } from '../lib/musculos';
 import { diaDaSemana, fmt, haQuanto, iso, mmss, num, somarDias } from '../lib/datas';
-import { explicacaoDaSugestao } from '../lib/treinoSugerido';
 import { esconderBotaoMais } from '../lib/botaoMais';
 import { cores, estilos, larguraMax } from '../tema';
 
@@ -42,10 +40,8 @@ export function Treino() {
 function Lista() {
   const { estado, commit } = useLoja();
   const { width } = useWindowDimensions();
-  const [calendario, setCalendario] = useState(false);
-  const [analise, setAnalise] = useState(false);   // a câmera que analisa a execução
   const avisar = useAviso();
-  const [editor, setEditor] = useState<{ inicial: Rascunho } | null>(null);   // o editor aberto, para mudar um treino próprio
+  const [editor, setEditor] = useState<{ inicial: Rascunho | null } | null>(null);   // o editor aberto: um treino novo ou mudar um próprio
   const rotinas = todasRotinas(estado);
   const [serie, setSerie] = useState<'constancia' | 'evolucao'>('constancia');
   const [escolhida, setEscolhida] = useState<string | null>(null);   // a pasta que subiu (primeiro toque)
@@ -96,8 +92,6 @@ function Lista() {
   };
 
   const ultimaData = (id: string): string | null => [...estado.treinos].reverse().find((t) => t.rotina === id)?.data ?? null;
-
-  const temSugestao = rotinas.some((x) => x.sugerida);
 
   /* a semana: segunda a domingo, com os dias em que houve treino */
   const hoje = new Date();
@@ -155,25 +149,14 @@ function Lista() {
     });
     setDesfazer(null);
   };
-  const ocultos = treinosOcultos(estado);
   const avisoLixeira = escolhida && !podeExcluir(escolhida) ? 'Este treino não pode ser excluído' : undefined;
   const rotinaAberta = aberto ? rotinas.find((x) => x.id === aberto) : undefined;
 
   return (
     <>
     <Tela>
-      <View style={{ justifyContent: 'center' }}>
-        {/* a câmera que analisa a execução: no canto, do lado oposto ao calendário, sem ocupar a tela */}
-        <Pressable accessibilityRole="button" accessibilityLabel="Analisar a execução com a câmera" onPress={() => setAnalise(true)} hitSlop={8} style={[st.botaoCalendario, st.botaoCamera]}>
-          <Icone nome="camera" tamanho={20} cor={cores.texto} />
-        </Pressable>
-        <T tam={15} peso="400" centro>Treino</T>
-        <Pressable accessibilityRole="button" accessibilityLabel="Abrir o calendário de constância" onPress={() => setCalendario(true)} hitSlop={8} style={st.botaoCalendario}>
-          <Icone nome="calendario" tamanho={20} cor={cores.texto} />
-        </Pressable>
-      </View>
-
-      {/* a semana */}
+      {/* a semana (sem treino salvo e sem histórico, ela some: o celular de exemplo fala sozinho) */}
+      {rotinas.length || estado.treinos.length ? (
       <View style={st.semana}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <T tam={14} peso="500">Esta semana</T>
@@ -216,41 +199,20 @@ function Lista() {
           {serie === 'constancia' ? `Últimas 8 semanas · média de ${fmt(mediaAtivos, 1)} dias por semana` : `Últimas 8 semanas · ${dif >= 0 ? '+' : '−'}${fmt(Math.abs(dif), 1)} t em relação à semana passada`}
         </T>
       </View>
-
-      {/* os treinos, em pastas lado a lado (desde 2026-11-17). Os sugeridos foram montados para o corpo da pessoa: o aviso em
-          destaque diz que são só um ponto de partida. Tocar numa pasta põe o treino em destaque, logo abaixo. */}
-      {temSugestao && estado.perfilFit ? (
-        <View style={st.aviso}>
-          <View style={st.avisoSelo}><Icone nome="ia" tamanho={14} cor="#1e1430" /><T tam={11} peso="500" cor="#1e1430" style={{ letterSpacing: 1.2 }}>SUGESTÃO</T></View>
-          <T tam={17} peso="500" cor="#ffffff" style={{ marginTop: 10 }}>Treinos montados para o seu corpo</T>
-          <T tam={13} cor="rgba(255,255,255,0.82)" style={{ marginTop: 4, lineHeight: 19 }}>{explicacaoDaSugestao(estado.perfilFit)}</T>
-          <T tam={13} peso="500" cor="#c4b5fd" style={{ marginTop: 8, lineHeight: 19 }}>Não é fixo: troque, edite ou crie os seus treinos quando quiser.</T>
-        </View>
       ) : null}
+
+      {/* os treinos da pessoa, em pastas empilhadas. Sem nenhum, o celular de exemplo com "Meus treinos" e o botão Novo treino */}
       {rotinas.length ? <PilhaPastas
         rotinas={rotinas} largura={colunaUtil} escolhida={escolhida}
         aoEscolher={setEscolhida}
         aoAbrir={(id) => { setEscolhida(id); setAberto(id); }}
         arrasto={{ lixeira, podeExcluir, aoSobreLixeira: setSobreLixeira, aoJogarNaLixeira: excluir, aoCancelar: () => { setEscolhida(null); setSobreLixeira(false); } }}
-      /> : null}
-      {rotinas.length === 0 ? (
-        <View style={st.vazio}>
-          <T tam={16} peso="500" centro>Nenhum treino por aqui</T>
-          <T tam={13} cor={cores.texto2} centro style={{ marginTop: 4, lineHeight: 19 }}>Crie o seu no + do canto, ou traga de volta os treinos sugeridos.</T>
-        </View>
-      ) : null}
-      {ocultos.length ? (
-        <Pressable accessibilityRole="button" onPress={() => commit((e) => { e.perfil.treinosOcultos = []; if (e.perfilFit) e.perfilFit.treinosOcultos = []; })} hitSlop={8} style={{ alignSelf: 'center', paddingVertical: 8 }}>
-          <T tam={13} peso="500" cor={cores.destaque2}>Mostrar os treinos excluídos de novo</T>
-        </Pressable>
-      ) : null}
-
+      /> : <TreinosVazio aoNovo={() => setEditor({ inicial: null })} />}
 
       {/* a pasta aberta: o treino com os exercícios e o botão de começar */}
       <Folha aberta={!!rotinaAberta} aoFechar={() => setAberto(null)} titulo={rotinaAberta?.nome}>
         {rotinaAberta ? (
           <View style={{ gap: 10 }}>
-            {rotinaAberta.sugerida ? <T tam={12.5} cor={cores.texto2} style={{ lineHeight: 18 }}>Sugestão montada para o seu corpo. Dá para editar ou criar o seu treino quando quiser.</T> : null}
             <T tam={13} cor={cores.texto2}>{rotinaAberta.exercicios.length} exercícios · {rotinaAberta.minutos} min · {totalSeries(rotinaAberta)} séries</T>
             {/* a anatomia: o que deve ser sentido no corpo durante este treino (pedido do dono, 2026-11-17) */}
             {musculosDe(rotinaAberta).length ? (
@@ -277,10 +239,6 @@ function Lista() {
         ) : null}
       </Folha>
       <EditorTreino aberto={!!editor} inicial={editor?.inicial ?? null} aoFechar={() => setEditor(null)} aoSalvar={salvarTreino} aoExcluir={excluirTreino} />
-      <Folha aberta={calendario} aoFechar={() => setCalendario(false)} titulo="Constância">
-        <CalendarioMes />
-      </Folha>
-      <AnaliseExecucao aberta={analise} aoFechar={() => setAnalise(false)} />
     </Tela>
     <Lixeira
       visivel={lixeiraVisivel}
@@ -553,21 +511,16 @@ const st = estilos(() => StyleSheet.create({
   dia: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: cores.linha2 },
   diaFeito: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
   diaHoje: { borderColor: cores.destaque },
-  aviso: { marginTop: 18, padding: 18, borderRadius: 24, backgroundColor: cores.destaqueForte, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)', boxShadow: '0 18px 40px -22px rgba(42,22,80,0.8)' },
-  avisoSelo: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 5, paddingHorizontal: 11, borderRadius: 999, backgroundColor: '#c4b5fd' },
   hero: { marginTop: 14, padding: 20, borderRadius: 28, borderWidth: 1.5, borderColor: cores.destaqueForte, backgroundColor: cores.cartao },
   selo: { alignSelf: 'flex-start', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.destaqueForte },
   metas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
-  vazio: { marginTop: 14, padding: 20, borderRadius: 22, borderWidth: 1, borderColor: cores.linha, backgroundColor: cores.cartao },
-  desfazerFaixa: { position: 'absolute', left: 0, right: 0, bottom: 16 + 62 + 12 + 58 + 14, alignItems: 'center' },   // acima do + do canto, para não ficar por baixo dele
+  desfazerFaixa: { position: 'absolute', left: 0, right: 0, bottom: 16 + 64 + 12 + 58 + 14, alignItems: 'center' },   // acima do + do canto, para não ficar por baixo dele
   desfazer: { flexDirection: 'row', alignItems: 'center', gap: 16, width: 300, maxWidth: '86%', paddingVertical: 12, paddingHorizontal: 18, borderRadius: 999, backgroundColor: cores.aviso, boxShadow: '0 16px 34px -14px rgba(42,22,80,0.8)' },
   anatomiaFigura: { padding: 8, borderRadius: 16, backgroundColor: cores.destaqueForte },
   anatomia: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao2 },
   linhaEx: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   numero: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 },
-  botaoCamera: { right: undefined, left: 0 },
-  botaoCalendario: { position: 'absolute', right: 0, top: -9, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
   divisor: { height: 1, backgroundColor: cores.linha, marginTop: 14, marginBottom: 12 },
   alternar: { flexDirection: 'row', padding: 3, borderRadius: 999, backgroundColor: cores.cartao2 },
   opcao: { alignItems: 'center', justifyContent: 'center', minHeight: 32, paddingHorizontal: 12, borderRadius: 999 },   // + hitSlop 6: alvo de 44 px

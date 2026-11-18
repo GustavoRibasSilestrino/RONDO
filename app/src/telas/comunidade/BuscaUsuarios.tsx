@@ -11,6 +11,7 @@ import { cores, estilos, FONTE, larguraMax } from '../../tema';
 import { Avatar } from './Avatar';
 import { BotaoSeguir } from './Seguir';
 import { arrobaDe } from './util';
+import { DeslizarParaVoltar } from '../../componentes/Deslizar';
 
 type Props = { aberto: boolean; aoFechar: () => void; aoAbrirPerfil: (id: number) => void };
 
@@ -44,6 +45,7 @@ export function BuscaUsuarios({ aberto, aoFechar, aoAbrirPerfil }: Props) {
 
   return (
     <Modal visible={aberto} animationType="slide" onRequestClose={fechar} statusBarTranslucent>
+      <DeslizarParaVoltar aoVoltar={fechar}>
       <View style={st.tela}>
         <View style={[st.coluna, { paddingTop: insets.top + 8 }]}>
           <View style={st.topo}>
@@ -100,6 +102,7 @@ export function BuscaUsuarios({ aberto, aoFechar, aoAbrirPerfil }: Props) {
           </ScrollView>
         </View>
       </View>
+      </DeslizarParaVoltar>
     </Modal>
   );
 }

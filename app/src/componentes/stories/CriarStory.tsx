@@ -11,6 +11,7 @@ import type { Midia } from '../../tipos';
 import { useAviso } from '../Estrutura';
 import { Icone, NomeIcone } from '../Icone';
 import { Botao, T } from '../Ui';
+import { DeslizarParaVoltar } from '../Deslizar';
 
 type Etapa = 'escolher' | 'foto' | 'texto';
 
@@ -82,6 +83,7 @@ export function CriarStory({ aberto, aoFechar, aoPublicar }: { aberto: boolean; 
 
   return (
     <Modal visible={aberto} animationType="slide" onRequestClose={fechar} statusBarTranslucent>
+      <DeslizarParaVoltar aoVoltar={fechar}>
       <View style={[st.tela, etapa === 'texto' && { backgroundColor: FUNDOS_STORY[fundo] }]}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={st.coluna}>
           <View style={[st.topo, { paddingTop: insets.top + 8 }]}>
@@ -126,6 +128,7 @@ export function CriarStory({ aberto, aoFechar, aoPublicar }: { aberto: boolean; 
           ) : null}
         </KeyboardAvoidingView>
       </View>
+      </DeslizarParaVoltar>
     </Modal>
   );
 }

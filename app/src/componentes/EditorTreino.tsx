@@ -12,6 +12,7 @@ import { cores, estilos, larguraMax } from '../tema';
 import { CorpoMusculos } from './CorpoMusculos';
 import { Icone } from './Icone';
 import { Botao, Campo, Passo, T } from './Ui';
+import { DeslizarParaVoltar } from './Deslizar';
 
 /* um treino em edição: `id` vazio é um treino novo */
 export type Rascunho = { id: string; nome: string; exercicios: Exercicio[]; musculos: GrupoMuscular[] };
@@ -76,6 +77,7 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
 
   return (
     <Modal visible={aberto} animationType="slide" onRequestClose={aoFechar} statusBarTranslucent>
+      <DeslizarParaVoltar aoVoltar={aoFechar}>
       <View style={st.tela}>
         <View style={[st.coluna, { paddingTop: insets.top + 8 }]}>
           <View style={st.topo}>
@@ -186,6 +188,7 @@ export function EditorTreino({ aberto, inicial, aoFechar, aoSalvar, aoExcluir }:
           </ScrollView>
         </View>
       </View>
+      </DeslizarParaVoltar>
     </Modal>
   );
 }

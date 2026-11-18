@@ -13,6 +13,7 @@ import { Profissional, PROFISSIONAIS, ROTULO_TIPO, TipoProfissional } from '../l
 import { cores, FONTE, larguraMax, estilos } from '../tema';
 import { Avatar } from './comunidade/Avatar';
 import { normalizar } from './comunidade/util';
+import { DeslizarParaVoltar } from '../componentes/Deslizar';
 
 type Props = { aberto: boolean; aoFechar: () => void; tipo: TipoProfissional };
 
@@ -39,6 +40,7 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
 
   return (
     <Modal visible={aberto} animationType="slide" onRequestClose={aoFechar} statusBarTranslucent>
+      <DeslizarParaVoltar aoVoltar={aoFechar}>
       <View style={st.tela}>
         <View style={[st.coluna, { paddingTop: insets.top + 10 }]}>
           <View style={st.topo}>
@@ -119,6 +121,7 @@ export function BuscaProfissionais({ aberto, aoFechar, tipo }: Props) {
           </ScrollView>
         </View>
       </View>
+      </DeslizarParaVoltar>
     </Modal>
   );
 }
