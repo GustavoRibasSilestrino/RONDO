@@ -614,7 +614,8 @@ import { FONTE_IBGE, IBGE } from './ibge';
 const semAcento = (s: string): string => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const SINONIMOS: [RegExp, string][] = [
   [/esfiha|esfirha|sfiha/g, 'esfirra'], [/mussarela|mozzarella|mozarela/g, 'mucarela'], [/estrogonofe|strogonofe|stroganoff/g, 'strogonoff'],
-  [/hamburguer/g, 'hamburguer'], [/misto quente/g, 'misto'], [/xis /g, 'sanduiche '],
+  [/hamburger|hamburgue\b/g, 'hamburguer'], [/misto quente/g, 'misto'], [/sanduich\b|sanduba/g, 'sanduiche'],
+  [/x[- ]?tudo/g, 'cheese tudo'], [/x[- ]?egg/g, 'cheese egg'], [/x[- ]?(burguer|burger|salada|bacon)/g, 'cheeseburger'],
 ];
 type Achado = { id: string; nome: string; kcal: number; p: number; c: number; g: number; fonte: string };
 
