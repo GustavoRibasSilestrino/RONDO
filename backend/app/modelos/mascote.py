@@ -22,6 +22,20 @@ class Mascote(Base):
     ultimo_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 
+class Recompensa(Base):
+    """Os brownies que a conta ganhou no app (desde 2026-11-19, no lugar das medalhas): um por missão cumprida e um por nível
+    de conta alcançado. A chave diz qual foi ("missao:treinos-10", "nivel:5"); cada chave dá um brownie só, por mais que o app
+    peça de novo. O mascote ganho vai para a coleção (tabela mascotes), como os da loja."""
+
+    __tablename__ = "recompensas"
+
+    usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), primary_key=True)
+    chave: Mapped[str] = mapped_column(String(40), primary_key=True)
+    linha: Mapped[int] = mapped_column(Integer)
+    coluna: Mapped[int] = mapped_column(Integer)
+    em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
 class Resgate(Base):
     """Um pacote aberto na loja, com o código para resgatar o mascote para uma conta (desde 2026-11-18).
     Qualquer pessoa abre um pacote, com ou sem conta; o mascote só vai para a coleção de alguém quando essa pessoa, já na

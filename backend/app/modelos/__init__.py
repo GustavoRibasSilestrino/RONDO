@@ -1,7 +1,7 @@
 from app.modelos.assinatura import Assinatura
 from app.modelos.consentimento import Consentimento
 from app.modelos.dado_usuario import DadoUsuario
-from app.modelos.mascote import Mascote, Resgate
+from app.modelos.mascote import Mascote, Recompensa, Resgate
 from app.modelos.profissional import Profissional
 from app.modelos.redefinicao import RedefinicaoSenha
 from app.modelos.suporte import MensagemSuporte
@@ -10,5 +10,5 @@ from app.modelos.usuario import Penalidade, Usuario
 
 __all__ = [
     "Assinatura", "Bloqueio", "Clube", "Consentimento", "Comentario", "Curtida", "DadoUsuario", "Denuncia", "Mascote", "Membro", "MensagemSuporte", "Notificacao", "Post",
-    "Penalidade", "Profissional", "RedefinicaoSenha", "Resgate", "Seguidor", "Story", "StoryReacao", "StoryVisto", "Usuario",
+    "Penalidade", "Profissional", "Recompensa", "RedefinicaoSenha", "Resgate", "Seguidor", "Story", "StoryReacao", "StoryVisto", "Usuario",
 ]

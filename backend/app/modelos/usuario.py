@@ -22,6 +22,9 @@ class Usuario(Base):
     bio: Mapped[str] = mapped_column(String(300), default="", server_default="")
     # a foto de perfil: o endereço público no Storage (a pasta do próprio usuário); nulo = sem foto
     foto: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    # o mascote que a conta mostra (ao lado da foto, nas publicações e passeando pelo app), como "linha-coluna" na folha de
+    # mascotes; vazio = nenhum. O primeiro mascote que a conta ganha vira o dela; depois ela troca na coleção (2026-11-19)
+    mascote: Mapped[str | None] = mapped_column(String(5), nullable=True)
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     # só para saber se é menor de idade (precisa de responsável); contas antigas ficam sem
     nascimento: Mapped[date | None] = mapped_column(Date, nullable=True)

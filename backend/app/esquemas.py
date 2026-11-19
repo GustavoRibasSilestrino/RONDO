@@ -91,6 +91,7 @@ class UsuarioOut(BaseModel):
     arroba: str | None = None
     bio: str = ""
     foto: str | None = None
+    mascote: str | None = None   # o mascote que a conta mostra, "linha-coluna" na folha de mascotes (vazio = nenhum)
     marketing: bool = False
     # a política de conteúdo: avisos do ciclo (0 a 3), suspensões tomadas e até quando está suspensa
     avisos: int = 0
@@ -201,6 +202,23 @@ class ColecaoOut(BaseModel):
     total: int                   # quantos mascotes existem (69)
     mascotes: list[MascoteOut]   # os que a conta já tem, cada um uma vez
     pode_comprar: bool = False   # a loja está aberta para esta conta (fechada, só o dono compra)
+    escolhido: str | None = None # o mascote que a conta mostra, "linha-coluna"
+
+
+class RecompensaIn(BaseModel):
+    # "missao:<id da missão>" ou "nivel:<número>": o que a conta cumpriu no app
+    chave: str = Field(pattern=r"^(missao:[a-z0-9-]{1,30}|nivel:[0-9]{1,3})$")
+
+
+class RecompensaOut(BaseModel):
+    chave: str
+    nova: bool                   # falso = essa chave já tinha dado o brownie antes (o app pediu de novo)
+    mascote: MascoteOut
+
+
+class EscolherMascoteIn(BaseModel):
+    linha: int | None = Field(default=None, ge=0, le=4)    # os dois vazios = não mostrar mascote nenhum
+    coluna: int | None = Field(default=None, ge=0, le=13)
 
 
 class ResgatarIn(BaseModel):

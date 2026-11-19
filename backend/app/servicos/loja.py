@@ -13,12 +13,12 @@ import re
 import secrets
 from datetime import datetime, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.legal import RETENCAO_RESGATES
-from app.modelos import Mascote, Resgate
+from app.modelos import Mascote, Recompensa, Resgate, Usuario
 
 # A loja fica FECHADA até a venda abrir de verdade (pedido do dono em 2026-11-18: sem pagamento, quem testasse o site
 # ganharia mascotes de graça). Fechada, só a conta do dono compra (para testar a abertura do pacote); as outras veem
@@ -80,6 +80,8 @@ def _somar(sessao: Session, usuario_id: int, linha: int, coluna: int, agora: dat
     onde = (Mascote.usuario_id == usuario_id, Mascote.linha == linha, Mascote.coluna == coluna)
     if not sessao.execute(update(Mascote).where(*onde).values(quantidade=Mascote.quantidade + 1, ultimo_em=agora)).rowcount:
         sessao.add(Mascote(usuario_id=usuario_id, linha=linha, coluna=coluna, quantidade=1, primeiro_em=agora, ultimo_em=agora))
+    # o primeiro mascote da conta vira o que ela mostra (ao lado da foto, nos posts, passeando pelo app)
+    sessao.execute(update(Usuario).where(Usuario.id == usuario_id, Usuario.mascote.is_(None)).values(mascote=f"{linha}-{coluna}"))
 
 
 def _quantos(sessao: Session, usuario_id: int, linha: int, coluna: int) -> int:
@@ -132,3 +134,69 @@ def resgatar(sessao: Session, usuario_id: int, codigo: str) -> tuple[int, int, i
 
 def colecao(sessao: Session, usuario_id: int) -> list[Mascote]:
     return list(sessao.scalars(select(Mascote).where(Mascote.usuario_id == usuario_id).order_by(Mascote.linha, Mascote.coluna)))
+
+
+# ---------- os brownies de recompensa do app (desde 2026-11-19, no lugar das medalhas) ----------
+# Cada missão cumprida e cada nível de conta alcançado dão um brownie (um mascote sorteado para a coleção). A raridade sobe
+# com o caminho: quanto mais brownies a conta já ganhou, mais o sorteio pende para as raridades altas. No começo quase só sai
+# comum; lá pelo 25º brownie, o centro do sorteio já é a lendária. Nenhuma raridade fica impossível (cada uma tem pelo menos
+# 0,5%), e cada chave dá um brownie só.
+LIMITE_RECOMPENSAS = 300   # de folga: as missões e os níveis do app somam bem menos que isto
+
+
+def chances_recompensa(ganhos: int) -> tuple[int, ...]:
+    """A chance de cada raridade (em milésimos, somando 1000) para o próximo brownie de quem já ganhou `ganhos`."""
+    alvo = min(4.0, ganhos / 6)
+    pesos = [max(5.0, 1000 * 2.718281828 ** (-((i - alvo) ** 2) / 0.9)) for i in range(len(RARIDADES))]
+    total = sum(pesos)
+    milesimos = [round(1000 * p / total) for p in pesos]
+    milesimos[milesimos.index(max(milesimos))] += 1000 - sum(milesimos)   # o arredondamento sai da maior
+    return tuple(milesimos)
+
+
+def _sortear_com(chances: tuple[int, ...]) -> tuple[int, int]:
+    sorte = secrets.randbelow(1000)
+    for linha, peso in enumerate(chances):
+        if sorte < peso:
+            return linha, secrets.randbelow(RARIDADES[linha][1])
+        sorte -= peso
+    return len(chances) - 1, secrets.randbelow(RARIDADES[-1][1])
+
+
+class LimiteDeRecompensas(Exception):
+    """A conta já ganhou brownies demais (o app nunca chega lá; é só uma trava)."""
+
+
+def recompensar(sessao: Session, usuario_id: int, chave: str) -> tuple[int, int, int, bool]:
+    """Dá o brownie da missão ou do nível `chave`. Devolve (linha, coluna, quantos a conta tem dele, se é novo).
+    Pedir de novo a mesma chave devolve o brownie que ela já deu, sem somar."""
+    for _ in range(3):
+        ja = sessao.get(Recompensa, (usuario_id, chave))
+        if ja is not None:
+            return ja.linha, ja.coluna, _quantos(sessao, usuario_id, ja.linha, ja.coluna), False
+        ganhos = sessao.scalar(select(func.count()).select_from(Recompensa).where(Recompensa.usuario_id == usuario_id)) or 0
+        if ganhos >= LIMITE_RECOMPENSAS:
+            raise LimiteDeRecompensas
+        linha, coluna = _sortear_com(chances_recompensa(ganhos))
+        agora = datetime.now(timezone.utc)
+        sessao.add(Recompensa(usuario_id=usuario_id, chave=chave, linha=linha, coluna=coluna, em=agora))
+        _somar(sessao, usuario_id, linha, coluna, agora)
+        try:
+            sessao.commit()
+        except IntegrityError:   # o mesmo pedido chegou duas vezes juntas: o outro levou; lê de novo
+            sessao.rollback()
+            continue
+        return linha, coluna, _quantos(sessao, usuario_id, linha, coluna), True
+    raise RuntimeError("não foi possível dar o brownie agora")
+
+
+def escolher_mascote(sessao: Session, usuario: Usuario, linha: int | None, coluna: int | None) -> bool:
+    """Troca o mascote que a conta mostra por um da coleção dela (ou por nenhum). Falso se ela não tem esse mascote."""
+    if linha is None or coluna is None:
+        usuario.mascote = None
+    elif _quantos(sessao, usuario.id, linha, coluna) > 0:
+        usuario.mascote = f"{linha}-{coluna}"
+    else:
+        return False
+    sessao.commit()
+    return True

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from app.banco import obter_sessao
 from app.deps import usuario_atual
-from app.esquemas import AbrirPacoteIn, ColecaoOut, MascoteOut, ResgatarIn
+from app.esquemas import AbrirPacoteIn, ColecaoOut, EscolherMascoteIn, MascoteOut, RecompensaIn, RecompensaOut, ResgatarIn
 from app.modelos import Usuario
 from app.servicos import loja as servico_loja
 
@@ -44,4 +44,22 @@ def colecao(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends
         total=servico_loja.TOTAL,
         mascotes=[_mascote(m.linha, m.coluna, m.quantidade) for m in servico_loja.colecao(sessao, usuario.id)],
         pode_comprar=servico_loja.pode_comprar(usuario.papel),
+        escolhido=usuario.mascote,
     )
+
+
+@router.post("/recompensa", response_model=RecompensaOut)
+def recompensa(dados: RecompensaIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    """O brownie de uma missão cumprida ou de um nível alcançado no app (no lugar das medalhas). Cada chave dá um só."""
+    try:
+        linha, coluna, quantidade, nova = servico_loja.recompensar(sessao, usuario.id, dados.chave)
+    except servico_loja.LimiteDeRecompensas:
+        raise HTTPException(429, "Essa conta já ganhou todos os brownies de recompensa.")
+    return RecompensaOut(chave=dados.chave, nova=nova, mascote=_mascote(linha, coluna, quantidade))
+
+
+@router.put("/mascote", status_code=204)
+def escolher_mascote(dados: EscolherMascoteIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    """Troca o mascote que a conta mostra (ao lado da foto, nos posts e passeando pelo app) por outro da coleção dela."""
+    if not servico_loja.escolher_mascote(sessao, usuario, dados.linha, dados.coluna):
+        raise HTTPException(404, "Esse mascote não está na sua coleção.")

@@ -14,6 +14,7 @@ class PessoaOut(BaseModel):
     verificado: bool = False
     seguindo: bool = False   # quem está logado segue esta pessoa
     voce: bool = False
+    mascote: str | None = None  # o mascote que a pessoa mostra ao lado da foto, "linha-coluna" na folha de mascotes
     foto: str | None = None  # a foto de perfil (endereço público no Storage); vem do servidor, então aparece em qualquer aparelho e para os outros
 
 

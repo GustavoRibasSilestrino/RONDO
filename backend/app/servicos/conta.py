@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_RESGATES, RETENCAO_STORIES, RETENCAO_SUPORTE
 from app.modelos import (
-    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Mascote, Membro, MensagemSuporte, Notificacao, Penalidade, Post, RedefinicaoSenha, Resgate, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
+    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Mascote, Membro, MensagemSuporte, Notificacao, Penalidade, Post, Recompensa, RedefinicaoSenha, Resgate, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
 )
 from app.servicos.loja import RARIDADES
 from app.servicos import midia as servico_midia
@@ -26,7 +26,7 @@ def exportar(sessao: Session, u: Usuario) -> dict:
         "gerado_em": datetime.now(timezone.utc).isoformat(),
         "conta": {
             "email": u.email, "nome": u.nome, "arroba": u.arroba, "bio": u.bio, "foto": u.foto, "nascimento": _data(u.nascimento),
-            "papel": u.papel, "pro": u.pro, "selo": u.selo, "marketing": u.marketing, "criado_em": _data(u.criado_em),
+            "papel": u.papel, "pro": u.pro, "selo": u.selo, "mascote": u.mascote, "marketing": u.marketing, "criado_em": _data(u.criado_em),
         },
         "dados_do_app": {d.chave: d.valor for d in todos(DadoUsuario, DadoUsuario.usuario_id == uid)},
         "politica_de_conteudo": {
@@ -61,6 +61,9 @@ def exportar(sessao: Session, u: Usuario) -> dict:
             {"linha": m.linha, "coluna": m.coluna, "raridade": RARIDADES[m.linha][0], "quantidade": m.quantidade,
              "primeiro_em": _data(m.primeiro_em), "ultimo_em": _data(m.ultimo_em)}
             for m in todos(Mascote, Mascote.usuario_id == uid)
+        ],
+        "brownies_de_recompensa": [
+            {"chave": r.chave, "linha": r.linha, "coluna": r.coluna, "em": _data(r.em)} for r in todos(Recompensa, Recompensa.usuario_id == uid)
         ],
         "mensagens_de_suporte": [
             {"assunto": m.assunto, "mensagem": m.mensagem, "email": m.email, "enviada_em": _data(m.criado_em)}
@@ -103,6 +106,7 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
     sessao.execute(delete(Clube).where(Clube.id.in_(meus_clubes)))
     sessao.execute(delete(DadoUsuario).where(DadoUsuario.usuario_id == uid))
     sessao.execute(delete(Mascote).where(Mascote.usuario_id == uid))
+    sessao.execute(delete(Recompensa).where(Recompensa.usuario_id == uid))
     sessao.execute(delete(Resgate).where(Resgate.usuario_id == uid))
     sessao.execute(delete(MensagemSuporte).where(MensagemSuporte.usuario_id == uid))
     sessao.execute(delete(Consentimento).where(Consentimento.usuario_id == uid))

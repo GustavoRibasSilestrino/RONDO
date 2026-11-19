@@ -43,7 +43,7 @@ def _aware(d: datetime) -> datetime:
 def _login_out(u: Usuario) -> LoginOut:
     return LoginOut(
         email=u.email, nome=u.nome, papel=u.papel, verificado=u.tem_selo, pro=u.pro, selo=u.selo,
-        arroba=u.arroba, bio=u.bio, foto=u.foto, marketing=u.marketing, token=criar_token(u.id, u.senha_hash),
+        arroba=u.arroba, bio=u.bio, foto=u.foto, mascote=u.mascote, marketing=u.marketing, token=criar_token(u.id, u.senha_hash),
     )
 
 

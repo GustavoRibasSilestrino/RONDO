@@ -70,7 +70,7 @@ def test_loja_fechada_so_o_dono_compra(cliente, monkeypatch):
         s.commit()
     r = cliente.post("/loja/abrir", json={"pacote": "ouro"}, headers=ana)
     assert r.status_code == 403 and "em breve" in r.json()["detail"]
-    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 69, "mascotes": [], "pode_comprar": False}
+    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 69, "mascotes": [], "pode_comprar": False, "escolhido": None}
     assert cliente.get("/loja/colecao", headers=dono).json()["pode_comprar"] is True
     assert _comprar(cliente, dono)["quantidade"] == 1
     with Sessao() as s:
@@ -176,3 +176,44 @@ def test_chances_iguais_as_do_site():
         assert tuple(lido[r] for r in ordem) == chances, pacote
     quantos = [int(q) for q in re.findall(r"quantos:\s*(\d+)", texto)]
     assert quantos == [q for _, q in loja.RARIDADES]
+
+
+# ---------- brownies de recompensa (no lugar das medalhas, desde 2026-11-19) ----------
+def test_recompensa_da_um_brownie_por_chave(cliente):
+    h = _conta(cliente)
+    r = cliente.post("/loja/recompensa", json={"chave": "missao:treinos-10"}, headers=h)
+    assert r.status_code == 200 and r.json()["nova"] is True
+    m = r.json()["mascote"]
+    de_novo = cliente.post("/loja/recompensa", json={"chave": "missao:treinos-10"}, headers=h).json()
+    assert de_novo["nova"] is False and (de_novo["mascote"]["linha"], de_novo["mascote"]["coluna"]) == (m["linha"], m["coluna"])
+    col = cliente.get("/loja/colecao", headers=h).json()
+    assert sum(x["quantidade"] for x in col["mascotes"]) == 1
+    # o primeiro mascote vira o que a conta mostra
+    assert col["escolhido"] == f"{m['linha']}-{m['coluna']}"
+
+
+def test_recompensa_recusa_chave_estranha(cliente):
+    h = _conta(cliente)
+    for chave in ["qualquer", "missao:", "nivel:abc", "missao:" + "a" * 40, "missao:Treinos"]:
+        assert cliente.post("/loja/recompensa", json={"chave": chave}, headers=h).status_code == 422
+    assert cliente.post("/loja/recompensa", json={"chave": "nivel:3"}).status_code == 401
+
+
+def test_raridade_sobe_com_os_brownies():
+    comeco, meio, fim = loja.chances_recompensa(0), loja.chances_recompensa(12), loja.chances_recompensa(40)
+    for c in (comeco, meio, fim):
+        assert sum(c) == 1000 and min(c) >= 4
+    media = lambda c: sum(i * p for i, p in enumerate(c)) / 1000
+    assert media(comeco) < media(meio) < media(fim)
+    assert comeco[0] > 500 and fim[4] > 500
+
+
+def test_escolher_mascote_so_da_colecao(cliente):
+    h = _conta(cliente)
+    m = cliente.post("/loja/recompensa", json={"chave": "nivel:2"}, headers=h).json()["mascote"]
+    outro = (m["linha"], (m["coluna"] + 1) % 13)
+    assert cliente.put("/loja/mascote", json={"linha": outro[0], "coluna": outro[1]}, headers=h).status_code == 404
+    assert cliente.put("/loja/mascote", json={"linha": None, "coluna": None}, headers=h).status_code == 204
+    assert cliente.get("/loja/colecao", headers=h).json()["escolhido"] is None
+    assert cliente.put("/loja/mascote", json={"linha": m["linha"], "coluna": m["coluna"]}, headers=h).status_code == 204
+    assert cliente.get("/auth/eu", headers=h).json()["mascote"] == f"{m['linha']}-{m['coluna']}"
