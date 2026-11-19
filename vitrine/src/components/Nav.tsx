@@ -89,6 +89,7 @@ function MobileMenu({ open, current, onClose }: { open: boolean; current: number
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const [escondida, setEscondida] = useState(false);   // descendo a página, a barra sobe e some; subindo um pouco, ela volta
   const [closing, setClosing] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [current, setCurrent] = useState(0);   // índice da seção que está na tela
@@ -100,7 +101,7 @@ export function Nav() {
   /* qual seção está na tela: as posições das seções ficam guardadas e só são medidas de novo quando a página muda
      de tamanho; ao rolar, basta comparar com o scrollY (sem medir nada) */
   useEffect(() => {
-    let ticking = false, tops: number[] = [];
+    let ticking = false, tops: number[] = [], ultimoY = scrollY;
     const measure = () => {
       tops = SECTIONS.map((s) => {
         const el = document.querySelector(s.href);
@@ -111,6 +112,13 @@ export function Nav() {
     const spy = () => {
       ticking = false;
       setScrolled(scrollY > 20);
+      /* a barra some ao descer e volta ao subir (pedido do dono, 2026-11-19); perto do topo ela fica sempre. Um pouco de folga
+         (6 px) para o tremor do dedo não fazer ela piscar */
+      const dy = scrollY - ultimoY;
+      if (scrollY < 80) setEscondida(false);
+      else if (dy > 6) setEscondida(true);
+      else if (dy < -6) setEscondida(false);
+      if (Math.abs(dy) > 6 || scrollY < 80) ultimoY = scrollY;
       const y = scrollY + innerHeight * 0.35;
       let idx = 0;
       tops.forEach((t, i) => { if (t <= y) idx = i; });
@@ -151,7 +159,7 @@ export function Nav() {
 
   return (
     <>
-      <header className={`nav${scrolled ? " scrolled" : ""}${closing ? " closing" : ""}${menuOpen ? " menu-open" : ""}`} id="nav" onClick={onNavClick}>
+      <header className={`nav${scrolled ? " scrolled" : ""}${escondida && !menuOpen ? " escondida" : ""}${closing ? " closing" : ""}${menuOpen ? " menu-open" : ""}`} id="nav" onClick={onNavClick}>
         <div className="nav-in">
           <a href="#" className="logo logo-nome" aria-label="RONDO"><Nome /></a>
           <nav className="nav-links" aria-label="Principal">

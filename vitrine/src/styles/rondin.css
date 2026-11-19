@@ -71,6 +71,12 @@
 .canto-se .rondin-balao::after { right: auto; left: 22px; }
 .rondin-balao p { font-size: 1.12rem; line-height: 1.4; color: var(--ink); max-width: 22ch; text-wrap: balance; }
 .rondin-balao p b { color: var(--accent-2); font-weight: 700; }
+/* no balão, o preto do vídeo não some com o `screen` (o vidro do balão isola a mistura e o preto aparecia como um quadrado):
+   aqui a esfera é recortada num círculo que se apaga nas bordas */
+.rondin-balao .rondin-video {
+  mix-blend-mode: normal; border-radius: 50%;
+  -webkit-mask-image: radial-gradient(closest-side, #000 62%, transparent 100%); mask-image: radial-gradient(closest-side, #000 62%, transparent 100%);
+}
 .rondin-balao .rondin-conhecer { width: 100%; justify-content: center; }
 .rondin-fechar {
   position: absolute; top: 8px; right: 8px; width: 36px; height: 36px; display: grid; place-items: center;

@@ -6,6 +6,10 @@
   border-bottom: 1px solid var(--line);
 }
 .nav.scrolled::before { opacity: 1; }
+/* descendo, a barra sobe e some; subindo, ela desce de volta (com o teclado dentro dela, ela fica) */
+.nav { transition: transform .35s cubic-bezier(.22, 1, .36, 1); }
+.nav.escondida:not(:focus-within) { transform: translateY(-100%); transition-duration: .25s; }
+@media (prefers-reduced-motion: reduce) { .nav { transition: none; } }
 .nav-in {
   pointer-events: auto; position: relative;
   width: min(100% - var(--gutter) * 2, var(--maxw)); height: var(--nav-h); margin-inline: auto;
