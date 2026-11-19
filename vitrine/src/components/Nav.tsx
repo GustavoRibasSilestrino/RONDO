@@ -4,6 +4,7 @@ import { SECTIONS, type Sec } from "../data/sections";
 import { goMoment } from "../lib/bus";
 import { APP_CRIAR, APP_ENTRAR } from "../lib/rotas";
 import { reduceMotion, vars } from "../lib/util";
+import { TendaBotao } from "./LojaPartes";
 import { Btn, Nome } from "./ui";
 
 /* ---------- menu com painéis (abre ao passar o mouse, só em tela larga) ---------- */
@@ -157,7 +158,9 @@ export function Nav() {
               </div>
             ))}
           </nav>
-          <div className="nav-end"><Btn href={APP_ENTRAR} kind="ghost" small>Entrar</Btn><Btn href={APP_CRIAR} small>Criar conta</Btn></div>
+          <div className="nav-end"><TendaBotao comNome /><Btn href={APP_ENTRAR} kind="ghost" small>Entrar</Btn><Btn href={APP_CRIAR} small>Criar conta</Btn></div>
+          {/* no celular a tenda fica ao lado dos três riscos, sempre à vista */}
+          <TendaBotao className="tenda-btn-celular" />
           <button className="burger" type="button" aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen} aria-controls="mnav"
             onClick={(e) => { e.stopPropagation(); setMenuOpen((o) => !o); }}>
             <span aria-hidden="true"><i /><i /><i /></span>
