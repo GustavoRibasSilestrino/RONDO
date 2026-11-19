@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 
 from app.banco import Base, Sessao, engine
 from app.main import app
-from app.modelos import Mascote, Resgate
+from app.modelos import Mascote, Resgate, Usuario
 from app.servicos import loja
 from app.servicos.conta import limpar_vencidos
 
@@ -24,6 +24,12 @@ def cliente():
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def loja_aberta(monkeypatch):
+    """Os testes da compra rodam com a loja aberta; os da loja fechada desligam isto no próprio teste."""
+    monkeypatch.setattr(loja, "ABERTA", True)
 
 
 def _conta(cliente, email="ana@x.com"):
@@ -53,6 +59,22 @@ def test_comprar_pede_conta(cliente):
     assert cliente.post("/loja/abrir", json={"pacote": "roxo"}).status_code == 401
     assert cliente.post("/loja/resgatar", json={"codigo": "ABCDE-FGHJK"}).status_code == 401
     assert cliente.get("/loja/colecao").status_code == 401
+
+
+def test_loja_fechada_so_o_dono_compra(cliente, monkeypatch):
+    """Sem pagamento, ninguém pode ganhar mascote de graça: a loja fechada recusa a compra e avisa o site; o dono testa."""
+    monkeypatch.setattr(loja, "ABERTA", False)
+    ana, dono = _conta(cliente), _conta(cliente, "dono@x.com")
+    with Sessao() as s:
+        s.query(Usuario).filter(Usuario.email == "dono@x.com").update({"papel": "dono"})
+        s.commit()
+    r = cliente.post("/loja/abrir", json={"pacote": "ouro"}, headers=ana)
+    assert r.status_code == 403 and "em breve" in r.json()["detail"]
+    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 69, "mascotes": [], "pode_comprar": False}
+    assert cliente.get("/loja/colecao", headers=dono).json()["pode_comprar"] is True
+    assert _comprar(cliente, dono)["quantidade"] == 1
+    with Sessao() as s:
+        assert s.query(Mascote).count() == 1   # só a do dono
 
 
 def test_pacote_que_nao_existe(cliente):

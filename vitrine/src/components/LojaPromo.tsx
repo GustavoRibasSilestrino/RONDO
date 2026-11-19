@@ -1,13 +1,11 @@
 /* A divulgação da lojinha na página inicial (desde 2026-11-18, no lugar das pastas do treino, a pedido do dono).
-   De um lado o convite, do outro a própria barraca com os três pacotes no balcão (a cena inteira leva para /loja), e
-   embaixo um desfile de browniezinhos. O desfile para quando sai da tela e para quem pede menos movimento. */
+   De um lado o convite, do outro a própria barraca com os três pacotes no balcão (a cena inteira leva para /loja).
+   O desfile de browniezinhos que ficava embaixo saiu no mesmo dia, a pedido do dono. Fora da tela, os pacotes param. */
 import { useEffect, useRef } from "react";
 import { PACOTES, TOTAL_MASCOTES, preco } from "../data/loja";
 import { reduceMotion } from "../lib/util";
-import { Barraca, LOJA, Mascote } from "./LojaPartes";
+import { Barraca, LOJA } from "./LojaPartes";
 
-/* quem desfila: um pouco de cada raridade (linha e coluna na folha de mascotes) */
-const DESFILE: [number, number][] = [[0, 0], [1, 3], [2, 4], [0, 2], [3, 2], [1, 4], [4, 4], [0, 8], [2, 9], [1, 8], [3, 9], [4, 0], [0, 12], [2, 13], [1, 13], [4, 8]];
 const MAIS_BARATO = Math.min(...PACOTES.map((p) => p.centavos));
 
 export function LojaPromo() {
@@ -32,11 +30,6 @@ export function LojaPromo() {
         <a className="lojinha-cena" href={LOJA} aria-label="Abrir a loja de pacotinhos" tabIndex={-1}>
           <Barraca placa={<p className="barraca-placa" aria-hidden="true">Pacotinhos</p>} />
         </a>
-      </div>
-      <div className="lojinha-desfile" aria-hidden="true">
-        <div>
-          {[...DESFILE, ...DESFILE].map(([l, c], i) => <Mascote key={i} linha={l} coluna={c} />)}
-        </div>
       </div>
     </section>
   );

@@ -193,7 +193,7 @@ export function Footer() {
             <a href="#" className="logo" aria-label="RONDO"><Mark /></a>
             <p style={{ marginTop: ".7rem" }}>Compita com quem você foi ontem.</p>
           </div>
-          <nav className="footer-links" aria-label="Rodapé"><a href="#recursos">Recursos</a><a href="#recado">Recado de voz</a><a href="#profissionais">Profissionais</a><a href="#planos">Planos</a></nav>
+          <nav className="footer-links" aria-label="Rodapé"><a href="#recursos">Recursos</a><a href="#recado">Recado de voz</a><a href="#profissionais">Profissionais</a><a href="#planos">Planos</a><a href="#suporte">Suporte</a></nav>
           <nav className="footer-links" aria-label="Legal">
             <a href="/termos">Termos de Uso</a><a href="/privacidade">Política de Privacidade</a><a href="/reembolso">Cancelamento e reembolso</a>
             <a href="/suboperadores">Suboperadores</a><a href="/licencas">Licenças e créditos</a><a href="/direitos-autorais">Direitos autorais</a>

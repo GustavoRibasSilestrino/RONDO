@@ -33,6 +33,7 @@ import "./styles/botoes.css";
 import "./styles/vidro.css";
 import "./styles/loja.css";
 import "./styles/entrar.css";
+import "./styles/suporte.css";
 import { acordarServidor } from "./lib/api";
 
 /* sem zoom de pinça: o Safari do iPhone ignora o user-scalable=no do index.html, mas respeita cancelar o gesto

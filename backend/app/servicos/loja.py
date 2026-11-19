@@ -8,6 +8,7 @@ de quem o resgata, uma vez só, em até 7 dias (app/legal.py). Hoje nenhum códi
 O sorteio é feito aqui, no servidor, e não no navegador: quem abre o pacote não tem como escolher o que sai.
 Os números são os mesmos que o site mostra (vitrine/src/data/loja.ts); o teste `test_chances_iguais_as_do_site` confere.
 Se mudar as chances ou a quantidade de mascotes, mude nos dois lugares."""
+import os
 import re
 import secrets
 from datetime import datetime, timezone
@@ -18,6 +19,17 @@ from sqlalchemy.orm import Session
 
 from app.legal import RETENCAO_RESGATES
 from app.modelos import Mascote, Resgate
+
+# A loja fica FECHADA até a venda abrir de verdade (pedido do dono em 2026-11-18: sem pagamento, quem testasse o site
+# ganharia mascotes de graça). Fechada, só a conta do dono compra (para testar a abertura do pacote); as outras veem
+# "Em breve" no site e o servidor recusa. Para abrir: LOJA_ABERTA=true no painel do Render (junto com o pagamento).
+ABERTA = os.environ.get("LOJA_ABERTA", "").strip().lower() in {"1", "true", "sim"}
+MSG_FECHADA = "A loja abre em breve. Por enquanto as compras estão fechadas."
+
+
+def pode_comprar(papel: str) -> bool:
+    return ABERTA or papel == "dono"
+
 
 # as raridades na ordem das linhas da folha de mascotes, com quantos mascotes cada uma tem (69 no total)
 RARIDADES: list[tuple[str, int]] = [("comum", 13), ("incomum", 14), ("rara", 14), ("epica", 14), ("lendaria", 14)]

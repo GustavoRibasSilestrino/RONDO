@@ -105,7 +105,8 @@ function Privacidade() {
       <h3>Na loja de pacotinhos (site)</h3>
       <p>
         Comprar um pacote pede a sua conta do RONDO: o mascote vai direto para ela, e o servidor guarda quais mascotes a
-        conta tem, quantos e quando chegaram. Se um dia houver códigos de resgate (vale-presente ou promoção), o código
+        conta tem, quantos e quando chegaram. Por enquanto a loja está fechada para compras. A música e os sons da loja são
+        gerados no próprio navegador; a escolha de ligar ou desligar o som fica guardada nele. Se um dia houver códigos de resgate (vale-presente ou promoção), o código
         resgatado fica ligado à sua conta. Hoje a loja é uma prévia e não cobra nada; quando houver pagamento, esta política
         será atualizada antes.
       </p>
@@ -199,7 +200,8 @@ function Privacidade() {
         <b>A sua conta no site e no app:</b> o app no navegador e o site ficam no mesmo endereço e dividem o armazenamento
         do navegador. A sessão é uma só: se você entra pelo app ou pela tela de entrar do site, fica entrado nos dois, neste
         navegador. O site mostra o seu nome, o @ e a foto (conferidos com o nosso servidor) e guarda uma cópia deles para
-        mostrar na hora. A sessão vale por 7 dias. Para sair, use "Sair da conta" no site ou no app: vale para os dois.
+        mostrar na hora. No site, o login vale 2 dias; depois disso, o site pede para entrar de novo. No app, a sessão vale 7 dias.
+        Para sair, use "Sair da conta" no site ou no app: vale para os dois.
         Num computador compartilhado, saia sempre ao terminar.
       </p>
       <p><button type="button" className="link-botao" onClick={() => abrirPreferenciasCookies()}>Mudar as preferências de cookies</button></p>

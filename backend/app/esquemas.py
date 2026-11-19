@@ -199,7 +199,8 @@ class MascoteOut(BaseModel):
 
 class ColecaoOut(BaseModel):
     total: int                   # quantos mascotes existem (69)
-    mascotes: list[MascoteOut]   # os que a conta já resgatou, cada um uma vez
+    mascotes: list[MascoteOut]   # os que a conta já tem, cada um uma vez
+    pode_comprar: bool = False   # a loja está aberta para esta conta (fechada, só o dono compra)
 
 
 class ResgatarIn(BaseModel):

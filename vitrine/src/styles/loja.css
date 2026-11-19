@@ -338,11 +338,26 @@ html:has(dialog.abre[open]) { overflow: hidden; }
   .abre[open] { place-items: start center; }
   /* o pacote e o mascote soltos ficam no meio da tela */
   .abre[data-fase="abrindo"][open], .abre[data-fase="revelado"][open] { place-items: center; }
-  .abre-quadro { grid-template-columns: minmax(0, 1fr); width: calc(100% - 1.5rem); margin: .75rem auto 1.25rem; padding: 1.1rem 1rem 1.3rem; --b: 4px; }
-  .abre-palco { height: clamp(11rem, 34dvh, 17rem); }
+  .abre-quadro { grid-template-columns: minmax(0, 1fr); width: calc(100% - 1.5rem); margin: .75rem auto 1.25rem; padding: 1rem .95rem 1.1rem; --b: 4px; }
+  /* no celular a tela de compra cabe inteira na tela (com o aviso de conta ou de "em breve" junto): o pacote fica menor e
+     os espaços, mais justos */
+  .abre-palco { height: clamp(8.5rem, 24dvh, 12.5rem); }
   .abre[data-fase="abrindo"] .abre-palco, .abre[data-fase="revelado"] .abre-palco { height: clamp(14rem, 42dvh, 20rem); }
-  .abre-chances li { grid-template-columns: 8.4rem minmax(0, 1fr) 3.4rem; gap: .5rem; }
-  .abre-acoes .px-btn { flex: 1 1 auto; }
+  .abre-texto h2 { font-size: clamp(1.45rem, 6.6vw, 1.9rem); }
+  .abre-frase { margin-top: .3rem; font-size: .98rem; }
+  .abre-preco { margin: .75rem 0 .85rem; }
+  .abre-chances { gap: .35rem; }
+  .abre-chances li { grid-template-columns: 7.6rem minmax(0, 1fr) 3.2rem; gap: .45rem; font-size: .95rem; }
+  .abre-nota { margin-top: .8rem; font-size: .84rem; line-height: 1.4; }
+  .abre-quem, .abre-sem-conta, .abre-em-breve, .abre-erro { margin-top: .8rem; font-size: .92rem; }
+  .abre-sem-conta, .abre-em-breve { padding: .8rem .85rem .2rem; }
+  .abre-acoes { gap: .5rem .8rem; margin-top: .9rem; }
+  .abre-acoes .px-btn { flex: 1 1 auto; padding-inline: .9rem; }
+}
+@media (max-width: 360px) {
+  .abre-chances li { grid-template-columns: 6.6rem minmax(0, 1fr) 3rem; font-size: .9rem; }
+  .abre-chances-nome .px-estrelas { display: none; }   /* no celular bem estreito, a raridade fica só com o nome e a cor */
+  .abre-acoes .px-btn { font-size: .7rem; }
 }
 
 /* ---------- a divulgação na página inicial ---------- */
@@ -355,7 +370,7 @@ html:has(dialog.abre[open]) { overflow: hidden; }
 }
 .lojinha-in {
   display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: center; gap: clamp(1.5rem, 4vw, 4rem);
-  width: min(100% - var(--gutter) * 2, var(--maxw)); margin-inline: auto; padding: clamp(3rem, 6vw, 5.5rem) 0 clamp(1.5rem, 3vw, 2.5rem);
+  width: min(100% - var(--gutter) * 2, var(--maxw)); margin-inline: auto; padding: clamp(3rem, 6vw, 5.5rem) 0;
 }
 .lojinha h2 { margin-bottom: 1.1rem; font: 700 clamp(2rem, 4.3vw, 3.4rem)/1.06 var(--lj-letra); color: var(--lj-ouro-claro); text-wrap: balance; }
 .lojinha-texto > p { max-width: 44ch; margin-bottom: 1.7rem; font-size: 1.125rem; line-height: 1.55; color: var(--lj-tinta-2); text-wrap: pretty; }
@@ -371,15 +386,8 @@ html:has(dialog.abre[open]) { overflow: hidden; }
 }
 .lojinha-cena:hover { translate: 0 -4px; }
 .lojinha-cena .barraca-cena { width: max(100%, 620px); }
-/* o desfile de mascotes no rodapé da seção */
-.lojinha-desfile { overflow: hidden; padding: .4rem 0 1.4rem; }
-.lojinha-desfile > div { display: flex; width: max-content; animation: lojinha-anda 52s linear infinite; }
-.lojinha-desfile .masc { --masc: clamp(3.25rem, 6.5vw, 5.25rem); margin-right: clamp(.9rem, 2.2vw, 2rem); animation: lojinha-pula .8s steps(4) infinite; }
-.lojinha-desfile .masc:nth-child(3n) { animation-delay: -.27s; }
-.lojinha-desfile .masc:nth-child(3n + 1) { animation-delay: -.53s; }
-@keyframes lojinha-anda { to { transform: translateX(-50%); } }
-@keyframes lojinha-pula { 50% { translate: 0 -7px; } }
-.lojinha.is-off .lojinha-desfile > div, .lojinha.is-off .masc, .lojinha.is-off .barraca-pacote img { animation-play-state: paused; }
+/* fora da tela, os pacotes do balcão param de flutuar (o desfile de mascotes que ficava aqui saiu em 2026-11-18, a pedido do dono) */
+.lojinha.is-off .barraca-pacote img { animation-play-state: paused; }
 @media (max-width: 860px) {
   .lojinha-in { grid-template-columns: minmax(0, 1fr); padding-top: 2.6rem; }
   .lojinha-cena { margin-inline: calc(var(--gutter) * -1 + var(--b) * 2); }
@@ -398,6 +406,14 @@ html:has(dialog.abre[open]) { overflow: hidden; }
 }
 .loja-conta:hover .conta-chip-nome, .loja-conta[aria-expanded="true"] .conta-chip-nome { color: var(--lj-ouro-claro); }
 .loja-conta:focus-visible { outline: 3px solid var(--lj-ouro); outline-offset: 6px; }
+.loja-barra-dir { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+/* a nota musical: liga e desliga a música e os sons da loja (riscada em vermelho quando desligada) */
+.loja-som { display: grid; place-items: center; width: 44px; height: 44px; color: var(--lj-ouro-claro); transition: color .15s, translate .1s steps(2); }
+.loja-som svg { width: 18px; height: 18px; }
+.loja-som[aria-pressed="false"] { color: var(--lj-tinta-2); }
+.loja-som:hover { color: #fff; }
+.loja-som:active { translate: 0 2px; }
+.loja-som:focus-visible { outline: 3px solid var(--lj-ouro); outline-offset: -3px; }
 /* sem conta: um "Entrar" discreto (criar conta fica na tela do RONDIN, e o aviso da compra já leva até lá) */
 .loja-entrar {
   display: inline-flex; align-items: center; gap: .55rem; min-height: 44px; padding: 0 .3rem;
@@ -435,6 +451,17 @@ html:has(dialog.abre[open]) { overflow: hidden; }
 }
 .abre-sem-conta b { color: var(--lj-ouro-claro); font-weight: 700; }
 .abre-sem-conta .abre-acoes { margin-top: .9rem; }
+/* loja fechada (até a venda abrir): o aviso e o botão "Em breve", apagado */
+.abre-em-breve {
+  --b: 3px;
+  margin: calc(1.1rem + var(--b)) var(--b) var(--b); padding: .95rem 1rem .4rem; background: rgba(203, 184, 232, .08);
+  color: var(--lj-tinta); line-height: 1.45; text-wrap: pretty;
+  box-shadow: 0 calc(var(--b) * -1) 0 0 rgba(203, 184, 232, .45), calc(var(--b) * -1) 0 0 0 rgba(203, 184, 232, .45), var(--b) 0 0 0 rgba(203, 184, 232, .45), 0 var(--b) 0 0 rgba(203, 184, 232, .45);
+}
+.abre-em-breve b { color: var(--lj-ouro-claro); font-weight: 700; }
+.abre-em-breve .abre-acoes { margin-top: .9rem; }
+.px-btn:disabled { --face: #5d5078; --luz: #75689a; --sombra: #43385a; color: #ddd3ef; cursor: not-allowed; }
+.px-btn:disabled:hover { --face: #5d5078; }
 .abre-quem { margin-top: 1rem; color: var(--lj-tinta-2); font-size: .95rem; }
 .abre-quem b { color: var(--lj-tinta); font-weight: 600; }
 .abre-quem + .abre-acoes { margin-top: .6rem; }

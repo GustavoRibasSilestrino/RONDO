@@ -15,6 +15,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PACOTES, RARIDADES, mascoteDe, porcento, preco, type Mascote as Sorteado, type Pacote, type PacoteId } from "../data/loja";
 import { ErroApi, abrirPacote, type MascoteDaConta } from "../lib/api";
 import { contaRecusada, rotuloDa, useConta } from "../lib/conta";
+import { clarao, pararSuspense, recompensa, suspense, voltarMusica } from "../lib/somLoja";
 import { ENTRAR_LOJA } from "../lib/rotas";
 import { reduceMotion, vars } from "../lib/util";
 import { Estrelas, Mascote } from "./LojaPartes";
@@ -67,7 +68,11 @@ function Chances({ pacote }: { pacote: Pacote }) {
 
 const CERTO = "M7 1h1v1H7zM6 2h1v1H6zM5 3h1v1H5zM4 4h1v1H4zM3 5h1v1H3zM2 4h1v1H2zM1 3h1v1H1z";
 
-export function LojaAbrir({ pacote, aoFechar, aoGuardar }: { pacote: Pacote | null; aoFechar: () => void; aoGuardar: (m: MascoteDaConta) => void }) {
+/* `podeComprar`: a loja está aberta para esta conta (false = fechada até a venda abrir, só o dono compra; null = ainda não
+   se sabe, e o servidor confere na compra) */
+export function LojaAbrir({ pacote, aoFechar, aoGuardar, podeComprar = null }: { pacote: Pacote | null; aoFechar: () => void; aoGuardar: (m: MascoteDaConta) => void; podeComprar?: boolean | null }) {
+  const [recusada, setRecusada] = useState(false);   // o servidor disse que a loja está fechada
+  const fechada = podeComprar === false || recusada;
   const { token, conta } = useConta();
   const dialogo = useRef<HTMLDialogElement>(null);
   const palco = useRef<HTMLDivElement>(null);
@@ -92,12 +97,15 @@ export function LojaAbrir({ pacote, aoFechar, aoGuardar }: { pacote: Pacote | nu
     } else if (d.open) d.close();
   }, [pacote]);
 
+  useEffect(() => () => pararSuspense(), []);   // saiu da loja no meio da abertura: o suspense para junto
+
   /* o foco vai para a ação principal de cada etapa */
   useEffect(() => { if (pacote) principal.current?.focus({ preventScroll: true }); }, [fase, pacote, pedindoConta]);
 
   /* o mascote aparece; a coleção da página acende junto (ele já está guardado na conta) */
   const revelar = useCallback((m: Aberto) => {
     setMascote(m); setFase("revelado");
+    recompensa(m.raridade);   // a fanfarra (mais longa quanto mais rara)
     aoGuardar({ linha: m.linha, coluna: m.coluna, raridade: m.raridade, quantidade: m.quantidade });
   }, [aoGuardar]);
 
@@ -148,7 +156,7 @@ export function LojaAbrir({ pacote, aoFechar, aoGuardar }: { pacote: Pacote | nu
           rasgar(Math.min(1, Math.max(0, suave + 0.012 * Math.sin(u * 44) * (1 - u))));
         }
       }
-      if (nova !== etapa) { etapa = nova; el.dataset.etapa = nova; if (nova === "suspense") rasgar(0); if (nova === "clarao") rasgar(1); }
+      if (nova !== etapa) { etapa = nova; el.dataset.etapa = nova; if (nova === "suspense") rasgar(0); if (nova === "clarao") { rasgar(1); clarao(); } }
       quadro = requestAnimationFrame(passo);
     };
     quadro = requestAnimationFrame(passo);
@@ -159,16 +167,21 @@ export function LojaAbrir({ pacote, aoFechar, aoGuardar }: { pacote: Pacote | nu
     const p = atual;
     setErro("");
     if (!token) { setPedindoConta(true); return; }   // sem conta: o aviso com o botão de entrar ou criar conta
+    if (fechada) return;                              // loja fechada: o botão nem aparece, mas por garantia
     setDemorando(false);
     resultado.current = null; pularPedido.current = false;
     setFase("abrindo");
+    suspense();   // o rufar e a nota que sobe, até o clarão
     try {
       const m = await abrirPacote(token, p.id);
       resultado.current = { ...mascoteDe(m.linha, m.coluna), quantidade: m.quantidade };
     } catch (e) {
       const err = e instanceof ErroApi ? e : null;
       setFase("compra");
+      pararSuspense();
+      voltarMusica();
       if (err?.status === 401) { contaRecusada(); setPedindoConta(true); return; }   // a sessão venceu: entra de novo
+      if (err?.status === 403 && /em breve/i.test(err.message)) { setRecusada(true); return; }   // a loja está fechada
       setErro(err?.message ?? "Não deu para abrir agora. Tente de novo.");
     }
   };
@@ -217,10 +230,13 @@ export function LojaAbrir({ pacote, aoFechar, aoGuardar }: { pacote: Pacote | nu
               <p className="abre-frase">{atual.frase}</p>
               <p className="abre-preco"><b>{preco(atual.centavos)}</b><span>na prévia: grátis</span></p>
               <Chances pacote={atual} />
-              <p className="abre-nota">
-                Loja em prévia: nada é cobrado. O browniezinho vai direto para a sua conta do RONDO, a mesma do app. Quando a
-                venda abrir, a compra será só para maiores de 18 anos.
-              </p>
+              {/* com o aviso de conta ou de "em breve" na tela, a nota sai (ele já diz o essencial e a tela cabe no celular) */}
+              {(pedindoConta && !token) || (token && fechada) ? null : (
+                <p className="abre-nota">
+                  Loja em prévia: nada é cobrado. O browniezinho vai direto para a sua conta do RONDO, a mesma do app. Quando a
+                  venda abrir, a compra será só para maiores de 18 anos.
+                </p>
+              )}
               {erro ? <p className="abre-erro" role="alert">{erro}</p> : null}
               {pedindoConta && !token ? (
                 /* sem conta: o aviso e o caminho para a tela do RONDIN do site; de volta, este pacote abre de novo */
@@ -229,6 +245,15 @@ export function LojaAbrir({ pacote, aoFechar, aoGuardar }: { pacote: Pacote | nu
                   <div className="abre-acoes">
                     <a className="px-btn" ref={marcarPrincipal} href={ENTRAR_LOJA} onClick={() => lembrarPacote(atual.id)}>Entrar ou criar conta</a>
                     <button type="button" className="px-btn px-btn-escuro" onClick={() => setPedindoConta(false)}>Voltar</button>
+                  </div>
+                </div>
+              ) : token && fechada ? (
+                /* com conta, mas a loja ainda não vende: nada de mascote de graça antes do pagamento existir */
+                <div className="abre-em-breve" role="status">
+                  <p><b>A loja abre em breve.</b> Por enquanto as compras estão fechadas. Quando abrirem, é só voltar aqui e adotar o seu browniezinho.</p>
+                  <div className="abre-acoes">
+                    <button type="button" className="px-btn" disabled>Em breve</button>
+                    <button type="button" className="px-btn px-btn-escuro" ref={marcarPrincipal} onClick={fechar}>Voltar</button>
                   </div>
                 </div>
               ) : (

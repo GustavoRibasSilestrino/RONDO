@@ -11,5 +11,6 @@ export const SECTIONS: Sec[] = [
   { href: "#profissionais", label: "Profissionais", icon: '<path d="M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6z"/><path d="m9 12 2 2 4-4"/>' },
   { href: "#planos", label: "Planos", icon: '<path d="M4 12V5a1 1 0 0 1 1-1h7l8 8-8 8z"/><circle cx="8.5" cy="8.5" r="1.2"/>' },
   { href: "#faq", label: "Perguntas", icon: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7M12 17h.01"/>' },
+  { href: "#suporte", label: "Suporte", icon: '<path d="M4 5h16v11H9l-5 4z"/><path d="M9 10h6"/>' },
   { href: "#entrar", label: "Entrar", icon: '<path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/>' },
 ];

@@ -123,7 +123,7 @@ export function Recado() {
     <section className="section recado-rondin" id="recado" aria-labelledby="recado-titulo">
       <div className="wrap recado-grade">
         <div className="recado-texto">
-          <h2 id="recado-titulo" className="display">Um minuto por dia <span>com o RONDIN.</span></h2>
+          <h2 id="recado-titulo" className="display"><span className="titulo-pixel">Um minuto por dia</span> <span>com o RONDIN.</span></h2>
           <p className="lead">A superação também é de cabeça. Todo dia o RONDIN faz uma pergunta para você parar e pensar. Você responde falando, ele conversa de volta, e a sua voz vira um diário de quem você está se tornando.</p>
           <ul className="recado-pontos">
             <li><b>Uma pergunta por dia.</b> Perguntas para pensar de verdade, não "como foi o treino". A mesma para todo mundo, no mesmo dia.</li>

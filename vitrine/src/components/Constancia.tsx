@@ -74,7 +74,7 @@ export function Constancia() {
     <Section id="constancia">
       <div className="wrap streak-wrap">
         <Reveal>
-          <Title parts="Falhar um dia não zera tudo." echo={false} style={{ margin: "0 0 1.2rem" }} />
+          <Title parts={[{ t: "Falhar um dia ", cls: "titulo-pixel" }, "não zera tudo."]} echo={false} style={{ margin: "0 0 1.2rem" }} />
           <p className="lead">O streak tem um dia de folga por semana: uma falha isolada não quebra a sequência, duas na mesma semana quebram.</p>
           <ul className="points">
             <li>Treino registrado <b>+30</b></li>

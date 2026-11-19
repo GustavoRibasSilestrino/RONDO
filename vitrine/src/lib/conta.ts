@@ -17,6 +17,23 @@ const TOKEN = "yy.token", DADOS_DO_APP = "yy.app.v1", COPIA = "rondo.site.conta"
 const FORA: Estado = { token: null, conta: null };
 const marcaDo = (token: string) => token.slice(-16);   // a cópia só vale para o token com que foi feita
 
+/* No site, o login vale 2 dias a partir de quando a pessoa entrou (pedido do dono em 2026-11-18); depois, o site pede para
+   entrar de novo. Vale só para o site: o token continua guardado para o app, que segue com os 7 dias do servidor. A data do
+   login vem do próprio token (o campo "iat"). Um token que não dá para ler vale como antes. */
+const VALIDADE_NO_SITE = 2 * 24 * 60 * 60 * 1000;
+function entrouEm(token: string): number | null {
+  try {
+    const parte = token.split(".")[1];
+    if (!parte) return null;
+    const json = atob(parte.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(parte.length / 4) * 4, "="));
+    const iat = (JSON.parse(json) as { iat?: number }).iat;
+    return typeof iat === "number" ? iat * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+const venceNoSite = (token: string) => { const t = entrouEm(token); return t === null ? Infinity : t + VALIDADE_NO_SITE; };
+
 function lerJson<T>(chave: string): T | null {
   try { return JSON.parse(localStorage.getItem(chave) ?? "null") as T | null; } catch { return null; }
 }
@@ -24,7 +41,7 @@ function lerJson<T>(chave: string): T | null {
 function lerLocal(): Estado {
   try {
     const token = localStorage.getItem(TOKEN);
-    if (!token) return FORA;
+    if (!token || Date.now() >= venceNoSite(token)) return FORA;   // sem login, ou o login do site passou dos 2 dias
     const copia = lerJson<Conta & { marca?: string }>(COPIA);
     if (copia?.nome && copia.marca === marcaDo(token)) return { token, conta: { nome: copia.nome, arroba: copia.arroba ?? null, foto: copia.foto ?? null } };
     const doApp = lerJson<{ usuario?: { nome?: string; arroba?: string; foto?: string } | null }>(DADOS_DO_APP)?.usuario;
@@ -50,7 +67,16 @@ function soltarContaDoApp(email: string | null) {
 
 let estado: Estado = typeof window === "undefined" ? FORA : lerLocal();
 const ouvintes = new Set<() => void>();
-function mudar(novo: Estado) { estado = novo; ouvintes.forEach((f) => f()); }
+let relogio = 0;
+function mudar(novo: Estado) {
+  estado = novo;
+  /* com a página aberta, o login do site também vence na hora certa */
+  clearTimeout(relogio);
+  const falta = novo.token ? venceNoSite(novo.token) - Date.now() : Infinity;
+  if (Number.isFinite(falta) && falta < 2 ** 31 - 1) relogio = window.setTimeout(() => mudar(FORA), Math.max(0, falta));
+  ouvintes.forEach((f) => f());
+}
+if (typeof window !== "undefined" && estado.token) mudar(estado);   // arma o relógio do login já guardado
 
 function esquecer() {
   try { localStorage.removeItem(TOKEN); localStorage.removeItem(COPIA); } catch { /* sem armazenamento */ }

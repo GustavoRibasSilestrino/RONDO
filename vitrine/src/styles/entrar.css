@@ -19,15 +19,6 @@
 .entrar-voltar:hover { color: var(--ink); }
 .entrar-marca { display: inline-flex; align-items: center; min-height: 44px; color: #fff; }
 .entrar-marca svg { height: 18px; width: auto; }
-.entrar-topo-dir { display: flex; align-items: center; gap: .6rem; }
-/* o alto-falante: liga e desliga a voz do RONDIN (a mesma escolha do app) */
-.entrar-som {
-  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: var(--ink-2);
-  border: 1px solid var(--line); background: rgba(255, 255, 255, .03); transition: color .2s, border-color .2s, background .2s;
-}
-.entrar-som svg { width: 20px; height: 20px; }
-.entrar-som:hover { color: var(--ink); border-color: var(--line-2); background: rgba(139, 92, 246, .12); }
-.entrar-som:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* sem z-index aqui: o vídeo do RONDIN (mix-blend-mode: screen) precisa se misturar com o fundo da página, senão o preto
    do vídeo aparece como um quadrado escuro */

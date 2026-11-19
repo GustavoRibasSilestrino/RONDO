@@ -35,9 +35,10 @@ html {
 }
 #planos .plan.hot { background: var(--vidro-reflexo), linear-gradient(170deg, rgba(124, 58, 237, .5), rgba(18, 13, 30, .62) 62%); }
 
-/* o menu que abre do alto */
+/* o menu que abre do alto: vidro bem escuro, para o que está atrás não atrapalhar a leitura (pedido do dono em 2026-11-18;
+   antes era o vidro forte, transparente demais sobre a loja colorida) */
 .mega-card {
-  background: var(--vidro-reflexo), var(--vidro-fundo-forte);
+  background: var(--vidro-reflexo), rgba(9, 6, 18, .93);
   border-color: var(--vidro-borda);
   backdrop-filter: var(--vidro-desfoque); -webkit-backdrop-filter: var(--vidro-desfoque);
 }

@@ -22,6 +22,8 @@ def _mascote(linha: int, coluna: int, quantidade: int) -> MascoteOut:
 
 @router.post("/abrir", response_model=MascoteOut, status_code=201)
 def abrir(dados: AbrirPacoteIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    if not servico_loja.pode_comprar(usuario.papel):   # loja fechada: só o dono compra, para testar
+        raise HTTPException(403, servico_loja.MSG_FECHADA)
     return _mascote(*servico_loja.comprar(sessao, usuario.id, dados.pacote))
 
 
@@ -41,4 +43,5 @@ def colecao(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends
     return ColecaoOut(
         total=servico_loja.TOTAL,
         mascotes=[_mascote(m.linha, m.coluna, m.quantidade) for m in servico_loja.colecao(sessao, usuario.id)],
+        pode_comprar=servico_loja.pode_comprar(usuario.papel),
     )

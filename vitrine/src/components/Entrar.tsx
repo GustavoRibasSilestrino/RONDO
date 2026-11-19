@@ -8,7 +8,7 @@
    - o cadastro do site é curto (nome, e-mail, senha, nascimento e o aceite): as perguntas do RONDIN ficam para o app.
    A sessão é a mesma do app (lib/conta.ts): entrou aqui, está entrado no app também. Esta tela não fica no histórico depois
    do login (lib/navegar.ts, sairDaTela). */
-import { useEffect, useRef, useState, type FormEvent, type InputHTMLAttributes } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type InputHTMLAttributes } from "react";
 import { ErroApi, cadastrarPeloSite, concluirCadastroGoogle, entrarComGoogle, entrarComSenha, type ContaLogada, type DadosDoCadastro } from "../lib/api";
 import { guardarSessao, rotuloDa, sair, useConta } from "../lib/conta";
 import { desenharBotaoGoogle } from "../lib/google";
@@ -33,45 +33,60 @@ const VOLTAS: Record<string, { caminho: string; rotulo: string; indo: string; fa
 
 /* ---------- a voz do RONDIN ----------
    Toca a fala ao abrir a tela. A legenda espera a voz começar e cada palavra aparece no momento em que ele a diz (o tempo
-   de cada uma veio da gravação). Sem voz (desligada, ou o navegador não deixou tocar), a legenda surge sozinha, no ritmo de
-   sempre. "Voz desligada" é a mesma escolha do app (yy.rondin.mudo, app/src/lib/rondinVoz.ts): desligou num, vale no outro. */
+   de cada uma veio da gravação). Sem botão de som na tela (pedido do dono em 2026-11-18).
+   Os navegadores não deixam uma página tocar som antes de a pessoa interagir com ela. Vindo da loja (um clique antes), a voz
+   toca na hora; abrindo o link direto, o navegador pode bloquear: aí a legenda aparece sozinha e o RONDIN começa a falar,
+   do começo e com a legenda junto, no primeiro clique, toque ou tecla em qualquer lugar da tela (como no app).
+   "Voz desligada" no app (yy.rondin.mudo, app/src/lib/rondinVoz.ts) vale aqui também: aí ele não fala. */
 type FaseDaFala = "esperando" | "voz" | "texto";
-const MUDO = "yy.rondin.mudo";
-const lerMudo = () => { try { return localStorage.getItem(MUDO) === "1"; } catch { return false; } };
+const lerMudo = () => { try { return localStorage.getItem("yy.rondin.mudo") === "1"; } catch { return false; } };
 
 function useVoz(src: string, ativa: boolean) {
-  const [fase, setFase] = useState<FaseDaFala>(ativa ? "esperando" : "texto");
-  const [mudo, setMudo] = useState(lerMudo);
-  const [vez, setVez] = useState(0);   // cada vez que a fala recomeça do início (ao ligar o som ou tocar para ouvir)
+  const [fase, setFase] = useState<FaseDaFala>(ativa && !lerMudo() ? "esperando" : "texto");
+  const [vez, setVez] = useState(0);   // cada vez que a fala recomeça do início (a legenda recomeça junto)
+  const [bloqueada, setBloqueada] = useState(false);   // o navegador pediu um toque antes do som
   const audio = useRef<HTMLAudioElement | null>(null);
+  const limite = useRef(0);
+
+  /* fala do começo: a legenda se esconde e espera a voz. O play() é chamado direto (também dentro do clique, o que o
+     Safari do iPhone exige) */
+  const tocar = useCallback(() => {
+    const a = audio.current;
+    if (!a) return;
+    clearTimeout(limite.current);
+    setFase("esperando");
+    setVez((v) => v + 1);
+    a.currentTime = 0;
+    /* rede lenta: a legenda não fica esperando a voz */
+    limite.current = window.setTimeout(() => { a.pause(); setFase((f) => (f === "esperando" ? "texto" : f)); }, 1800);
+    a.play().catch((e: unknown) => {
+      clearTimeout(limite.current);
+      setFase("texto");
+      if ((e as { name?: string } | null)?.name === "NotAllowedError") setBloqueada(true);
+    });
+  }, []);
 
   useEffect(() => {
-    if (!ativa) { setFase("texto"); return; }
-    setFase("esperando");
+    if (!ativa || lerMudo()) { setFase("texto"); return; }
     const a = new Audio(src);
+    a.preload = "auto";
     audio.current = a;
-    let decidiu = false;
-    const decidir = (f: FaseDaFala) => { if (decidiu) return; decidiu = true; setFase(f); if (f === "texto") a.pause(); };
-    a.addEventListener("playing", () => decidir("voz"), { once: true });
-    if (lerMudo()) decidir("texto");
-    else a.play().catch(() => decidir("texto"));   // o navegador não deixou tocar sem um toque na página
-    const limite = window.setTimeout(() => decidir("texto"), 1800);   // rede lenta: a legenda não fica esperando
-    return () => { clearTimeout(limite); a.pause(); audio.current = null; };
-  }, [src, ativa, vez]);
+    const tocou = () => { clearTimeout(limite.current); setBloqueada(false); setFase("voz"); };
+    a.addEventListener("playing", tocou);
+    tocar();
+    return () => { clearTimeout(limite.current); a.removeEventListener("playing", tocou); a.pause(); audio.current = null; };
+  }, [src, ativa, tocar]);
 
-  /* o botão do alto-falante: com a voz tocando, desliga; desligada (ou bloqueada), liga e fala de novo do começo */
-  const alternar = () => {
-    if (!mudo && fase === "voz") {
-      audio.current?.pause();
-      setMudo(true);
-      try { localStorage.setItem(MUDO, "1"); } catch { /* sem armazenamento */ }
-      return;
-    }
-    setMudo(false);
-    try { localStorage.setItem(MUDO, "0"); } catch { /* sem armazenamento */ }
-    setVez((v) => v + 1);
-  };
-  return { fase, falando: !mudo && fase === "voz", alternar, vez };
+  /* bloqueada: ele fala no primeiro clique, toque ou tecla, em qualquer lugar da tela */
+  useEffect(() => {
+    if (!bloqueada || !ativa) return;
+    const ouvir = () => tocar();
+    document.addEventListener("click", ouvir, true);
+    document.addEventListener("keydown", ouvir, true);
+    return () => { document.removeEventListener("click", ouvir, true); document.removeEventListener("keydown", ouvir, true); };
+  }, [bloqueada, ativa, tocar]);
+
+  return { fase, vez };
 }
 
 /* a fala surge palavra por palavra, como a legenda do RONDIN no app: no tempo da voz, ou num ritmo fixo sem ela.
@@ -88,8 +103,6 @@ function Palavras({ texto, de = 0, fala, fase }: { texto: string; de?: number; f
   );
 }
 
-const SOM_LIGADO = "M4 9h3l4-4v14l-4-4H4zM15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12";
-const SOM_DESLIGADO = "M4 9h3l4-4v14l-4-4H4zM16 9.5l5 5M21 9.5l-5 5";
 
 type Modo = "entrar" | "criar";
 type Erros = Record<string, string>;
@@ -404,14 +417,7 @@ export default function Entrar() {
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
           {volta.rotulo}
         </a>
-        <div className="entrar-topo-dir">
-          {!feito && !conta ? (
-            <button type="button" className="entrar-som" onClick={voz.alternar} aria-label={voz.falando ? "Desligar a voz do RONDIN" : "Ouvir o RONDIN"} title={voz.falando ? "Desligar a voz" : "Ouvir o RONDIN"}>
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d={voz.falando ? SOM_LIGADO : SOM_DESLIGADO} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
-          ) : null}
-          <a className="entrar-marca" href="/" aria-label="RONDO, página inicial"><Nome /></a>
-        </div>
+        <a className="entrar-marca" href="/" aria-label="RONDO, página inicial"><Nome /></a>
       </header>
       <main id="conteudo" className="entrar-palco">
         <div className="entrar-rondin" aria-hidden="true"><RondinVideo tamanho={128} /></div>

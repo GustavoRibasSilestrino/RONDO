@@ -135,4 +135,5 @@ export type MascoteDaConta = { linha: number; coluna: number; raridade: Raridade
 
 /* compra (abre) um pacote: o servidor sorteia o mascote e ele já vai para a conta */
 export const abrirPacote = (token: string, pacote: PacoteId) => chamar<MascoteDaConta>("POST", "/loja/abrir", { pacote }, token);
-export const minhaColecao = (token: string) => chamar<{ total: number; mascotes: MascoteDaConta[] }>("GET", "/loja/colecao", undefined, token);
+/* a coleção e se a loja está aberta para esta conta (fechada até a venda abrir; só o dono compra, para testar) */
+export const minhaColecao = (token: string) => chamar<{ total: number; mascotes: MascoteDaConta[]; pode_comprar?: boolean }>("GET", "/loja/colecao", undefined, token);

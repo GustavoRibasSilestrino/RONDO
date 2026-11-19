@@ -4,7 +4,8 @@
    A compra é uma prévia: nada é cobrado. Comprar pede a conta do RONDO (a mesma do app); quem não está na conta entra pela
    tela do RONDIN do site (/entrar) e volta para cá com o pacote aberto de novo. Com a conta, a coleção acende os mascotes
    que ela já tem, com a quantidade. */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { alternarSom, assinarSom, pararMusica, somLigado, tocarMusica } from "../lib/somLoja";
 import { PACOTES, RARIDADES, TOTAL_MASCOTES, chaveDe, nomeDe, porcento, preco, type Pacote } from "../data/loja";
 import { minhaColecao, type MascoteDaConta } from "../lib/api";
 import { contaRecusada, useConta } from "../lib/conta";
@@ -14,21 +15,28 @@ import { LojaAbrir, pacoteLembrado } from "./LojaAbrir";
 import { Barraca, Estrelas, Mascote } from "./LojaPartes";
 import { Nome } from "./ui";
 
-/* a coleção da conta: chave do mascote -> quantos ela tem (vem do servidor; cada compra soma aqui na hora) */
+/* a coleção da conta: chave do mascote -> quantos ela tem (vem do servidor; cada compra soma aqui na hora). Vem junto se a
+   loja está aberta para esta conta: fechada (até a venda abrir), a compra mostra "Em breve" (null = ainda não se sabe) */
 function useColecao() {
   const { token } = useConta();
   const [colecao, setColecao] = useState<Map<string, number>>(() => new Map());
+  const [podeComprar, setPodeComprar] = useState<boolean | null>(null);
   useEffect(() => {
     setColecao(new Map());
+    setPodeComprar(null);
     if (!token) return;
     let vale = true;
     minhaColecao(token)
-      .then((c) => { if (vale) setColecao(new Map(c.mascotes.map((m) => [chaveDe(m.linha, m.coluna), m.quantidade]))); })
+      .then((c) => {
+        if (!vale) return;
+        setColecao(new Map(c.mascotes.map((m) => [chaveDe(m.linha, m.coluna), m.quantidade])));
+        setPodeComprar(c.pode_comprar ?? true);
+      })
       .catch((e: { status?: number }) => { if (vale && e.status === 401) contaRecusada(); });
     return () => { vale = false; };
   }, [token]);
   const somar = useCallback((m: MascoteDaConta) => setColecao((c) => new Map(c).set(chaveDe(m.linha, m.coluna), m.quantidade)), []);
-  return [colecao, somar] as const;
+  return [colecao, somar, podeComprar] as const;
 }
 
 /* no topo da loja: a conta (com o menu de abrir o app e sair) ou um "Entrar" discreto, para quem quer entrar antes de
@@ -46,11 +54,29 @@ function ContaNoTopo() {
   );
 }
 
+/* o som da loja (a música e os efeitos da abertura, lib/somLoja.ts): música que toca sozinha precisa de um jeito de desligar
+   (WCAG 1.4.2), então fica uma nota musical de pixel no topo; a escolha fica guardada neste navegador */
+const NOTA = "M5 0h3v1h1v2H8V2H6v5H5v1H4v1H1V8H0V6h1V5h4z";
+const RISCO = "M0 0h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1H8V8H7V7H6V6H5V5H4V4H3V3H2V2H1V1H0z";
+function BotaoSom() {
+  const ligado = useSyncExternalStore(assinarSom, somLigado);
+  return (
+    <button type="button" className="loja-som" onClick={alternarSom} aria-pressed={ligado} aria-label="Música e sons da loja" title={ligado ? "Desligar o som" : "Ligar o som"}>
+      <svg viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true">
+        <path d={NOTA} fill="currentColor" />
+        {ligado ? null : <path d={RISCO} fill="#e0524f" />}
+      </svg>
+    </button>
+  );
+}
+
 export default function Loja() {
+  /* a música de jogo toca enquanto a pessoa está na loja (pedido do dono em 2026-11-19) */
+  useEffect(() => { tocarMusica(); return () => pararMusica(); }, []);
   const [escolhido, setEscolhido] = useState<Pacote | null>(null);
   const fechar = useCallback(() => setEscolhido(null), []);
   const { conta } = useConta();
-  const [colecao, somar] = useColecao();
+  const [colecao, somar, podeComprar] = useColecao();
   useEffect(() => { document.title = "Loja de pacotinhos · RONDO"; }, []);
 
   /* de volta da tela de entrar: o pacote que a pessoa ia comprar abre de novo, já com a conta (se ela voltou sem entrar,
@@ -69,7 +95,10 @@ export default function Loja() {
           <svg viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true"><path d="M4 1h1v1H4zM3 2h1v1H3zM2 3h1v1H2zM1 4h7v1H1zM2 5h1v1H2zM3 6h1v1H3zM4 7h1v1H4z" fill="currentColor" /></svg>
           <Nome />
         </a>
-        <ContaNoTopo />
+        <div className="loja-barra-dir">
+          <BotaoSom />
+          <ContaNoTopo />
+        </div>
       </header>
 
       <main id="conteudo">
@@ -152,7 +181,7 @@ export default function Loja() {
         <p><a href="/">Voltar ao site</a><a href="/termos">Termos de Uso</a><a href="/privacidade">Privacidade</a></p>
       </footer>
 
-      <LojaAbrir pacote={escolhido} aoFechar={fechar} aoGuardar={somar} />
+      <LojaAbrir pacote={escolhido} aoFechar={fechar} aoGuardar={somar} podeComprar={podeComprar} />
     </div>
   );
 }

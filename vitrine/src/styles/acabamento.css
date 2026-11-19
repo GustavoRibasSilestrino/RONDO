@@ -120,3 +120,12 @@ h2.display { font-size: clamp(2rem, 4.2vw, 3.5rem); }
 .btn-mini { border-radius: 10px; }
 @media (prefers-reduced-motion: reduce) { .btn::after { display: none; } }
 @media (hover: none) { .btn::after { display: none; } }
+
+/* A primeira linha do título de três telas em letra de pixel art (pedido do dono em 2026-11-19), casando com as fotos em
+   pixel art: "Vença o você" (primeira tela), "Um minuto por dia" (recado) e "Falhar um dia" (constância). Só nelas: o resto
+   do site segue na Bricolage. A segunda linha continua como era. */
+.titulo-pixel {
+  display: block; font-family: "Pixelify Sans Variable", var(--font-titulo); font-weight: 700; letter-spacing: 0;
+  font-synthesis: none; line-height: 1.05;
+}
+.recado-texto .display .titulo-pixel { color: #fff; }   /* a regra do recado pinta de roxo todo span do título: este fica branco */
