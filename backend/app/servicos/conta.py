@@ -5,9 +5,9 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import delete, or_, select, update
 from sqlalchemy.orm import Session
 
-from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_RESGATES, RETENCAO_STORIES
+from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_RESGATES, RETENCAO_STORIES, RETENCAO_SUPORTE
 from app.modelos import (
-    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Mascote, Membro, Notificacao, Penalidade, Post, RedefinicaoSenha, Resgate, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
+    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Mascote, Membro, MensagemSuporte, Notificacao, Penalidade, Post, RedefinicaoSenha, Resgate, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
 )
 from app.servicos.loja import RARIDADES
 from app.servicos import midia as servico_midia
@@ -62,6 +62,10 @@ def exportar(sessao: Session, u: Usuario) -> dict:
              "primeiro_em": _data(m.primeiro_em), "ultimo_em": _data(m.ultimo_em)}
             for m in todos(Mascote, Mascote.usuario_id == uid)
         ],
+        "mensagens_de_suporte": [
+            {"assunto": m.assunto, "mensagem": m.mensagem, "email": m.email, "enviada_em": _data(m.criado_em)}
+            for m in todos(MensagemSuporte, MensagemSuporte.usuario_id == uid)
+        ],
         "codigos_resgatados_na_loja": [
             {"codigo": r.codigo, "pacote": r.pacote, "linha": r.linha, "coluna": r.coluna, "aberto_em": _data(r.criado_em), "resgatado_em": _data(r.resgatado_em)}
             for r in todos(Resgate, Resgate.usuario_id == uid)
@@ -100,6 +104,7 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
     sessao.execute(delete(DadoUsuario).where(DadoUsuario.usuario_id == uid))
     sessao.execute(delete(Mascote).where(Mascote.usuario_id == uid))
     sessao.execute(delete(Resgate).where(Resgate.usuario_id == uid))
+    sessao.execute(delete(MensagemSuporte).where(MensagemSuporte.usuario_id == uid))
     sessao.execute(delete(Consentimento).where(Consentimento.usuario_id == uid))
     sessao.execute(delete(RedefinicaoSenha).where(RedefinicaoSenha.usuario_id == uid))
     sessao.execute(delete(Penalidade).where(Penalidade.usuario_id == uid))
@@ -135,6 +140,7 @@ def limpar_vencidos(sessao: Session, forcar: bool = False) -> None:
     sessao.execute(delete(Notificacao).where(Notificacao.criado_em < agora - RETENCAO_NOTIFICACOES))
     sessao.execute(delete(RedefinicaoSenha).where(RedefinicaoSenha.criado_em < agora - timedelta(days=1)))   # códigos de redefinição velhos, usados ou não
     sessao.execute(delete(Resgate).where(Resgate.criado_em < agora - RETENCAO_RESGATES))
+    sessao.execute(delete(MensagemSuporte).where(MensagemSuporte.criado_em < agora - RETENCAO_SUPORTE))   # suporte: 1 ano
     sessao.commit()
 
 

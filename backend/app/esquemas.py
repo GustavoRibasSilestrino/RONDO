@@ -205,3 +205,24 @@ class ColecaoOut(BaseModel):
 
 class ResgatarIn(BaseModel):
     codigo: str = Field(min_length=10, max_length=24)   # com ou sem hífen e espaços
+
+
+# ---------- suporte do site (rotas/suporte.py) ----------
+ROTULOS_SUPORTE = {
+    "problema": "Algo não funciona", "conta": "Conta e acesso", "loja": "Loja de pacotinhos", "dados": "Seus dados",
+    "denuncia": "Denúncia", "sugestao": "Sugestão", "reclamacao": "Reclamação", "outro": "Outro assunto",
+}
+
+
+class SuporteIn(BaseModel):
+    assunto: Literal["problema", "conta", "loja", "dados", "denuncia", "sugestao", "reclamacao", "outro"]
+    mensagem: str = Field(min_length=10, max_length=2000)
+    email: EmailStr | None = None                       # quem não está na conta informa um e-mail para a resposta
+    nome: str | None = Field(default=None, max_length=120)
+
+    @field_validator("mensagem")
+    @classmethod
+    def mensagem_de_verdade(cls, v: str) -> str:
+        if len(v.strip()) < 10:
+            raise ValueError("Escreva um pouco mais (pelo menos 10 letras).")
+        return v

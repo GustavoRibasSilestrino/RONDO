@@ -1,5 +1,5 @@
 /* ===== Suporte, no fim da página (components/Suporte.tsx, desde 2026-11-19) =====
-   Um cartão de vidro escuro por assunto, como os outros cartões do site; cada um abre o e-mail com o assunto pronto. */
+   Um cartão de vidro escuro por assunto, como os outros cartões do site; cada um abre a janela de escrever para a equipe. */
 .suporte { padding-block: clamp(4rem, 8vw, 6.5rem) clamp(3rem, 6vw, 5rem); }
 .suporte-cabeca { max-width: 46rem; margin-bottom: clamp(1.8rem, 4vw, 2.6rem); }
 .suporte-cabeca .lead { margin-top: .9rem; }
@@ -14,12 +14,55 @@
 .suporte-cartao h3 { font: 700 1.15rem/1.2 var(--font-titulo); letter-spacing: -.01em; color: #fff; }
 .suporte-cartao p { flex: 1; color: var(--ink-2); font-size: .95rem; line-height: 1.5; }
 .suporte-acoes { display: flex; flex-wrap: wrap; gap: .2rem 1.1rem; margin-top: .35rem; }
-.suporte-acoes a { display: inline-flex; align-items: center; gap: .35rem; min-height: 44px; color: var(--accent-2); font-weight: 600; font-size: .95rem; }
-.suporte-acoes a span { transition: translate .2s var(--ease); }
-.suporte-acoes a:hover { color: #fff; }
-.suporte-acoes a:hover span { translate: 3px 0; }
-.suporte-acoes a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.suporte-acoes a, .suporte-acoes button { display: inline-flex; align-items: center; gap: .35rem; min-height: 44px; color: var(--accent-2); font: 600 .95rem/1 var(--font-body); }
+.suporte-acoes span { transition: translate .2s var(--ease); }
+.suporte-acoes a:hover, .suporte-acoes button:hover { color: #fff; }
+.suporte-acoes a:hover span, .suporte-acoes button:hover span { translate: 3px 0; }
+.suporte-acoes a:focus-visible, .suporte-acoes button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.suporte-escrever { margin-top: 1.2rem; }
+
+/* ---------- a janela para escrever à equipe ---------- */
+.suporte-janela {
+  width: min(100% - 1.5rem, 34rem); max-height: calc(100dvh - 2rem); margin: auto; padding: 0; border: 1px solid var(--line-2);
+  border-radius: 16px; background: #0f0b1a; color: var(--ink); box-shadow: 0 40px 100px -30px rgba(0, 0, 0, .9); overflow: auto;
+}
+.suporte-janela::backdrop { background: rgba(5, 3, 12, .6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+html:has(dialog.suporte-janela[open]) { overflow: hidden; }
+.suporte-janela-in { position: relative; padding: 1.5rem 1.4rem 1.3rem; }
+.suporte-janela h2 { margin: 0 2.4rem .9rem 0; font: 700 1.4rem/1.2 var(--font-titulo); letter-spacing: -.02em; color: #fff; }
+.suporte-janela-fechar { position: absolute; top: .6rem; right: .6rem; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; color: var(--ink-2); }
+.suporte-janela-fechar svg { width: 16px; height: 16px; }
+.suporte-janela-fechar:hover { color: #fff; background: rgba(255, 255, 255, .06); }
+.suporte-janela form { display: grid; gap: .9rem; }
+.suporte-campo { display: grid; gap: .4rem; min-width: 0; }
+.suporte-campo label { font-size: .9rem; font-weight: 500; color: var(--ink); }
+.suporte-campo input, .suporte-campo select, .suporte-campo textarea {
+  width: 100%; padding: .75rem .9rem; border: 1px solid var(--line-2); border-radius: 10px; background: rgba(255, 255, 255, .04);
+  color: var(--ink); font: 400 1rem/1.45 var(--font-body); transition: border-color .2s, box-shadow .2s;
+}
+.suporte-campo input, .suporte-campo select { height: 48px; padding-block: 0; }
+.suporte-campo select { color-scheme: dark; }
+.suporte-campo textarea { min-height: 9rem; resize: vertical; }
+.suporte-campo textarea::placeholder { color: var(--ink-3); }
+.suporte-campo :is(input, select, textarea):focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139, 92, 246, .2); }
+.suporte-contagem { justify-self: end; color: var(--ink-3); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.suporte-duplo { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.suporte-quem { color: var(--ink-2); font-size: .92rem; }
+.suporte-quem b { color: var(--ink); font-weight: 600; }
+.suporte-erro { padding: .7rem .85rem; border: 1px solid rgba(255, 125, 147, .42); border-radius: 10px; background: rgba(255, 90, 120, .09); color: #ffd0d8; font-size: .92rem; }
+/* o aviso pedido pelo dono: a mensagem vai para a equipe */
+.suporte-obs { display: flex; align-items: center; gap: .55rem; padding: .7rem .85rem; border-radius: 10px; background: rgba(139, 92, 246, .1); color: #ddd3f7; font-size: .92rem; }
+.suporte-obs svg { width: 18px; height: 18px; flex: none; color: var(--accent-2); }
+.suporte-botoes { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .2rem; }
+.suporte-botoes .btn { flex: 1 1 auto; justify-content: center; min-height: 48px; }
+.suporte-enviada { display: grid; justify-items: center; gap: .6rem; padding: .8rem 0 .2rem; text-align: center; color: var(--ink-2); }
+.suporte-enviada svg { width: 48px; height: 48px; color: var(--good); }
+.suporte-enviada h2 { margin: 0; }
+.suporte-enviada .btn { margin-top: .5rem; min-width: 10rem; justify-content: center; }
 @media (max-width: 520px) {
   .suporte-grade { grid-template-columns: minmax(0, 1fr); }
   .suporte-cartao { padding: 1.1rem 1rem .9rem; }
+  .suporte-janela-in { padding: 1.2rem 1rem 1.1rem; }
+  .suporte-duplo { grid-template-columns: minmax(0, 1fr); }
+  .suporte-campo textarea { min-height: 7.5rem; }
 }

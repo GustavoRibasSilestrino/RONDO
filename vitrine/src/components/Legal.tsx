@@ -8,7 +8,7 @@ import { Nome } from "./ui";
 
 export const CONTATO = "rondooficial.dev@gmail.com";
 export const RESPONSAVEL = "Gustavo Ribas Silestrino";
-const ATUALIZADO = "18 de novembro de 2026";
+const ATUALIZADO = "19 de novembro de 2026";
 
 const Email = () => <a href={`mailto:${CONTATO}`}>{CONTATO}</a>;
 
@@ -110,6 +110,13 @@ function Privacidade() {
         resgatado fica ligado à sua conta. Hoje a loja é uma prévia e não cobra nada; quando houver pagamento, esta política
         será atualizada antes.
       </p>
+      <h3>No suporte do site</h3>
+      <p>
+        Quando você escreve para a equipe na seção “Precisa de ajuda?” do site, guardamos o assunto, a mensagem, o e-mail
+        para a resposta e o seu nome, se você informar. Se você estiver na sua conta, usamos o e-mail da conta e a mensagem
+        fica ligada a ela. A mensagem é encaminhada por e-mail para a caixa da equipe RONDO e serve só para responder e
+        resolver o que você pediu. Não escreva senhas nem dados de saúde na mensagem.
+      </p>
       <h3>Cadastro de profissional</h3>
       <p>Nome, e-mail, conselho (CRN ou CREF), número do registro e UF, para conferir o registro na consulta pública do conselho.</p>
       <h3>O que não coletamos</h3>
@@ -123,6 +130,7 @@ function Privacidade() {
         <li><b>Prestar o serviço</b> (conta, sincronização, parte social): execução de contrato (art. 7º, V).</li>
         <li><b>Dados de saúde</b>: consentimento específico e destacado, dado no cadastro (art. 11, I).</li>
         <li><b>Menores de idade</b>: consentimento de um dos pais ou responsável (art. 14).</li>
+        <li><b>Responder ao suporte</b>: atender o pedido que você mesmo fez, por execução de contrato e legítimo interesse (art. 7º, V e IX).</li>
         <li><b>E-mails de novidades</b>: só com consentimento separado, que começa desligado. Você desliga quando quiser no app (Configurações) ou pelo e-mail.</li>
         <li><b>Guardar o registro dos aceites e a segurança</b>: cumprimento de obrigação legal e legítimo interesse (art. 7º, II e IX).</li>
       </ul>
@@ -161,6 +169,7 @@ function Privacidade() {
           <tr><td>Registro dos aceites</td><td>Enquanto a conta existir.</td></tr>
           <tr><td>Mascotes da loja</td><td>Enquanto a conta existir. Ao apagar a conta, saem junto.</td></tr>
           <tr><td>Códigos de resgate da loja</td><td>7 dias; depois saem do banco, resgatados ou não (o mascote resgatado continua na conta).</td></tr>
+          <tr><td>Mensagens do suporte</td><td>1 ano; depois saem do banco. Ao apagar a conta, as mensagens ligadas a ela saem junto.</td></tr>
           <tr><td>Cadastro de profissional</td><td>Até você pedir a exclusão.</td></tr>
           <tr><td>Recados de voz</td><td>Só no seu aparelho, até você apagar.</td></tr>
           <tr><td>Cópias de segurança do provedor do banco</td><td>Podem guardar dados apagados por um curto período, até serem substituídas.</td></tr>
@@ -359,7 +368,7 @@ const SUBOPERADORES = [
   { nome: "Supabase", faz: "Banco de dados (conta, dados do app, parte social) e armazenamento das fotos publicadas", onde: "Estados Unidos (Oregon)", dpa: "https://supabase.com/legal/dpa" },
   { nome: "Render", faz: "Servidor da API (processa as requisições do app e do site)", onde: "Estados Unidos (Oregon)", dpa: "https://render.com/dpa" },
   { nome: "Vercel", faz: "Hospedagem do site e da versão web do app", onde: "Estados Unidos e rede global de entrega", dpa: "https://vercel.com/legal/dpa" },
-  { nome: "Google (Gmail)", faz: "Recebe os e-mails que você manda para o nosso contato", onde: "Estados Unidos e outros países", dpa: "https://policies.google.com/privacy" },
+  { nome: "Google (Gmail)", faz: "Recebe os e-mails que você manda para o nosso contato e as mensagens do suporte do site", onde: "Estados Unidos e outros países", dpa: "https://policies.google.com/privacy" },
 ];
 
 function Suboperadores() {

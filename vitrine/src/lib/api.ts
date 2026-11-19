@@ -129,6 +129,11 @@ export const entrarComGoogle = (idToken: string) => chamar<RespostaGoogle>("POST
 export const concluirCadastroGoogle = (d: DadosDoCadastro & { token_social: string; nome: string | null }) =>
   chamar<ContaLogada>("POST", "/auth/social/cadastro", { ...d, origem: "site" });
 
+/* ---------- suporte (backend/app/rotas/suporte.py): a mensagem vai para a equipe RONDO ---------- */
+export type AssuntoSuporte = "problema" | "conta" | "loja" | "dados" | "denuncia" | "sugestao" | "reclamacao" | "outro";
+export const enviarSuporte = (d: { assunto: AssuntoSuporte; mensagem: string; email?: string; nome?: string }, token: string | null) =>
+  chamar<{ status: string }>("POST", "/suporte", d, token);
+
 /* ---------- loja de pacotinhos (backend/app/rotas/loja.py) ----------
    Comprar e ver a coleção pedem a conta (o token da sessão, o mesmo do app; ver lib/conta.ts). */
 export type MascoteDaConta = { linha: number; coluna: number; raridade: Raridade; quantidade: number };
