@@ -29,10 +29,11 @@
 [data-r="epica"] { --cor-r: #cf8bff; }
 [data-r="lendaria"] { --cor-r: #ffc83d; }
 
-/* ---------- mascote: um recorte da folha (14 colunas x 5 linhas) ---------- */
+/* ---------- mascote: um recorte da folha (14 colunas x 5 linhas de 160 x 176) ---------- */
 .masc {
-  display: block; width: var(--masc, 4rem); aspect-ratio: 127 / 130; flex: none;
+  display: block; width: var(--masc, 4rem); aspect-ratio: 160 / 176; flex: none;
   background: url("../assets/loja/mascotes.webp") var(--mx) var(--my) / 1400% 500% no-repeat;
+  image-rendering: pixelated;   /* é pixel art: ampliar sem borrar */
 }
 
 /* ---------- estrelas de pixel ---------- */

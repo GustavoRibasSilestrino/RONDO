@@ -8,7 +8,7 @@ from app.banco import Base
 
 class Mascote(Base):
     """Os browniezinhos da loja de pacotinhos que a conta já resgatou (desde 2026-11-18). Uma linha por mascote, com quantas
-    vezes ele foi resgatado: a coleção de uma conta tem no máximo 69 linhas, por mais pacotes que ela abra.
+    vezes ele foi resgatado: a coleção de uma conta tem no máximo uma linha por mascote, por mais pacotes que ela abra.
     A posição é a da folha de mascotes do site (vitrine/src/assets/loja/mascotes.webp): a linha é a raridade (0 = comum,
     4 = lendária) e a coluna, o mascote dentro dela. O nome de cada um fica no site (vitrine/src/data/loja.ts)."""
 

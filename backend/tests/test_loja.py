@@ -70,7 +70,7 @@ def test_loja_fechada_so_o_dono_compra(cliente, monkeypatch):
         s.commit()
     r = cliente.post("/loja/abrir", json={"pacote": "ouro"}, headers=ana)
     assert r.status_code == 403 and "em breve" in r.json()["detail"]
-    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 69, "mascotes": [], "pode_comprar": False, "escolhido": None}
+    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 66, "mascotes": [], "pode_comprar": False, "escolhido": None}
     assert cliente.get("/loja/colecao", headers=dono).json()["pode_comprar"] is True
     assert _comprar(cliente, dono)["quantidade"] == 1
     with Sessao() as s:
@@ -87,10 +87,10 @@ def test_a_compra_vai_direto_para_a_conta(cliente):
     h = _conta(cliente)
     comprados = [_comprar(cliente, h, p) for p in ("roxo", "prata", "ouro") * 5]
     for m in comprados:
-        assert 0 <= m["linha"] < 5 and 0 <= m["coluna"] < loja.RARIDADES[m["linha"]][1]
+        assert 0 <= m["linha"] < 5 and m["coluna"] in loja.COLUNAS[m["linha"]]
         assert m["raridade"] == loja.RARIDADES[m["linha"]][0]
     col = cliente.get("/loja/colecao", headers=h).json()
-    assert col["total"] == 69
+    assert col["total"] == 66
     assert sum(m["quantidade"] for m in col["mascotes"]) == 15
     assert {(m["linha"], m["coluna"]) for m in col["mascotes"]} == {(m["linha"], m["coluna"]) for m in comprados}
 
@@ -150,7 +150,10 @@ def test_exportar_e_apagar_a_conta_levam_os_mascotes(cliente):
 
 
 def test_chances_do_sorteio():
-    assert loja.TOTAL == 69
+    assert loja.TOTAL == 66
+    assert loja.RARIDADES[1] == ("incomum", 13)
+    assert loja.RARIDADES[3] == ("epica", 13)
+    assert loja.RARIDADES[4] == ("lendaria", 13)
     for pacote, chances in loja.CHANCES.items():
         assert sum(chances) == 1000, pacote
         assert len(chances) == len(loja.RARIDADES)
@@ -160,6 +163,28 @@ def test_chances_do_sorteio():
     assert roxo[4] < 70                 # 0,1%: uns 20 em 20 mil
     assert 800 < ouro[4] < 1200         # 5%: uns 1000 em 20 mil
     assert 13_400 < roxo[0] < 14_600    # 70% de comuns no roxo
+
+
+def test_mascote_tirado_nao_sai_nem_aparece(cliente, monkeypatch):
+    """O Browdiabinho (1-6), o Browinferno (3-5) e o Browdemônio (4-10) foram tirados: o sorteio nunca dá eles, a coleção não mostra e ninguém
+    escolhe eles."""
+    assert all(loja.sortear("ouro") not in ((1, 6), (3, 5), (4, 10)) for _ in range(3000))
+    assert 6 not in loja.COLUNAS[1] and 13 in loja.COLUNAS[1]
+    assert 5 not in loja.COLUNAS[3] and 13 in loja.COLUNAS[3]
+    assert 10 not in loja.COLUNAS[4] and 13 in loja.COLUNAS[4]
+    h = _conta(cliente)
+    with Sessao() as s:   # uma conta que já tinha ganhado ele antes de ser tirado
+        uid = s.query(Usuario).one().id
+        agora = datetime.now(timezone.utc)
+        s.add(Mascote(usuario_id=uid, linha=1, coluna=6, quantidade=1, primeiro_em=agora, ultimo_em=agora))
+        s.add(Mascote(usuario_id=uid, linha=3, coluna=5, quantidade=1, primeiro_em=agora, ultimo_em=agora))
+        s.add(Mascote(usuario_id=uid, linha=4, coluna=10, quantidade=1, primeiro_em=agora, ultimo_em=agora))
+        s.commit()
+    assert cliente.get("/loja/colecao", headers=h).json()["mascotes"] == []
+    with Sessao() as s:
+        assert loja.escolher_mascote(s, s.query(Usuario).one(), 1, 6) is False
+        assert loja.escolher_mascote(s, s.query(Usuario).one(), 3, 5) is False
+        assert loja.escolher_mascote(s, s.query(Usuario).one(), 4, 10) is False
 
 
 def test_chances_iguais_as_do_site():

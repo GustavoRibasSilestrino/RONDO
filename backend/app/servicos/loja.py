@@ -31,8 +31,14 @@ def pode_comprar(papel: str) -> bool:
     return ABERTA or papel == "dono"
 
 
-# as raridades na ordem das linhas da folha de mascotes, com quantos mascotes cada uma tem (69 no total)
-RARIDADES: list[tuple[str, int]] = [("comum", 13), ("incomum", 14), ("rara", 14), ("epica", 14), ("lendaria", 14)]
+# A folha de mascotes tem 13 casas na linha dos comuns e 14 em cada outra. Um mascote tirado (a pedido do dono) sai do
+# sorteio e da coleção, mas a casa dele continua na folha, vazia: assim a chave de cada mascote ("linha-coluna") não muda
+# e ninguém perde o que já tem.
+CASAS = (13, 14, 14, 14, 14)
+TIRADOS = {(1, 6), (3, 5), (4, 10)}   # o Browdiabinho, o Browinferno e o Browdemônio, tirados em 2026-11-19
+COLUNAS: list[list[int]] = [[c for c in range(n) if (linha, c) not in TIRADOS] for linha, n in enumerate(CASAS)]
+# as raridades na ordem das linhas da folha, com quantos mascotes cada uma tem de verdade (66 no total)
+RARIDADES: list[tuple[str, int]] = [(nome, len(COLUNAS[i])) for i, nome in enumerate(("comum", "incomum", "rara", "epica", "lendaria"))]
 TOTAL = sum(quantos for _, quantos in RARIDADES)
 
 # a chance de cada raridade em cada pacote, em milésimos (cada pacote soma 1000), na ordem de RARIDADES
@@ -61,7 +67,7 @@ def sortear(pacote: str) -> tuple[int, int]:
     sorte = secrets.randbelow(1000)
     for linha, peso in enumerate(CHANCES[pacote]):
         if sorte < peso:
-            return linha, secrets.randbelow(RARIDADES[linha][1])
+            return linha, secrets.choice(COLUNAS[linha])
         sorte -= peso
     raise AssertionError(f"as chances do pacote {pacote} não somam 1000")
 
@@ -133,7 +139,9 @@ def resgatar(sessao: Session, usuario_id: int, codigo: str) -> tuple[int, int, i
 
 
 def colecao(sessao: Session, usuario_id: int) -> list[Mascote]:
-    return list(sessao.scalars(select(Mascote).where(Mascote.usuario_id == usuario_id).order_by(Mascote.linha, Mascote.coluna)))
+    """A coleção da conta, sem os mascotes tirados (quem já tinha um deles continua com a linha no banco, só não aparece)."""
+    todos = sessao.scalars(select(Mascote).where(Mascote.usuario_id == usuario_id).order_by(Mascote.linha, Mascote.coluna))
+    return [m for m in todos if (m.linha, m.coluna) not in TIRADOS]
 
 
 # ---------- os brownies de recompensa do app (desde 2026-11-19, no lugar das medalhas) ----------
@@ -158,9 +166,9 @@ def _sortear_com(chances: tuple[int, ...]) -> tuple[int, int]:
     sorte = secrets.randbelow(1000)
     for linha, peso in enumerate(chances):
         if sorte < peso:
-            return linha, secrets.randbelow(RARIDADES[linha][1])
+            return linha, secrets.choice(COLUNAS[linha])
         sorte -= peso
-    return len(chances) - 1, secrets.randbelow(RARIDADES[-1][1])
+    return len(chances) - 1, secrets.choice(COLUNAS[-1])
 
 
 class LimiteDeRecompensas(Exception):
@@ -194,7 +202,7 @@ def escolher_mascote(sessao: Session, usuario: Usuario, linha: int | None, colun
     """Troca o mascote que a conta mostra por um da coleção dela (ou por nenhum). Falso se ela não tem esse mascote."""
     if linha is None or coluna is None:
         usuario.mascote = None
-    elif _quantos(sessao, usuario.id, linha, coluna) > 0:
+    elif (linha, coluna) not in TIRADOS and _quantos(sessao, usuario.id, linha, coluna) > 0:
         usuario.mascote = f"{linha}-{coluna}"
     else:
         return False

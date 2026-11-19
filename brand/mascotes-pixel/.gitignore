@@ -1,0 +1,6 @@
+# as imagens de trabalho (conferências, zooms, recortes das referências) se refazem rodando os scripts;
+# só a arte final, separada por raridade, fica guardada
+saida/*
+!saida/por-raridade/
+__pycache__/
+teste-browchef/

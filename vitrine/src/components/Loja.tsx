@@ -6,7 +6,7 @@
    que ela já tem, com a quantidade. */
 import { useCallback, useEffect, useState, useSyncExternalStore, type MouseEvent } from "react";
 import { alternarSom, assinarSom, clique, pararMusica, somLigado, tocarMusica } from "../lib/somLoja";
-import { PACOTES, RARIDADES, TOTAL_MASCOTES, chaveDe, nomeDe, porcento, preco, type Pacote } from "../data/loja";
+import { COLUNAS, PACOTES, RARIDADES, TOTAL_MASCOTES, chaveDe, nomeDe, porcento, preco, type Pacote } from "../data/loja";
 import { minhaColecao, type MascoteDaConta } from "../lib/api";
 import { contaRecusada, useConta } from "../lib/conta";
 import { ENTRAR_LOJA } from "../lib/rotas";
@@ -166,7 +166,7 @@ export default function Loja() {
               <div className="loja-raridade" key={r.id} data-r={r.id}>
                 <h3><Estrelas n={r.estrelas} /><span>{r.nome}</span><small>{r.quantos} mascotes</small></h3>
                 <ul>
-                  {Array.from({ length: r.quantos }, (_, coluna) => {
+                  {COLUNAS[linha].map((coluna) => {
                     const tem = colecao.get(chaveDe(linha, coluna)) ?? 0;
                     const nome = nomeDe(linha, coluna);
                     const estado = tem > 1 ? `, você tem ${tem}` : tem ? ", na sua conta" : "";

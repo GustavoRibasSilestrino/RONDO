@@ -1,4 +1,4 @@
-/* A aba Coleção do perfil (desde 2026-11-19, no lugar das medalhas): os 69 mascotes, os que a conta já tem em cor e os que
+/* A aba Coleção do perfil (desde 2026-11-19, no lugar das medalhas): os 66 mascotes, os que a conta já tem em cor e os que
    faltam só em silhueta, por raridade. Tocar num mascote da coleção mostra ele grande e deixa escolher qual a conta mostra
    (ao lado da foto, nas publicações e passeando pelo app). As missões, que dão os brownies, ficam em "Ver missões". */
 import React, { useCallback, useEffect, useState } from 'react';
