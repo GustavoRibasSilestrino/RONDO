@@ -68,7 +68,7 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
 
           <ScrollView key={atual} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 40 }}>
             <View style={st.cabeca}>
-              <FotoComMascote chave={perfil?.mascote} tamanhoFoto={84} dono={perfil?.voce ? undefined : primeiro}>
+              <FotoComMascote chave={perfil?.mascote} nomeProprio={perfil?.mascote_nome} tamanhoFoto={84} dono={perfil?.voce ? undefined : primeiro}>
                 <Avatar nome={nome || ' '} tamanho={84} foto={perfil?.foto ?? undefined} />
               </FotoComMascote>
               <View style={{ flex: 1, alignItems: 'center' }}>

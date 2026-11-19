@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { ActivityIndicator, Animated, Easing, Platform, Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, TextStyle, View, ViewStyle } from 'react-native';
 import Svg, { Circle, Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { useMovimentoReduzido } from '../lib/movimento';
-import { CINZA_SOBRE, cores, escuro, SOMBRA_VIDRO, VIDRO, DEGRADE, FIM_DIAGONAL, FONTE, INICIO_DIAGONAL, PesoFonte, raio, estilos } from '../tema';
+import { CINZA_SOBRE, cores, escuro, SOMBRA_VIDRO, VIDRO, DEGRADE, FIM_DIAGONAL, FONTE, FONTE_PIXEL, INICIO_DIAGONAL, PesoFonte, raio, estilos } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 
 /* ---------- telas escuras ----------
@@ -18,18 +18,19 @@ type TProps = {
   peso?: PesoFonte;
   cor?: string;
   mono?: boolean;
+  pixel?: boolean;   // a fonte de pixel art (tema.ts, FONTE_PIXEL): os pesos 400 e 500 viram o negrito dela
   centro?: boolean;
   linhas?: number;
   style?: StyleProp<TextStyle>;
 };
-export function T({ children, tam = 15, peso = '300', cor: corDada, mono, centro, linhas, style }: TProps) {
+export function T({ children, tam = 15, peso = '300', cor: corDada, mono, pixel, centro, linhas, style }: TProps) {
   const naTelaEscura = useContext(EscuroContexto);
   const cor = corDada ?? (naTelaEscura ? escuro.texto : cores.texto);
   return (
     <Text
       numberOfLines={linhas}
       style={[
-        { fontSize: tam, fontFamily: FONTE[peso], fontWeight: 'normal', color: cor, letterSpacing: tam >= 28 ? -tam * 0.03 : 0 },
+        { fontSize: tam, fontFamily: pixel ? (peso === '400' || peso === '500' ? FONTE_PIXEL.forte : FONTE_PIXEL.normal) : FONTE[peso], fontWeight: 'normal', color: cor, letterSpacing: pixel ? 0.2 : tam >= 28 ? -tam * 0.03 : 0 },
         mono && { letterSpacing: 0.4 },
         centro && { textAlign: 'center' },
         style,
@@ -112,6 +113,7 @@ type BotaoProps = {
   orbita?: boolean;       // um feixe de luz percorre o contorno, como nos botões do site
   icone?: NomeIcone;
   pequeno?: boolean;
+  pixel?: boolean;        // o texto na fonte de pixel art (um ponto maior, porque ela é mais estreita)
   style?: StyleProp<ViewStyle>;
 };
 /* Nas telas claras (o app inteiro), o botão é o BotaoChapado: pequeno, roxo pastel, chapado (pedido do dono, 2026-11-18).
@@ -132,7 +134,7 @@ const CHAPADO = {
   perigo: { fundo: 'rgba(255,107,129,0.16)', sobre: 'rgba(255,107,129,0.22)', toque: 'rgba(255,107,129,0.3)', borda: 'transparent', texto: '#ff9aab' },
 } as const;
 
-function BotaoChapado({ titulo, aoPressionar, tipo = 'primario', desabilitado, carregando, icone, pequeno, style }: BotaoProps) {
+function BotaoChapado({ titulo, aoPressionar, tipo = 'primario', desabilitado, carregando, icone, pequeno, pixel, style }: BotaoProps) {
   const c = CHAPADO[tipo];
   const inativo = !!desabilitado || !!carregando;
   const altura = pequeno ? 34 : 40;
@@ -156,7 +158,7 @@ function BotaoChapado({ titulo, aoPressionar, tipo = 'primario', desabilitado, c
         ]}
       >
         {carregando ? <ActivityIndicator size="small" color={c.texto} /> : icone ? <Icone nome={icone} tamanho={pequeno ? 15 : 16} cor={c.texto} /> : null}
-        <T tam={pequeno ? 13 : 14} peso="500" cor={c.texto} linhas={1}>{titulo}</T>
+        <T tam={(pequeno ? 13 : 14) + (pixel ? 1.5 : 0)} peso="500" pixel={pixel} cor={c.texto} linhas={1}>{titulo}</T>
       </Pressable>
     </Animated.View>
   );
@@ -381,7 +383,7 @@ export function Barra({ valor, max, cor = cores.destaque }: { valor: number; max
 }
 
 /* ---------- segmentos (abas pequenas) ---------- */
-export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar }: { opcoes: { valor: V; nome: string }[]; valor: V; aoMudar: (v: V) => void }) {
+export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar, pixel }: { opcoes: { valor: V; nome: string }[]; valor: V; aoMudar: (v: V) => void; pixel?: boolean }) {
   const normal = true;   // o segmento ativo é sempre desenhado com degradê
   return (
     <View style={st.segmentos}>
@@ -390,7 +392,7 @@ export function Segmentos<V extends string | number>({ opcoes, valor, aoMudar }:
         return (
           <Pressable key={String(o.valor)} accessibilityRole="button" accessibilityState={{ selected: ativo }} onPress={() => aoMudar(o.valor)} style={[st.segmento, ativo && (normal ? st.segmentoAtivoNormal : st.segmentoAtivo)]}>
             
-            <T tam={12.5} peso={ativo ? '500' : '300'} cor={ativo ? (normal ? '#ffffff' : cores.fundo) : cores.texto2}>{o.nome}</T>
+            <T tam={pixel ? 14 : 12.5} pixel={pixel} peso={ativo ? '500' : '300'} cor={ativo ? (normal ? '#ffffff' : cores.fundo) : cores.texto2}>{o.nome}</T>
           </Pressable>
         );
       })}

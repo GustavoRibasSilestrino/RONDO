@@ -1,5 +1,6 @@
 /* RONDO: o app. Duas coisas: entrar com a conta e a parte funcional (treino, dieta, evolução...).
    Cabeçalho fixo (notificações e a marca) no alto e uma barra de vidro escuro no pé, com todas as abas à vista. */
+import { PixelifySans_500Medium, PixelifySans_700Bold } from '@expo-google-fonts/pixelify-sans';
 import { Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, useFonts } from '@expo-google-fonts/poppins';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef, useState } from 'react';
@@ -76,7 +77,7 @@ function Raiz() {
   const { estado, pronto: dadosProntos, commit, puxarDoServidor, guardarAgora } = useLoja();
   /* veio da loja do site para entrar ou criar a conta (lib/entrada.ts): depois de entrar, volta para lá */
   const [voltandoALoja, setVoltandoALoja] = useState(false);
-  const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
+  const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, PixelifySans_500Medium, PixelifySans_700Bold });
   const pronto = dadosProntos && fontes;   // espera a fonte, para o texto não aparecer trocado
   /* no navegador, a tela de carregamento (preta, com o RONDIN, de public/index.html) some quando a primeira tela está pronta */
   useEffect(() => { if (pronto) tirarCarregando(); }, [pronto]);

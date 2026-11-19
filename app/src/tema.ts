@@ -124,6 +124,12 @@ export const FONTE: Record<PesoFonte, string> = {
   '500': 'Poppins_600SemiBold',
 };
 
+/* a fonte de pixel art (Pixelify Sans, a mesma da loja do site; carregada em App.tsx). Desde 2026-11-19 ela aparece onde o app
+   conversa com o mundo dos mascotes: nos popups em pixel art (componentes/Pixel.tsx) e em quatro pontos pedidos pelo dono
+   (o aviso de "Nenhum treino salvo", o botão "Criar clube", as abas Clubes/Ranking e o seletor de dia da Dieta).
+   No `T`, é a prop `pixel`. */
+export const FONTE_PIXEL = { normal: 'PixelifySans_500Medium', forte: 'PixelifySans_700Bold' } as const;
+
 /* o cursor em cima de um botão (pedido do dono, 2026-11-16): ele só fica cinza, na hora, sem zoom nem animação.
    O mesmo cinza dos botões do site (vitrine/src/styles/botoes.css). */
 export const CINZA_SOBRE = { backgroundColor: '#3a3842', borderColor: '#5a5866' } as const;

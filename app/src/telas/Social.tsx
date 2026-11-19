@@ -183,9 +183,9 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
         ) : (
           <>
             <T tam={13.5} cor={cores.texto2} centro>Clubes e gente que também voltou hoje.</T>
-            <Botao icone="mais" titulo="Criar clube" aoPressionar={() => setCriando(true)} style={{ marginTop: 16 }} />
+            <Botao pixel icone="mais" titulo="Criar clube" aoPressionar={() => setCriando(true)} style={{ marginTop: 16 }} />
             <View style={{ marginTop: 16 }}>
-              <Segmentos<Aba> valor={aba} aoMudar={setAba} opcoes={[{ valor: 'grupos', nome: 'Clubes' }, { valor: 'ranking', nome: 'Ranking' }]} />
+              <Segmentos<Aba> pixel valor={aba} aoMudar={setAba} opcoes={[{ valor: 'grupos', nome: 'Clubes' }, { valor: 'ranking', nome: 'Ranking' }]} />
             </View>
             {aba === 'grupos' ? <Grupos aoAbrir={setGrupoAberto} aoCriar={() => setCriando(true)} /> : <Ranking />}
           </>

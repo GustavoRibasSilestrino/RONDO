@@ -14,7 +14,7 @@ import { cores, estilos } from '../tema';
 import type { Notificacao } from '../tipos';
 import { quando } from './comunidade/util';
 
-const ICONE: Record<Notificacao['tipo'], NomeIcone> = { cheers: 'cheers', comentario: 'comentario', seguidor: 'convidar', medalha: 'brownie', brownie: 'brownie', profissional: 'verificado' };
+const ICONE: Record<Notificacao['tipo'], NomeIcone> = { cheers: 'cheers', comentario: 'comentario', seguidor: 'convidar', medalha: 'brownie', brownie: 'brownie', profissional: 'verificado', troca: 'brownie', troca_ok: 'brownie' };
 
 type Linha = { chave: string; tipo: Notificacao['tipo']; texto: string; quando: number; nova: boolean; ref?: string };
 

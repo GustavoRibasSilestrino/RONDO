@@ -32,6 +32,7 @@ export function MascoteFlutuante({ ir, oculto, margens }: { ir: (tela: string) =
   const nativo = Platform.OS !== 'web';
   const chave = estado.usuario?.mascote ?? null;
   const info = mascoteDe(chave);
+  const nomeDele = estado.usuario?.mascoteNome || info?.nome || '';   // o nome que a conta deu com o lápis, ou o de fábrica
   const [visivel, setVisivel] = useState(false);
   const [canto, setCanto] = useState<Canto>('id');
   const [fala, setFala] = useState<Fala | null>(null);
@@ -117,7 +118,7 @@ export function MascoteFlutuante({ ir, oculto, margens }: { ir: (tela: string) =
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
         <View style={[st.tom, { backgroundColor: cor }]} />
         <View style={{ flex: 1 }}>
-          <T tam={11.5} peso="500" cor={cores.texto3} style={{ letterSpacing: 0.6 }}>{info.nome.toUpperCase()}</T>
+          <T tam={11.5} peso="500" cor={cores.texto3} style={{ letterSpacing: 0.6 }}>{nomeDele.toUpperCase()}</T>
           <T tam={14} style={{ marginTop: 2, lineHeight: 20 }}>{fala.texto}</T>
         </View>
         <Pressable accessibilityRole="button" accessibilityLabel="Mandar o mascote embora" onPress={sair} hitSlop={10} style={st.fechar}>
@@ -141,7 +142,7 @@ export function MascoteFlutuante({ ir, oculto, margens }: { ir: (tela: string) =
       style={[st.raiz, lugar, { alignItems: naEsquerda ? 'flex-start' : 'flex-end', opacity: entrada, transform: [{ translateY: entrada.interpolate({ inputRange: [0, 1], outputRange: [emCima ? -30 : 30, 0] }) }, { scale: entrada.interpolate({ inputRange: [0, 1], outputRange: [0.7, 1] }) }] }]}
     >
       {emCima ? null : balao}
-      <Pressable accessibilityRole="button" accessibilityLabel={`${info.nome}, o seu mascote. Tocar para ouvir outra coisa`} onPress={() => { novaFala(); agendar(FICA, sair); }} style={{ alignSelf: naEsquerda ? 'flex-start' : 'flex-end' }}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`${nomeDele}, o seu mascote. Tocar para ouvir outra coisa`} onPress={() => { novaFala(); agendar(FICA, sair); }} style={{ alignSelf: naEsquerda ? 'flex-start' : 'flex-end' }}>
         <Animated.View style={{ transform: [{ translateY: balanco.interpolate({ inputRange: [0, 1], outputRange: [0, -5] }) }] }}>
           <Mascote chave={info.chave} tamanho={TAM} />
         </Animated.View>

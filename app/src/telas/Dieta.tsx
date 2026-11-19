@@ -80,7 +80,7 @@ export function Dieta() {
           <Pressable accessibilityRole="button" accessibilityLabel="Dia anterior" onPress={() => mudarDia(-1)} style={{ padding: 10 }}>
             <Icone nome="seta" tamanho={16} cor={cores.texto2} />
           </Pressable>
-          <T tam={13} peso="400" style={{ minWidth: 54, textAlign: 'center' }}>{rotuloDia}</T>
+          <T pixel tam={14.5} peso="400" style={{ minWidth: 54, textAlign: 'center' }}>{rotuloDia}</T>
           <Pressable accessibilityRole="button" accessibilityLabel="Próximo dia" disabled={dia === hoje} onPress={() => mudarDia(1)} style={{ padding: 10, opacity: dia === hoje ? 0.3 : 1 }}>
             <View style={{ transform: [{ rotate: '180deg' }] }}><Icone nome="seta" tamanho={16} cor={cores.texto2} /></View>
           </Pressable>

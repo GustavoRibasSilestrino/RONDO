@@ -4,7 +4,7 @@ import type { Rotina } from './dados';
 export type Sexo = 'm' | 'f';
 
 /* `arroba` é o nome de usuário (sem o @) e `foto` é o id da foto de perfil (guardada em lib/midia.ts); sem eles, vale o nome e a inicial. */
-export type Usuario = { email: string; nome: string; arroba?: string; foto?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; mascote?: string | null };
+export type Usuario = { email: string; nome: string; arroba?: string; foto?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; mascote?: string | null; mascoteNome?: string | null /* o nome que a conta deu ao mascote que ela mostra, com o lápis */ };
 
 export type Perfil = {
   sexo: Sexo;
@@ -98,7 +98,7 @@ export type PerfilSocial = { bio: string; titulos: string[]; destaques: string[]
 
 /* Avisos locais do perfil (brownies ganhos e profissionais); os de cheers, comentários e seguidores vêm do servidor. `ref` é a chave
    do mascote ("linha-coluna") num brownie. 'medalha' é dos avisos antigos, de antes dos brownies (2026-11-19). */
-export type Notificacao = { id: string; tipo: 'cheers' | 'comentario' | 'seguidor' | 'medalha' | 'brownie' | 'profissional'; texto: string; quando: number; lida: boolean; ref?: string };
+export type Notificacao = { id: string; tipo: 'cheers' | 'comentario' | 'seguidor' | 'medalha' | 'brownie' | 'profissional' | 'troca' | 'troca_ok'; texto: string; quando: number; lida: boolean; ref?: string };
 
 
 export type Estado = {

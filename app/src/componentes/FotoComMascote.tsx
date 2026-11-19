@@ -11,7 +11,8 @@ import { cores, estilos } from '../tema';
 import { Mascote } from './Mascote';
 import { T } from './Ui';
 
-export function FotoComMascote({ chave, tamanhoFoto, dono, children }: { chave: string | null | undefined; tamanhoFoto: number; dono?: string; children: React.ReactNode }) {
+/* `nomeProprio`: o nome que o dono deu ao mascote com o lápis (o de outra pessoa vem do perfil dela; o meu, da conta) */
+export function FotoComMascote({ chave, tamanhoFoto, dono, nomeProprio, children }: { chave: string | null | undefined; tamanhoFoto: number; dono?: string; nomeProprio?: string | null; children: React.ReactNode }) {
   const { estado } = useLoja();
   const reduzido = useMovimentoReduzido();
   const info = mascoteDe(chave);
@@ -20,9 +21,10 @@ export function FotoComMascote({ chave, tamanhoFoto, dono, children }: { chave: 
   const sumir = useRef<ReturnType<typeof setTimeout> | null>(null);
   if (!info) return <>{children}</>;
   const tam = Math.round(tamanhoFoto * 0.62);
+  const nomeDele = (dono ? nomeProprio : estado.usuario?.mascoteNome) || info.nome;
 
   const tocar = () => {
-    setFala(dono ? `${info.nome}, mascote ${info.raridade.nome.toLowerCase()} de ${dono}.` : escolherFala(estado, new Date(), []).texto);
+    setFala(dono ? `${nomeDele}, mascote ${info.raridade.nome.toLowerCase()} de ${dono}.` : escolherFala(estado, new Date(), []).texto);
     if (sumir.current) clearTimeout(sumir.current);
     sumir.current = setTimeout(() => setFala(null), 6000);
     if (reduzido) return;
@@ -37,7 +39,7 @@ export function FotoComMascote({ chave, tamanhoFoto, dono, children }: { chave: 
     <View style={{ width: tamanhoFoto + tam * 0.45 }}>
       <View style={{ alignSelf: 'flex-end' }}>{children}</View>
       <Pressable
-        accessibilityRole="button" accessibilityLabel={dono ? `${info.nome}, o mascote de ${dono}` : `${info.nome}, o seu mascote. Tocar para ele falar`}
+        accessibilityRole="button" accessibilityLabel={dono ? `${nomeDele}, o mascote de ${dono}` : `${nomeDele}, o seu mascote. Tocar para ele falar`}
         onPress={tocar} hitSlop={6} style={[st.mascote, { width: tam * (127 / 130), height: tam }]}
       >
         <Animated.View style={{ transform: [{ translateY: pulo.interpolate({ inputRange: [0, 1], outputRange: [0, -14] }) }] }}>

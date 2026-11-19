@@ -36,9 +36,9 @@ export async function entrar(email: string, senha: string): Promise<Usuario> {
     if (resposta.status === 401) throw new Error('E-mail ou senha incorretos.');
     if (resposta.status === 429) throw new Error('Muitas tentativas em pouco tempo. Espere um minuto e tente de novo.');   // o servidor limita o login por minuto
     if (!resposta.ok) throw new Error('Não foi possível entrar agora. Tente de novo.');
-    const dados = (await resposta.json()) as { email?: string; nome?: string; token?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; arroba?: string | null; foto?: string | null; mascote?: string | null };
+    const dados = (await resposta.json()) as { email?: string; nome?: string; token?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; arroba?: string | null; foto?: string | null; mascote?: string | null; mascote_nome?: string | null };
     if (dados.token) await guardarToken(dados.token);
-    return { email: dados.email ?? email, nome: dados.nome ?? nomeDoEmail(email), papel: dados.papel, verificado: dados.verificado, pro: dados.pro, marketing: dados.marketing, selo: dados.selo, arroba: dados.arroba ?? undefined, foto: dados.foto ?? undefined, mascote: dados.mascote ?? null };
+    return { email: dados.email ?? email, nome: dados.nome ?? nomeDoEmail(email), papel: dados.papel, verificado: dados.verificado, pro: dados.pro, marketing: dados.marketing, selo: dados.selo, arroba: dados.arroba ?? undefined, foto: dados.foto ?? undefined, mascote: dados.mascote ?? null, mascoteNome: dados.mascote_nome ?? null };
   }
 
   throw new Error('O servidor do RONDO não está configurado neste aparelho.');
