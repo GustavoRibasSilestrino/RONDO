@@ -54,6 +54,11 @@ export const PACOTES: Pacote[] = [
   },
 ];
 
+/* O lápis (desde 2026-11-19, pedido do dono): dá um nome próprio a um browniezinho da coleção. Compra-se aqui, fica guardado
+   na conta e é usado no app, na aba Coleção do perfil. Cada lápis vale um nome. Preço escolhido pelo dono: R$ 10,00
+   (como os pacotes, hoje é prévia e nada é cobrado). */
+export const LAPIS = { nome: "Lápis de nome", centavos: 1000 };
+
 export const preco = (centavos: number) => `R$ ${(centavos / 100).toFixed(2).replace(".", ",")}`;
 /* 700 -> "70%", 65 -> "6,5%", 1 -> "0,1%" */
 export const porcento = (decimos: number) => `${(decimos / 10).toString().replace(".", ",")}%`;
