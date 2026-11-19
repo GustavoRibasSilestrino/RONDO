@@ -3,7 +3,7 @@
 export const APP_CRIAR = "/app?conta=criar";
 export const APP_ENTRAR = "/app?conta=entrar";
 export const APP = "/app";
-/* da loja para o app e de volta: com `volta=loja`, depois de entrar ou criar a conta o app traz a pessoa de volta à loja
-   (app/src/lib/entrada.ts e App.tsx), já com a conta para comprar */
-export const APP_CRIAR_LOJA = "/app?conta=criar&volta=loja";
-export const APP_ENTRAR_LOJA = "/app?conta=entrar&volta=loja";
+/* da loja para a tela do RONDIN do próprio site (components/Entrar.tsx): entra ou cria a conta e volta para a loja, sem ir
+   para o app (pedido do dono em 2026-11-18) */
+export const ENTRAR_LOJA = "/entrar?volta=loja";
+export const CRIAR_LOJA = "/entrar?volta=loja&modo=criar";

@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { AvisoCookies } from "./components/AvisoCookies";
 import { PAGINAS_LEGAIS } from "./components/Legal";
+import Entrar from "./components/Entrar";
 import Loja from "./components/Loja";
 import { adiantar, interceptarLinks, primeiraTela, rolagemGuardada, useRota } from "./lib/navegar";
 /* fontes servidas pelo próprio site (só o alfabeto latino): nenhuma chamada ao Google, nenhum IP de visitante enviado a terceiros */
@@ -31,6 +32,7 @@ import "./styles/rondin.css";
 import "./styles/botoes.css";
 import "./styles/vidro.css";
 import "./styles/loja.css";
+import "./styles/entrar.css";
 import { acordarServidor } from "./lib/api";
 
 /* sem zoom de pinça: o Safari do iPhone ignora o user-scalable=no do index.html, mas respeita cancelar o gesto
@@ -61,7 +63,9 @@ function Telas() {
     const id = ocioso(() => adiantar(outra));
     return () => (window.cancelIdleCallback ?? window.clearTimeout)(id);
   }, [rota]);
-  return rota === "/loja" ? <Loja /> : <App />;
+  if (rota === "/loja") return <Loja />;
+  if (rota === "/entrar") return <Entrar />;   // a tela do RONDIN para entrar ou criar conta sem sair do site
+  return <App />;
 }
 
 if (!legal) interceptarLinks();

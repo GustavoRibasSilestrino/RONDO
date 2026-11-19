@@ -6,22 +6,28 @@
    rasgou (levanta, girando no ponto do rasgo) e a que ainda está presa. Dá para pular, e quem pede menos movimento
    vê só o resultado, sem tremor nem clarão.
 
-   O resgate (pedido do dono em 2026-11-18): abrir não pede conta. O servidor sorteia o mascote e devolve um código; o
-   pacote treme até a resposta chegar e só então rasga. Revelado o brownie, ele só vai para a conta quando a pessoa toca em
-   "Resgatar" (com a conta do app já reconhecida no site, lib/conta.ts). Sem conta, os botões levam a entrar ou criar a
-   conta no app, que traz a pessoa de volta à loja; o código fica guardado neste navegador (lib/resgates.ts) por 7 dias. */
+   A conta (pedido do dono em 2026-11-18): comprar pede a conta do RONDO, a mesma do app (lib/conta.ts). Sem conta, o
+   "Comprar" mostra o aviso "Você não está na sua conta" e o botão "Entrar ou criar conta", que leva à tela do RONDIN do
+   próprio site (/entrar, components/Entrar.tsx). Depois de entrar, a pessoa volta para a loja com este mesmo pacote aberto
+   de novo (`lembrarPacote`). Com conta, o servidor sorteia e o mascote já vai para a coleção; o pacote treme até a resposta
+   chegar e só então rasga. */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PACOTES, RARIDADES, mascoteDe, porcento, preco, type Mascote as Sorteado, type Pacote } from "../data/loja";
-import { ErroApi, abrirPacote, resgatarCodigo, type MascoteDaConta } from "../lib/api";
+import { PACOTES, RARIDADES, mascoteDe, porcento, preco, type Mascote as Sorteado, type Pacote, type PacoteId } from "../data/loja";
+import { ErroApi, abrirPacote, type MascoteDaConta } from "../lib/api";
 import { contaRecusada, rotuloDa, useConta } from "../lib/conta";
-import { guardarPendente, tirarPendente } from "../lib/resgates";
-import { APP_CRIAR_LOJA, APP_ENTRAR_LOJA } from "../lib/rotas";
+import { ENTRAR_LOJA } from "../lib/rotas";
 import { reduceMotion, vars } from "../lib/util";
 import { Estrelas, Mascote } from "./LojaPartes";
 
 type Fase = "compra" | "abrindo" | "revelado";
-type Aberto = Sorteado & { codigo: string };
-type Resgate = "livre" | "indo" | "feito";
+type Aberto = Sorteado & { quantidade: number };
+
+/* o pacote que a pessoa ia comprar quando foi entrar na conta: de volta à loja, ele abre de novo (Loja.tsx) */
+const LEMBRAR = "rondo.loja.pacote";
+export const lembrarPacote = (id: PacoteId) => { try { sessionStorage.setItem(LEMBRAR, id); } catch { /* sem armazenamento */ } };
+export function pacoteLembrado(): PacoteId | null {
+  try { const id = sessionStorage.getItem(LEMBRAR); sessionStorage.removeItem(LEMBRAR); return PACOTES.some((p) => p.id === id) ? (id as PacoteId) : null; } catch { return null; }
+}
 
 /* tempos da abertura, em ms: o tremor antes (no mínimo; dura até o servidor responder), o rasgo lento e o clarão */
 const SUSPENSE = 900, RASGO = 2600, CLARAO = 950;
@@ -61,7 +67,7 @@ function Chances({ pacote }: { pacote: Pacote }) {
 
 const CERTO = "M7 1h1v1H7zM6 2h1v1H6zM5 3h1v1H5zM4 4h1v1H4zM3 5h1v1H3zM2 4h1v1H2zM1 3h1v1H1z";
 
-export function LojaAbrir({ pacote, aoFechar, aoResgatar }: { pacote: Pacote | null; aoFechar: () => void; aoResgatar: (m: MascoteDaConta) => void }) {
+export function LojaAbrir({ pacote, aoFechar, aoGuardar }: { pacote: Pacote | null; aoFechar: () => void; aoGuardar: (m: MascoteDaConta) => void }) {
   const { token, conta } = useConta();
   const dialogo = useRef<HTMLDialogElement>(null);
   const palco = useRef<HTMLDivElement>(null);
@@ -72,8 +78,7 @@ export function LojaAbrir({ pacote, aoFechar, aoResgatar }: { pacote: Pacote | n
   const [atual, setAtual] = useState<Pacote>(PACOTES[0]);   // o último pacote escolhido fica na tela enquanto o diálogo fecha
   const [erro, setErro] = useState("");
   const [demorando, setDemorando] = useState(false);
-  const [resgate, setResgate] = useState<Resgate>("livre");
-  const [erroResgate, setErroResgate] = useState("");
+  const [pedindoConta, setPedindoConta] = useState(false);   // tocou em Comprar sem estar na conta
   const resultado = useRef<Aberto | null>(null);   // a resposta do servidor (a animação espera por ela)
   const pularPedido = useRef(false);
 
@@ -82,15 +87,19 @@ export function LojaAbrir({ pacote, aoFechar, aoResgatar }: { pacote: Pacote | n
     const d = dialogo.current;
     if (!d) return;
     if (pacote) {
-      setAtual(pacote); setFase("compra"); setMascote(null); setErro(""); setResgate("livre"); setErroResgate("");
+      setAtual(pacote); setFase("compra"); setMascote(null); setErro(""); setPedindoConta(false);
       if (!d.open) d.showModal();
     } else if (d.open) d.close();
   }, [pacote]);
 
   /* o foco vai para a ação principal de cada etapa */
-  useEffect(() => { if (pacote) principal.current?.focus({ preventScroll: true }); }, [fase, pacote, resgate, conta]);
+  useEffect(() => { if (pacote) principal.current?.focus({ preventScroll: true }); }, [fase, pacote, pedindoConta]);
 
-  const revelar = useCallback((m: Aberto) => { setMascote(m); setResgate("livre"); setErroResgate(""); setFase("revelado"); }, []);
+  /* o mascote aparece; a coleção da página acende junto (ele já está guardado na conta) */
+  const revelar = useCallback((m: Aberto) => {
+    setMascote(m); setFase("revelado");
+    aoGuardar({ linha: m.linha, coluna: m.coluna, raridade: m.raridade, quantidade: m.quantidade });
+  }, [aoGuardar]);
 
   /* ---------- a abertura, quadro a quadro ---------- */
   useEffect(() => {
@@ -148,38 +157,24 @@ export function LojaAbrir({ pacote, aoFechar, aoResgatar }: { pacote: Pacote | n
 
   const comprar = async () => {
     const p = atual;
-    setErro(""); setDemorando(false);
+    setErro("");
+    if (!token) { setPedindoConta(true); return; }   // sem conta: o aviso com o botão de entrar ou criar conta
+    setDemorando(false);
     resultado.current = null; pularPedido.current = false;
     setFase("abrindo");
     try {
-      const aberto = await abrirPacote(p.id);
-      guardarPendente({ codigo: aberto.codigo, linha: aberto.linha, coluna: aberto.coluna, vence: aberto.expira_em });
-      resultado.current = { ...mascoteDe(aberto.linha, aberto.coluna), codigo: aberto.codigo };
+      const m = await abrirPacote(token, p.id);
+      resultado.current = { ...mascoteDe(m.linha, m.coluna), quantidade: m.quantidade };
     } catch (e) {
-      setErro(e instanceof ErroApi ? e.message : "Não deu para abrir agora. Tente de novo.");
+      const err = e instanceof ErroApi ? e : null;
       setFase("compra");
+      if (err?.status === 401) { contaRecusada(); setPedindoConta(true); return; }   // a sessão venceu: entra de novo
+      setErro(err?.message ?? "Não deu para abrir agora. Tente de novo.");
     }
   };
   const pular = () => { pularPedido.current = true; };
-  const abrirOutro = () => { setMascote(null); setResgate("livre"); setErroResgate(""); setFase("compra"); };
+  const abrirOutro = () => { setMascote(null); setFase("compra"); };
   const fechar = () => dialogo.current?.close();
-
-  const resgatar = async () => {
-    if (!token || !mascote || resgate !== "livre") return;
-    setResgate("indo"); setErroResgate("");
-    try {
-      const m = await resgatarCodigo(token, mascote.codigo);
-      tirarPendente(mascote.codigo);
-      setResgate("feito");
-      aoResgatar(m);
-    } catch (e) {
-      const status = e instanceof ErroApi ? e.status : 0;
-      if (status === 401) contaRecusada();
-      if (status === 404 || status === 409) tirarPendente(mascote.codigo);   // vencido ou já de outra conta: não adianta guardar
-      setErroResgate(e instanceof ErroApi ? e.message : "Não deu para resgatar agora. Tente de novo.");
-      setResgate("livre");
-    }
-  };
 
   const raridade = mascote ? RARIDADES[mascote.linha] : null;
   const rotulo = conta ? rotuloDa(conta) : "";
@@ -223,14 +218,28 @@ export function LojaAbrir({ pacote, aoFechar, aoResgatar }: { pacote: Pacote | n
               <p className="abre-preco"><b>{preco(atual.centavos)}</b><span>na prévia: grátis</span></p>
               <Chances pacote={atual} />
               <p className="abre-nota">
-                Loja em prévia: nada é cobrado. Depois de abrir, você resgata o browniezinho para a sua conta do RONDO, a mesma
-                do app. Quando a venda abrir, a compra será só para maiores de 18 anos.
+                Loja em prévia: nada é cobrado. O browniezinho vai direto para a sua conta do RONDO, a mesma do app. Quando a
+                venda abrir, a compra será só para maiores de 18 anos.
               </p>
               {erro ? <p className="abre-erro" role="alert">{erro}</p> : null}
-              <div className="abre-acoes">
-                <button type="button" className="px-btn" ref={marcarPrincipal} onClick={comprar}>Comprar</button>
-                <button type="button" className="px-btn px-btn-escuro" onClick={fechar}>Voltar</button>
-              </div>
+              {pedindoConta && !token ? (
+                /* sem conta: o aviso e o caminho para a tela do RONDIN do site; de volta, este pacote abre de novo */
+                <div className="abre-sem-conta" role="status">
+                  <p><b>Você não está na sua conta.</b> Para adotar um browniezinho, entre na sua conta do RONDO ou crie uma agora.</p>
+                  <div className="abre-acoes">
+                    <a className="px-btn" ref={marcarPrincipal} href={ENTRAR_LOJA} onClick={() => lembrarPacote(atual.id)}>Entrar ou criar conta</a>
+                    <button type="button" className="px-btn px-btn-escuro" onClick={() => setPedindoConta(false)}>Voltar</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {conta ? <p className="abre-quem">Vai para a conta <b>{rotulo}</b></p> : null}
+                  <div className="abre-acoes">
+                    <button type="button" className="px-btn" ref={marcarPrincipal} onClick={comprar}>Comprar</button>
+                    <button type="button" className="px-btn px-btn-escuro" onClick={fechar}>Voltar</button>
+                  </div>
+                </>
+              )}
             </>
           ) : fase === "abrindo" ? (
             <>
@@ -242,40 +251,14 @@ export function LojaAbrir({ pacote, aoFechar, aoResgatar }: { pacote: Pacote | n
             <>
               <p className="abre-raridade" data-r={raridade.id}><Estrelas n={raridade.estrelas} />{raridade.nome}</p>
               <h2 id="abre-titulo">{mascote.nome}</h2>
-              {resgate === "feito" ? (
-                <p className="abre-guardado" role="status">
-                  <svg viewBox="0 0 9 7" shapeRendering="crispEdges" aria-hidden="true"><path d={CERTO} fill="currentColor" /></svg>
-                  Guardado na conta {rotulo}
-                </p>
-              ) : !conta ? (
-                <p className="abre-pede-conta">Entre na sua conta do RONDO para resgatar. Até lá, ele fica guardado neste navegador por 7 dias.</p>
-              ) : null}
-              {erroResgate ? <p className="abre-erro" role="alert">{erroResgate}</p> : null}
+              <p className="abre-guardado" role="status">
+                <svg viewBox="0 0 9 7" shapeRendering="crispEdges" aria-hidden="true"><path d={CERTO} fill="currentColor" /></svg>
+                {mascote.quantidade > 1 ? `Na sua conta: agora você tem ${mascote.quantidade}` : rotulo ? `Guardado na conta ${rotulo}` : "Guardado na sua conta"}
+              </p>
               <div className="abre-acoes">
-                {resgate === "feito" ? (
-                  <>
-                    <button type="button" className="px-btn" ref={marcarPrincipal} onClick={abrirOutro}>Abrir outro</button>
-                    <button type="button" className="px-btn px-btn-escuro" onClick={fechar}>Voltar à loja</button>
-                  </>
-                ) : conta ? (
-                  <>
-                    <button type="button" className="px-btn" ref={marcarPrincipal} onClick={resgatar} aria-disabled={resgate === "indo"}>
-                      {resgate === "indo" ? "Resgatando..." : "Resgatar"}
-                    </button>
-                    <button type="button" className="px-btn px-btn-escuro" onClick={abrirOutro}>Abrir outro</button>
-                  </>
-                ) : (
-                  <>
-                    <a className="px-btn" ref={marcarPrincipal} href={APP_ENTRAR_LOJA}>Entrar e resgatar</a>
-                    <a className="px-btn px-btn-escuro" href={APP_CRIAR_LOJA}>Criar conta</a>
-                  </>
-                )}
+                <button type="button" className="px-btn" ref={marcarPrincipal} onClick={abrirOutro}>Abrir outro</button>
+                <button type="button" className="px-btn px-btn-escuro" onClick={fechar}>Voltar à loja</button>
               </div>
-              {resgate === "feito" ? null : conta ? (
-                <p className="abre-codigo">Vai para a conta <b>{rotulo}</b></p>
-              ) : (
-                <p className="abre-codigo">Código do resgate: <b>{mascote.codigo}</b><button type="button" onClick={fechar}>Agora não</button></p>
-              )}
             </>
           ) : null}
         </div>

@@ -8,7 +8,8 @@ import heroFoto from "../assets/cenas/hero-foto.webp";
 import tenda from "../assets/loja/tenda.webp";
 import { PACOTES } from "../data/loja";
 
-const INTERNAS = new Set(["/", "/loja"]);
+/* as telas do site que trocam entre si sem recarregar: a principal, a loja e a tela do RONDIN para entrar ou criar conta */
+const INTERNAS = new Set(["/", "/loja", "/entrar"]);
 const limpar = (caminho: string) => caminho.replace(/\/+$/, "") || "/";
 export const rotaAtual = () => limpar(location.pathname);
 
@@ -70,6 +71,16 @@ export async function irPara(destino: string) {
   history.replaceState({ ...marca(), y: scrollY }, "");
   marcarTroca();
   history.pushState({ de: atual, y: 0 } satisfies Marca, "", url.pathname + url.search + url.hash);
+  avisar();
+}
+
+/* sair de uma tela de passagem (a de entrar, depois do login) para o destino, sem deixá-la no histórico: o "voltar" do
+   navegador não leva de novo ao formulário. Se a pessoa veio do próprio destino, é o "voltar" (a tela volta onde estava). */
+export function sairDaTela(destino: string) {
+  const url = new URL(destino, location.href);
+  if (marca().de === limpar(url.pathname) && !url.search && !url.hash) { history.back(); return; }
+  marcarTroca();
+  history.replaceState({ y: 0 } satisfies Marca, "", url.pathname + url.search + url.hash);
   avisar();
 }
 

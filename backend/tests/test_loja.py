@@ -1,5 +1,5 @@
-"""A loja de pacotinhos do site: qualquer pessoa abre um pacote e recebe um código; o mascote só vai para uma conta quando
-ela resgata o código. O sorteio é do servidor e as chances são as mesmas que o site mostra."""
+"""A loja de pacotinhos do site: comprar pede conta e o mascote vai direto para a coleção; um código de resgate põe um
+mascote na conta de quem o resgata, uma vez só. O sorteio é do servidor e as chances são as mesmas que o site mostra."""
 import os
 
 os.environ["DATABASE_URL"] = "sqlite://"  # memória; precisa vir antes de importar o app
@@ -34,104 +34,93 @@ def _conta(cliente, email="ana@x.com"):
     return {"Authorization": f"Bearer {r.json()['token']}"}
 
 
-def _abrir(cliente, pacote="ouro", **extra):
-    r = cliente.post("/loja/abrir", json={"pacote": pacote}, **extra)
+def _comprar(cliente, h, pacote="ouro"):
+    r = cliente.post("/loja/abrir", json={"pacote": pacote}, headers=h)
     assert r.status_code == 201, r.text
     return r.json()
 
 
-def _resgatar(cliente, h, codigo):
-    return cliente.post("/loja/resgatar", json={"codigo": codigo}, headers=h)
+def _codigo(linha=2, coluna=5, dias=0) -> str:
+    """um código de resgate guardado no banco (hoje só os testes criam; serve para vales-presente no futuro)"""
+    c = loja.novo_codigo()
+    with Sessao() as s:
+        s.add(Resgate(codigo=c, pacote="ouro", linha=linha, coluna=coluna, criado_em=datetime.now(timezone.utc) - timedelta(days=dias)))
+        s.commit()
+    return f"{c[:5]}-{c[5:]}"
 
 
-def test_abrir_nao_pede_conta_e_devolve_um_codigo(cliente):
-    p = _abrir(cliente, "roxo")
-    assert re.fullmatch(r"[2-9A-HJKMNP-Z]{5}-[2-9A-HJKMNP-Z]{5}", p["codigo"])
-    assert 0 <= p["linha"] < 5 and 0 <= p["coluna"] < loja.RARIDADES[p["linha"]][1]
-    assert p["raridade"] == loja.RARIDADES[p["linha"]][0]
-    vence = datetime.fromisoformat(p["expira_em"])
-    assert timedelta(days=6, hours=23) < vence - datetime.now(timezone.utc) <= timedelta(days=7)
-    with Sessao() as s:   # sem conta, nada da pessoa fica guardado: só o código e o mascote
-        r = s.get(Resgate, p["codigo"].replace("-", ""))
-        assert r.usuario_id is None and r.resgatado_em is None
-
-
-def test_pacote_que_nao_existe(cliente):
-    assert cliente.post("/loja/abrir", json={"pacote": "diamante"}).status_code == 422
-    assert cliente.post("/loja/abrir", json={}).status_code == 422
-
-
-def test_resgatar_pede_conta(cliente):
-    p = _abrir(cliente)
-    assert cliente.post("/loja/resgatar", json={"codigo": p["codigo"]}).status_code == 401
+def test_comprar_pede_conta(cliente):
+    assert cliente.post("/loja/abrir", json={"pacote": "roxo"}).status_code == 401
+    assert cliente.post("/loja/resgatar", json={"codigo": "ABCDE-FGHJK"}).status_code == 401
     assert cliente.get("/loja/colecao").status_code == 401
 
 
-def test_resgatar_poe_o_mascote_na_conta(cliente):
+def test_pacote_que_nao_existe(cliente):
     h = _conta(cliente)
-    abertos = [_abrir(cliente, p) for p in ("roxo", "prata", "ouro") * 5]
-    assert cliente.get("/loja/colecao", headers=h).json()["mascotes"] == []   # abrir não guarda nada: só o resgate
-    for p in abertos:
-        r = _resgatar(cliente, h, p["codigo"])
-        assert r.status_code == 200, r.text
-        assert (r.json()["linha"], r.json()["coluna"]) == (p["linha"], p["coluna"])
+    assert cliente.post("/loja/abrir", json={"pacote": "diamante"}, headers=h).status_code == 422
+    assert cliente.post("/loja/abrir", json={}, headers=h).status_code == 422
+
+
+def test_a_compra_vai_direto_para_a_conta(cliente):
+    h = _conta(cliente)
+    comprados = [_comprar(cliente, h, p) for p in ("roxo", "prata", "ouro") * 5]
+    for m in comprados:
+        assert 0 <= m["linha"] < 5 and 0 <= m["coluna"] < loja.RARIDADES[m["linha"]][1]
+        assert m["raridade"] == loja.RARIDADES[m["linha"]][0]
     col = cliente.get("/loja/colecao", headers=h).json()
     assert col["total"] == 69
     assert sum(m["quantidade"] for m in col["mascotes"]) == 15
-    assert {(m["linha"], m["coluna"]) for m in col["mascotes"]} == {(p["linha"], p["coluna"]) for p in abertos}
-
-
-def test_codigo_digitado_de_qualquer_jeito(cliente):
-    h = _conta(cliente)
-    p = _abrir(cliente)
-    bagunçado = "  " + p["codigo"].lower().replace("-", " ") + " "
-    assert _resgatar(cliente, h, bagunçado).status_code == 200
-
-
-def test_o_mesmo_codigo_vale_uma_vez(cliente):
-    ana, bia = _conta(cliente), _conta(cliente, "bia@x.com")
-    p = _abrir(cliente)
-    assert _resgatar(cliente, ana, p["codigo"]).json()["quantidade"] == 1
-    # a mesma conta de novo: não soma outra vez
-    assert _resgatar(cliente, ana, p["codigo"]).json()["quantidade"] == 1
-    # outra conta: recusado
-    r = _resgatar(cliente, bia, p["codigo"])
-    assert r.status_code == 409
-    assert cliente.get("/loja/colecao", headers=bia).json()["mascotes"] == []
+    assert {(m["linha"], m["coluna"]) for m in col["mascotes"]} == {(m["linha"], m["coluna"]) for m in comprados}
 
 
 def test_mascote_repetido_soma_na_mesma_linha(cliente, monkeypatch):
     monkeypatch.setattr(loja, "sortear", lambda pacote: (4, 3))
     h = _conta(cliente)
-    primeiro, segundo = _abrir(cliente), _abrir(cliente)
-    assert _resgatar(cliente, h, primeiro["codigo"]).json()["quantidade"] == 1
-    assert _resgatar(cliente, h, segundo["codigo"]).json() == {"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2}
+    assert _comprar(cliente, h)["quantidade"] == 1
+    assert _comprar(cliente, h) == {"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2}
     assert cliente.get("/loja/colecao", headers=h).json()["mascotes"] == [{"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2}]
     with Sessao() as s:
         assert s.query(Mascote).count() == 1
 
 
+def test_a_colecao_e_de_cada_conta(cliente):
+    ana, bia = _conta(cliente), _conta(cliente, "bia@x.com")
+    _comprar(cliente, ana)
+    assert cliente.get("/loja/colecao", headers=bia).json()["mascotes"] == []
+    assert len(cliente.get("/loja/colecao", headers=ana).json()["mascotes"]) == 1
+
+
+def test_codigo_vale_uma_vez_e_vai_para_quem_resgata(cliente):
+    ana, bia = _conta(cliente), _conta(cliente, "bia@x.com")
+    codigo = _codigo(linha=2, coluna=5)
+    bagunçado = "  " + codigo.lower().replace("-", " ") + " "   # digitado de qualquer jeito
+    r = cliente.post("/loja/resgatar", json={"codigo": bagunçado}, headers=ana)
+    assert r.status_code == 200 and r.json() == {"linha": 2, "coluna": 5, "raridade": "rara", "quantidade": 1}
+    # a mesma conta de novo: não soma outra vez
+    assert cliente.post("/loja/resgatar", json={"codigo": codigo}, headers=ana).json()["quantidade"] == 1
+    # outra conta: recusado
+    assert cliente.post("/loja/resgatar", json={"codigo": codigo}, headers=bia).status_code == 409
+    assert cliente.get("/loja/colecao", headers=bia).json()["mascotes"] == []
+
+
 def test_codigo_que_nao_existe_ou_venceu(cliente):
     h = _conta(cliente)
-    assert _resgatar(cliente, h, "ABCDE-FGHJK").status_code == 404
-    p = _abrir(cliente)
-    with Sessao() as s:   # oito dias atrás
-        r = s.get(Resgate, p["codigo"].replace("-", ""))
-        r.criado_em = datetime.now(timezone.utc) - timedelta(days=8)
-        s.commit()
-    assert _resgatar(cliente, h, p["codigo"]).status_code == 404
+    assert cliente.post("/loja/resgatar", json={"codigo": "ABCDE-FGHJK"}, headers=h).status_code == 404
+    velho = _codigo(dias=8)
+    assert cliente.post("/loja/resgatar", json={"codigo": velho}, headers=h).status_code == 404
     with Sessao() as s:   # e a limpeza apaga o código vencido do banco
         limpar_vencidos(s, forcar=True)
-        assert s.get(Resgate, p["codigo"].replace("-", "")) is None
+        assert s.get(Resgate, velho.replace("-", "")) is None
 
 
 def test_exportar_e_apagar_a_conta_levam_os_mascotes(cliente):
     h = _conta(cliente)
-    p = _abrir(cliente)
-    _resgatar(cliente, h, p["codigo"])
+    m = _comprar(cliente, h)
+    codigo = _codigo()
+    cliente.post("/loja/resgatar", json={"codigo": codigo}, headers=h)
     exportado = cliente.get("/me/exportar", headers=h).json()
-    assert [(x["linha"], x["coluna"], x["quantidade"]) for x in exportado["mascotes_da_loja"]] == [(p["linha"], p["coluna"], 1)]
-    assert [x["codigo"] for x in exportado["codigos_resgatados_na_loja"]] == [p["codigo"].replace("-", "")]
+    assert (m["linha"], m["coluna"]) in {(x["linha"], x["coluna"]) for x in exportado["mascotes_da_loja"]}
+    assert [x["codigo"] for x in exportado["codigos_resgatados_na_loja"]] == [codigo.replace("-", "")]
     assert cliente.request("DELETE", "/me", json={"senha": "segredo1"}, headers=h).status_code == 200
     with Sessao() as s:
         assert s.query(Mascote).count() == 0

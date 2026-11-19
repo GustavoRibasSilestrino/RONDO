@@ -1,9 +1,9 @@
-"""A loja de pacotinhos do site (desde 2026-11-18): o catálogo de mascotes, as chances de cada pacote, o sorteio e o resgate.
+"""A loja de pacotinhos do site (desde 2026-11-18): o catálogo de mascotes, as chances de cada pacote, a compra e o resgate.
 
-Como funciona: qualquer pessoa abre um pacote (com ou sem conta). O servidor sorteia o mascote e devolve um código de
-resgate. O mascote só entra na coleção de uma conta quando a pessoa, dentro da conta, resgata o código (no site, um toque
-em "Resgatar"). Assim nada vai para a conta sem a pessoa pedir, e quem ainda não tem conta abre primeiro e resgata depois.
-O código vale 7 dias (app/legal.py) e serve uma vez só.
+Como funciona: comprar um pacote pede a conta do RONDO. O servidor sorteia o mascote e ele vai direto para a coleção da
+conta (como nas lojas de jogos). Quem não está na conta entra ou cria a conta na tela do RONDIN do site e volta para a
+compra. O resgate de código (`resgatar`) fica pronto para vales-presente e promoções: um código põe um mascote na conta
+de quem o resgata, uma vez só, em até 7 dias (app/legal.py). Hoje nenhum código é gerado.
 
 O sorteio é feito aqui, no servidor, e não no navegador: quem abre o pacote não tem como escolher o que sai.
 Os números são os mesmos que o site mostra (vitrine/src/data/loja.ts); o teste `test_chances_iguais_as_do_site` confere.
@@ -54,33 +54,38 @@ def sortear(pacote: str) -> tuple[int, int]:
     raise AssertionError(f"as chances do pacote {pacote} não somam 1000")
 
 
+def novo_codigo() -> str:
+    return "".join(secrets.choice(ALFABETO) for _ in range(TAMANHO))
+
+
 def normalizar(codigo: str) -> str:
     """O código como foi digitado (com hífen, espaço, minúsculas) vira o guardado no banco."""
     return re.sub(r"[^0-9A-Z]", "", codigo.upper())
 
 
-def formatar(codigo: str) -> str:
-    return f"{codigo[:5]}-{codigo[5:]}"
+def _somar(sessao: Session, usuario_id: int, linha: int, coluna: int, agora: datetime) -> None:
+    """Põe o mascote na coleção (se já tinha, soma mais um), sem gravar: quem chama faz o commit."""
+    onde = (Mascote.usuario_id == usuario_id, Mascote.linha == linha, Mascote.coluna == coluna)
+    if not sessao.execute(update(Mascote).where(*onde).values(quantidade=Mascote.quantidade + 1, ultimo_em=agora)).rowcount:
+        sessao.add(Mascote(usuario_id=usuario_id, linha=linha, coluna=coluna, quantidade=1, primeiro_em=agora, ultimo_em=agora))
 
 
-def abrir(sessao: Session, pacote: str) -> tuple[str, int, int, datetime]:
-    """Abre um pacote: sorteia o mascote e cria o código de resgate. Devolve (código, linha, coluna, quando vence)."""
+def _quantos(sessao: Session, usuario_id: int, linha: int, coluna: int) -> int:
+    return sessao.scalar(select(Mascote.quantidade).where(Mascote.usuario_id == usuario_id, Mascote.linha == linha, Mascote.coluna == coluna)) or 0
+
+
+def comprar(sessao: Session, usuario_id: int, pacote: str) -> tuple[int, int, int]:
+    """Abre um pacote para a conta: sorteia e guarda o mascote. Devolve (linha, coluna, quantos a conta tem dele agora)."""
     linha, coluna = sortear(pacote)
-    agora = datetime.now(timezone.utc)
-    for _ in range(3):   # dois códigos iguais são quase impossíveis (31^10), mas se acontecer, sorteia outro
-        codigo = "".join(secrets.choice(ALFABETO) for _ in range(TAMANHO))
-        sessao.add(Resgate(codigo=codigo, pacote=pacote, linha=linha, coluna=coluna, criado_em=agora))
+    for _ in range(3):   # duas compras juntas da mesma conta podem criar a mesma linha: a que perder a corrida soma
+        _somar(sessao, usuario_id, linha, coluna, datetime.now(timezone.utc))
         try:
             sessao.commit()
         except IntegrityError:
             sessao.rollback()
             continue
-        return codigo, linha, coluna, agora + RETENCAO_RESGATES
-    raise RuntimeError("não foi possível criar o código de resgate")
-
-
-def _quantos(sessao: Session, usuario_id: int, linha: int, coluna: int) -> int:
-    return sessao.scalar(select(Mascote.quantidade).where(Mascote.usuario_id == usuario_id, Mascote.linha == linha, Mascote.coluna == coluna)) or 0
+        return linha, coluna, _quantos(sessao, usuario_id, linha, coluna)
+    raise RuntimeError("não foi possível guardar o mascote")
 
 
 def resgatar(sessao: Session, usuario_id: int, codigo: str) -> tuple[int, int, int]:
@@ -103,13 +108,10 @@ def resgatar(sessao: Session, usuario_id: int, codigo: str) -> tuple[int, int, i
         if not ganhou:
             sessao.rollback()
             continue   # outro pedido levou antes: lê de novo para dizer de quem ficou
-        onde = (Mascote.usuario_id == usuario_id, Mascote.linha == linha, Mascote.coluna == coluna)
-        somou = sessao.execute(update(Mascote).where(*onde).values(quantidade=Mascote.quantidade + 1, ultimo_em=agora)).rowcount
-        if not somou:
-            sessao.add(Mascote(usuario_id=usuario_id, linha=linha, coluna=coluna, quantidade=1, primeiro_em=agora, ultimo_em=agora))
+        _somar(sessao, usuario_id, linha, coluna, agora)
         try:
             sessao.commit()
-        except IntegrityError:   # o mesmo mascote entrou na coleção por outro resgate agora mesmo: refaz e soma
+        except IntegrityError:   # o mesmo mascote entrou na coleção por outra compra agora mesmo: refaz e soma
             sessao.rollback()
             continue
         return linha, coluna, _quantos(sessao, usuario_id, linha, coluna)

@@ -57,9 +57,14 @@ function Privacidade() {
       </p>
 
       <h2>2. Quais dados tratamos</h2>
-      <h3>Ao criar a conta (site)</h3>
+      <h3>Ao criar a conta (no app ou no site)</h3>
       <ul>
         <li>Nome, e-mail e senha. A senha é guardada só como hash (Argon2): nem nós conseguimos lê-la.</li>
+        <li>
+          Se você entra com o Google, o Google nos manda o seu nome e o seu e-mail para abrir ou criar a conta; a sua senha do
+          Google nunca chega até nós. O botão do Google é carregado do próprio Google (accounts.google.com), que recebe o seu
+          endereço de internet nesse carregamento e trata o login pela política dele.
+        </li>
         <li>Data de nascimento, só para saber se a pessoa é menor de idade.</li>
         <li>Se tiver menos de 18 anos: nome e e-mail do responsável que autorizou.</li>
         <li>O registro dos aceites: quais documentos, em qual versão, quando e por onde (site ou app). E a sua escolha sobre e-mails de novidades.</li>
@@ -99,10 +104,10 @@ function Privacidade() {
       </p>
       <h3>Na loja de pacotinhos (site)</h3>
       <p>
-        Abrir um pacote não pede conta e não guarda nada sobre você: o servidor guarda só o código de resgate e qual
-        mascote saiu. Quando você resgata o mascote, ele e o código passam a ficar ligados à sua conta (quais mascotes
-        você tem, quantos e quando resgatou). Hoje a loja é uma prévia e não cobra nada; quando houver pagamento, esta
-        política será atualizada antes.
+        Comprar um pacote pede a sua conta do RONDO: o mascote vai direto para ela, e o servidor guarda quais mascotes a
+        conta tem, quantos e quando chegaram. Se um dia houver códigos de resgate (vale-presente ou promoção), o código
+        resgatado fica ligado à sua conta. Hoje a loja é uma prévia e não cobra nada; quando houver pagamento, esta política
+        será atualizada antes.
       </p>
       <h3>Cadastro de profissional</h3>
       <p>Nome, e-mail, conselho (CRN ou CREF), número do registro e UF, para conferir o registro na consulta pública do conselho.</p>
@@ -153,7 +158,8 @@ function Privacidade() {
           <tr><td>Avisos, suspensões e banimento</td><td>Enquanto a conta existir. Ao apagar a conta, o histórico sai junto.</td></tr>
           <tr><td>Bloqueios e denúncias que você fez</td><td>Enquanto a conta existir. Denúncias contra uma conta apagada ficam, sem ligação com ela, como histórico da moderação.</td></tr>
           <tr><td>Registro dos aceites</td><td>Enquanto a conta existir.</td></tr>
-          <tr><td>Códigos de resgate da loja</td><td>7 dias; depois saem do banco, resgatados ou não. Os mascotes resgatados ficam na conta enquanto ela existir.</td></tr>
+          <tr><td>Mascotes da loja</td><td>Enquanto a conta existir. Ao apagar a conta, saem junto.</td></tr>
+          <tr><td>Códigos de resgate da loja</td><td>7 dias; depois saem do banco, resgatados ou não (o mascote resgatado continua na conta).</td></tr>
           <tr><td>Cadastro de profissional</td><td>Até você pedir a exclusão.</td></tr>
           <tr><td>Recados de voz</td><td>Só no seu aparelho, até você apagar.</td></tr>
           <tr><td>Cópias de segurança do provedor do banco</td><td>Podem guardar dados apagados por um curto período, até serem substituídas.</td></tr>
@@ -183,18 +189,18 @@ function Privacidade() {
 
       <h2 id="cookies">9. Cookies e armazenamento no navegador</h2>
       <p>
-        O site usa só armazenamento essencial: a sua escolha sobre cookies e, se você usou a loja, os códigos de resgate
-        dos pacotes que abriu, até resgatar ou vencer (7 dias). As fontes do site são servidas pelo próprio site, sem
-        chamar serviços de terceiros. Não usamos cookies de análise, de publicidade nem de rastreamento. Se um dia usarmos,
-        eles só serão ligados depois do seu aceite, e esta política será atualizada antes. O app guarda os seus dados e a
-        sua sessão no próprio aparelho para funcionar.
+        O site usa só armazenamento essencial: a sua escolha sobre cookies e, se você entrou na sua conta, a sessão
+        (veja abaixo). As fontes do site são servidas pelo próprio site, sem chamar serviços de terceiros. Não usamos
+        cookies de análise, de publicidade nem de rastreamento. Se um dia usarmos, eles só serão ligados depois do seu
+        aceite, e esta política será atualizada antes. O app guarda os seus dados e a sua sessão no próprio aparelho para
+        funcionar.
       </p>
       <p>
-        <b>A sua conta no site:</b> o app no navegador e o site ficam no mesmo endereço e dividem o armazenamento do
-        navegador. Se você entrou no app neste navegador, o site reconhece a sua conta: ele lê a sessão que o app guardou,
-        confere com o nosso servidor e mostra o seu nome, o @ e a foto, para você resgatar na loja sem entrar de novo. Nada
-        novo é coletado, nada vai para terceiros e o site não guarda a sessão por conta própria. Para sair, saia da conta
-        no app; num computador compartilhado, saia sempre ao terminar.
+        <b>A sua conta no site e no app:</b> o app no navegador e o site ficam no mesmo endereço e dividem o armazenamento
+        do navegador. A sessão é uma só: se você entra pelo app ou pela tela de entrar do site, fica entrado nos dois, neste
+        navegador. O site mostra o seu nome, o @ e a foto (conferidos com o nosso servidor) e guarda uma cópia deles para
+        mostrar na hora. A sessão vale por 7 dias. Para sair, use "Sair da conta" no site ou no app: vale para os dois.
+        Num computador compartilhado, saia sempre ao terminar.
       </p>
       <p><button type="button" className="link-botao" onClick={() => abrirPreferenciasCookies()}>Mudar as preferências de cookies</button></p>
 

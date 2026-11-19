@@ -1,19 +1,20 @@
 /* A loja de pacotinhos (/loja), pedido do dono em 2026-11-18. A loja é a própria barraca: os três pacotes ficam no balcão e
    cada um abre a tela de compra (LojaAbrir.tsx). Embaixo, o quadro com as chances de cada pacote, lado a lado, e a coleção
    inteira de browniezinhos por raridade.
-   A compra é uma prévia: nada é cobrado. Qualquer pessoa abre um pacote; o mascote vai para a conta do RONDO (a mesma do app)
-   quando a pessoa o resgata (LojaResgate.tsx). Com a conta reconhecida, a coleção acende os mascotes que ela já tem. */
+   A compra é uma prévia: nada é cobrado. Comprar pede a conta do RONDO (a mesma do app); quem não está na conta entra pela
+   tela do RONDIN do site (/entrar) e volta para cá com o pacote aberto de novo. Com a conta, a coleção acende os mascotes
+   que ela já tem, com a quantidade. */
 import { useCallback, useEffect, useState } from "react";
 import { PACOTES, RARIDADES, TOTAL_MASCOTES, chaveDe, nomeDe, porcento, preco, type Pacote } from "../data/loja";
 import { minhaColecao, type MascoteDaConta } from "../lib/api";
 import { contaRecusada, useConta } from "../lib/conta";
-import { usePendentes } from "../lib/resgates";
-import { LojaAbrir } from "./LojaAbrir";
+import { CRIAR_LOJA, ENTRAR_LOJA } from "../lib/rotas";
+import { ContaMenu } from "./Conta";
+import { LojaAbrir, pacoteLembrado } from "./LojaAbrir";
 import { Barraca, Estrelas, Mascote } from "./LojaPartes";
-import { EsperandoResgate, LojaConta, ResgatarCodigo } from "./LojaResgate";
 import { Nome } from "./ui";
 
-/* a coleção da conta: chave do mascote -> quantos ela tem (vem do servidor; cada resgate soma aqui na hora) */
+/* a coleção da conta: chave do mascote -> quantos ela tem (vem do servidor; cada compra soma aqui na hora) */
 function useColecao() {
   const { token } = useConta();
   const [colecao, setColecao] = useState<Map<string, number>>(() => new Map());
@@ -30,14 +31,35 @@ function useColecao() {
   return [colecao, somar] as const;
 }
 
+/* no topo da loja: a conta (com o menu de abrir o app e sair) ou os botões de entrar e criar conta, que levam à tela do
+   RONDIN do site e voltam para cá */
+function ContaNoTopo() {
+  const { conta, token } = useConta();
+  if (conta) return <ContaMenu variante="loja" />;
+  if (token) return null;   // conferindo a conta: um instante, sem piscar os botões
+  return (
+    <div className="loja-barra-acoes">
+      <a className="px-btn px-btn-escuro px-btn-p" href={ENTRAR_LOJA}>Entrar</a>
+      <a className="px-btn px-btn-p" href={CRIAR_LOJA}>Criar conta</a>
+    </div>
+  );
+}
+
 export default function Loja() {
   const [escolhido, setEscolhido] = useState<Pacote | null>(null);
   const fechar = useCallback(() => setEscolhido(null), []);
   const { conta } = useConta();
   const [colecao, somar] = useColecao();
-  const pendentes = usePendentes();
   useEffect(() => { document.title = "Loja de pacotinhos · RONDO"; }, []);
-  const esperando = new Set(pendentes.map((p) => chaveDe(p.linha, p.coluna)));
+
+  /* de volta da tela de entrar: o pacote que a pessoa ia comprar abre de novo, já com a conta (se ela voltou sem entrar,
+     o pedido é esquecido) */
+  useEffect(() => {
+    const id = pacoteLembrado();
+    if (id && conta) setEscolhido(PACOTES.find((p) => p.id === id) ?? null);
+    // só ao chegar na loja
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="loja">
@@ -46,11 +68,10 @@ export default function Loja() {
           <svg viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true"><path d="M4 1h1v1H4zM3 2h1v1H3zM2 3h1v1H2zM1 4h7v1H1zM2 5h1v1H2zM3 6h1v1H3zM4 7h1v1H4z" fill="currentColor" /></svg>
           <Nome />
         </a>
-        <LojaConta />
+        <ContaNoTopo />
       </header>
 
       <main id="conteudo">
-        <EsperandoResgate aoResgatar={somar} />
         <Barraca aoEscolher={setEscolhido} placa={<h1 className="barraca-placa">Pacotinhos</h1>} />
 
         <section className="loja-faixa" aria-labelledby="loja-chances">
@@ -88,8 +109,9 @@ export default function Loja() {
               </table>
             </div>
             <p className="loja-nota">
-              Toque num pacote para abrir. O browniezinho que sair você resgata para a sua conta do RONDO, a mesma do app. Loja em
-              prévia: nada é cobrado. Quando a venda abrir, a compra será só para maiores de 18 anos.
+              Toque num pacote para comprar. Para comprar, é preciso estar na sua conta do RONDO, a mesma do app: o
+              browniezinho vai direto para ela. Loja em prévia: nada é cobrado. Quando a venda abrir, a compra será só para
+              maiores de 18 anos.
             </p>
           </div>
         </section>
@@ -100,19 +122,18 @@ export default function Loja() {
             <p className="loja-lead" aria-live="polite">
               {conta
                 ? `Na sua conta: ${colecao.size} de ${TOTAL_MASCOTES}. Os seus aparecem acesos aqui embaixo.`
-                : "Do comum ao lendário. Abra um pacotinho, veja qual saiu e resgate para a sua conta do RONDO."}
+                : "Do comum ao lendário. Entre na sua conta para comprar e guardar os seus."}
             </p>
-            <ResgatarCodigo aoResgatar={somar} />
             {RARIDADES.map((r, linha) => (
               <div className="loja-raridade" key={r.id} data-r={r.id}>
                 <h3><Estrelas n={r.estrelas} /><span>{r.nome}</span><small>{r.quantos} mascotes</small></h3>
                 <ul>
                   {Array.from({ length: r.quantos }, (_, coluna) => {
-                    const k = chaveDe(linha, coluna), tem = colecao.get(k) ?? 0, espera = !tem && esperando.has(k);
+                    const tem = colecao.get(chaveDe(linha, coluna)) ?? 0;
                     const nome = nomeDe(linha, coluna);
-                    const estado = tem ? (tem > 1 ? `, você tem ${tem}` : ", na sua conta") : espera ? ", esperando resgate" : "";
+                    const estado = tem > 1 ? `, você tem ${tem}` : tem ? ", na sua conta" : "";
                     return (
-                      <li key={coluna} data-tem={tem ? true : undefined} data-espera={espera || undefined} title={nome}>
+                      <li key={coluna} data-tem={tem ? true : undefined} title={nome}>
                         <Mascote linha={linha} coluna={coluna} rotulo={`${nome}, ${r.nome.toLowerCase()}${estado}`} />
                         {tem > 1 ? <b className="loja-qtd" aria-hidden="true">x{tem}</b> : null}
                       </li>
@@ -130,7 +151,7 @@ export default function Loja() {
         <p><a href="/">Voltar ao site</a><a href="/termos">Termos de Uso</a><a href="/privacidade">Privacidade</a></p>
       </footer>
 
-      <LojaAbrir pacote={escolhido} aoFechar={fechar} aoResgatar={somar} />
+      <LojaAbrir pacote={escolhido} aoFechar={fechar} aoGuardar={somar} />
     </div>
   );
 }

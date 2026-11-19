@@ -11,8 +11,8 @@ from app.protecao import ip_do_cliente
 
 JANELA = 60.0
 ROTAS_DE_ENTRADA = ("/auth/login", "/auth/cadastro", "/auth/senha", "/auth/esqueci-senha", "/auth/redefinir-senha", "/auth/google", "/auth/apple", "/auth/social/cadastro", "/auth/nome-livre")
-# a loja também fica no limite menor: abrir um pacote não pede conta (cada um cria um código no banco) e o resgate
-# recebe códigos digitados (sem limite, daria para tentar adivinhar)
+# a loja também fica no limite menor: cada compra grava no banco, e o resgate recebe códigos digitados (sem limite,
+# daria para tentar adivinhar)
 ROTAS_LIMITADAS = ROTAS_DE_ENTRADA + ("/loja/abrir", "/loja/resgatar")
 
 

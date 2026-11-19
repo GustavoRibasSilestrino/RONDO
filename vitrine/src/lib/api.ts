@@ -78,13 +78,16 @@ export async function excluirConta(email: string, senha: string): Promise<void> 
   if (!r.ok) throw new ErroApi("Não foi possível excluir agora. Tente de novo ou escreva para o nosso e-mail.");
 }
 
-/* ---------- loja de pacotinhos (backend/app/rotas/loja.py) ----------
-   Abrir não pede conta e devolve um código de resgate; resgatar e ver a coleção pedem a conta do app (o token que o app
-   guardou no navegador; ver lib/conta.ts). */
-export type MascoteDaConta = { linha: number; coluna: number; raridade: Raridade; quantidade: number };
-export type PacoteAberto = { linha: number; coluna: number; raridade: Raridade; codigo: string; expira_em: string };
+/* ---------- chamadas com a resposta do servidor em português ----------
+   O servidor explica o que deu errado em `detail` (texto, ou a lista do Pydantic quando um campo não passa). */
+const CAMPO: Record<string, string> = {
+  email: "Confira o e-mail.",
+  senha: "A senha precisa ter pelo menos 8 caracteres.",
+  nome: "O nome precisa ter pelo menos 2 letras.",
+  nascimento: "Confira a data de nascimento.",
+};
 
-async function loja<T>(metodo: "GET" | "POST", caminho: string, token: string | null, corpo?: unknown): Promise<T> {
+async function chamar<T>(metodo: "GET" | "POST", caminho: string, corpo?: unknown, token?: string | null): Promise<T> {
   let r: Response;
   try {
     r = await fetch(`${API}${caminho}`, {
@@ -93,20 +96,43 @@ async function loja<T>(metodo: "GET" | "POST", caminho: string, token: string | 
       body: corpo ? JSON.stringify(corpo) : undefined,
     });
   } catch {
-    throw new ErroApi("Sem conexão. Tente de novo em instantes.");
+    throw new ErroApi("Sem conexão. Confira a internet e tente de novo.");
   }
   if (r.ok) return r.json() as Promise<T>;
   let msg = "Não deu agora. Tente de novo em instantes.";
-  if (r.status === 401) msg = "A sua sessão venceu. Entre de novo na sua conta.";
-  else if (r.status === 429) msg = "Muitas tentativas seguidas. Espere um minuto e tente de novo.";
-  else if (r.status === 403 || r.status === 404 || r.status === 409) {
-    try { const d = (await r.json()) as { detail?: unknown }; if (typeof d.detail === "string") msg = d.detail; } catch { /* sem corpo */ }
-  }
+  try {
+    const d = (await r.json()) as { detail?: string | { loc?: (string | number)[]; msg?: string }[] };
+    if (typeof d.detail === "string") msg = d.detail;
+    else if (Array.isArray(d.detail) && d.detail[0]) {
+      const loc = d.detail[0].loc ?? [];
+      const campo = String(loc[loc.length - 1] ?? "");
+      msg = CAMPO[campo] ?? (d.detail[0].msg ?? msg).replace(/^Value error, /, "");
+    }
+  } catch { /* resposta sem corpo */ }
+  if (r.status === 429 && msg.startsWith("Não deu")) msg = "Muitas tentativas seguidas. Espere um minuto e tente de novo.";
+  if (r.status === 503) msg = "Esse jeito de entrar ainda não está disponível. Use o e-mail e a senha.";
   throw new ErroApi(msg, r.status);
 }
 
-/* abre um pacote: o servidor sorteia o mascote e devolve o código para resgatá-lo (vale 7 dias) */
-export const abrirPacote = (pacote: PacoteId) => loja<PacoteAberto>("POST", "/loja/abrir", null, { pacote });
-/* põe o mascote do código na conta */
-export const resgatarCodigo = (token: string, codigo: string) => loja<MascoteDaConta>("POST", "/loja/resgatar", token, { codigo });
-export const minhaColecao = (token: string) => loja<{ total: number; mascotes: MascoteDaConta[] }>("GET", "/loja/colecao", token);
+/* ---------- entrar e criar conta pelo site (a tela do RONDIN, components/Entrar.tsx) ---------- */
+export type ContaLogada = { email: string; nome: string; arroba: string | null; foto: string | null; papel?: string; pro?: boolean; token: string };
+export type Responsavel = { nome: string; email: string; autoriza: boolean };
+export type DadosDoCadastro = { nascimento: string; aceita_termos: boolean; aceita_privacidade: boolean; marketing: boolean; responsavel: Responsavel | null };
+
+export const entrarComSenha = (email: string, senha: string) => chamar<ContaLogada>("POST", "/auth/login", { email, senha });
+export const cadastrarPeloSite = (d: DadosDoCadastro & { nome: string; email: string; senha: string }) =>
+  chamar<ContaLogada>("POST", "/auth/cadastro", { ...d, origem: "site" });
+
+/* Google: quem já tem conta entra direto; na primeira vez, falta a data de nascimento e o aceite (segunda etapa) */
+export type RespostaGoogle = { precisa_cadastro: boolean; login: ContaLogada | null; token_social: string | null; nome: string | null; email: string | null };
+export const entrarComGoogle = (idToken: string) => chamar<RespostaGoogle>("POST", "/auth/google", { id_token: idToken });
+export const concluirCadastroGoogle = (d: DadosDoCadastro & { token_social: string; nome: string | null }) =>
+  chamar<ContaLogada>("POST", "/auth/social/cadastro", { ...d, origem: "site" });
+
+/* ---------- loja de pacotinhos (backend/app/rotas/loja.py) ----------
+   Comprar e ver a coleção pedem a conta (o token da sessão, o mesmo do app; ver lib/conta.ts). */
+export type MascoteDaConta = { linha: number; coluna: number; raridade: Raridade; quantidade: number };
+
+/* compra (abre) um pacote: o servidor sorteia o mascote e ele já vai para a conta */
+export const abrirPacote = (token: string, pacote: PacoteId) => chamar<MascoteDaConta>("POST", "/loja/abrir", { pacote }, token);
+export const minhaColecao = (token: string) => chamar<{ total: number; mascotes: MascoteDaConta[] }>("GET", "/loja/colecao", undefined, token);

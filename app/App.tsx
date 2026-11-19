@@ -19,6 +19,9 @@ import { RondinChamado } from './src/componentes/RondinChamado';
 import { MenuLateral } from './src/componentes/MenuLateral';
 import { tirarCarregando } from './src/lib/carregando';
 import { voltaPedida } from './src/lib/entrada';
+import { chamar } from './src/api/cliente';
+import { lerToken } from './src/api/sessao';
+import type { Estado, Usuario } from './src/tipos';
 import { guardarColuna } from './src/lib/coluna';
 import { atrasoDaAbertura } from './src/lib/abertura';
 import { useMenuRecolhido } from './src/lib/largura';
@@ -98,6 +101,44 @@ function Raiz() {
   const { largo, comPainel } = useLayoutLargo();   // computador: menu lateral no lugar da barra e do cabeçalho
   const [menuRecolhido, alternarMenu] = useMenuRecolhido();
 
+  /* entrar numa conta: guarda a conta no estado do app (o mesmo para o login do RONDIN e para a sessão feita no site) */
+  const aplicarConta = (usuario: Usuario, extra?: Partial<Estado>) => {
+    commit((e) => {
+      /* outra conta no mesmo aparelho: começa limpa, para não herdar os treinos e as publicações da conta anterior */
+      if (e.ultimoEmail && e.ultimoEmail !== usuario.email) Object.assign(e, estadoVazio());
+      e.usuario = usuario;
+      e.ultimoEmail = usuario.email;
+      /* o plano e o nível vêm da API: o dono tem nível máximo e PRO; os outros, o que a conta tiver */
+      e.pro = usuario.papel === 'dono' || !!usuario.pro;
+      if (extra) Object.assign(e, extra);   // o perfil que o RONDIN montou no cadastro: sobe para o servidor na sincronia
+      e.xpExtra = usuario.papel === 'dono' ? Math.max(0, 10500 - xpTotal({ ...e, xpExtra: 0 })) : 0;
+    });
+  };
+
+  /* Sessão feita no site (desde 2026-11-18): quem entra ou cria a conta pela tela do RONDIN do site (vitrine, /entrar) deixa
+     o token no navegador, que o app divide com o site. Ao abrir, se há token e o app ainda não tem a conta, ele busca a
+     conta pelo token e entra, como num login. Só no navegador; um token recusado é apagado pelo cliente (api/cliente.ts). */
+  const [buscandoSessao, setBuscandoSessao] = useState(Platform.OS === 'web');
+  useEffect(() => {
+    if (!dadosProntos) return;
+    if (Platform.OS !== 'web' || estado.usuario) { setBuscandoSessao(false); return; }
+    let vivo = true;
+    (async () => {
+      try {
+        if (!(await lerToken())) return;
+        const eu = await chamar<{ email: string; nome: string; arroba: string | null; foto: string | null; papel: string; verificado: boolean; pro: boolean; marketing: boolean; selo: string | null }>('GET', '/auth/eu');
+        if (!vivo) return;
+        aplicarConta({ email: eu.email, nome: eu.nome, arroba: eu.arroba ?? undefined, foto: eu.foto ?? undefined, papel: eu.papel, verificado: eu.verificado, pro: eu.pro, marketing: eu.marketing, selo: eu.selo });
+        void puxarDoServidor();
+      } catch { /* sem rede ou token recusado: segue para a tela de entrar */ } finally {
+        if (vivo) setBuscandoSessao(false);
+      }
+    })();
+    return () => { vivo = false; };
+    // só uma vez, quando os dados guardados no aparelho ficam prontos
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dadosProntos]);
+
   /* botão voltar do Android: de qualquer tela volta para o início; no início, sai do app */
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -111,7 +152,7 @@ function Raiz() {
     return () => sub.remove();
   }, [tela, antes, voltarPara, chamado]);
 
-  if (!pronto) {
+  if (!pronto || buscandoSessao) {
     /* enquanto carrega: a tela preta com o nome RONDO, igual à abertura (no navegador, igual à tela de carregamento) */
     return (
       <View style={st.centro}>
@@ -134,16 +175,7 @@ function Raiz() {
     return (
       <Login
         aoEntrar={(usuario, extra) => {
-          commit((e) => {
-            /* outra conta no mesmo aparelho: começa limpa, para não herdar os treinos e as publicações da conta anterior */
-            if (e.ultimoEmail && e.ultimoEmail !== usuario.email) Object.assign(e, estadoVazio());
-            e.usuario = usuario;
-            e.ultimoEmail = usuario.email;
-            /* o plano e o nível vêm da API: o dono tem nível máximo e PRO; os outros, o que a conta tiver */
-            e.pro = usuario.papel === 'dono' || !!usuario.pro;
-            if (extra) Object.assign(e, extra);   // o perfil que o RONDIN montou no cadastro: sobe para o servidor na sincronia
-            e.xpExtra = usuario.papel === 'dono' ? Math.max(0, 10500 - xpTotal({ ...e, xpExtra: 0 })) : 0;
-          });
+          aplicarConta(usuario, extra);
           const puxando = puxarDoServidor();   // traz os treinos, a dieta e o resto desta conta que estão no servidor
           if (voltaPedida) {
             /* veio da loja do site: guarda tudo (no navegador e no servidor) e volta para lá, onde a pessoa resgata o

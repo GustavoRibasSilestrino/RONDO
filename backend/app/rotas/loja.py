@@ -1,16 +1,16 @@
-"""A loja de pacotinhos do site (/loja): abrir um pacote, resgatar o mascote para a conta e ver a coleção.
+"""A loja de pacotinhos do site (/loja): comprar (abrir) um pacote, resgatar um código e ver a coleção de mascotes da conta.
 
-Abrir não pede conta: o pacote devolve um código de resgate (vale 7 dias). Resgatar pede a conta do RONDO (no site, a
-mesma do app). Por enquanto a loja é uma prévia: aqui não há pagamento e nada é cobrado (ver vitrine/PRODUCT.md). Quando a
-venda abrir, abrir o pacote passa a exigir a compra confirmada pelo gateway antes de sortear."""
+Comprar pede a conta do RONDO (no site, a mesma do app; quem não está na conta entra pela tela do RONDIN do site, /entrar)
+e o mascote vai direto para a coleção, como nas lojas de jogos. Por enquanto a loja é uma prévia: aqui não há pagamento e
+nada é cobrado (ver vitrine/PRODUCT.md). Quando a venda abrir, esta rota passa a exigir a compra confirmada pelo gateway.
+O resgate de código fica pronto para vales-presente e promoções (hoje ninguém gera códigos)."""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.banco import obter_sessao
 from app.deps import usuario_atual
-from app.esquemas import AbrirPacoteIn, ColecaoOut, MascoteOut, PacoteAbertoOut, ResgatarIn
+from app.esquemas import AbrirPacoteIn, ColecaoOut, MascoteOut, ResgatarIn
 from app.modelos import Usuario
-from app.servicos import conta as servico_conta
 from app.servicos import loja as servico_loja
 
 router = APIRouter(prefix="/loja", tags=["loja"])
@@ -20,13 +20,9 @@ def _mascote(linha: int, coluna: int, quantidade: int) -> MascoteOut:
     return MascoteOut(linha=linha, coluna=coluna, raridade=servico_loja.RARIDADES[linha][0], quantidade=quantidade)
 
 
-@router.post("/abrir", response_model=PacoteAbertoOut, status_code=201)
-def abrir(dados: AbrirPacoteIn, sessao: Session = Depends(obter_sessao)):
-    servico_conta.limpar_vencidos(sessao)   # retenção: códigos com mais de 7 dias saem do banco
-    codigo, linha, coluna, expira_em = servico_loja.abrir(sessao, dados.pacote)
-    return PacoteAbertoOut(
-        linha=linha, coluna=coluna, raridade=servico_loja.RARIDADES[linha][0], codigo=servico_loja.formatar(codigo), expira_em=expira_em,
-    )
+@router.post("/abrir", response_model=MascoteOut, status_code=201)
+def abrir(dados: AbrirPacoteIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    return _mascote(*servico_loja.comprar(sessao, usuario.id, dados.pacote))
 
 
 @router.post("/resgatar", response_model=MascoteOut)

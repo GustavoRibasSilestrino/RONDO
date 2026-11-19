@@ -202,14 +202,5 @@ class ColecaoOut(BaseModel):
     mascotes: list[MascoteOut]   # os que a conta já resgatou, cada um uma vez
 
 
-class PacoteAbertoOut(BaseModel):
-    """O pacote aberto: o mascote que saiu e o código para resgatá-lo para uma conta."""
-    linha: int
-    coluna: int
-    raridade: str
-    codigo: str            # "ABCDE-FGHJK"
-    expira_em: datetime
-
-
 class ResgatarIn(BaseModel):
     codigo: str = Field(min_length=10, max_length=24)   # com ou sem hífen e espaços

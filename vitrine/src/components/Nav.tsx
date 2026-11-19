@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { MENU } from "../data/menu";
 import { SECTIONS, type Sec } from "../data/sections";
 import { goMoment } from "../lib/bus";
-import { rotuloDa, useConta } from "../lib/conta";
+import { rotuloDa, sair, useConta } from "../lib/conta";
 import { APP, APP_CRIAR, APP_ENTRAR } from "../lib/rotas";
 import { reduceMotion, vars } from "../lib/util";
-import { ContaChip, FotoDaConta } from "./Conta";
+import { ContaMenu, FotoDaConta } from "./Conta";
 import { TendaBotao } from "./LojaPartes";
 import { Btn, Nome } from "./ui";
 
@@ -74,6 +74,7 @@ function MobileMenu({ open, current, onClose }: { open: boolean; current: number
             {/* já entrou no app: a conta aparece aqui e o botão leva direto para dentro dela */}
             <p className="mnav-conta"><FotoDaConta conta={conta} />Na sua conta, <b>{rotuloDa(conta)}</b></p>
             <Btn href={APP}>Abrir o app</Btn>
+            <button type="button" className="btn btn-ghost" onClick={() => sair()}>Sair da conta</button>
           </>
         ) : (
           <>
@@ -94,7 +95,7 @@ export function Nav() {
   const currentRef = useRef(0);
   const closeTimer = useRef(0);
   const closeMenu = useRef(() => setMenuOpen(false)).current;
-  const { conta } = useConta();   // quem já entrou no app aparece aqui com a própria conta (lib/conta.ts)
+  const { conta, token } = useConta();   // quem já entrou (no app ou no site) aparece aqui com a própria conta (lib/conta.ts)
 
   /* qual seção está na tela: as posições das seções ficam guardadas e só são medidas de novo quando a página muda
      de tamanho; ao rolar, basta comparar com o scrollY (sem medir nada) */
@@ -174,7 +175,8 @@ export function Nav() {
           </nav>
           <div className="nav-end">
             <TendaBotao comNome />
-            {conta ? <ContaChip /> : <><Btn href={APP_ENTRAR} kind="ghost" small>Entrar</Btn><Btn href={APP_CRIAR} small>Criar conta</Btn></>}
+            {/* com o token e a conta ainda sendo conferida, o lugar fica vazio por um instante (sem piscar "Entrar") */}
+            {conta ? <ContaMenu /> : token ? null : <><Btn href={APP_ENTRAR} kind="ghost" small>Entrar</Btn><Btn href={APP_CRIAR} small>Criar conta</Btn></>}
           </div>
           {/* no celular a tenda fica ao lado dos três riscos, sempre à vista */}
           <TendaBotao className="tenda-btn-celular" />
