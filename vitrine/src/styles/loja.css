@@ -398,10 +398,14 @@ html:has(dialog.abre[open]) { overflow: hidden; }
 }
 .loja-conta:hover .conta-chip-nome, .loja-conta[aria-expanded="true"] .conta-chip-nome { color: var(--lj-ouro-claro); }
 .loja-conta:focus-visible { outline: 3px solid var(--lj-ouro); outline-offset: 6px; }
-.loja-barra-acoes { display: flex; align-items: center; gap: .4rem; }
-.loja-barra-acoes .px-btn { margin-block: 0 calc(var(--b) + 2px); }
-/* no celular estreito, só "Entrar" (na tela do RONDIN dá para trocar para criar a conta) */
-@media (max-width: 440px) { .loja-barra-acoes .px-btn:last-child { display: none; } }
+/* sem conta: um "Entrar" discreto (criar conta fica na tela do RONDIN, e o aviso da compra já leva até lá) */
+.loja-entrar {
+  display: inline-flex; align-items: center; gap: .55rem; min-height: 44px; padding: 0 .3rem;
+  color: var(--lj-tinta); font: 400 .64rem/1 var(--lj-8bit); text-transform: uppercase; transition: color .15s;
+}
+.loja-entrar svg { width: 14px; height: 14px; color: var(--lj-ouro-claro); }
+.loja-entrar:hover { color: var(--lj-ouro-claro); }
+.loja-entrar:focus-visible { outline: 3px solid var(--lj-ouro); outline-offset: 4px; }
 
 /* o menu da conta, na versão de pixel */
 .conta-menu-loja .conta-menu-lista {

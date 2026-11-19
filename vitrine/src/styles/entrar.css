@@ -31,7 +31,13 @@
   content: ""; position: absolute; left: 50%; top: 50%; width: 230px; height: 230px; translate: -50% -50%; border-radius: 50%;
   background: radial-gradient(circle, rgba(139, 92, 246, .3), transparent 66%); pointer-events: none;
 }
-.entrar-rondin video { position: relative; }
+/* as bordas do vídeo somem num degradê redondo: o fundo do vídeo não é preto puro e, sem isso, aparecia um quadrado em volta
+   da esfera (visto pelo dono em 2026-11-18) */
+.entrar-rondin video {
+  position: relative;
+  -webkit-mask-image: radial-gradient(circle, #000 52%, transparent 70%);
+  mask-image: radial-gradient(circle, #000 52%, transparent 70%);
+}
 
 /* a fala do RONDIN: as palavras surgem uma a uma, esmaecendo (paradas para quem pede menos movimento) */
 .entrar-fala {

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useState } from "react";
 import { PACOTES, RARIDADES, TOTAL_MASCOTES, chaveDe, nomeDe, porcento, preco, type Pacote } from "../data/loja";
 import { minhaColecao, type MascoteDaConta } from "../lib/api";
 import { contaRecusada, useConta } from "../lib/conta";
-import { CRIAR_LOJA, ENTRAR_LOJA } from "../lib/rotas";
+import { ENTRAR_LOJA } from "../lib/rotas";
 import { ContaMenu } from "./Conta";
 import { LojaAbrir, pacoteLembrado } from "./LojaAbrir";
 import { Barraca, Estrelas, Mascote } from "./LojaPartes";
@@ -31,17 +31,18 @@ function useColecao() {
   return [colecao, somar] as const;
 }
 
-/* no topo da loja: a conta (com o menu de abrir o app e sair) ou os botões de entrar e criar conta, que levam à tela do
-   RONDIN do site e voltam para cá */
+/* no topo da loja: a conta (com o menu de abrir o app e sair) ou um "Entrar" discreto, para quem quer entrar antes de
+   escolher (e ver a própria coleção). Criar conta fica dentro da tela do RONDIN, que tem as duas abas; quem toca em Comprar
+   sem conta já recebe o aviso com o botão (pedido do dono em 2026-11-18: dois botões grandes no topo eram redundância). */
 function ContaNoTopo() {
   const { conta, token } = useConta();
   if (conta) return <ContaMenu variante="loja" />;
-  if (token) return null;   // conferindo a conta: um instante, sem piscar os botões
+  if (token) return null;   // conferindo a conta: um instante, sem piscar o botão
   return (
-    <div className="loja-barra-acoes">
-      <a className="px-btn px-btn-escuro px-btn-p" href={ENTRAR_LOJA}>Entrar</a>
-      <a className="px-btn px-btn-p" href={CRIAR_LOJA}>Criar conta</a>
-    </div>
+    <a className="loja-entrar" href={ENTRAR_LOJA}>
+      <svg viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true"><path d="M3 0h3v1h1v3H6v1H3V4H2V1h1zM1 6h7v1h1v2H0V7h1z" fill="currentColor" /></svg>
+      Entrar
+    </a>
   );
 }
 
