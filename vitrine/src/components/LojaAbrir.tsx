@@ -15,7 +15,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PACOTES, RARIDADES, mascoteDe, porcento, preco, type Mascote as Sorteado, type Pacote, type PacoteId } from "../data/loja";
 import { ErroApi, abrirPacote, type MascoteDaConta } from "../lib/api";
 import { contaRecusada, rotuloDa, useConta } from "../lib/conta";
-import { clarao, clique, pararSuspense, recompensa, suspense, voltarMusica } from "../lib/somLoja";
+import { clarao, pararSuspense, recompensa, suspense, voltarMusica } from "../lib/somLoja";
 import { ENTRAR_LOJA } from "../lib/rotas";
 import { reduceMotion, vars } from "../lib/util";
 import { Estrelas, Mascote } from "./LojaPartes";
@@ -198,8 +198,6 @@ export function LojaAbrir({ pacote, aoFechar, aoGuardar, podeComprar = null }: {
       aria-labelledby="abre-titulo" onClose={aoFechar}
       onCancel={(e) => { if (fase === "abrindo") { e.preventDefault(); pular(); } }}
       onClick={(e) => { if (e.target === e.currentTarget && fase !== "abrindo") fechar(); }}
-      /* o clique de 8 bits em qualquer botão desta tela (pedido do dono em 2026-11-19; só aqui, não no resto da loja) */
-      onClickCapture={(e) => { const alvo = (e.target as Element).closest("button, a"); if (alvo && !alvo.matches(":disabled")) clique(); }}
     >
       <div className="abre-quadro">
         <button type="button" className="abre-fechar" aria-label="Fechar" onClick={fechar}>

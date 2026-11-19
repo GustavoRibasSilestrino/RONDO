@@ -4,8 +4,8 @@
    A compra é uma prévia: nada é cobrado. Comprar pede a conta do RONDO (a mesma do app); quem não está na conta entra pela
    tela do RONDIN do site (/entrar) e volta para cá com o pacote aberto de novo. Com a conta, a coleção acende os mascotes
    que ela já tem, com a quantidade. */
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
-import { alternarSom, assinarSom, pararMusica, somLigado, tocarMusica } from "../lib/somLoja";
+import { useCallback, useEffect, useState, useSyncExternalStore, type MouseEvent } from "react";
+import { alternarSom, assinarSom, clique, pararMusica, somLigado, tocarMusica } from "../lib/somLoja";
 import { PACOTES, RARIDADES, TOTAL_MASCOTES, chaveDe, nomeDe, porcento, preco, type Pacote } from "../data/loja";
 import { minhaColecao, type MascoteDaConta } from "../lib/api";
 import { contaRecusada, useConta } from "../lib/conta";
@@ -70,6 +70,14 @@ function BotaoSom() {
   );
 }
 
+/* o clique de 8 bits em qualquer botão ou link da loja, inclusive na tela de compra (pedido do dono em 2026-11-19: primeiro
+   só na tela de compra, depois em todo botão clicável dentro da loja). Um só ouvinte, na loja inteira; o botão apagado
+   ("Em breve") não faz som. No botão do som, ligar faz o clique e desligar já sai mudo. */
+function clicar(e: MouseEvent) {
+  const alvo = (e.target as Element).closest("button, a, [role='button']");
+  if (alvo && !alvo.matches(":disabled, [aria-disabled='true']")) clique();
+}
+
 export default function Loja() {
   /* a música de jogo toca enquanto a pessoa está na loja (pedido do dono em 2026-11-19) */
   useEffect(() => { tocarMusica(); return () => pararMusica(); }, []);
@@ -89,7 +97,7 @@ export default function Loja() {
   }, []);
 
   return (
-    <div className="loja">
+    <div className="loja" onClickCapture={clicar}>
       <header className="loja-barra">
         <a className="loja-voltar" href="/" aria-label="Voltar ao site do RONDO">
           <svg viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true"><path d="M4 1h1v1H4zM3 2h1v1H3zM2 3h1v1H2zM1 4h7v1H1zM2 5h1v1H2zM3 6h1v1H3zM4 7h1v1H4z" fill="currentColor" /></svg>
