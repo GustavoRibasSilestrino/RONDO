@@ -39,7 +39,7 @@ class Recompensa(Base):
 
 
 class Troca(Base):
-    """Uma proposta de troca de mascotes repetidos entre duas contas (desde 2026-11-19, feita na loja do site).
+    """Uma proposta de troca de mascotes repetidos entre duas contas (desde 2026-11-19, feita no app, na aba Coleção).
     Quem propõe oferece um repetido seu e pede um repetido da outra pessoa; ela aceita ou recusa. Só repetidos entram
     (quem tem dois ou mais do mesmo), então ninguém fica sem um mascote que tinha. Ao aceitar, cada conta perde um do que
     deu e ganha um do que recebeu, de uma vez só. Estados: pendente, aceita, recusada, cancelada (por quem propôs, ou

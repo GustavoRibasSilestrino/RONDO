@@ -136,7 +136,7 @@ TEXTOS = {
     "cheers": "{nome} deu cheers na sua publicação.",
     "comentario": "{nome} comentou na sua publicação.",
     "seguidor": "{nome} começou a seguir você.",
-    # trocas de mascotes repetidos, feitas na loja do site (rotas/loja.py)
-    "troca": "{nome} propôs uma troca de mascotes. Veja na loja do site.",
+    # trocas de mascotes repetidos, feitas na aba Coleção do app (rotas/loja.py)
+    "troca": "{nome} propôs uma troca de mascotes. Veja em Perfil, Coleção, Trocas.",
     "troca_ok": "{nome} aceitou a sua troca de mascotes.",
 }

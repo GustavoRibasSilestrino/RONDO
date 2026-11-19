@@ -271,7 +271,7 @@ def renomear(sessao: Session, usuario: Usuario, linha: int, coluna: int, nome: s
 
 # ---------- troca de repetidos entre duas contas (desde 2026-11-19, pedido do dono) ----------
 # Os pacotes podem trazer um mascote que a conta já tem. Com um repetido (dois ou mais do mesmo), a pessoa propõe uma troca
-# na loja do site: oferece um repetido seu e pede um repetido de outra pessoa. Só repetidos entram, dos dois lados, então
+# no app (aba Coleção): oferece um repetido seu e pede um repetido de outra pessoa. Só repetidos entram, dos dois lados, então
 # ninguém fica sem um mascote que tinha. Quem recebeu a proposta aceita ou recusa; quem propôs pode cancelar.
 LIMITE_PROPOSTAS = 20   # propostas pendentes que uma conta pode ter enviadas ao mesmo tempo
 

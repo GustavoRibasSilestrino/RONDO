@@ -145,19 +145,3 @@ export const minhaColecao = (token: string) => chamar<{ total: number; mascotes:
 
 /* o lápis (desde 2026-11-19): comprado aqui, fica guardado na conta; no app, na aba Coleção, dá um nome próprio a um mascote */
 export const comprarLapis = (token: string) => chamar<{ lapis: number }>("POST", "/loja/lapis", undefined, token);
-
-/* ---------- troca de repetidos (desde 2026-11-19) ----------
-   Quem tem um mascote repetido propõe uma troca: oferece um repetido seu e pede um repetido de outra pessoa. */
-export type Casa = { linha: number; coluna: number };
-export type PessoaDaTroca = { id: number; nome: string; arroba: string | null; foto: string | null };
-export type Troca = { id: number; estado: "pendente" | "aceita" | "recusada" | "cancelada"; recebida: boolean; pessoa: PessoaDaTroca; dou: Casa; recebo: Casa; criada_em: string };
-
-export const buscarPessoas = (token: string, q: string) =>
-  chamar<{ itens: PessoaDaTroca[] }>("GET", `/pessoas?limite=12&q=${encodeURIComponent(q)}`, undefined, token);
-export const repetidosDe = (token: string, pessoaId: number) =>
-  chamar<{ pessoa: PessoaDaTroca; mascotes: MascoteDaConta[] }>("GET", `/loja/repetidos/${pessoaId}`, undefined, token);
-export const minhasTrocas = (token: string) => chamar<{ trocas: Troca[]; pendentes_recebidas: number }>("GET", "/loja/trocas", undefined, token);
-export const proporTroca = (token: string, paraId: number, ofereco: Casa, peco: Casa) =>
-  chamar<Troca>("POST", "/loja/trocas", { para_id: paraId, ofereco, peco }, token);
-export const responderTroca = (token: string, id: number, acao: "aceitar" | "recusar" | "cancelar") =>
-  chamar<Troca>("POST", `/loja/trocas/${id}/${acao}`, undefined, token);

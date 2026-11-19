@@ -4,8 +4,7 @@
    A compra é uma prévia: nada é cobrado. Comprar pede a conta do RONDO (a mesma do app); quem não está na conta entra pela
    tela do RONDIN do site (/entrar) e volta para cá com o pacote aberto de novo. Com a conta, a coleção acende os mascotes
    que ela já tem, com a quantidade.
-   Desde 2026-11-19: o lápis de dar nome a um mascote (LojaLapis) e a troca de repetidos entre duas contas (LojaTrocas),
-   os dois em LojaExtras.tsx. */
+   Desde 2026-11-19: o lápis de dar nome a um mascote (LojaLapis, em LojaExtras.tsx). A troca de repetidos fica só no app. */
 import { useCallback, useEffect, useState, useSyncExternalStore, type MouseEvent } from "react";
 import { alternarSom, assinarSom, clique, pararMusica, somLigado, tocarMusica } from "../lib/somLoja";
 import { COLUNAS, PACOTES, RARIDADES, TOTAL_MASCOTES, chaveDe, nomeDe, porcento, preco, type Pacote } from "../data/loja";
@@ -14,7 +13,7 @@ import { contaRecusada, useConta } from "../lib/conta";
 import { ENTRAR_LOJA } from "../lib/rotas";
 import { ContaMenu } from "./Conta";
 import { LojaAbrir, pacoteLembrado } from "./LojaAbrir";
-import { LojaLapis, LojaTrocas } from "./LojaExtras";
+import { LojaLapis } from "./LojaExtras";
 import { Barraca, Estrelas, Mascote } from "./LojaPartes";
 import { Nome } from "./ui";
 
@@ -26,7 +25,6 @@ function useColecao() {
   const [nomes, setNomes] = useState<Map<string, string>>(() => new Map());   // os nomes próprios, dados com o lápis no app
   const [podeComprar, setPodeComprar] = useState<boolean | null>(null);
   const [lapis, setLapis] = useState(0);
-  const [vez, setVez] = useState(0);   // muda quando a coleção precisa ser lida de novo (depois de uma troca aceita)
   useEffect(() => {
     if (!token) { setColecao(new Map()); setNomes(new Map()); setPodeComprar(null); setLapis(0); return; }
     let vale = true;
@@ -40,10 +38,9 @@ function useColecao() {
       })
       .catch((e: { status?: number }) => { if (vale && e.status === 401) contaRecusada(); });
     return () => { vale = false; };
-  }, [token, vez]);
+  }, [token]);
   const somar = useCallback((m: MascoteDaConta) => setColecao((c) => new Map(c).set(chaveDe(m.linha, m.coluna), m.quantidade)), []);
-  const reler = useCallback(() => setVez((v) => v + 1), []);
-  return { colecao, nomes, somar, podeComprar, lapis, setLapis, reler };
+  return { colecao, nomes, somar, podeComprar, lapis, setLapis };
 }
 
 /* no topo da loja: a conta (com o menu de abrir o app e sair) ou um "Entrar" discreto, para quem quer entrar antes de
@@ -91,7 +88,7 @@ export default function Loja() {
   const [escolhido, setEscolhido] = useState<Pacote | null>(null);
   const fechar = useCallback(() => setEscolhido(null), []);
   const { conta } = useConta();
-  const { colecao, nomes, somar, podeComprar, lapis, setLapis, reler } = useColecao();
+  const { colecao, nomes, somar, podeComprar, lapis, setLapis } = useColecao();
   useEffect(() => { document.title = "Loja de pacotinhos · RONDO"; }, []);
 
   /* de volta da tela de entrar: o pacote que a pessoa ia comprar abre de novo, já com a conta (se ela voltou sem entrar,
@@ -161,8 +158,8 @@ export default function Loja() {
             {/* a chance de repetir fica dita junto das chances, sem letra miúda (pedido do dono em 2026-11-19) */}
             <p className="loja-nota loja-repetido">
               <b>Pode vir repetido.</b> O sorteio é entre todos os browniezinhos da raridade que sair, então um pacotinho pode
-              trazer um que você já tem. Com um repetido, dá para <a href="#loja-trocas">propor uma troca</a> com outra
-              pessoa, aqui mesmo na loja.
+              trazer um que você já tem. Com um repetido, dá para propor uma troca com outra pessoa no app, em Perfil,
+              Coleção: toque no mascote repetido e escolha "Propor troca".
             </p>
           </div>
         </section>
@@ -199,7 +196,6 @@ export default function Loja() {
           </div>
         </section>
 
-        <LojaTrocas colecao={colecao} aoMudar={reler} />
       </main>
 
       <footer className="loja-rodape">
