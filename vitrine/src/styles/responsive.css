@@ -78,10 +78,7 @@ img, svg, video, canvas { max-width: 100%; }
   .logo .logo-mark { height: 1.1rem; }
   .footer .logo svg { height: 1.6rem; }
   .burger { width: max(44px, 2.69rem); height: max(44px, 2.69rem); margin-right: -.6rem; }
-  .burger span { width: 1.34rem; height: .86rem; }
-  .burger i:nth-child(2) { top: .38rem; }
-  .burger i:nth-child(3) { top: .76rem; }
-  .burger[aria-expanded="true"] i:nth-child(1), .burger[aria-expanded="true"] i:nth-child(3) { top: .38rem; }
+  .burger span { --u: .058rem; }   /* os três riscos do app, proporcionais à largura do celular (24 unidades = 1,4rem) */
   .mnav-list a { min-height: max(44px, 3.3rem); }
   .mnav-list a svg { width: 1.34rem; height: 1.34rem; }
   .mnav-cta .btn { min-height: max(44px, 3.17rem); }

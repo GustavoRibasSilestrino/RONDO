@@ -95,7 +95,13 @@
 @keyframes tenda-pula { 50% { transform: translateY(-3px); } }
 .tenda-btn-celular { display: none; }
 @media (max-width: 980px) {
-  .tenda-btn-celular { display: inline-flex; margin-left: auto; padding: 0 .3rem; background: rgba(255, 200, 61, .14); }
+  /* no celular a tenda fica menor (pedido do dono em 2026-11-19), mas o toque continua com 44 px de área */
+  .tenda-btn-celular {
+    display: inline-flex; margin-left: auto; height: 34px; padding: 0 .2rem; background: rgba(255, 200, 61, .14);
+    position: relative;
+  }
+  .tenda-btn-celular::after { content: ""; position: absolute; inset: -5px -3px; }   /* a área de toque, invisível */
+  .tenda-btn-celular .tenda-btn-icone { width: 30px; height: 27px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .tenda-btn-icone i:nth-child(2), .tenda-btn-icone i:nth-child(6) { opacity: .9; bottom: 78%; }

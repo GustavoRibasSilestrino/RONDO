@@ -18,17 +18,19 @@
     display: grid; place-items: center; width: 44px; height: 44px; margin-right: -10px;
     border-radius: 3px; color: var(--ink); -webkit-tap-highlight-color: transparent;
   }
-  .burger span { position: relative; display: block; width: 22px; height: 14px; }
+  /* Os três riscos iguais aos do app (app/src/componentes/IconeMenu.tsx, pedido do dono em 2026-11-19): três barras grossas
+     de ponta redonda; a de cima e a de baixo alinhadas à direita, a do meio mais curta, mais clara e puxada para a esquerda.
+     Com o cursor em cima, no toque ou com o menu aberto, a do meio desliza para a direita e acende, alinhando com as outras.
+     Medidas em unidades do ícone de 24 (--u): barra de 3,4, longas de 18, a do meio de 15, vão de 2,8. */
+  .burger span { --u: 1px; display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * 2.8); width: calc(var(--u) * 24); height: calc(var(--u) * 24); }
   .burger i {
-    position: absolute; left: 0; width: 100%; height: 1.5px; border-radius: 2px; background: currentColor;
-    transition: top .3s var(--ease), transform .3s var(--ease), opacity .2s;
+    display: block; align-self: flex-end; width: calc(var(--u) * 18); height: calc(var(--u) * 3.4); border-radius: 99px; background: currentColor;
+    transition: translate .18s cubic-bezier(.16, 1, .3, 1), opacity .18s cubic-bezier(.16, 1, .3, 1);
   }
-  .burger i:nth-child(1) { top: 0; }
-  .burger i:nth-child(2) { top: 6.25px; }
-  .burger i:nth-child(3) { top: 12.5px; }
-  .burger[aria-expanded="true"] i:nth-child(1) { top: 6.25px; transform: rotate(45deg); }
-  .burger[aria-expanded="true"] i:nth-child(2) { opacity: 0; }
-  .burger[aria-expanded="true"] i:nth-child(3) { top: 6.25px; transform: rotate(-45deg); }
+  .burger i:nth-child(2) { align-self: flex-start; width: calc(var(--u) * 15); opacity: .5; }
+  .burger:hover i:nth-child(2), .burger:active i:nth-child(2), .burger:focus-visible i:nth-child(2), .burger[aria-expanded="true"] i:nth-child(2) {
+    translate: calc(var(--u) * 9) 0; opacity: 1; transition-duration: .22s;
+  }
 
   /* o menu fica por baixo da barra, para o "x" continuar à mão */
   .mnav {
