@@ -83,7 +83,7 @@ class Notificacao(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     usuario_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), index=True)   # quem recebe
     ator_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"))
-    tipo: Mapped[str] = mapped_column(String(12))   # cheers | comentario | seguidor
+    tipo: Mapped[str] = mapped_column(String(12))   # cheers | comentario | seguidor | troca | troca_ok
     post_id: Mapped[int | None] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"), nullable=True)
     lida: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_agora)

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_RESGATES, RETENCAO_STORIES, RETENCAO_SUPORTE
 from app.modelos import (
-    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Mascote, Membro, MensagemSuporte, Notificacao, Penalidade, Post, Recompensa, RedefinicaoSenha, Resgate, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
+    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Mascote, Membro, MensagemSuporte, Notificacao, Penalidade, Post, Recompensa, RedefinicaoSenha, Resgate, Seguidor, Story, StoryReacao, StoryVisto, Troca, Usuario,
 )
 from app.servicos.loja import RARIDADES
 from app.servicos import midia as servico_midia
@@ -58,9 +58,16 @@ def exportar(sessao: Session, u: Usuario) -> dict:
             {"plano": a.plano_id, "status": a.status, "criado_em": _data(a.criado_em)} for a in todos(Assinatura, Assinatura.usuario_id == uid)
         ],
         "mascotes_da_loja": [
-            {"linha": m.linha, "coluna": m.coluna, "raridade": RARIDADES[m.linha][0], "quantidade": m.quantidade,
+            {"linha": m.linha, "coluna": m.coluna, "raridade": RARIDADES[m.linha][0], "quantidade": m.quantidade, "nome": m.nome,
              "primeiro_em": _data(m.primeiro_em), "ultimo_em": _data(m.ultimo_em)}
             for m in todos(Mascote, Mascote.usuario_id == uid)
+        ],
+        "lapis_da_loja": u.lapis,
+        "trocas_de_mascotes": [
+            {"sentido": "enviada" if t.de_id == uid else "recebida", "estado": t.estado,
+             "oferecido": {"linha": t.of_linha, "coluna": t.of_coluna}, "pedido": {"linha": t.pede_linha, "coluna": t.pede_coluna},
+             "criada_em": _data(t.criada_em), "respondida_em": _data(t.respondida_em)}
+            for t in todos(Troca, or_(Troca.de_id == uid, Troca.para_id == uid))
         ],
         "brownies_de_recompensa": [
             {"chave": r.chave, "linha": r.linha, "coluna": r.coluna, "em": _data(r.em)} for r in todos(Recompensa, Recompensa.usuario_id == uid)
@@ -107,6 +114,7 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
     sessao.execute(delete(DadoUsuario).where(DadoUsuario.usuario_id == uid))
     sessao.execute(delete(Mascote).where(Mascote.usuario_id == uid))
     sessao.execute(delete(Recompensa).where(Recompensa.usuario_id == uid))
+    sessao.execute(delete(Troca).where(or_(Troca.de_id == uid, Troca.para_id == uid)))
     sessao.execute(delete(Resgate).where(Resgate.usuario_id == uid))
     sessao.execute(delete(MensagemSuporte).where(MensagemSuporte.usuario_id == uid))
     sessao.execute(delete(Consentimento).where(Consentimento.usuario_id == uid))

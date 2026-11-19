@@ -92,6 +92,7 @@ class UsuarioOut(BaseModel):
     bio: str = ""
     foto: str | None = None
     mascote: str | None = None   # o mascote que a conta mostra, "linha-coluna" na folha de mascotes (vazio = nenhum)
+    mascote_nome: str | None = None   # o nome que a conta deu a ele com o lápis (vazio = o nome de fábrica)
     marketing: bool = False
     # a política de conteúdo: avisos do ciclo (0 a 3), suspensões tomadas e até quando está suspensa
     avisos: int = 0
@@ -196,6 +197,7 @@ class MascoteOut(BaseModel):
     coluna: int
     raridade: str
     quantidade: int
+    nome: str | None = None      # o nome que a conta deu a ele com o lápis (vazio = o nome de fábrica)
 
 
 class ColecaoOut(BaseModel):
@@ -203,6 +205,63 @@ class ColecaoOut(BaseModel):
     mascotes: list[MascoteOut]   # os que a conta já tem, cada um uma vez
     pode_comprar: bool = False   # a loja está aberta para esta conta (fechada, só o dono compra)
     escolhido: str | None = None # o mascote que a conta mostra, "linha-coluna"
+    lapis: int = 0               # lápis guardados na conta (cada um dá um nome novo a um mascote)
+
+
+class LapisOut(BaseModel):
+    lapis: int                   # quantos lápis a conta tem agora
+
+
+class NomeMascoteIn(BaseModel):
+    linha: int = Field(ge=0, le=4)
+    coluna: int = Field(ge=0, le=13)
+    nome: str = Field(min_length=1, max_length=40)   # o tamanho de verdade (2 a 20) e as letras são conferidos no serviço
+
+
+class NomeMascoteOut(BaseModel):
+    linha: int
+    coluna: int
+    nome: str
+    lapis: int                   # lápis que sobraram
+
+
+class CasaMascote(BaseModel):
+    """Um mascote pela posição na folha."""
+    linha: int = Field(ge=0, le=4)
+    coluna: int = Field(ge=0, le=13)
+
+
+class PessoaDaTroca(BaseModel):
+    id: int
+    nome: str
+    arroba: str | None = None
+    foto: str | None = None
+
+
+class RepetidosOut(BaseModel):
+    pessoa: PessoaDaTroca
+    mascotes: list[MascoteOut]   # só os que ela tem repetidos (dois ou mais)
+
+
+class TrocaIn(BaseModel):
+    para_id: int
+    ofereco: CasaMascote         # um repetido de quem propõe
+    peco: CasaMascote            # um repetido da outra pessoa
+
+
+class TrocaOut(BaseModel):
+    id: int
+    estado: Literal["pendente", "aceita", "recusada", "cancelada"]
+    recebida: bool               # verdadeiro = a proposta veio de outra pessoa para esta conta
+    pessoa: PessoaDaTroca        # a outra pessoa
+    dou: CasaMascote             # o que esta conta entrega se a troca acontecer
+    recebo: CasaMascote          # e o que ela ganha
+    criada_em: datetime
+
+
+class TrocasOut(BaseModel):
+    trocas: list[TrocaOut]
+    pendentes_recebidas: int     # quantas esperam a resposta desta conta
 
 
 class RecompensaIn(BaseModel):

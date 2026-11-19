@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 
 from app.banco import Base, Sessao, engine
 from app.main import app
-from app.modelos import Mascote, Resgate, Usuario
+from app.modelos import Bloqueio, Mascote, Notificacao, Resgate, Troca, Usuario
 from app.servicos import loja
 from app.servicos.conta import limpar_vencidos
 
@@ -70,7 +70,7 @@ def test_loja_fechada_so_o_dono_compra(cliente, monkeypatch):
         s.commit()
     r = cliente.post("/loja/abrir", json={"pacote": "ouro"}, headers=ana)
     assert r.status_code == 403 and "em breve" in r.json()["detail"]
-    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 66, "mascotes": [], "pode_comprar": False, "escolhido": None}
+    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 66, "mascotes": [], "pode_comprar": False, "escolhido": None, "lapis": 0}
     assert cliente.get("/loja/colecao", headers=dono).json()["pode_comprar"] is True
     assert _comprar(cliente, dono)["quantidade"] == 1
     with Sessao() as s:
@@ -99,8 +99,8 @@ def test_mascote_repetido_soma_na_mesma_linha(cliente, monkeypatch):
     monkeypatch.setattr(loja, "sortear", lambda pacote: (4, 3))
     h = _conta(cliente)
     assert _comprar(cliente, h)["quantidade"] == 1
-    assert _comprar(cliente, h) == {"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2}
-    assert cliente.get("/loja/colecao", headers=h).json()["mascotes"] == [{"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2}]
+    assert _comprar(cliente, h) == {"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2, "nome": None}
+    assert cliente.get("/loja/colecao", headers=h).json()["mascotes"] == [{"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2, "nome": None}]
     with Sessao() as s:
         assert s.query(Mascote).count() == 1
 
@@ -117,7 +117,7 @@ def test_codigo_vale_uma_vez_e_vai_para_quem_resgata(cliente):
     codigo = _codigo(linha=2, coluna=5)
     bagunçado = "  " + codigo.lower().replace("-", " ") + " "   # digitado de qualquer jeito
     r = cliente.post("/loja/resgatar", json={"codigo": bagunçado}, headers=ana)
-    assert r.status_code == 200 and r.json() == {"linha": 2, "coluna": 5, "raridade": "rara", "quantidade": 1}
+    assert r.status_code == 200 and r.json() == {"linha": 2, "coluna": 5, "raridade": "rara", "quantidade": 1, "nome": None}
     # a mesma conta de novo: não soma outra vez
     assert cliente.post("/loja/resgatar", json={"codigo": codigo}, headers=ana).json()["quantidade"] == 1
     # outra conta: recusado
@@ -242,3 +242,207 @@ def test_escolher_mascote_so_da_colecao(cliente):
     assert cliente.get("/loja/colecao", headers=h).json()["escolhido"] is None
     assert cliente.put("/loja/mascote", json={"linha": m["linha"], "coluna": m["coluna"]}, headers=h).status_code == 204
     assert cliente.get("/auth/eu", headers=h).json()["mascote"] == f"{m['linha']}-{m['coluna']}"
+
+
+# ---------- o lápis e o nome próprio do mascote (2026-11-19) ----------
+def _id(email: str) -> int:
+    with Sessao() as s:
+        return s.query(Usuario).filter_by(email=email).one().id
+
+
+def _dar(email: str, linha: int, coluna: int, quantidade: int = 1) -> None:
+    """põe um mascote direto na coleção da conta (para os testes não dependerem do sorteio)"""
+    agora = datetime.now(timezone.utc)
+    with Sessao() as s:
+        s.add(Mascote(usuario_id=s.query(Usuario).filter_by(email=email).one().id, linha=linha, coluna=coluna, quantidade=quantidade, primeiro_em=agora, ultimo_em=agora))
+        s.commit()
+
+
+def test_lapis_pede_conta_e_loja_aberta(cliente, monkeypatch):
+    assert cliente.post("/loja/lapis").status_code == 401
+    h = _conta(cliente)
+    assert cliente.post("/loja/lapis", headers=h).json() == {"lapis": 1}
+    assert cliente.post("/loja/lapis", headers=h).json() == {"lapis": 2}
+    assert cliente.get("/loja/colecao", headers=h).json()["lapis"] == 2
+    monkeypatch.setattr(loja, "ABERTA", False)   # loja fechada: quem não é o dono não compra o lápis
+    assert cliente.post("/loja/lapis", headers=h).status_code == 403
+    assert cliente.get("/loja/colecao", headers=h).json()["lapis"] == 2
+
+
+def test_dar_nome_gasta_um_lapis(cliente):
+    h = _conta(cliente)
+    _dar("ana@x.com", 2, 13)
+    # sem lápis não dá nome
+    assert cliente.put("/loja/nome", json={"linha": 2, "coluna": 13, "nome": "Bolota"}, headers=h).status_code == 409
+    cliente.post("/loja/lapis", headers=h)
+    r = cliente.put("/loja/nome", json={"linha": 2, "coluna": 13, "nome": "  Bolota   do  Mato "}, headers=h)
+    assert r.status_code == 200 and r.json() == {"linha": 2, "coluna": 13, "nome": "Bolota do Mato", "lapis": 0}
+    m = cliente.get("/loja/colecao", headers=h).json()["mascotes"][0]
+    assert m["nome"] == "Bolota do Mato"
+    # o lápis acabou: outro nome pede outro lápis
+    assert cliente.put("/loja/nome", json={"linha": 2, "coluna": 13, "nome": "Outro"}, headers=h).status_code == 409
+
+
+def test_nome_recusado_nao_gasta_o_lapis(cliente):
+    h = _conta(cliente)
+    _dar("ana@x.com", 0, 2)
+    cliente.post("/loja/lapis", headers=h)
+    for ruim in ("A", "x" * 21, "<b>oi</b>", "-começa errado"):
+        assert cliente.put("/loja/nome", json={"linha": 0, "coluna": 2, "nome": ruim}, headers=h).status_code == 422, ruim
+    # mascote que a conta não tem, e um mascote tirado
+    assert cliente.put("/loja/nome", json={"linha": 4, "coluna": 0, "nome": "Rei"}, headers=h).status_code == 404
+    assert cliente.put("/loja/nome", json={"linha": 1, "coluna": 6, "nome": "Rei"}, headers=h).status_code == 404
+    assert cliente.get("/loja/colecao", headers=h).json()["lapis"] == 1
+
+
+def test_nome_ofensivo_e_recusado(cliente):
+    from app.servicos.palavras_bloqueadas import TODAS
+    h = _conta(cliente)
+    _dar("ana@x.com", 0, 2)
+    cliente.post("/loja/lapis", headers=h)
+    palavra = sorted(p for p in TODAS if p.isalpha() and 3 <= len(p) <= 12)[0]
+    assert cliente.put("/loja/nome", json={"linha": 0, "coluna": 2, "nome": palavra}, headers=h).status_code == 422
+    assert cliente.get("/loja/colecao", headers=h).json()["lapis"] == 1
+
+
+def test_nome_do_mascote_escolhido_vai_com_a_pessoa(cliente):
+    h = _conta(cliente)
+    _dar("ana@x.com", 0, 2)
+    _dar("ana@x.com", 3, 0)
+    cliente.post("/loja/lapis", headers=h)
+    assert cliente.put("/loja/mascote", json={"linha": 0, "coluna": 2}, headers=h).status_code == 204
+    assert cliente.get("/auth/eu", headers=h).json()["mascote_nome"] is None
+    cliente.put("/loja/nome", json={"linha": 0, "coluna": 2, "nome": "Tempero"}, headers=h)
+    assert cliente.get("/auth/eu", headers=h).json()["mascote_nome"] == "Tempero"
+    # trocar para um mascote sem nome próprio limpa o nome; voltar traz de volta
+    cliente.put("/loja/mascote", json={"linha": 3, "coluna": 0}, headers=h)
+    assert cliente.get("/auth/eu", headers=h).json()["mascote_nome"] is None
+    cliente.put("/loja/mascote", json={"linha": 0, "coluna": 2}, headers=h)
+    assert cliente.get("/auth/eu", headers=h).json()["mascote_nome"] == "Tempero"
+    cliente.put("/loja/mascote", json={"linha": None, "coluna": None}, headers=h)
+    assert cliente.get("/auth/eu", headers=h).json()["mascote_nome"] is None
+
+
+# ---------- troca de repetidos (2026-11-19) ----------
+def _dupla(cliente):
+    """Ana tem o (0, 2) repetido e a Bia tem o (2, 5) repetido."""
+    ha, hb = _conta(cliente, "ana@x.com"), _conta(cliente, "bia@x.com")
+    _dar("ana@x.com", 0, 2, 2)
+    _dar("bia@x.com", 2, 5, 3)
+    return ha, hb, _id("ana@x.com"), _id("bia@x.com")
+
+
+def _propor(cliente, h, para_id, ofereco=(0, 2), peco=(2, 5)):
+    return cliente.post("/loja/trocas", json={"para_id": para_id, "ofereco": {"linha": ofereco[0], "coluna": ofereco[1]}, "peco": {"linha": peco[0], "coluna": peco[1]}}, headers=h)
+
+
+def _tem(cliente, h) -> dict:
+    return {(m["linha"], m["coluna"]): m["quantidade"] for m in cliente.get("/loja/colecao", headers=h).json()["mascotes"]}
+
+
+def test_repetidos_so_mostra_quem_tem_dois_ou_mais(cliente):
+    ha, hb, a, b = _dupla(cliente)
+    _dar("bia@x.com", 4, 0, 1)
+    r = cliente.get(f"/loja/repetidos/{b}", headers=ha)
+    assert r.status_code == 200 and [(m["linha"], m["coluna"], m["quantidade"]) for m in r.json()["mascotes"]] == [(2, 5, 3)]
+    assert r.json()["pessoa"]["nome"] == "Bia"
+    assert cliente.get(f"/loja/repetidos/{b}").status_code == 401
+    assert cliente.get("/loja/repetidos/999999", headers=ha).status_code == 404
+
+
+def test_troca_aceita_muda_os_dois_mascotes_de_conta(cliente):
+    ha, hb, a, b = _dupla(cliente)
+    r = _propor(cliente, ha, b)
+    assert r.status_code == 201, r.text
+    t = r.json()
+    assert t["estado"] == "pendente" and t["recebida"] is False and t["dou"] == {"linha": 0, "coluna": 2} and t["recebo"] == {"linha": 2, "coluna": 5}
+    # a Bia vê a proposta do lado dela, com o aviso nas notificações
+    lista = cliente.get("/loja/trocas", headers=hb).json()
+    assert lista["pendentes_recebidas"] == 1
+    vista = lista["trocas"][0]
+    assert vista["recebida"] is True and vista["pessoa"]["nome"] == "Ana" and vista["dou"] == {"linha": 2, "coluna": 5} and vista["recebo"] == {"linha": 0, "coluna": 2}
+    with Sessao() as s:
+        assert s.query(Notificacao).filter_by(usuario_id=b, tipo="troca").count() == 1
+    # só quem recebeu aceita
+    assert cliente.post(f"/loja/trocas/{t['id']}/aceitar", headers=ha).status_code == 404
+    ok = cliente.post(f"/loja/trocas/{t['id']}/aceitar", headers=hb)
+    assert ok.status_code == 200 and ok.json()["estado"] == "aceita"
+    assert _tem(cliente, ha) == {(0, 2): 1, (2, 5): 1}
+    assert _tem(cliente, hb) == {(0, 2): 1, (2, 5): 2}
+    # não dá para responder duas vezes
+    assert cliente.post(f"/loja/trocas/{t['id']}/aceitar", headers=hb).status_code == 404
+    assert cliente.post(f"/loja/trocas/{t['id']}/recusar", headers=hb).status_code == 404
+    with Sessao() as s:
+        assert s.query(Notificacao).filter_by(usuario_id=a, tipo="troca_ok").count() == 1
+    assert cliente.get("/loja/trocas", headers=hb).json()["pendentes_recebidas"] == 0
+
+
+def test_troca_so_com_repetidos_dos_dois_lados(cliente):
+    ha, hb, a, b = _dupla(cliente)
+    _dar("ana@x.com", 1, 0, 1)   # a Ana tem só um deste
+    _dar("bia@x.com", 3, 0, 1)   # e a Bia só um deste
+    assert _propor(cliente, ha, b, ofereco=(1, 0)).status_code == 409        # oferecer o que não é repetido
+    assert _propor(cliente, ha, b, peco=(3, 0)).status_code == 409           # pedir o único da outra pessoa
+    assert _propor(cliente, ha, b, ofereco=(4, 4)).status_code == 409        # oferecer o que nem tem
+    assert _propor(cliente, ha, a).status_code == 409                        # trocar consigo mesma
+    assert _propor(cliente, ha, b, ofereco=(0, 2), peco=(0, 2)).status_code == 409   # o mesmo mascote dos dois lados
+    assert _propor(cliente, ha, 999999).status_code == 404
+    assert _propor(cliente, ha, b).status_code == 201
+    assert _propor(cliente, ha, b).status_code == 409                        # a mesma proposta de novo
+    with Sessao() as s:
+        assert s.query(Troca).count() == 1
+
+
+def test_recusar_e_cancelar_nao_mexem_na_colecao(cliente):
+    ha, hb, a, b = _dupla(cliente)
+    t1 = _propor(cliente, ha, b).json()
+    assert cliente.post(f"/loja/trocas/{t1['id']}/recusar", headers=hb).json()["estado"] == "recusada"
+    t2 = _propor(cliente, ha, b).json()
+    assert cliente.post(f"/loja/trocas/{t2['id']}/cancelar", headers=hb).status_code == 404   # só quem propôs cancela
+    assert cliente.post(f"/loja/trocas/{t2['id']}/cancelar", headers=ha).json()["estado"] == "cancelada"
+    assert cliente.post(f"/loja/trocas/{t2['id']}/aceitar", headers=hb).status_code == 404
+    assert _tem(cliente, ha) == {(0, 2): 2} and _tem(cliente, hb) == {(2, 5): 3}
+
+
+def test_aceitar_quando_o_repetido_ja_foi_embora_cancela_a_proposta(cliente):
+    ha, hb, a, b = _dupla(cliente)
+    hc = _conta(cliente, "caio@x.com")
+    _dar("caio@x.com", 2, 5, 2)
+    c = _id("caio@x.com")
+    # a Ana propõe a mesma oferta para a Bia e para o Caio; o Caio aceita primeiro e a Ana fica só com um
+    para_bia = _propor(cliente, ha, b).json()
+    para_caio = _propor(cliente, ha, c).json()
+    assert cliente.post(f"/loja/trocas/{para_caio['id']}/aceitar", headers=hc).status_code == 200
+    r = cliente.post(f"/loja/trocas/{para_bia['id']}/aceitar", headers=hb)
+    assert r.status_code == 409
+    assert _tem(cliente, hb) == {(2, 5): 3}          # nada mudou para a Bia
+    assert _tem(cliente, ha) == {(0, 2): 1, (2, 5): 1}
+    estados = {t["id"]: t["estado"] for t in cliente.get("/loja/trocas", headers=ha).json()["trocas"]}
+    assert estados == {para_bia["id"]: "cancelada", para_caio["id"]: "aceita"}
+
+
+def test_bloqueio_impede_a_troca(cliente):
+    ha, hb, a, b = _dupla(cliente)
+    with Sessao() as s:
+        s.add(Bloqueio(quem_id=b, bloqueado_id=a))
+        s.commit()
+    assert cliente.get(f"/loja/repetidos/{b}", headers=ha).status_code == 404
+    assert _propor(cliente, ha, b).status_code == 404
+
+
+def test_exportar_e_apagar_levam_nome_lapis_e_trocas(cliente):
+    ha, hb, a, b = _dupla(cliente)
+    cliente.post("/loja/lapis", headers=ha)
+    cliente.post("/loja/lapis", headers=ha)
+    cliente.put("/loja/nome", json={"linha": 0, "coluna": 2, "nome": "Tempero"}, headers=ha)
+    _propor(cliente, ha, b)
+    exportado = cliente.get("/me/exportar", headers=ha).json()
+    assert exportado["lapis_da_loja"] == 1
+    assert exportado["mascotes_da_loja"][0]["nome"] == "Tempero"
+    assert [(t["sentido"], t["estado"]) for t in exportado["trocas_de_mascotes"]] == [("enviada", "pendente")]
+    assert cliente.get("/me/exportar", headers=hb).json()["trocas_de_mascotes"][0]["sentido"] == "recebida"
+    assert cliente.request("DELETE", "/me", json={"senha": "segredo1"}, headers=ha).status_code == 200
+    with Sessao() as s:
+        assert s.query(Troca).count() == 0
+    assert cliente.get("/loja/trocas", headers=hb).json() == {"trocas": [], "pendentes_recebidas": 0}
+

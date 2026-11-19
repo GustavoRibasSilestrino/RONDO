@@ -25,6 +25,11 @@ class Usuario(Base):
     # o mascote que a conta mostra (ao lado da foto, nas publicações e passeando pelo app), como "linha-coluna" na folha de
     # mascotes; vazio = nenhum. O primeiro mascote que a conta ganha vira o dela; depois ela troca na coleção (2026-11-19)
     mascote: Mapped[str | None] = mapped_column(String(5), nullable=True)
+    # o nome que a conta deu ao mascote que ela mostra (cópia de mascotes.nome, para ir junto com a pessoa nas publicações
+    # e no perfil sem outra consulta); vazio = o nome de fábrica (2026-11-19)
+    mascote_nome: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    # lápis da loja que a conta tem guardados: cada um dá um nome novo a um mascote da coleção (2026-11-19)
+    lapis: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     # só para saber se é menor de idade (precisa de responsável); contas antigas ficam sem
     nascimento: Mapped[date | None] = mapped_column(Date, nullable=True)

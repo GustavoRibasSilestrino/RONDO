@@ -1,7 +1,7 @@
 from app.modelos.assinatura import Assinatura
 from app.modelos.consentimento import Consentimento
 from app.modelos.dado_usuario import DadoUsuario
-from app.modelos.mascote import Mascote, Recompensa, Resgate
+from app.modelos.mascote import Mascote, Recompensa, Resgate, Troca
 from app.modelos.profissional import Profissional
 from app.modelos.redefinicao import RedefinicaoSenha
 from app.modelos.suporte import MensagemSuporte

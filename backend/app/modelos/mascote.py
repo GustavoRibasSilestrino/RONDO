@@ -18,6 +18,8 @@ class Mascote(Base):
     linha: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     coluna: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     quantidade: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
+    # o nome que a conta deu a este mascote com um lápis da loja (desde 2026-11-19); vazio = o nome de fábrica
+    nome: Mapped[str | None] = mapped_column(String(24), nullable=True)
     primeiro_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     ultimo_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
@@ -34,6 +36,28 @@ class Recompensa(Base):
     linha: Mapped[int] = mapped_column(Integer)
     coluna: Mapped[int] = mapped_column(Integer)
     em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+
+class Troca(Base):
+    """Uma proposta de troca de mascotes repetidos entre duas contas (desde 2026-11-19, feita na loja do site).
+    Quem propõe oferece um repetido seu e pede um repetido da outra pessoa; ela aceita ou recusa. Só repetidos entram
+    (quem tem dois ou mais do mesmo), então ninguém fica sem um mascote que tinha. Ao aceitar, cada conta perde um do que
+    deu e ganha um do que recebeu, de uma vez só. Estados: pendente, aceita, recusada, cancelada (por quem propôs, ou
+    porque um dos dois deixou de ter o repetido)."""
+
+    __tablename__ = "trocas"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    de_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), index=True)     # quem propôs
+    para_id: Mapped[int] = mapped_column(ForeignKey("usuarios.id", ondelete="CASCADE"), index=True)   # quem recebeu
+    # o que quem propôs oferece e o que pede em troca (posições na folha de mascotes)
+    of_linha: Mapped[int] = mapped_column(Integer)
+    of_coluna: Mapped[int] = mapped_column(Integer)
+    pede_linha: Mapped[int] = mapped_column(Integer)
+    pede_coluna: Mapped[int] = mapped_column(Integer)
+    estado: Mapped[str] = mapped_column(String(10), default="pendente", server_default="pendente")
+    criada_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    respondida_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class Resgate(Base):

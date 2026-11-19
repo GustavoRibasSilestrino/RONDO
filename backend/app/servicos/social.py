@@ -75,7 +75,7 @@ def pessoas_out(sessao: Session, uid: int, ids: set[int]) -> dict[int, PessoaOut
     usuarios = sessao.scalars(select(Usuario).where(Usuario.id.in_(ids))).all()
     sigo = set(sessao.scalars(select(Seguidor.seguido_id).where(Seguidor.seguidor_id == uid, Seguidor.seguido_id.in_(ids))))
     return {
-        u.id: PessoaOut(id=u.id, nome=u.nome, arroba=u.arroba, selo=u.selo, verificado=u.tem_selo, seguindo=u.id in sigo, voce=u.id == uid, foto=u.foto, mascote=u.mascote)
+        u.id: PessoaOut(id=u.id, nome=u.nome, arroba=u.arroba, selo=u.selo, verificado=u.tem_selo, seguindo=u.id in sigo, voce=u.id == uid, foto=u.foto, mascote=u.mascote, mascote_nome=u.mascote_nome)
         for u in usuarios
     }
 
@@ -136,4 +136,7 @@ TEXTOS = {
     "cheers": "{nome} deu cheers na sua publicação.",
     "comentario": "{nome} comentou na sua publicação.",
     "seguidor": "{nome} começou a seguir você.",
+    # trocas de mascotes repetidos, feitas na loja do site (rotas/loja.py)
+    "troca": "{nome} propôs uma troca de mascotes. Veja na loja do site.",
+    "troca_ok": "{nome} aceitou a sua troca de mascotes.",
 }
