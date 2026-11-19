@@ -72,10 +72,25 @@ function Telas() {
 if (!legal) interceptarLinks();
 acordarServidor();   // o app vai precisar dele daqui a pouco (lib/api.ts)
 
-createRoot(document.getElementById("root")!).render(
+const raiz = document.getElementById("root")!;
+const montar = () => createRoot(raiz).render(
   <StrictMode>
     <a className="pular" href="#conteudo">Pular para o conteúdo</a>
     {legal ? <legal.Comp /> : <Telas />}
     <AvisoCookies />
   </StrictMode>,
 );
+
+/* Na página principal, o index.html já pôs a casca do topo (a foto) no lugar (public/assets/casca-1.js). Montar o site leva
+   uns 100 a 200 ms com a thread ocupada, e o navegador só desenha depois: sem esperar, a casca nunca chegava a aparecer e a
+   tela ficava preta até o site inteiro estar pronto (medido em 2026-11-19: primeira pintura aos 300 ms, com tudo em cache).
+   Por isso o site espera o navegador desenhar um quadro com a casca e só então monta. O prazo de 150 ms é para a aba aberta
+   em segundo plano, onde o navegador não desenha quadros: lá o site monta do mesmo jeito. */
+if (raiz.querySelector(":scope > .hero[aria-hidden]")) {
+  let feito = false;
+  const umaVez = () => { if (!feito) { feito = true; montar(); } };
+  requestAnimationFrame(() => requestAnimationFrame(umaVez));
+  setTimeout(umaVez, 150);
+} else {
+  montar();
+}
