@@ -109,7 +109,7 @@ export function Planos() {
   return (
     <Section id="planos" tone="tint">
       <div className="wrap">
-        <Reveal className="section-head"><Title parts="Grátis para começar. PRO para ir além." /></Reveal>
+        <Reveal className="section-head"><Title parts={[{ t: "Grátis para começar. ", cls: "titulo-pixel" }, "PRO para ir além."]} /></Reveal>
         <div className="plans">
           {PLANS.map((p) => (
             <Reveal as="article" className={`plan${p.hot ? " hot" : ""}`} key={p.nome}>
@@ -167,7 +167,7 @@ export function Entrar() {
   return (
     <section className="wrap" id="entrar">
       <Reveal className="cta-final">
-        <Title parts="Amanhã você vai querer ter começado hoje." />
+        <Title parts={[{ t: "Amanhã ", cls: "titulo-pixel titulo-pixel-palavra" }, "você vai querer ter começado hoje."]} />
         <p className="lead">Use o RONDO agora, no navegador do celular ou do computador. Android e iPhone chegam às lojas em breve.</p>
         <ol className="passos-app">
           {PASSOS_APP.map(([n, t, d]) => (

@@ -27,7 +27,9 @@
   }
 }
 .hero-texto .lead { text-shadow: 0 1px 16px rgba(14, 8, 34, .8); }
-.hero-title { text-shadow: 0 2px 24px rgba(14, 8, 34, .45); }
+/* sombra no título da primeira tela, nas duas linhas (pedido do dono em 2026-11-19): uma sombra justa, que destaca as letras
+   (a de pixel art e a fina) sobre a foto clara, e um halo largo */
+.hero-title, .hero-title .trail { text-shadow: 0 2px 3px rgba(10, 5, 26, .7), 0 4px 18px rgba(10, 5, 26, .55), 0 0 40px rgba(10, 5, 26, .35); }
 /* celular e tablet: com a foto cobrindo a tela inteira, só um pedaço do nome cabia. Aqui a foto ocupa a largura toda no alto,
    num tamanho em que o nome RONDO aparece inteiro e sem nada na frente, e embaixo dela se funde no escuro, onde ficam o título
    e os botões. 118% da largura, ancorada à direita: o nome ocupa 77% da foto (de 19% a 96%), então cabe com folga dos dois lados (foto em pixel art, 2026-11-18). */
