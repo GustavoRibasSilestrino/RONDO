@@ -8,7 +8,7 @@ import { Nome } from "./ui";
 
 export const CONTATO = "rondooficial.dev@gmail.com";
 export const RESPONSAVEL = "Gustavo Ribas Silestrino";
-const ATUALIZADO = "13 de novembro de 2026";
+const ATUALIZADO = "18 de novembro de 2026";
 
 const Email = () => <a href={`mailto:${CONTATO}`}>{CONTATO}</a>;
 
@@ -97,6 +97,13 @@ function Privacidade() {
         respostas do recado, e depois é descartado. Você desliga quando quiser, em Configurações. No aplicativo do celular essa
         escuta não existe.
       </p>
+      <h3>Na loja de pacotinhos (site)</h3>
+      <p>
+        Abrir um pacote não pede conta e não guarda nada sobre você: o servidor guarda só o código de resgate e qual
+        mascote saiu. Quando você resgata o mascote, ele e o código passam a ficar ligados à sua conta (quais mascotes
+        você tem, quantos e quando resgatou). Hoje a loja é uma prévia e não cobra nada; quando houver pagamento, esta
+        política será atualizada antes.
+      </p>
       <h3>Cadastro de profissional</h3>
       <p>Nome, e-mail, conselho (CRN ou CREF), número do registro e UF, para conferir o registro na consulta pública do conselho.</p>
       <h3>O que não coletamos</h3>
@@ -146,6 +153,7 @@ function Privacidade() {
           <tr><td>Avisos, suspensões e banimento</td><td>Enquanto a conta existir. Ao apagar a conta, o histórico sai junto.</td></tr>
           <tr><td>Bloqueios e denúncias que você fez</td><td>Enquanto a conta existir. Denúncias contra uma conta apagada ficam, sem ligação com ela, como histórico da moderação.</td></tr>
           <tr><td>Registro dos aceites</td><td>Enquanto a conta existir.</td></tr>
+          <tr><td>Códigos de resgate da loja</td><td>7 dias; depois saem do banco, resgatados ou não. Os mascotes resgatados ficam na conta enquanto ela existir.</td></tr>
           <tr><td>Cadastro de profissional</td><td>Até você pedir a exclusão.</td></tr>
           <tr><td>Recados de voz</td><td>Só no seu aparelho, até você apagar.</td></tr>
           <tr><td>Cópias de segurança do provedor do banco</td><td>Podem guardar dados apagados por um curto período, até serem substituídas.</td></tr>
@@ -175,10 +183,18 @@ function Privacidade() {
 
       <h2 id="cookies">9. Cookies e armazenamento no navegador</h2>
       <p>
-        O site usa só armazenamento essencial: guardar a sua escolha sobre cookies. As fontes do site são servidas pelo
-        próprio site, sem chamar serviços de terceiros. Não usamos cookies de análise, de publicidade nem de rastreamento.
-        Se um dia usarmos, eles só serão ligados depois do seu aceite, e esta política será atualizada antes. O app guarda
-        os seus dados e a sua sessão no próprio aparelho para funcionar.
+        O site usa só armazenamento essencial: a sua escolha sobre cookies e, se você usou a loja, os códigos de resgate
+        dos pacotes que abriu, até resgatar ou vencer (7 dias). As fontes do site são servidas pelo próprio site, sem
+        chamar serviços de terceiros. Não usamos cookies de análise, de publicidade nem de rastreamento. Se um dia usarmos,
+        eles só serão ligados depois do seu aceite, e esta política será atualizada antes. O app guarda os seus dados e a
+        sua sessão no próprio aparelho para funcionar.
+      </p>
+      <p>
+        <b>A sua conta no site:</b> o app no navegador e o site ficam no mesmo endereço e dividem o armazenamento do
+        navegador. Se você entrou no app neste navegador, o site reconhece a sua conta: ele lê a sessão que o app guardou,
+        confere com o nosso servidor e mostra o seu nome, o @ e a foto, para você resgatar na loja sem entrar de novo. Nada
+        novo é coletado, nada vai para terceiros e o site não guarda a sessão por conta própria. Para sair, saia da conta
+        no app; num computador compartilhado, saia sempre ao terminar.
       </p>
       <p><button type="button" className="link-botao" onClick={() => abrirPreferenciasCookies()}>Mudar as preferências de cookies</button></p>
 

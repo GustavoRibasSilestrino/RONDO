@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { gsap } from "../lib/gsap";
+import { primeiraTela } from "../lib/navegar";
 import { APP_CRIAR } from "../lib/rotas";
 import { reduceMotion } from "../lib/util";
 import { Btn } from "./ui";
@@ -7,9 +8,9 @@ import { Btn } from "./ui";
 /* Topo: tela cheia com a foto das montanhas (o nome RONDO já está nelas) e o título à esquerda. */
 export function Hero() {
   const raiz = useRef<HTMLElement>(null);
-  /* GSAP: a entrada em sequência (título, frase, botões) */
+  /* GSAP: a entrada em sequência (título, frase, botões). Só na primeira vez: de volta da loja, já está tudo no lugar */
   useLayoutEffect(() => {
-    if (reduceMotion || !raiz.current) return;
+    if (reduceMotion || !raiz.current || !primeiraTela()) return;
     const ctx = gsap.context(() => {
       gsap.timeline({ defaults: { ease: "power3.out" } })
         .from(".hero-title .ln", { yPercent: 40, opacity: 0, duration: 1, stagger: 0.14, clearProps: "transform,opacity" }, 0.15)

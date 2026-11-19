@@ -140,6 +140,8 @@ h2.display { font-size: clamp(2.1rem, 4.6vw, 3.8rem); }
 /* revelar ao rolar */
 /* o estado de partida; quem leva até o fim é o GSAP (components/ui.tsx, Reveal) */
 .reveal { opacity: 0; }
+/* de volta da loja (sem recarregar a página, lib/navegar.ts), tudo já aparece no lugar, sem repetir a entrada */
+.ja-entrou .reveal { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .reveal { opacity: 1; transform: none; transition: none; }

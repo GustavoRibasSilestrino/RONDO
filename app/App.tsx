@@ -18,6 +18,7 @@ import { Icone } from './src/componentes/Icone';
 import { RondinChamado } from './src/componentes/RondinChamado';
 import { MenuLateral } from './src/componentes/MenuLateral';
 import { tirarCarregando } from './src/lib/carregando';
+import { voltaPedida } from './src/lib/entrada';
 import { guardarColuna } from './src/lib/coluna';
 import { atrasoDaAbertura } from './src/lib/abertura';
 import { useMenuRecolhido } from './src/lib/largura';
@@ -66,7 +67,9 @@ const DO_PERFIL = ['hoje', 'evolucao', 'colecoes', 'recado', 'diario'];
 const ESPERA_RONDIN = 5000;   // ms entre o app abrir e o RONDIN chegar com a pergunta do dia
 
 function Raiz() {
-  const { estado, pronto: dadosProntos, commit, puxarDoServidor } = useLoja();
+  const { estado, pronto: dadosProntos, commit, puxarDoServidor, guardarAgora } = useLoja();
+  /* veio da loja do site para entrar ou criar a conta (lib/entrada.ts): depois de entrar, volta para lá */
+  const [voltandoALoja, setVoltandoALoja] = useState(false);
   const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold });
   const pronto = dadosProntos && fontes;   // espera a fonte, para o texto não aparecer trocado
   /* no navegador, a tela de carregamento (preta, com o RONDIN, de public/index.html) some quando a primeira tela está pronta */
@@ -117,6 +120,16 @@ function Raiz() {
     );
   }
 
+  if (voltandoALoja) {
+    /* o tempo de guardar a conta e os dados no navegador e no servidor, antes de voltar para a loja do site */
+    return (
+      <View style={st.centro}>
+        <NomeMarca altura={30} cor="#ffffff" />
+        <View style={{ marginTop: 18 }}><T tam={14} cor="#cbb8e8">Voltando para a loja...</T></View>
+      </View>
+    );
+  }
+
   if (!estado.usuario) {
     return (
       <Login
@@ -131,7 +144,22 @@ function Raiz() {
             if (extra) Object.assign(e, extra);   // o perfil que o RONDIN montou no cadastro: sobe para o servidor na sincronia
             e.xpExtra = usuario.papel === 'dono' ? Math.max(0, 10500 - xpTotal({ ...e, xpExtra: 0 })) : 0;
           });
-          void puxarDoServidor();   // traz os treinos, a dieta e o resto desta conta que estão no servidor
+          const puxando = puxarDoServidor();   // traz os treinos, a dieta e o resto desta conta que estão no servidor
+          if (voltaPedida) {
+            /* veio da loja do site: guarda tudo (no navegador e no servidor) e volta para lá, onde a pessoa resgata o
+               browniezinho. O site lê a conta que o app acabou de guardar (vitrine/src/lib/conta.ts). */
+            setVoltandoALoja(true);
+            const destino = voltaPedida;
+            void (async () => {
+              try {
+                await puxando;
+                await Promise.race([guardarAgora(), new Promise((r) => setTimeout(r, 6000))]);
+              } finally {
+                window.location.assign(destino);
+              }
+            })();
+            return;
+          }
           setTela(INICIO);
           setChegando(true);        // recém-entrou: o RONDIN aparece já fazendo a pergunta do dia
         }}

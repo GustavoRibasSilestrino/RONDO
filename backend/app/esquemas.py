@@ -182,3 +182,34 @@ class DadosIn(BaseModel):
 
 class DadosOut(BaseModel):
     itens: dict[str, Any]
+
+
+# ---------- loja de pacotinhos (rotas/loja.py) ----------
+class AbrirPacoteIn(BaseModel):
+    pacote: Literal["roxo", "prata", "ouro"]
+
+
+class MascoteOut(BaseModel):
+    """Um mascote da coleção: a posição na folha de mascotes do site, a raridade e quantos a conta tem dele."""
+    linha: int
+    coluna: int
+    raridade: str
+    quantidade: int
+
+
+class ColecaoOut(BaseModel):
+    total: int                   # quantos mascotes existem (69)
+    mascotes: list[MascoteOut]   # os que a conta já resgatou, cada um uma vez
+
+
+class PacoteAbertoOut(BaseModel):
+    """O pacote aberto: o mascote que saiu e o código para resgatá-lo para uma conta."""
+    linha: int
+    coluna: int
+    raridade: str
+    codigo: str            # "ABCDE-FGHJK"
+    expira_em: datetime
+
+
+class ResgatarIn(BaseModel):
+    codigo: str = Field(min_length=10, max_length=24)   # com ou sem hífen e espaços

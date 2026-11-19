@@ -1,8 +1,10 @@
-import { StrictMode, Suspense, lazy } from "react";
+import { StrictMode, useEffect, useLayoutEffect } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { AvisoCookies } from "./components/AvisoCookies";
 import { PAGINAS_LEGAIS } from "./components/Legal";
+import Loja from "./components/Loja";
+import { adiantar, interceptarLinks, primeiraTela, rolagemGuardada, useRota } from "./lib/navegar";
 /* fontes servidas pelo próprio site (só o alfabeto latino): nenhuma chamada ao Google, nenhum IP de visitante enviado a terceiros */
 import "@fontsource-variable/bricolage-grotesque/opsz.css";
 /* letras de pixel da loja de pacotinhos (só baixam onde são usadas) */
@@ -35,20 +37,40 @@ import { acordarServidor } from "./lib/api";
    (esses eventos só existem no Safari) */
 for (const ev of ["gesturestart", "gesturechange"]) document.addEventListener(ev, (e) => e.preventDefault(), { passive: false });
 
-/* as páginas legais têm endereço próprio (/privacidade, /termos...); o resto é a página principal */
-const rota = location.pathname.replace(/\/+$/, "") || "/";
-const legal = PAGINAS_LEGAIS[rota];
+/* as páginas legais têm endereço próprio (/privacidade, /termos...) e abrem como página comum */
+const legal = PAGINAS_LEGAIS[location.pathname.replace(/\/+$/, "") || "/"];
 if (legal) document.title = `${legal.titulo} · RONDO`;
-/* a loja de pacotinhos também tem endereço próprio (/loja) e só é baixada por quem entra nela */
-const naLoja = rota === "/loja";
-const Loja = lazy(() => import("./components/Loja"));
+const TITULO = document.title;
 
+/* A página principal (/) e a loja (/loja) trocam entre si sem recarregar (lib/navegar.ts): a loja vem junto no mesmo
+   arquivo do site (é pequena; as imagens dela são arquivos à parte), então a troca é imediata nos dois sentidos. */
+function Telas() {
+  const rota = useRota();
+  /* ao trocar de tela: o título e a rolagem (no topo, ou onde estava, ao voltar) */
+  useLayoutEffect(() => {
+    if (rota === "/") document.title = TITULO;
+    if (primeiraTela()) return;
+    const ancora = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
+    if (ancora) ancora.scrollIntoView({ behavior: "instant", block: "start" });
+    else window.scrollTo({ top: rolagemGuardada(), behavior: "instant" });
+  }, [rota]);
+  /* com a tela aberta e o navegador folgado, adianta as imagens da outra */
+  useEffect(() => {
+    const outra = rota === "/loja" ? "/" : "/loja";
+    const ocioso = window.requestIdleCallback ?? ((f: () => void) => window.setTimeout(f, 1200));
+    const id = ocioso(() => adiantar(outra));
+    return () => (window.cancelIdleCallback ?? window.clearTimeout)(id);
+  }, [rota]);
+  return rota === "/loja" ? <Loja /> : <App />;
+}
+
+if (!legal) interceptarLinks();
 acordarServidor();   // o app vai precisar dele daqui a pouco (lib/api.ts)
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <a className="pular" href="#conteudo">Pular para o conteúdo</a>
-    {legal ? <legal.Comp /> : naLoja ? <Suspense fallback={null}><Loja /></Suspense> : <App />}
+    {legal ? <legal.Comp /> : <Telas />}
     <AvisoCookies />
   </StrictMode>,
 );

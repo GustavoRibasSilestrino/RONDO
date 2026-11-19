@@ -16,3 +16,18 @@ function ler(): ContaPedida {
 }
 
 export const contaPedida: ContaPedida = ler();
+
+/* Vindo da loja do site (`?volta=loja`, desde 2026-11-18): depois de entrar ou criar a conta, o app leva a pessoa de volta
+   para a loja, onde ela resgata o browniezinho que abriu (App.tsx). Só destinos conhecidos: nunca para fora do RONDO. */
+const VOLTAS: Record<string, string> = { loja: '/loja' };
+
+function lerVolta(): string | null {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
+  try {
+    return VOLTAS[new URLSearchParams(window.location.search).get('volta') ?? ''] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export const voltaPedida: string | null = lerVolta();

@@ -1,19 +1,31 @@
 /* A tela de compra da loja, em pixel art: mostra o pacote, o preço e as chances de cada raridade; ao comprar, o pacote
    rasga devagar (o suspense), um clarão amarelo forte toma a tela e só então o browniezinho aparece, com a raridade e o
    nome dele. Na abertura e na revelação não há quadro: o pacote e o mascote ficam soltos sobre a loja, levemente desfocada.
-   Hoje a compra é uma prévia: nada é cobrado e o mascote não fica guardado (ver PRODUCT.md).
+   Hoje a compra é uma prévia: nada é cobrado (ver PRODUCT.md).
    A sequência é feita quadro a quadro: o lacre de cima é a mesma imagem do pacote recortada em duas partes, a que já
    rasgou (levanta, girando no ponto do rasgo) e a que ainda está presa. Dá para pular, e quem pede menos movimento
-   vê só o resultado, sem tremor nem clarão. */
+   vê só o resultado, sem tremor nem clarão.
+
+   O resgate (pedido do dono em 2026-11-18): abrir não pede conta. O servidor sorteia o mascote e devolve um código; o
+   pacote treme até a resposta chegar e só então rasga. Revelado o brownie, ele só vai para a conta quando a pessoa toca em
+   "Resgatar" (com a conta do app já reconhecida no site, lib/conta.ts). Sem conta, os botões levam a entrar ou criar a
+   conta no app, que traz a pessoa de volta à loja; o código fica guardado neste navegador (lib/resgates.ts) por 7 dias. */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PACOTES, RARIDADES, porcento, preco, sortear, type Mascote as Sorteado, type Pacote } from "../data/loja";
+import { PACOTES, RARIDADES, mascoteDe, porcento, preco, type Mascote as Sorteado, type Pacote } from "../data/loja";
+import { ErroApi, abrirPacote, resgatarCodigo, type MascoteDaConta } from "../lib/api";
+import { contaRecusada, rotuloDa, useConta } from "../lib/conta";
+import { guardarPendente, tirarPendente } from "../lib/resgates";
+import { APP_CRIAR_LOJA, APP_ENTRAR_LOJA } from "../lib/rotas";
 import { reduceMotion, vars } from "../lib/util";
 import { Estrelas, Mascote } from "./LojaPartes";
 
 type Fase = "compra" | "abrindo" | "revelado";
+type Aberto = Sorteado & { codigo: string };
+type Resgate = "livre" | "indo" | "feito";
 
-/* tempos da abertura, em ms: o tremor antes, o rasgo lento, o lacre voando e o clarão */
+/* tempos da abertura, em ms: o tremor antes (no mínimo; dura até o servidor responder), o rasgo lento e o clarão */
 const SUSPENSE = 900, RASGO = 2600, CLARAO = 950;
+const DEMORA = 6000;   // sem resposta até aqui: avisa que o servidor está acordando
 
 /* ---------- a linha do rasgo: um zigue-zague de uma borda à outra, logo abaixo do lacre ---------- */
 const DENTES = 13, AMP = 0.011;
@@ -47,36 +59,60 @@ function Chances({ pacote }: { pacote: Pacote }) {
   );
 }
 
-export function LojaAbrir({ pacote, aoFechar, aoTirar }: { pacote: Pacote | null; aoFechar: () => void; aoTirar: (m: Sorteado) => void }) {
+const CERTO = "M7 1h1v1H7zM6 2h1v1H6zM5 3h1v1H5zM4 4h1v1H4zM3 5h1v1H3zM2 4h1v1H2zM1 3h1v1H1z";
+
+export function LojaAbrir({ pacote, aoFechar, aoResgatar }: { pacote: Pacote | null; aoFechar: () => void; aoResgatar: (m: MascoteDaConta) => void }) {
+  const { token, conta } = useConta();
   const dialogo = useRef<HTMLDialogElement>(null);
   const palco = useRef<HTMLDivElement>(null);
-  const principal = useRef<HTMLButtonElement>(null);
+  const principal = useRef<HTMLElement | null>(null);
+  const marcarPrincipal = (el: HTMLElement | null) => { principal.current = el; };
   const [fase, setFase] = useState<Fase>("compra");
-  const [mascote, setMascote] = useState<Sorteado | null>(null);
+  const [mascote, setMascote] = useState<Aberto | null>(null);
   const [atual, setAtual] = useState<Pacote>(PACOTES[0]);   // o último pacote escolhido fica na tela enquanto o diálogo fecha
+  const [erro, setErro] = useState("");
+  const [demorando, setDemorando] = useState(false);
+  const [resgate, setResgate] = useState<Resgate>("livre");
+  const [erroResgate, setErroResgate] = useState("");
+  const resultado = useRef<Aberto | null>(null);   // a resposta do servidor (a animação espera por ela)
+  const pularPedido = useRef(false);
 
   /* abrir e fechar junto com o pacote escolhido */
   useEffect(() => {
     const d = dialogo.current;
     if (!d) return;
-    if (pacote) { setAtual(pacote); setFase("compra"); setMascote(null); if (!d.open) d.showModal(); }
-    else if (d.open) d.close();
+    if (pacote) {
+      setAtual(pacote); setFase("compra"); setMascote(null); setErro(""); setResgate("livre"); setErroResgate("");
+      if (!d.open) d.showModal();
+    } else if (d.open) d.close();
   }, [pacote]);
 
   /* o foco vai para a ação principal de cada etapa */
-  useEffect(() => { if (pacote) principal.current?.focus({ preventScroll: true }); }, [fase, pacote]);
+  useEffect(() => { if (pacote) principal.current?.focus({ preventScroll: true }); }, [fase, pacote, resgate, conta]);
 
-  const revelar = useCallback((m: Sorteado) => { setFase("revelado"); aoTirar(m); }, [aoTirar]);
+  const revelar = useCallback((m: Aberto) => { setMascote(m); setResgate("livre"); setErroResgate(""); setFase("revelado"); }, []);
 
   /* ---------- a abertura, quadro a quadro ---------- */
   useEffect(() => {
     const el = palco.current;
-    if (fase !== "abrindo" || !mascote || !el) return;
-    if (reduceMotion) { const t = window.setTimeout(() => revelar(mascote), 450); return () => clearTimeout(t); }
+    if (fase !== "abrindo" || !el) return;
+    const inicio = performance.now();
+    let quadro = 0;
+    const demora = window.setTimeout(() => { if (!resultado.current) setDemorando(true); }, DEMORA);
+    const parar = () => { cancelAnimationFrame(quadro); clearTimeout(demora); };
+    if (reduceMotion) {
+      /* sem tremor nem clarão: o resultado aparece assim que chega (e nunca antes de um instante) */
+      const esperar = () => {
+        const m = resultado.current;
+        if (m && (pularPedido.current || performance.now() - inicio >= 450)) { revelar(m); return; }
+        quadro = requestAnimationFrame(esperar);
+      };
+      quadro = requestAnimationFrame(esperar);
+      return parar;
+    }
     const r = atual.rasgo;
     const presa = el.querySelector<HTMLElement>(".abre-presa")!, solta = el.querySelector<HTMLElement>(".abre-solta")!, soltaImg = solta.querySelector<HTMLElement>("img")!;
-    let quadro = 0, etapa = "";
-    const inicio = performance.now();
+    let etapa = "", inicioRasgo = 0;
     const rasgar = (p: number) => {
       presa.style.clipPath = lacre(p, 1, r);
       soltaImg.style.clipPath = lacre(0, p, r);
@@ -86,37 +122,77 @@ export function LojaAbrir({ pacote, aoFechar, aoTirar }: { pacote: Pacote | null
       el.style.setProperty("--py", altura(p, r).toFixed(4));
     };
     const passo = (agora: number) => {
-      const t = agora - inicio;
+      const m = resultado.current;
+      if (m && pularPedido.current) { revelar(m); return; }
+      /* o rasgo só começa com o mascote em mãos: até lá, o pacote treme */
+      if (!inicioRasgo && m && agora - inicio >= SUSPENSE) inicioRasgo = agora;
       let nova = "suspense";
-      if (t >= SUSPENSE + RASGO + CLARAO) { revelar(mascote); return; }
-      if (t >= SUSPENSE + RASGO) nova = "clarao";
-      else if (t >= SUSPENSE) {
-        nova = "rasgo";
-        const u = (t - SUSPENSE) / RASGO;
-        /* devagar no começo e no fim, com pequenos trancos no meio: é o suspense */
-        const suave = u < 0.5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
-        rasgar(Math.min(1, Math.max(0, suave + 0.012 * Math.sin(u * 44) * (1 - u))));
+      if (inicioRasgo) {
+        const t = agora - inicioRasgo;
+        if (t >= RASGO + CLARAO) { revelar(m!); return; }
+        if (t >= RASGO) nova = "clarao";
+        else {
+          nova = "rasgo";
+          const u = t / RASGO;
+          /* devagar no começo e no fim, com pequenos trancos no meio: é o suspense */
+          const suave = u < 0.5 ? 2 * u * u : 1 - (-2 * u + 2) ** 2 / 2;
+          rasgar(Math.min(1, Math.max(0, suave + 0.012 * Math.sin(u * 44) * (1 - u))));
+        }
       }
       if (nova !== etapa) { etapa = nova; el.dataset.etapa = nova; if (nova === "suspense") rasgar(0); if (nova === "clarao") rasgar(1); }
       quadro = requestAnimationFrame(passo);
     };
     quadro = requestAnimationFrame(passo);
-    return () => cancelAnimationFrame(quadro);
-  }, [fase, mascote, atual, revelar]);
+    return parar;
+  }, [fase, atual, revelar]);
 
-  const comprar = () => { setMascote(sortear(atual)); setFase("abrindo"); };
-  const pular = () => { if (mascote) revelar(mascote); };
+  const comprar = async () => {
+    const p = atual;
+    setErro(""); setDemorando(false);
+    resultado.current = null; pularPedido.current = false;
+    setFase("abrindo");
+    try {
+      const aberto = await abrirPacote(p.id);
+      guardarPendente({ codigo: aberto.codigo, linha: aberto.linha, coluna: aberto.coluna, vence: aberto.expira_em });
+      resultado.current = { ...mascoteDe(aberto.linha, aberto.coluna), codigo: aberto.codigo };
+    } catch (e) {
+      setErro(e instanceof ErroApi ? e.message : "Não deu para abrir agora. Tente de novo.");
+      setFase("compra");
+    }
+  };
+  const pular = () => { pularPedido.current = true; };
+  const abrirOutro = () => { setMascote(null); setResgate("livre"); setErroResgate(""); setFase("compra"); };
+  const fechar = () => dialogo.current?.close();
+
+  const resgatar = async () => {
+    if (!token || !mascote || resgate !== "livre") return;
+    setResgate("indo"); setErroResgate("");
+    try {
+      const m = await resgatarCodigo(token, mascote.codigo);
+      tirarPendente(mascote.codigo);
+      setResgate("feito");
+      aoResgatar(m);
+    } catch (e) {
+      const status = e instanceof ErroApi ? e.status : 0;
+      if (status === 401) contaRecusada();
+      if (status === 404 || status === 409) tirarPendente(mascote.codigo);   // vencido ou já de outra conta: não adianta guardar
+      setErroResgate(e instanceof ErroApi ? e.message : "Não deu para resgatar agora. Tente de novo.");
+      setResgate("livre");
+    }
+  };
+
   const raridade = mascote ? RARIDADES[mascote.linha] : null;
+  const rotulo = conta ? rotuloDa(conta) : "";
 
   return (
     <dialog
       ref={dialogo} className="abre" data-fase={fase} data-pacote={atual.id} data-r={mascote && fase === "revelado" ? mascote.raridade : undefined}
       aria-labelledby="abre-titulo" onClose={aoFechar}
       onCancel={(e) => { if (fase === "abrindo") { e.preventDefault(); pular(); } }}
-      onClick={(e) => { if (e.target === e.currentTarget && fase !== "abrindo") dialogo.current?.close(); }}
+      onClick={(e) => { if (e.target === e.currentTarget && fase !== "abrindo") fechar(); }}
     >
       <div className="abre-quadro">
-        <button type="button" className="abre-fechar" aria-label="Fechar" onClick={() => dialogo.current?.close()}>
+        <button type="button" className="abre-fechar" aria-label="Fechar" onClick={fechar}>
           <svg viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true"><path d="M1 0h1v1h1v1h1v1h1V2h1V1h1V0h1v2H7v1H6v1H5v1h1v1h1v1h1v2H7V8H6V7H5V6H4v1H3v1H2v1H1V7h1V6h1V5h1V4H3V3H2V2H1z" fill="currentColor" /></svg>
         </button>
 
@@ -146,25 +222,60 @@ export function LojaAbrir({ pacote, aoFechar, aoTirar }: { pacote: Pacote | null
               <p className="abre-frase">{atual.frase}</p>
               <p className="abre-preco"><b>{preco(atual.centavos)}</b><span>na prévia: grátis</span></p>
               <Chances pacote={atual} />
-              <p className="abre-nota">Loja em prévia. Nada é cobrado e o mascote não fica guardado. Quando a venda abrir, a compra será só para maiores de 18 anos.</p>
+              <p className="abre-nota">
+                Loja em prévia: nada é cobrado. Depois de abrir, você resgata o browniezinho para a sua conta do RONDO, a mesma
+                do app. Quando a venda abrir, a compra será só para maiores de 18 anos.
+              </p>
+              {erro ? <p className="abre-erro" role="alert">{erro}</p> : null}
               <div className="abre-acoes">
-                <button type="button" className="px-btn" ref={principal} onClick={comprar}>Comprar</button>
-                <button type="button" className="px-btn px-btn-escuro" onClick={() => dialogo.current?.close()}>Voltar</button>
+                <button type="button" className="px-btn" ref={marcarPrincipal} onClick={comprar}>Comprar</button>
+                <button type="button" className="px-btn px-btn-escuro" onClick={fechar}>Voltar</button>
               </div>
             </>
           ) : fase === "abrindo" ? (
             <>
               <h2 id="abre-titulo" className="abre-suspense">Abrindo<i aria-hidden="true">...</i></h2>
-              <div className="abre-acoes"><button type="button" className="px-btn px-btn-escuro" ref={principal} onClick={pular}>Pular</button></div>
+              {demorando ? <p className="abre-demora" role="status">O servidor está acordando. Só mais um instante.</p> : null}
+              <div className="abre-acoes"><button type="button" className="px-btn px-btn-escuro" ref={marcarPrincipal} onClick={pular}>Pular</button></div>
             </>
           ) : mascote && raridade ? (
             <>
               <p className="abre-raridade" data-r={raridade.id}><Estrelas n={raridade.estrelas} />{raridade.nome}</p>
               <h2 id="abre-titulo">{mascote.nome}</h2>
+              {resgate === "feito" ? (
+                <p className="abre-guardado" role="status">
+                  <svg viewBox="0 0 9 7" shapeRendering="crispEdges" aria-hidden="true"><path d={CERTO} fill="currentColor" /></svg>
+                  Guardado na conta {rotulo}
+                </p>
+              ) : !conta ? (
+                <p className="abre-pede-conta">Entre na sua conta do RONDO para resgatar. Até lá, ele fica guardado neste navegador por 7 dias.</p>
+              ) : null}
+              {erroResgate ? <p className="abre-erro" role="alert">{erroResgate}</p> : null}
               <div className="abre-acoes">
-                <button type="button" className="px-btn" ref={principal} onClick={() => { setMascote(null); setFase("compra"); }}>Abrir outro</button>
-                <button type="button" className="px-btn px-btn-escuro" onClick={() => dialogo.current?.close()}>Voltar à loja</button>
+                {resgate === "feito" ? (
+                  <>
+                    <button type="button" className="px-btn" ref={marcarPrincipal} onClick={abrirOutro}>Abrir outro</button>
+                    <button type="button" className="px-btn px-btn-escuro" onClick={fechar}>Voltar à loja</button>
+                  </>
+                ) : conta ? (
+                  <>
+                    <button type="button" className="px-btn" ref={marcarPrincipal} onClick={resgatar} aria-disabled={resgate === "indo"}>
+                      {resgate === "indo" ? "Resgatando..." : "Resgatar"}
+                    </button>
+                    <button type="button" className="px-btn px-btn-escuro" onClick={abrirOutro}>Abrir outro</button>
+                  </>
+                ) : (
+                  <>
+                    <a className="px-btn" ref={marcarPrincipal} href={APP_ENTRAR_LOJA}>Entrar e resgatar</a>
+                    <a className="px-btn px-btn-escuro" href={APP_CRIAR_LOJA}>Criar conta</a>
+                  </>
+                )}
               </div>
+              {resgate === "feito" ? null : conta ? (
+                <p className="abre-codigo">Vai para a conta <b>{rotulo}</b></p>
+              ) : (
+                <p className="abre-codigo">Código do resgate: <b>{mascote.codigo}</b><button type="button" onClick={fechar}>Agora não</button></p>
+              )}
             </>
           ) : null}
         </div>

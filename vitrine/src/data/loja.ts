@@ -1,6 +1,8 @@
 /* A loja de pacotinhos (desde 2026-11-18, pedido do dono). Três pacotes; cada um sorteia um browniezinho entre 69 mascotes
-   (13 comuns e 14 em cada outra raridade: é o que existe na folha de arte do dono). Os preços são uma estimativa "bem acessível" do dono, ainda sem pagamento de verdade: a compra é uma
-   prévia, não cobra nada e não guarda o mascote (ver PRODUCT.md).
+   (13 comuns e 14 em cada outra raridade: é o que existe na folha de arte do dono). Os preços são uma estimativa "bem
+   acessível" do dono, ainda sem pagamento de verdade: a compra é uma prévia e não cobra nada (ver PRODUCT.md).
+   Comprar exige a conta do RONDO (a mesma do app): o sorteio é feito no servidor e o mascote fica guardado na conta
+   (backend/app/servicos/loja.py, que usa estas mesmas chances; um teste de lá confere que os números batem).
    As chances ficam à vista em cada pacote e somam sempre 100% (aqui em décimos de ponto: 1000 = 100%). */
 import imgOuro from "../assets/loja/pacote-ouro.webp";
 import imgPrata from "../assets/loja/pacote-prata.webp";
@@ -67,24 +69,12 @@ export const nomeDe = (linha: number, coluna: number) => NOMES[linha]?.[coluna] 
 
 export type Mascote = { raridade: Raridade; linha: number; coluna: number; numero: number; nome: string };
 
-/* um número inteiro de 0 a n-1, sem viés (o sorteio usa o gerador do navegador, não Math.random) */
-function inteiro(n: number): number {
-  const teto = Math.floor(0x100000000 / n) * n, balde = new Uint32Array(1);
-  do { crypto.getRandomValues(balde); } while (balde[0] >= teto);
-  return balde[0] % n;
-}
-
 /* o número do mascote na coleção: 1 a 69, contando da linha dos comuns */
 export const numeroDe = (linha: number, coluna: number) => RARIDADES.slice(0, linha).reduce((a, r) => a + r.quantos, 0) + coluna + 1;
 
-/* sorteia a raridade pelas chances do pacote e depois um dos mascotes dessa raridade */
-export function sortear(p: Pacote): Mascote {
-  let r = inteiro(1000), linha = 0;
-  for (; linha < RARIDADES.length - 1; linha++) {
-    const fatia = p.chances[RARIDADES[linha].id];
-    if (r < fatia) break;
-    r -= fatia;
-  }
-  const coluna = inteiro(RARIDADES[linha].quantos);
-  return { raridade: RARIDADES[linha].id, linha, coluna, numero: numeroDe(linha, coluna), nome: nomeDe(linha, coluna) };
-}
+/* o mascote de uma posição da folha (a que o servidor sorteou) */
+export const mascoteDe = (linha: number, coluna: number): Mascote =>
+  ({ raridade: RARIDADES[linha].id, linha, coluna, numero: numeroDe(linha, coluna), nome: nomeDe(linha, coluna) });
+
+/* a chave de um mascote na coleção da conta */
+export const chaveDe = (linha: number, coluna: number) => `${linha}-${coluna}`;

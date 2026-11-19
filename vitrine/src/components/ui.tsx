@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ElementType, type ReactNode, type RefObject } from "react";
 import { gsap } from "../lib/gsap";
+import { primeiraTela } from "../lib/navegar";
 import { finePointer, reduceMotion, vars } from "../lib/util";
 import { NOME, SIMBOLO } from "../marca";
 
@@ -29,10 +30,11 @@ type RevealProps = {
 export function Reveal({ as: Tag = "div", className = "", children, innerRef, ...rest }: RevealProps) {
   const ref = useRef<HTMLElement | null>(null);
   const setRef = (el: HTMLElement | null) => { ref.current = el; if (innerRef) innerRef.current = el; };
-  /* GSAP + ScrollTrigger: sobe e aparece uma vez, quando o bloco chega perto do meio da tela */
+  /* GSAP + ScrollTrigger: sobe e aparece uma vez, quando o bloco chega perto do meio da tela (de volta da loja, não:
+     a classe ja-entrou, em base.css, já deixa o bloco visível) */
   useLayoutEffect(() => {
     const el = ref.current;
-    if (!el || reduceMotion) return;
+    if (!el || reduceMotion || !primeiraTela()) return;
     const subida = window.innerWidth <= 520 ? 32 : 24;
     const anim = gsap.fromTo(el, { opacity: 0, y: subida }, {
       opacity: 1, y: 0, duration: 0.9, ease: "power3.out",
@@ -49,7 +51,8 @@ type TitleProps = { as?: ElementType; parts: Part | Part[]; echo?: boolean; spli
 export function Title({ as: Tag = "h2", parts, echo = true, split = true, className = "", style }: TitleProps) {
   const list = Array.isArray(parts) ? parts : [parts];
   const text = list.map((p) => (typeof p === "string" ? p : p.t)).join("").replace(/\s+/g, " ").trim();
-  const doSplit = split && !reduceMotion;
+  const [primeira] = useState(primeiraTela);   // de volta da loja, o título já aparece inteiro, sem a entrada
+  const doSplit = split && !reduceMotion && primeira;
   const ref = useRef<HTMLElement>(null);
   /* GSAP + ScrollTrigger: as palavras sobem uma a uma de dentro da máscara quando o título chega à tela */
   useLayoutEffect(() => {

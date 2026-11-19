@@ -54,6 +54,9 @@ type Contexto = {
   /* a parte social mora no servidor: traz o resumo (nível, medalhas, avisos) e, com `listas`, manda as telas recarregarem */
   atualizarSocial: (listas?: boolean) => Promise<void>;
   versaoSocial: number;   // sobe quando algo social mudou: feeds, clubes e avisos recarregam
+  /* grava já no aparelho e sobe para o servidor o que falta: para sair da página logo em seguida sem perder nada
+     (ex.: de volta à loja do site depois de entrar, App.tsx) */
+  guardarAgora: () => Promise<void>;
 };
 
 const LojaContexto = createContext<Contexto | null>(null);
@@ -186,6 +189,11 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
     timer.current = setTimeout(gravar, 600);
   }, [gravar]);
   salvar0.current = salvar;
+  const guardarAgora = useCallback(async () => {
+    gravar();
+    for (let i = 0; i < 40 && ocupado.current; i++) await new Promise((r) => setTimeout(r, 150));   // um envio em andamento termina antes
+    await sincronizar();
+  }, [gravar, sincronizar]);
   useEffect(() => {
     const sub = AppState.addEventListener('change', (s) => {
       if (s !== 'active' && timer.current) gravar();
@@ -223,7 +231,7 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // o mesmo objeto enquanto nada muda: as telas só redesenham quando o estado muda de fato
-  const valor = useMemo(() => ({ estado, pronto, commit, limpar, puxarDoServidor, atualizarSocial, versaoSocial }), [estado, pronto, commit, limpar, puxarDoServidor, atualizarSocial, versaoSocial]);
+  const valor = useMemo(() => ({ estado, pronto, commit, limpar, puxarDoServidor, atualizarSocial, versaoSocial, guardarAgora }), [estado, pronto, commit, limpar, puxarDoServidor, atualizarSocial, versaoSocial, guardarAgora]);
   return <LojaContexto.Provider value={valor}>{children}</LojaContexto.Provider>;
 }
 

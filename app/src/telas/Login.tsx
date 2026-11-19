@@ -10,7 +10,7 @@ import { Platform } from 'react-native';
 import type { Estado, Usuario } from '../tipos';
 import type { ResultadoSocial } from '../api/loginSocial';
 import { atrasoDaAbertura } from '../lib/abertura';
-import { contaPedida } from '../lib/entrada';
+import { contaPedida, voltaPedida } from '../lib/entrada';
 import { CadastroSocial } from './CadastroSocial';
 import { Apresentacao } from './Apresentacao';
 import { Inicio } from './Inicio';
@@ -49,8 +49,9 @@ function LoginTelas({ aoEntrar }: { aoEntrar: (usuario: Usuario, extra?: Partial
     if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     try {
       const url = new URL(window.location.href);
-      if (url.searchParams.has('conta')) {
+      if (url.searchParams.has('conta') || url.searchParams.has('volta')) {
         url.searchParams.delete('conta');
+        url.searchParams.delete('volta');   // lido uma vez em lib/entrada.ts e guardado para a visita
         window.history.replaceState(null, '', url.pathname + url.search + url.hash);
       }
     } catch { /* sem history: segue com o endereço como está */ }
@@ -62,8 +63,8 @@ function LoginTelas({ aoEntrar }: { aoEntrar: (usuario: Usuario, extra?: Partial
   }
   if (pendente) return <CadastroSocial tokenSocial={pendente.tokenSocial} nome={pendente.nome} email={pendente.email} aoVoltar={() => setPendente(null)} aoConcluir={aoEntrar} />;
   if (tela === 'inicio') return <Inicio aoCriar={() => setTela('cadastro')} aoEntrar={() => setTela('entrar')} aoSocial={aoSocial} />;
-  /* a seta da primeira pergunta: no celular volta ao menu com as duas opções; no navegador, ao site */
-  const aoVoltar = NA_WEB ? () => { window.location.assign(SITE); } : () => setTela('inicio');
+  /* a seta da primeira pergunta: no celular volta ao menu com as duas opções; no navegador, ao site (à loja, se veio de lá) */
+  const aoVoltar = NA_WEB ? () => { window.location.assign(SITE + (voltaPedida ?? '')); } : () => setTela('inicio');
   return (
     <Rondin
       key={tela} modo={tela} aoEntrar={aoEntrar} aoVoltar={aoVoltar}

@@ -384,3 +384,77 @@ html:has(dialog.abre[open]) { overflow: hidden; }
   .lojinha-in { grid-template-columns: minmax(0, 1fr); padding-top: 2.6rem; }
   .lojinha-cena { margin-inline: calc(var(--gutter) * -1 + var(--b) * 2); }
 }
+
+/* ---------- o resgate (LojaResgate.tsx e LojaAbrir.tsx, desde 2026-11-18) ----------
+   Abrir um pacote não pede conta; o browniezinho vai para a conta quando a pessoa resgata. */
+.px-btn[aria-disabled="true"] { cursor: progress; --face: #e9b43a; }
+
+/* a conta no topo da loja: a foto num quadro de pixel e o @ */
+.loja-conta { display: inline-flex; align-items: center; gap: .7rem; min-height: 44px; max-width: 55vw; color: var(--lj-tinta); font: 400 .64rem/1 var(--lj-8bit); }
+.loja-conta > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-top: 2px; }
+.loja-conta .conta-foto {
+  width: 30px; height: 30px; border-radius: 0; background: #33205e; color: var(--lj-ouro-claro); font: 400 .7rem/1 var(--lj-8bit);
+  box-shadow: 0 0 0 2px var(--lj-contorno), 0 0 0 4px var(--lj-ouro);
+}
+.loja-conta:hover > span:last-child { color: var(--lj-ouro-claro); }
+.loja-conta:focus-visible { outline: 3px solid var(--lj-ouro); outline-offset: 6px; }
+.loja-barra-acoes { display: flex; align-items: center; gap: .4rem; }
+.loja-barra-acoes .px-btn { margin-block: 0 calc(var(--b) + 2px); }
+/* no celular estreito, só "Entrar" (lá dentro também dá para criar a conta) */
+@media (max-width: 440px) { .loja-barra-acoes .px-btn:last-child { display: none; } }
+
+/* a faixa de quem espera resgate, logo abaixo do topo */
+.loja-espera { padding: 1rem var(--gutter); background: #241446; box-shadow: inset 0 -4px 0 #2b1a4f; }
+.loja-espera-in { display: flex; flex-wrap: wrap; align-items: center; gap: .9rem 1.5rem; width: min(100%, 1040px); margin-inline: auto; }
+.loja-espera-lista { display: flex; align-items: center; list-style: none; padding-left: .5rem; }
+.loja-espera-lista li { margin-left: -.5rem; }
+.loja-espera-lista .masc { --masc: 3.3rem; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, .45)); }
+.loja-espera-lista .loja-espera-mais { display: grid; place-items: center; width: 2.6rem; margin-left: .2rem; font: 400 .7rem/1 var(--lj-8bit); color: var(--lj-ouro-claro); }
+.loja-espera-texto { flex: 1 1 17rem; min-width: 0; }
+.loja .loja-espera-texto h2 { margin: 0 0 .25rem; font: 700 1.3rem/1.15 var(--lj-letra); color: var(--lj-ouro-claro); }
+.loja-espera-texto p { font-size: .98rem; color: var(--lj-tinta-2); text-wrap: pretty; }
+.loja-espera-texto b { color: var(--lj-tinta); font-weight: 600; }
+.loja-espera-acoes { display: flex; flex-wrap: wrap; gap: .3rem .9rem; }
+.loja-espera-aviso { width: min(100%, 1040px); margin: .7rem auto 0; color: #5fe08a; font-weight: 600; }
+main > .loja-espera-aviso { width: auto; margin: 0; padding: .9rem var(--gutter); background: #241446; text-align: center; box-shadow: inset 0 -4px 0 #2b1a4f; }
+
+/* digitar um código de resgate */
+.loja-codigo { max-width: 34rem; margin: -.6rem 0 1.6rem; }
+.loja-codigo label { display: block; margin-bottom: .55rem; font-weight: 600; color: var(--lj-tinta); }
+.loja-codigo-linha { display: flex; align-items: flex-start; gap: .75rem; }
+.loja-codigo input {
+  flex: 1 1 auto; min-width: 0; height: 48px; margin-top: 4px; padding: 0 .9rem; border: 0; border-radius: 0;
+  background: #0d0720; color: var(--lj-tinta); font: 400 .78rem/1 var(--lj-8bit); letter-spacing: .08em;
+  box-shadow: 0 0 0 3px #3a2667, inset 0 3px 0 rgba(0, 0, 0, .45);
+}
+.loja-codigo input::placeholder { color: rgba(203, 184, 232, .42); }
+.loja-codigo input:focus-visible { outline: 3px solid var(--lj-ouro); outline-offset: 3px; }
+.loja-codigo input[aria-invalid] { box-shadow: 0 0 0 3px #e0524f, inset 0 3px 0 rgba(0, 0, 0, .45); }
+.loja-codigo .px-btn { min-height: 48px; }
+.loja-codigo-resposta { min-height: 1.5em; margin-top: .35rem; font-size: .95rem; font-weight: 600; color: #ff9a90; }
+.loja-codigo-resposta[data-certo] { color: #5fe08a; }
+.loja-codigo-sem-conta { margin: -.6rem 0 1.6rem; color: var(--lj-tinta-2); }
+.loja-codigo-sem-conta a { color: var(--lj-ouro-claro); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+
+/* na coleção: os da conta acesos, os que esperam resgate com moldura tracejada, e quantos a conta tem */
+.loja-raridade li { position: relative; }
+.loja-raridade li[data-espera] { background: rgba(255, 215, 90, .08); outline: 2px dashed rgba(255, 215, 90, .7); outline-offset: -5px; }
+.loja-qtd { position: absolute; right: 3px; bottom: 3px; padding: 3px 3px 2px; background: var(--cor-r); color: var(--lj-contorno); font: 400 .5rem/1 var(--lj-8bit); }
+
+/* na tela de compra: erro, demora, resgate feito e o pedido de conta (sem quadro atrás, o texto leva sombra de pixel) */
+.abre-erro { margin-top: 1rem; padding: .7rem .85rem; background: rgba(224, 82, 79, .16); box-shadow: inset 4px 0 0 #e0524f; color: #ffc2bc; font-weight: 600; text-align: left; }
+.abre-demora { margin-top: .5rem; color: var(--lj-tinta); font-weight: 600; text-shadow: 0 2px 0 var(--lj-contorno); }
+.abre-guardado {
+  --b: 3px;
+  display: inline-flex; align-items: center; gap: .6rem; margin: 1rem var(--b) 0; padding: .65rem .85rem .6rem; background: var(--lj-contorno);
+  color: #5fe08a; font: 400 .68rem/1.3 var(--lj-8bit); text-transform: uppercase; text-align: left;
+  box-shadow: 0 calc(var(--b) * -1) 0 0 #5fe08a, calc(var(--b) * -1) 0 0 0 #5fe08a, var(--b) 0 0 0 #5fe08a, 0 var(--b) 0 0 #5fe08a;
+  animation: abre-sobe .4s cubic-bezier(.2, .8, .2, 1) both;
+}
+.abre-guardado svg { width: 14px; height: auto; flex: none; }
+.abre-pede-conta { max-width: 36ch; margin: .9rem auto 0; color: var(--lj-tinta); font-weight: 600; text-shadow: 0 2px 0 var(--lj-contorno); text-wrap: pretty; }
+.abre-codigo { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .2rem .9rem; margin-top: .7rem; font-size: .92rem; color: var(--lj-tinta-2); text-shadow: 0 2px 0 var(--lj-contorno); }
+.abre-codigo b { font: 400 .7rem/1 var(--lj-8bit); color: var(--lj-tinta); letter-spacing: .06em; }
+.abre-codigo button { min-height: 44px; padding: 0 .4rem; color: var(--lj-tinta); font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.abre-codigo button:focus-visible { outline: 3px solid var(--lj-ouro); outline-offset: 2px; }
+.abre[data-fase="revelado"] .abre-acoes, .abre-pede-conta, .abre-codigo { animation: abre-sobe .5s cubic-bezier(.2, .8, .2, 1) .66s both; }

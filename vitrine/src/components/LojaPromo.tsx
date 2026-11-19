@@ -25,7 +25,7 @@ export function LojaPromo() {
       <div className="lojinha-in">
         <div className="lojinha-texto">
           <h2 id="lojinha-titulo">A lojinha do RONDO abriu as portas.</h2>
-          <p>Três pacotinhos no balcão e {TOTAL_MASCOTES} browniezinhos para colecionar, do comum ao lendário. Você escolhe o pacote, ele rasga e o seu aparece.</p>
+          <p>Três pacotinhos no balcão e {TOTAL_MASCOTES} browniezinhos para colecionar, do comum ao lendário. Você escolhe o pacote, ele rasga, o seu aparece e você o resgata para a sua conta.</p>
           <a className="px-btn" href={LOJA}>Entrar na loja</a>
           <p className="lojinha-nota">A partir de {preco(MAIS_BARATO)}. Loja em prévia: por enquanto nada é cobrado.</p>
         </div>

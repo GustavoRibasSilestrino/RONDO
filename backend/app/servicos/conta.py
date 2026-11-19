@@ -5,10 +5,11 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import delete, or_, select, update
 from sqlalchemy.orm import Session
 
-from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_STORIES
+from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_RESGATES, RETENCAO_STORIES
 from app.modelos import (
-    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Membro, Notificacao, Penalidade, Post, RedefinicaoSenha, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
+    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Mascote, Membro, Notificacao, Penalidade, Post, RedefinicaoSenha, Resgate, Seguidor, Story, StoryReacao, StoryVisto, Usuario,
 )
+from app.servicos.loja import RARIDADES
 from app.servicos import midia as servico_midia
 from app.servicos.busca import normalizar
 
@@ -56,6 +57,15 @@ def exportar(sessao: Session, u: Usuario) -> dict:
         "assinaturas": [
             {"plano": a.plano_id, "status": a.status, "criado_em": _data(a.criado_em)} for a in todos(Assinatura, Assinatura.usuario_id == uid)
         ],
+        "mascotes_da_loja": [
+            {"linha": m.linha, "coluna": m.coluna, "raridade": RARIDADES[m.linha][0], "quantidade": m.quantidade,
+             "primeiro_em": _data(m.primeiro_em), "ultimo_em": _data(m.ultimo_em)}
+            for m in todos(Mascote, Mascote.usuario_id == uid)
+        ],
+        "codigos_resgatados_na_loja": [
+            {"codigo": r.codigo, "pacote": r.pacote, "linha": r.linha, "coluna": r.coluna, "aberto_em": _data(r.criado_em), "resgatado_em": _data(r.resgatado_em)}
+            for r in todos(Resgate, Resgate.usuario_id == uid)
+        ],
         "consentimentos": [
             {"tipo": c.tipo, "versao": c.versao, "aceito": c.aceito, "origem": c.origem, "detalhe": c.detalhe, "em": _data(c.em)}
             for c in todos(Consentimento, Consentimento.usuario_id == uid)
@@ -88,6 +98,8 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
     sessao.execute(delete(Membro).where(or_(Membro.usuario_id == uid, Membro.clube_id.in_(meus_clubes))))
     sessao.execute(delete(Clube).where(Clube.id.in_(meus_clubes)))
     sessao.execute(delete(DadoUsuario).where(DadoUsuario.usuario_id == uid))
+    sessao.execute(delete(Mascote).where(Mascote.usuario_id == uid))
+    sessao.execute(delete(Resgate).where(Resgate.usuario_id == uid))
     sessao.execute(delete(Consentimento).where(Consentimento.usuario_id == uid))
     sessao.execute(delete(RedefinicaoSenha).where(RedefinicaoSenha.usuario_id == uid))
     sessao.execute(delete(Penalidade).where(Penalidade.usuario_id == uid))
@@ -105,7 +117,8 @@ _ultima_limpeza: datetime | None = None
 
 
 def limpar_vencidos(sessao: Session, forcar: bool = False) -> None:
-    """Retenção: apaga stories com mais de 24 horas (e as fotos deles) e avisos com mais de 180 dias.
+    """Retenção: apaga stories com mais de 24 horas (e as fotos deles), avisos com mais de 180 dias e os códigos de
+    resgate da loja com mais de 7 dias (o mascote já resgatado continua na coleção da conta).
     Roda no máximo uma vez a cada 10 minutos por processo, pegando carona nas leituras."""
     global _ultima_limpeza
     agora = datetime.now(timezone.utc)
@@ -121,6 +134,7 @@ def limpar_vencidos(sessao: Session, forcar: bool = False) -> None:
         sessao.delete(s)
     sessao.execute(delete(Notificacao).where(Notificacao.criado_em < agora - RETENCAO_NOTIFICACOES))
     sessao.execute(delete(RedefinicaoSenha).where(RedefinicaoSenha.criado_em < agora - timedelta(days=1)))   # códigos de redefinição velhos, usados ou não
+    sessao.execute(delete(Resgate).where(Resgate.criado_em < agora - RETENCAO_RESGATES))
     sessao.commit()
 
 

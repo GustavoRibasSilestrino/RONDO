@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { MENU } from "../data/menu";
 import { SECTIONS, type Sec } from "../data/sections";
 import { goMoment } from "../lib/bus";
-import { APP_CRIAR, APP_ENTRAR } from "../lib/rotas";
+import { rotuloDa, useConta } from "../lib/conta";
+import { APP, APP_CRIAR, APP_ENTRAR } from "../lib/rotas";
 import { reduceMotion, vars } from "../lib/util";
+import { ContaChip, FotoDaConta } from "./Conta";
 import { TendaBotao } from "./LojaPartes";
 import { Btn, Nome } from "./ui";
 
@@ -23,6 +25,7 @@ const LINKS = SECTIONS.filter((s) => s.href !== "#entrar");
 
 function MobileMenu({ open, current, onClose }: { open: boolean; current: number; onClose: () => void }) {
   const first = useRef<HTMLAnchorElement>(null);
+  const { conta } = useConta();
 
   /* trava a rolagem da página e leva o foco para o primeiro link */
   useEffect(() => {
@@ -66,8 +69,18 @@ function MobileMenu({ open, current, onClose }: { open: boolean; current: number
         ))}
       </nav>
       <div className="mnav-cta" style={vars({ "--i": LINKS.length })} onClick={() => { document.body.style.overflow = ""; onClose(); }}>
-        <Btn href={APP_CRIAR}>Criar conta</Btn>
-        <Btn href={APP_ENTRAR} kind="ghost">Já tenho conta: entrar</Btn>
+        {conta ? (
+          <>
+            {/* já entrou no app: a conta aparece aqui e o botão leva direto para dentro dela */}
+            <p className="mnav-conta"><FotoDaConta conta={conta} />Na sua conta, <b>{rotuloDa(conta)}</b></p>
+            <Btn href={APP}>Abrir o app</Btn>
+          </>
+        ) : (
+          <>
+            <Btn href={APP_CRIAR}>Criar conta</Btn>
+            <Btn href={APP_ENTRAR} kind="ghost">Já tenho conta: entrar</Btn>
+          </>
+        )}
       </div>
     </div>
   );
@@ -81,6 +94,7 @@ export function Nav() {
   const currentRef = useRef(0);
   const closeTimer = useRef(0);
   const closeMenu = useRef(() => setMenuOpen(false)).current;
+  const { conta } = useConta();   // quem já entrou no app aparece aqui com a própria conta (lib/conta.ts)
 
   /* qual seção está na tela: as posições das seções ficam guardadas e só são medidas de novo quando a página muda
      de tamanho; ao rolar, basta comparar com o scrollY (sem medir nada) */
@@ -158,7 +172,10 @@ export function Nav() {
               </div>
             ))}
           </nav>
-          <div className="nav-end"><TendaBotao comNome /><Btn href={APP_ENTRAR} kind="ghost" small>Entrar</Btn><Btn href={APP_CRIAR} small>Criar conta</Btn></div>
+          <div className="nav-end">
+            <TendaBotao comNome />
+            {conta ? <ContaChip /> : <><Btn href={APP_ENTRAR} kind="ghost" small>Entrar</Btn><Btn href={APP_CRIAR} small>Criar conta</Btn></>}
+          </div>
           {/* no celular a tenda fica ao lado dos três riscos, sempre à vista */}
           <TendaBotao className="tenda-btn-celular" />
           <button className="burger" type="button" aria-label={menuOpen ? "Fechar menu" : "Abrir menu"} aria-expanded={menuOpen} aria-controls="mnav"
