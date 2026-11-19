@@ -37,3 +37,6 @@ yarn-error.*
 # pastas nativas geradas
 /ios
 /android
+
+.vercel
+.env*

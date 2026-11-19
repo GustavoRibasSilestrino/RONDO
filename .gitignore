@@ -9,3 +9,6 @@ __pycache__/
 *.db
 .pytest_cache/
 venv/
+
+# Added by code-review-graph
+.code-review-graph/

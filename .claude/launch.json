@@ -1,0 +1,135 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "app-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "app",
+        "run",
+        "web",
+        "--",
+        "--port",
+        "8081"
+      ],
+      "port": 8081,
+      "env": {
+        "CI": "1",
+        "EXPO_NO_TELEMETRY": "1"
+      }
+    },
+    {
+      "name": "vitrine",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "vitrine",
+        "run",
+        "dev"
+      ],
+      "port": 5175
+    },
+    {
+      "name": "vitrine-pronta",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "vitrine",
+        "exec",
+        "--",
+        "vite",
+        "preview",
+        "--outDir",
+        "C:/Users/Gustavo/AppData/Local/Temp/claude/73b51724b8452bf2/3999a2d7-0029-4c79-8747-979f62b5e558/scratchpad/dist-3d",
+        "--port",
+        "4179",
+        "--strictPort"
+      ],
+      "port": 4179
+    },
+    {
+      "name": "api-local",
+      "runtimeExecutable": "backend/.venv/Scripts/python.exe",
+      "runtimeArgs": [
+        "-m",
+        "uvicorn",
+        "app.main:app",
+        "--app-dir",
+        "backend",
+        "--port",
+        "8000"
+      ],
+      "port": 8000,
+      "env": {
+        "DATABASE_URL": "sqlite:///C:/Users/Gustavo/AppData/Local/Temp/claude/73b51724b8452bf2/3999a2d7-0029-4c79-8747-979f62b5e558/scratchpad/teste-local.db",
+        "JWT_SEGREDO": "segredo-de-teste-local-somente-0123456789abcdef",
+        "EMAIL_MODO_TESTE": "1",
+        "LIMITE_REQ_MINUTO": "0",
+        "LIMITE_AUTH_MINUTO": "0",
+        "ORIGENS_PERMITIDAS": "http://localhost:8082,http://localhost:8083"
+      }
+    },
+    {
+      "name": "app-web-local",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "app",
+        "run",
+        "web",
+        "--",
+        "--port",
+        "8082"
+      ],
+      "port": 8082,
+      "env": {
+        "CI": "1",
+        "EXPO_NO_TELEMETRY": "1",
+        "EXPO_PUBLIC_API_URL": "http://localhost:8000"
+      }
+    },
+    {
+      "name": "app-csp",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "C:/Users/Gustavo/AppData/Local/Temp/claude/73b51724b8452bf2/3999a2d7-0029-4c79-8747-979f62b5e558/scratchpad/servir-csp.cjs"
+      ],
+      "port": 8083
+    },
+    {
+      "name": "quadros-video",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8084",
+        "--bind",
+        "127.0.0.1",
+        "--directory",
+        "C:/Users/Gustavo/AppData/Local/Temp/claude/73b51724b8452bf2/3999a2d7-0029-4c79-8747-979f62b5e558/scratchpad/video"
+      ],
+      "port": 8084
+    },
+    {
+      "name": "app-web-social",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "app",
+        "run",
+        "web",
+        "--",
+        "--port",
+        "8084"
+      ],
+      "port": 8084,
+      "env": {
+        "CI": "1",
+        "EXPO_NO_TELEMETRY": "1",
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "teste-falso.apps.googleusercontent.com",
+        "EXPO_PUBLIC_APPLE_CLIENT_ID": "teste.falso"
+      }
+    }
+  ]
+}

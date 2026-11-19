@@ -1,0 +1,50 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "vitrine/index.html"
+        ],
+        "createdAt": "2026-11-04T13:09:16.683Z",
+        "reason": "Agent: false positive, the detector cannot resolve clamp()/calc() padding. Measured in the browser: .section padding-top 128px at 1440px, .day-sticky padding-top calc(68px + 1.2rem). Predates this session."
+      },
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-11-04T13:09:16.793Z",
+        "reason": "Agent: existing site typography, Inter Tight thin 200/300 is the user-directed type voice (project design-preferences memory) with Inter for body. Not changed this session."
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "*",
+        "files": [
+          "vitrine/index.html"
+        ],
+        "createdAt": "2026-11-04T13:09:16.917Z",
+        "reason": "Agent: user-directed brand palette, black plus purple with gradients (project design-preferences memory, given by Gustavo). Predates this session."
+      },
+      {
+        "rule": "radial-halo",
+        "value": "*",
+        "files": [
+          "vitrine/index.html"
+        ],
+        "createdAt": "2026-11-04T13:09:17.050Z",
+        "reason": "Agent: intentional hover feedback added this session in fit.css, a cursor-tracking rim light masked to a 1px card border (spotlight-card pattern), not a decorative halo. Easy to revert if the user dislikes it."
+      },
+      {
+        "rule": "overused-font",
+        "value": "*",
+        "files": [
+          "vitrine/src/styles/hero.css"
+        ],
+        "createdAt": "2026-11-10T12:59:11.067Z",
+        "reason": "Fonte pedida pelo dono a partir de uma amostra dele (aplicar só em 'Vença o você'); PRODUCT.md já lista Inter Tight como fonte da marca. Que a amostra seja Inter Tight é identificação minha, não confirmada por nome pelo usuário."
+      }
+    ]
+  }
+}
