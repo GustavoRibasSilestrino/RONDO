@@ -40,7 +40,7 @@ export const estadoVazio = (): Estado => ({
   xpExtra: 0,
   pro: false,
   nivelAvisado: null,
-  medalhasAvisadas: null,
+  recompensasPedidas: null,
   semeado: false,
 });
 
@@ -138,8 +138,8 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
       const copia: Estado = { ...recente.current };
       /* a conta no servidor manda: se a foto, o nome ou o @ mudaram em outro aparelho, este passa a mostrar o mesmo */
       try {
-        const eu = await chamar<{ nome: string; arroba: string | null; foto: string | null; verificado: boolean; pro: boolean; selo: string | null; papel: string }>('GET', '/auth/eu');
-        if (copia.usuario) copia.usuario = { ...copia.usuario, nome: eu.nome, arroba: eu.arroba ?? undefined, foto: eu.foto ?? undefined, verificado: eu.verificado, pro: eu.pro, selo: eu.selo, papel: eu.papel };
+        const eu = await chamar<{ nome: string; arroba: string | null; foto: string | null; verificado: boolean; pro: boolean; selo: string | null; papel: string; mascote?: string | null }>('GET', '/auth/eu');
+        if (copia.usuario) copia.usuario = { ...copia.usuario, nome: eu.nome, arroba: eu.arroba ?? undefined, foto: eu.foto ?? undefined, verificado: eu.verificado, pro: eu.pro, selo: eu.selo, papel: eu.papel, mascote: eu.mascote ?? null };
       } catch (e) {
         if (e instanceof ErroHttp && e.status === 401) throw e;   // sessão vencida: o tratamento de baixo derruba a sessão
       }

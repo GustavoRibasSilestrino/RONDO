@@ -1,12 +1,12 @@
-/* O aviso de nível novo: aparece quando a conta sobe de nível, com o benefício liberado. */
+/* O aviso de nível novo: aparece quando a conta sobe de nível, com o benefício liberado. O brownie do nível vem logo depois
+   (componentes/AvisoBrownie.tsx). */
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Image, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Animated, Easing, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useLoja } from '../estado/loja';
 import { BENEFICIOS } from '../lib/beneficios';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { nivelDe, xpTotal } from '../lib/nivel';
 import { adicionar } from '../lib/notificacoes';
-import { PATENTES } from '../lib/patentes';
 import { cores, estilos, larguraMax } from '../tema';
 import { Icone } from './Icone';
 import { Botao, T } from './Ui';
@@ -45,13 +45,12 @@ export function AvisoNivel() {
   const ganhos = BENEFICIOS.filter((b) => b.nivel > mostrar.de && b.nivel <= mostrar.para);
   const vistos = ganhos.slice(-3);   // se subiu vários níveis de uma vez, mostra os três últimos
   const resto = ganhos.length - vistos.length;
-  const patente = PATENTES.find((p) => p.nivel === mostrar.para);
 
   const fechar = () => {
     const para = mostrar.para;
     commit((e) => {
       e.nivelAvisado = para;
-      adicionar(e, { tipo: 'medalha', texto: `Você chegou ao nível ${para}.${ganhos.length ? ` ${ganhos[ganhos.length - 1].texto}.` : ''}` });
+      adicionar(e, { tipo: 'brownie', texto: `Você chegou ao nível ${para}.${ganhos.length ? ` ${ganhos[ganhos.length - 1].texto}.` : ''}` });
     });
     setMostrar(null);
   };
@@ -61,15 +60,9 @@ export function AvisoNivel() {
       <View style={st.cartao}>
         <View style={st.palco}>
           <Animated.View pointerEvents="none" style={[st.anel, { opacity: anel.interpolate({ inputRange: [0, 1], outputRange: [0.6, 0] }), transform: [{ scale: anel.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1.7] }) }] }]} />
-          {patente ? (
-            <Animated.View style={{ transform: [{ scale: numero }] }}>
-              <Image source={patente.img} style={{ width: 150, height: 142 }} resizeMode="contain" accessibilityIgnoresInvertColors />
-            </Animated.View>
-          ) : (
-            <Animated.View style={[st.selo, { transform: [{ scale: numero }] }]}>
-              <T tam={44} peso="500" cor="#ffffff">{mostrar.para}</T>
-            </Animated.View>
-          )}
+          <Animated.View style={[st.selo, { transform: [{ scale: numero }] }]}>
+            <T tam={44} peso="500" cor="#ffffff">{mostrar.para}</T>
+          </Animated.View>
         </View>
         <T tam={13} peso="500" centro style={{ letterSpacing: 2 }}>NÍVEL {mostrar.para}</T>
         <T tam={22} peso="500" centro style={{ marginTop: 6 }}>Você subiu de nível!</T>

@@ -27,7 +27,7 @@ const INCLUI: { icone: NomeIcone; texto: string }[] = [
   { icone: 'evolucao', texto: 'Estatísticas completas e o seu progresso semana a semana' },
   { icone: 'recado', texto: 'Recados para o futuro sem limite' },
   { icone: 'grupo', texto: 'Clubes VIP e o seu clube em destaque na busca' },
-  { icone: 'trofeu', texto: 'Ranking com prêmios e medalhas exclusivas (em breve)' },
+  { icone: 'trofeu', texto: 'Ranking com prêmios e mascotes exclusivos (em breve)' },
   { icone: 'camera', texto: 'Análise da execução com a câmera sem limite' },
 ];
 

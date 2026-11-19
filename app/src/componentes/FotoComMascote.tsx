@@ -1,0 +1,63 @@
+/* A foto do perfil com o mascote da pessoa sentado ao lado, no canto de baixo à esquerda (desde 2026-11-19). Tocar no mascote
+   faz ele dar um pulinho e falar: no seu perfil, uma verdade sobre os seus treinos (lib/falasMascote.ts); no perfil de outra
+   pessoa, quem ele é. Sem mascote, só a foto. */
+import React, { useRef, useState } from 'react';
+import { Animated, Easing, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { useLoja } from '../estado/loja';
+import { escolherFala } from '../lib/falasMascote';
+import { mascoteDe } from '../lib/mascotes';
+import { useMovimentoReduzido } from '../lib/movimento';
+import { cores, estilos } from '../tema';
+import { Mascote } from './Mascote';
+import { T } from './Ui';
+
+export function FotoComMascote({ chave, tamanhoFoto, dono, children }: { chave: string | null | undefined; tamanhoFoto: number; dono?: string; children: React.ReactNode }) {
+  const { estado } = useLoja();
+  const reduzido = useMovimentoReduzido();
+  const info = mascoteDe(chave);
+  const [fala, setFala] = useState<string | null>(null);
+  const pulo = useRef(new Animated.Value(0)).current;
+  const sumir = useRef<ReturnType<typeof setTimeout> | null>(null);
+  if (!info) return <>{children}</>;
+  const tam = Math.round(tamanhoFoto * 0.62);
+
+  const tocar = () => {
+    setFala(dono ? `${info.nome}, mascote ${info.raridade.nome.toLowerCase()} de ${dono}.` : escolherFala(estado, new Date(), []).texto);
+    if (sumir.current) clearTimeout(sumir.current);
+    sumir.current = setTimeout(() => setFala(null), 6000);
+    if (reduzido) return;
+    pulo.setValue(0);
+    Animated.sequence([
+      Animated.timing(pulo, { toValue: 1, duration: 160, easing: Easing.out(Easing.quad), useNativeDriver: Platform.OS !== 'web' }),
+      Animated.timing(pulo, { toValue: 0, duration: 260, easing: Easing.bounce, useNativeDriver: Platform.OS !== 'web' }),
+    ]).start();
+  };
+
+  return (
+    <View style={{ width: tamanhoFoto + tam * 0.45 }}>
+      <View style={{ alignSelf: 'flex-end' }}>{children}</View>
+      <Pressable
+        accessibilityRole="button" accessibilityLabel={dono ? `${info.nome}, o mascote de ${dono}` : `${info.nome}, o seu mascote. Tocar para ele falar`}
+        onPress={tocar} hitSlop={6} style={[st.mascote, { width: tam * (127 / 130), height: tam }]}
+      >
+        <Animated.View style={{ transform: [{ translateY: pulo.interpolate({ inputRange: [0, 1], outputRange: [0, -14] }) }] }}>
+          <Mascote chave={info.chave} tamanho={tam} />
+        </Animated.View>
+      </Pressable>
+      {fala ? (
+        <Pressable accessibilityRole="button" accessibilityLabel="Fechar a fala do mascote" onPress={() => setFala(null)} style={st.balao}>
+          <T tam={13} style={{ lineHeight: 18 }}>{fala}</T>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+const st = estilos(() => StyleSheet.create({
+  mascote: { position: 'absolute', left: 0, bottom: -4, zIndex: 3 },
+  balao: {
+    position: 'absolute', left: 0, top: '100%', marginTop: 10, width: 240, zIndex: 20, padding: 12, borderRadius: 16, borderTopLeftRadius: 6,
+    borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.painel,
+    shadowColor: '#000', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8,
+  },
+}));

@@ -144,7 +144,7 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
       <Folha aberta={apagando} aoFechar={() => { if (!apagandoAgora) setApagando(false); }} titulo="Apagar conta?">
         <T tam={14} style={{ lineHeight: 21 }}>
           Isso apaga a sua conta e todos os seus dados no servidor e neste aparelho: treinos, dieta, publicações, comentários,
-          stories, clubes que você criou, medalhas e recados. Não dá para desfazer. Se quiser uma cópia antes, use Baixar meus
+          stories, clubes que você criou, a coleção de mascotes e os recados. Não dá para desfazer. Se quiser uma cópia antes, use Baixar meus
           dados, em Privacidade e dados.
         </T>
         <View style={{ height: 16 }} />

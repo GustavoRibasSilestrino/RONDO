@@ -65,5 +65,6 @@ export async function chamar<T>(metodo: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELE
     if (resposta.status === 403 && token && /banida/i.test(mensagem)) avisarBanimento(mensagem);
     throw new ErroHttp(resposta.status, mensagem);
   }
+  if (resposta.status === 204) return undefined as T;   // resposta sem corpo
   return (await resposta.json()) as T;
 }

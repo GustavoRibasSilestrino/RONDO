@@ -4,7 +4,7 @@ import type { Rotina } from './dados';
 export type Sexo = 'm' | 'f';
 
 /* `arroba` é o nome de usuário (sem o @) e `foto` é o id da foto de perfil (guardada em lib/midia.ts); sem eles, vale o nome e a inicial. */
-export type Usuario = { email: string; nome: string; arroba?: string; foto?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null };
+export type Usuario = { email: string; nome: string; arroba?: string; foto?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; mascote?: string | null };
 
 export type Perfil = {
   sexo: Sexo;
@@ -76,7 +76,7 @@ export type Midia = { id: string; tipo: 'imagem' | 'video'; largura: number; alt
 export type CategoriaGrupo = 'treino' | 'corrida' | 'dieta' | 'constancia' | 'outro';
 
 /* Publicações, cheers, comentários, seguidores e clubes ficam no servidor, compartilhados entre as pessoas (api/social.ts).
-   Aqui só o resumo da pessoa, guardado no aparelho para o nível e as medalhas funcionarem sem rede. Não sobe para o servidor. */
+   Aqui só o resumo da pessoa, guardado no aparelho para o nível e as missões funcionarem sem rede. Não sobe para o servidor. */
 export type ResumoSocial = { id: number; posts: number; cheersDados: number; seguindo: number; seguidores: number; comentarios: number; clubesCriados: number; naoLidas: number };
 
 export type Recado = {
@@ -96,8 +96,9 @@ export type Recado = {
 /* O lado público do perfil: descrição, títulos exibidos (ids de lib/nivel.ts) e publicações em destaque (ids de Post). */
 export type PerfilSocial = { bio: string; titulos: string[]; destaques: string[] };
 
-/* Avisos locais do perfil (medalhas e profissionais); os de cheers, comentários e seguidores vêm do servidor. `ref` é o id da medalha, quando for uma. */
-export type Notificacao = { id: string; tipo: 'cheers' | 'comentario' | 'seguidor' | 'medalha' | 'profissional'; texto: string; quando: number; lida: boolean; ref?: string };
+/* Avisos locais do perfil (brownies ganhos e profissionais); os de cheers, comentários e seguidores vêm do servidor. `ref` é a chave
+   do mascote ("linha-coluna") num brownie. 'medalha' é dos avisos antigos, de antes dos brownies (2026-11-19). */
+export type Notificacao = { id: string; tipo: 'cheers' | 'comentario' | 'seguidor' | 'medalha' | 'brownie' | 'profissional'; texto: string; quando: number; lida: boolean; ref?: string };
 
 
 export type Estado = {
@@ -128,6 +129,8 @@ export type Estado = {
   pro: boolean;                                // plano PRO ativo, vindo da API
   nivelAvisado: number | null;                 // o último nível que a pessoa já viu comemorado; null até a primeira leitura
   profissionais: Record<string, boolean>;      // profissionais para quem a pessoa enviou um pedido de contato, por id
-  medalhasAvisadas: string[] | null;           // medalhas que já viraram notificação; null até a primeira leitura (as que já estavam abertas não avisam)
+  /* as missões e os níveis que já pediram o brownie de recompensa ao servidor ("missao:t10", "nivel:5"); null até a primeira
+     leitura. O servidor dá um brownie só por chave, então pedir de novo não dá outro. */
+  recompensasPedidas: string[] | null;
   semeado: boolean;
 };

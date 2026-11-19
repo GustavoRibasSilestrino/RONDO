@@ -1,38 +1,39 @@
 /* Um benefício mínimo para cada nível da conta, de 2 a 25. Os números (destaques, títulos, fotos e descrição) crescem de verdade
-   no app; a patente aparece quando o nível chega nela. */
+   no app. Todo nível dá também um brownie (um mascote para a coleção); nos níveis que eram das patentes (até 2026-11-19), o
+   benefício é só o brownie, com a raridade mais alta a cada brownie ganho. */
 import { useLoja } from '../estado/loja';
 import { nivelDe, xpTotal } from './nivel';
 
-export type Efeito = 'destaque' | 'titulo' | 'midia' | 'bio' | 'patente';
+export type Efeito = 'destaque' | 'titulo' | 'midia' | 'bio' | 'brownie';
 export type Beneficio = { nivel: number; texto: string; efeito: Efeito };
 
 export const NIVEL_MAX_BENEFICIOS = 25;
 
 export const BENEFICIOS: Beneficio[] = [
-  { nivel: 2, texto: 'Patente Bronze I no perfil', efeito: 'patente' },
+  { nivel: 2, texto: 'Um brownie para a sua coleção', efeito: 'brownie' },
   { nivel: 3, texto: 'Mais um destaque no perfil', efeito: 'destaque' },
   { nivel: 4, texto: 'Mais um título no perfil', efeito: 'titulo' },
-  { nivel: 5, texto: 'Patente Prata II no perfil', efeito: 'patente' },
+  { nivel: 5, texto: 'Um brownie para a sua coleção', efeito: 'brownie' },
   { nivel: 6, texto: 'Mais um destaque no perfil', efeito: 'destaque' },
   { nivel: 7, texto: 'Mais uma foto ou vídeo por publicação', efeito: 'midia' },
-  { nivel: 8, texto: 'Patente Ouro III no perfil', efeito: 'patente' },
+  { nivel: 8, texto: 'Um brownie para a sua coleção', efeito: 'brownie' },
   { nivel: 9, texto: 'Mais um título no perfil', efeito: 'titulo' },
   { nivel: 10, texto: 'Descrição do perfil 20 letras maior', efeito: 'bio' },
   { nivel: 11, texto: 'Mais um destaque no perfil', efeito: 'destaque' },
-  { nivel: 12, texto: 'Patente Platina IV no perfil', efeito: 'patente' },
+  { nivel: 12, texto: 'Um brownie para a sua coleção', efeito: 'brownie' },
   { nivel: 13, texto: 'Mais uma foto ou vídeo por publicação', efeito: 'midia' },
   { nivel: 14, texto: 'Mais um título no perfil', efeito: 'titulo' },
   { nivel: 15, texto: 'Mais uma foto ou vídeo por publicação e o título Lenda de ontem', efeito: 'midia' },
   { nivel: 16, texto: 'Mais um destaque no perfil', efeito: 'destaque' },
   { nivel: 17, texto: 'Descrição do perfil 20 letras maior', efeito: 'bio' },
-  { nivel: 18, texto: 'Patente Diamante V no perfil', efeito: 'patente' },
+  { nivel: 18, texto: 'Um brownie para a sua coleção', efeito: 'brownie' },
   { nivel: 19, texto: 'Mais um título no perfil', efeito: 'titulo' },
   { nivel: 20, texto: 'Mais uma foto ou vídeo por publicação', efeito: 'midia' },
   { nivel: 21, texto: 'Mais um destaque no perfil', efeito: 'destaque' },
   { nivel: 22, texto: 'Descrição do perfil 20 letras maior', efeito: 'bio' },
   { nivel: 23, texto: 'Mais um título no perfil', efeito: 'titulo' },
   { nivel: 24, texto: 'Descrição do perfil 20 letras maior', efeito: 'bio' },
-  { nivel: 25, texto: 'Patente RONDO no perfil', efeito: 'patente' },
+  { nivel: 25, texto: 'Um brownie para a sua coleção', efeito: 'brownie' },
 ];
 
 export type Limites = { destaques: number; titulos: number; midias: number; bio: number };

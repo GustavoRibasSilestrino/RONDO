@@ -14,6 +14,7 @@ import { useLista } from '../../estado/lista';
 import { fmt } from '../../lib/datas';
 import { cores, estilos, larguraMax } from '../../tema';
 import type { Midia } from '../../tipos';
+import { FotoComMascote } from '../../componentes/FotoComMascote';
 import { Avatar } from './Avatar';
 import { CartaoPost } from './CartaoPost';
 import { BotaoSeguir } from './Seguir';
@@ -67,7 +68,9 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
 
           <ScrollView key={atual} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 40 }}>
             <View style={st.cabeca}>
-              <Avatar nome={nome || ' '} tamanho={84} foto={perfil?.foto ?? undefined} />
+              <FotoComMascote chave={perfil?.mascote} tamanhoFoto={84} dono={perfil?.voce ? undefined : primeiro}>
+                <Avatar nome={nome || ' '} tamanho={84} foto={perfil?.foto ?? undefined} />
+              </FotoComMascote>
               <View style={{ flex: 1, alignItems: 'center' }}>
                 <T tam={18} peso="500">{fmt(perfil?.posts ?? 0)}</T>
                 <T tam={12}>Publicações</T>

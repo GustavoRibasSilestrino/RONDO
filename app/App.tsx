@@ -7,7 +7,10 @@ import { BackHandler, Platform, Pressable, StyleSheet, View } from 'react-native
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Abertura } from './src/componentes/Abertura';
 import { AnaliseExecucao } from './src/componentes/AnaliseExecucao';
+import { AvisoBrownie } from './src/componentes/AvisoBrownie';
 import { AvisoNivel } from './src/componentes/AvisoNivel';
+import { MascoteFlutuante } from './src/componentes/MascoteFlutuante';
+import { LARGURA_MENU, LARGURA_MENU_FECHADO, LARGURA_PAINEL } from './src/lib/largura';
 import { FundoCena, cenaDaTela } from './src/componentes/FundoCena';
 import { BarraAbas, ItemAba } from './src/componentes/BarraAbas';
 import { BotaoVoltar } from './src/componentes/BotaoVoltar';
@@ -33,7 +36,7 @@ import { T } from './src/componentes/Ui';
 import { estadoVazio, LojaProvider, useLoja } from './src/estado/loja';
 import { useEscutaDoChamado } from './src/lib/escuta';
 import { voltarInterceptado } from './src/lib/interceptarVoltar';
-import { naoLidas, useNotificacoes } from './src/lib/notificacoes';
+import { naoLidas } from './src/lib/notificacoes';
 import { achaSotaque, sotaquePadrao, type Idioma } from './src/lib/rondinVoz';
 import { Colecoes } from './src/telas/Colecoes';
 import { CriarPlano } from './src/telas/CriarPlano';
@@ -97,7 +100,6 @@ function Raiz() {
   const [chamado, setChamado] = useState<Idioma | null>(null);
   const idiomaRondin: Idioma = estado.perfilFit ? achaSotaque(estado.perfilFit.sotaque).idioma : sotaquePadrao().idioma;
   useEscutaDoChamado({ ativo: pronto && !!estado.usuario, idioma: idiomaRondin, aoChamar: (i) => setChamado(i ?? idiomaRondin) });
-  useNotificacoes();
   const { largo, comPainel } = useLayoutLargo();   // computador: menu lateral no lugar da barra e do cabeçalho
   const [menuRecolhido, alternarMenu] = useMenuRecolhido();
 
@@ -265,6 +267,10 @@ function Raiz() {
       ) : null}
       </View>
       {comPainel ? <PainelLateral ir={setTela} /> : null}
+      {/* o mascote da conta passeando pela tela (só para quem tem mascote); some no recado, no treino em andamento e com o RONDIN aberto */}
+      <MascoteFlutuante ir={irPara} oculto={tela === 'recado' || !!estado.treinoAtual || !!chamado || chegando}
+        margens={largo ? { esquerda: menuRecolhido ? LARGURA_MENU_FECHADO : LARGURA_MENU, direita: comPainel ? LARGURA_PAINEL : 0 } : undefined} />
+      <AvisoBrownie pausado={!!chamado || chegando} />
       <AvisoNivel />
       {/* o RONDIN por cima de tudo: chamado pela voz ("Olá Rondin") ou, ao abrir o app, perguntando o recado do dia */}
       {chamado ? (

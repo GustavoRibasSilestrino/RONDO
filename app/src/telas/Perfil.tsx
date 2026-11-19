@@ -1,26 +1,24 @@
 /* Perfil, no estilo do Instagram: nome de usuário e ações no alto (o plano PRO, os recados, editar e configurações), foto com anel de story e as contagens ao lado, descrição,
-   e abaixo duas abas: Publicações (em grade) e Conquistas (patente, nível e medalhas). O resto fica em Configurações (o ícone ☰). */
+   e abaixo duas abas: Publicações (em grade) e Coleção (o nível e os mascotes ganhos; no lugar das medalhas desde 2026-11-19). O resto fica em Configurações (o ícone ☰). */
 import React, { useEffect, useState } from 'react';
-import { Image, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { CampoFlutuante } from '../componentes/CampoFlutuante';
 import { ErroHttp } from '../api/cliente';
 import { salvarPerfilNoServidor } from '../api/sincronia';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
 import { Icone } from '../componentes/Icone';
 import { Selo, tipoDeSelo } from '../componentes/Selos';
-import { Medalha3D } from '../componentes/Medalha3D';
+import { FotoComMascote } from '../componentes/FotoComMascote';
 import { TelaPlanos } from '../componentes/TelaPlanos';
 import { AnelStory } from '../componentes/stories/AnelStory';
 import { CriarStory } from '../componentes/stories/CriarStory';
 import { VisorStory } from '../componentes/stories/VisorStory';
-import { Barra, Botao, T } from '../componentes/Ui';
+import { Botao, T } from '../componentes/Ui';
 import { useLoja } from '../estado/loja';
 import { limitesDe } from '../lib/beneficios';
 import { fmt } from '../lib/datas';
-import { medalhasDe } from '../lib/medalhas';
 import { enviarMidia, escolherFoto, removerMidia } from '../lib/midia';
 import { progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
-import { patenteDe } from '../lib/patentes';
 import { useStories } from '../lib/stories';
 import { cores, estilos } from '../tema';
 import type { Midia } from '../tipos';
@@ -32,6 +30,7 @@ import { CartaoPost } from './comunidade/CartaoPost';
 import { Miniatura, VisorMidia } from './comunidade/Midia';
 import { PerfilPessoa } from './comunidade/PerfilPessoa';
 import { BotaoSeguir } from './comunidade/Seguir';
+import { ColecaoMascotes } from './perfil/ColecaoMascotes';
 import { Configuracoes } from './perfil/Configuracoes';
 import { EditarTitulos } from './perfil/EditarTitulos';
 
@@ -45,7 +44,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const { width } = useWindowDimensions();
   const tamFoto = width < 360 ? 70 : 86;   // em telas estreitas a foto encolhe, para as três contagens caberem ao lado
 
-  const [aba, setAba] = useState<'posts' | 'conquistas'>('posts');
+  const [aba, setAba] = useState<'posts' | 'colecao'>('posts');
   const [editando, setEditando] = useState(false);
   const [config, setConfig] = useState(false);
   const [planos, setPlanos] = useState(false);   // a tela de planos, aberta por "Melhorar plano"
@@ -70,7 +69,6 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const meuId = estado.social.id;
   const publicacoes = useLista((cursor) => lerPostsDaPessoa(meuId, cursor), [meuId], meuId > 0);
   const conexoes = useLista((cursor) => (lista === 'seguidores' ? lerSeguidores(meuId, cursor) : lerSeguindo(meuId, cursor)), [meuId, lista], meuId > 0 && lista !== null);
-  const { atual: patente, proxima } = patenteDe(nivel.nivel);
   const exibidos = TITULOS.filter((t) => estado.perfilSocial.titulos.includes(t.id) && t.nivel <= nivel.nivel);
   const arrobaAtual = estado.usuario?.arroba ?? arrobaPadrao(nome);
   const { meus: stories, recarregar: recarregarStories } = useStories();
@@ -78,7 +76,6 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   /* publicações em grade: as fixadas (destacadas) primeiro */
   const fixadas = new Set(estado.perfilSocial.destaques);
   const grade = [...publicacoes.itens].sort((a, b) => Number(fixadas.has(String(b.id))) - Number(fixadas.has(String(a.id))) || b.quando - a.quando);
-  const medalhasGanhas = medalhasDe(estado, new Date()).filter((m) => m.aberta);
 
   const abrirEdicao = () => {
     setBio(estado.perfilSocial.bio); setNomeEd(nome); setArrobaEd(arrobaAtual); setFotoEd(estado.usuario?.foto ?? null); setFotoNova(null); setErroEd({});
@@ -175,6 +172,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
       {/* foto com o anel de story e as contagens */}
       <View style={st.cabeca}>
+        <FotoComMascote chave={estado.usuario?.mascote} tamanhoFoto={tamFoto}>
         <AnelStory
           tamanho={tamFoto}
           estado={stories.length ? 'novo' : 'nenhum'}
@@ -185,6 +183,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         >
           <Avatar nome={nome} voce tamanho={tamFoto} />
         </AnelStory>
+        </FotoComMascote>
         <View style={st.contagens}>
           <Contagem n={estado.social.posts} rotulo="Publicações" />
           <Contagem n={estado.social.seguidores} rotulo="Seguidores" aoTocar={() => setLista('seguidores')} />
@@ -200,7 +199,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         </View>
         {tipoDeSelo(estado.usuario?.selo) ? <Selo tipo={tipoDeSelo(estado.usuario?.selo)!} /> : null}
       </View>
-      <T tam={13} style={{ marginTop: 2 }}>Nível {nivel.nivel}{patente ? ` · ${patente.nome}` : ''}</T>
+      <T tam={13} style={{ marginTop: 2 }}>Nível {nivel.nivel}</T>
       <View style={st.titulos}>
         {exibidos.map((t) => <View key={t.id} style={st.titulo}><T tam={12} peso="500">{t.nome}</T></View>)}
         <Pressable accessibilityRole="button" accessibilityLabel="Editar títulos" onPress={() => setEditandoTitulos(true)} hitSlop={8} style={st.lapis}>
@@ -211,7 +210,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
       {/* abas */}
       <View style={st.abas}>
-        {([['posts', 'grade', 'Publicações'], ['conquistas', 'medalha', 'Conquistas']] as const).map(([id, icone, rotulo]) => {
+        {([['posts', 'grade', 'Publicações'], ['colecao', 'brownie', 'Coleção de mascotes']] as const).map(([id, icone, rotulo]) => {
           const ativa = aba === id;
           return (
             <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: ativa }} accessibilityLabel={rotulo} onPress={() => setAba(id)} style={[st.aba, ativa && st.abaAtiva]}>
@@ -235,30 +234,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
           </View>
         )
       ) : (
-        <View style={{ alignItems: 'center', marginTop: 20, gap: 16 }}>
-          <View accessibilityLabel={patente ? `Patente ${patente.nome}` : 'Ainda sem patente'} style={{ alignItems: 'center' }}>
-            {patente ? <Medalha3D frente={patente.img} verso={patente.verso} tamanho={190} /> : <Image source={proxima!.img} style={{ width: 120, height: 114, opacity: 0.25 }} resizeMode="contain" accessibilityIgnoresInvertColors />}
-            <T tam={18} peso="500" style={{ marginTop: 6 }}>{patente ? `Patente ${patente.nome}` : 'Ainda sem patente'}</T>
-            <T tam={12.5} style={{ marginTop: 2 }}>{proxima ? `Próxima: ${proxima.nome}, no nível ${proxima.nivel}` : 'A patente mais alta da RONDO'}</T>
-          </View>
-          <View style={st.nivel}>
-            <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
-              <T tam={22} peso="500">Nível {nivel.nivel}</T>
-              <T tam={13}>{fmt(xp)} XP</T>
-            </View>
-            <View style={{ marginTop: 10 }}><Barra valor={nivel.noNivel} max={nivel.tamanho} cor={cores.destaque2} /></View>
-            <T tam={12.5} style={{ marginTop: 8 }}>Faltam {fmt(nivel.faltam)} XP para o nível {nivel.nivel + 1}.</T>
-          </View>
-          {medalhasGanhas.length ? (
-            <View style={{ alignSelf: 'stretch' }}>
-              <T tam={13} peso="500" style={{ marginBottom: 10 }}>Medalhas ({medalhasGanhas.length})</T>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
-                {medalhasGanhas.map((m) => <Image key={m.id} source={m.img} style={{ width: 64, height: 61 }} resizeMode="contain" accessibilityLabel={m.nome} />)}
-              </ScrollView>
-            </View>
-          ) : null}
-          <Botao tipo="fantasma" icone="medalha" titulo="Ver todas as coleções" aoPressionar={() => ir('colecoes')} style={{ alignSelf: 'stretch' }} />
-        </View>
+        <ColecaoMascotes aoVerMissoes={() => ir('colecoes')} />
       )}
 
       {/* a publicação aberta, com cheers e comentários */}

@@ -1,19 +1,20 @@
-/* Notificações: tudo o que chegou para o seu perfil (cheers, comentários, novos seguidores e medalhas), da mais nova para a mais antiga.
-   Cheers, comentários e seguidores vêm do servidor; as medalhas são avisos guardados no aparelho. */
+/* Notificações: tudo o que chegou para o seu perfil (cheers, comentários, novos seguidores e brownies ganhos), da mais nova para a mais antiga.
+   Cheers, comentários e seguidores vêm do servidor; os brownies e os níveis são avisos guardados no aparelho. */
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { lerAvisos, limparAvisos, marcarAvisosLidos } from '../api/social';
 import { Tela } from '../componentes/Estrutura';
 import { Icone, NomeIcone } from '../componentes/Icone';
+import { Mascote } from '../componentes/Mascote';
+import { mascoteDe } from '../lib/mascotes';
 import { Botao, Cartao, T } from '../componentes/Ui';
 import { useLista } from '../estado/lista';
 import { useLoja } from '../estado/loja';
-import { MEDALHAS } from '../lib/medalhas';
 import { cores, estilos } from '../tema';
 import type { Notificacao } from '../tipos';
 import { quando } from './comunidade/util';
 
-const ICONE: Record<Notificacao['tipo'], NomeIcone> = { cheers: 'cheers', comentario: 'comentario', seguidor: 'convidar', medalha: 'medalha', profissional: 'verificado' };
+const ICONE: Record<Notificacao['tipo'], NomeIcone> = { cheers: 'cheers', comentario: 'comentario', seguidor: 'convidar', medalha: 'brownie', brownie: 'brownie', profissional: 'verificado' };
 
 type Linha = { chave: string; tipo: Notificacao['tipo']; texto: string; quando: number; nova: boolean; ref?: string };
 
@@ -58,14 +59,14 @@ export function Notificacoes({ aoFechar }: { aoFechar?: () => void }) {
         {lista.length === 0 ? (
           <Cartao>
             <T tam={16}>{servidor.erro ? 'Não foi possível carregar.' : servidor.carregando ? 'Carregando...' : 'Nada por aqui ainda.'}</T>
-            <T tam={13.5} style={{ marginTop: 6, lineHeight: 20 }}>{servidor.erro || 'Quando alguém der cheers, comentar ou seguir você, e quando você ganhar uma medalha, aparece aqui.'}</T>
+            <T tam={13.5} style={{ marginTop: 6, lineHeight: 20 }}>{servidor.erro || 'Quando alguém der cheers, comentar ou seguir você, e quando você ganhar um brownie, aparece aqui.'}</T>
           </Cartao>
         ) : lista.map((n) => {
-          const medalha = n.ref ? MEDALHAS.find((m) => m.id === n.ref) : undefined;
+          const mascote = n.tipo === 'brownie' ? mascoteDe(n.ref) : null;
           return (
             <View key={n.chave} style={[st.item, n.nova && st.nova]}>
-              {medalha ? (
-                <Image source={medalha.img} style={{ width: 44, height: 42 }} resizeMode="contain" accessibilityIgnoresInvertColors />
+              {mascote ? (
+                <Mascote chave={mascote.chave} tamanho={44} />
               ) : (
                 <View style={st.icone}><Icone nome={ICONE[n.tipo]} tamanho={20} cor="#ffffff" /></View>
               )}

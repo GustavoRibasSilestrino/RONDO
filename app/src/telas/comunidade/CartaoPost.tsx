@@ -14,6 +14,7 @@ import { useConta } from '../../lib/beneficios';
 import { useMovimentoReduzido } from '../../lib/movimento';
 import { cores, FONTE, estilos } from '../../tema';
 import type { Midia } from '../../tipos';
+import { Mascote } from '../../componentes/Mascote';
 import { Avatar } from './Avatar';
 import { MidiaGrade } from './Midia';
 import { BotaoSeguir } from './Seguir';
@@ -152,6 +153,7 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
     />
   );
 
+  const mascoteAutor = meu ? estado.usuario?.mascote ?? null : post.autor.mascote ?? null;
   const acoes = (
     <View style={st.acoes}>
       <View style={{ zIndex: 2 }}>
@@ -174,6 +176,8 @@ export function CartaoPost({ post, aoAbrirGrupo, aoAbrirMidia, aoAbrirPerfil, ao
         <T tam={13} cor={cores.texto2}>{nComentarios}</T>
       </Pressable>
       <View style={{ flex: 1 }} />
+      {/* o mascote de quem publicou, sentado no canto da publicação (desde 2026-11-19) */}
+      {mascoteAutor ? <Mascote chave={mascoteAutor} tamanho={40} style={{ marginRight: 2, marginBottom: 2 }} /> : null}
       <Pressable accessibilityRole="button" accessibilityLabel="Compartilhar" onPress={compartilhar} style={st.acao}>
         <Icone nome="compartilhar" tamanho={19} cor={cores.texto2} />
       </Pressable>

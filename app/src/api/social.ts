@@ -2,7 +2,7 @@
 import type { Midia } from '../tipos';
 import { chamar } from './cliente';
 
-export type Pessoa = { id: number; nome: string; arroba: string | null; selo: string | null; verificado: boolean; seguindo: boolean; voce: boolean; foto?: string | null };
+export type Pessoa = { id: number; nome: string; arroba: string | null; selo: string | null; verificado: boolean; seguindo: boolean; voce: boolean; foto?: string | null; mascote?: string | null };
 export type PerfilPublico = Pessoa & { bio: string; posts: number; seguidores: number; seguindo_n: number; clubes?: { id: number; nome: string }[] };
 
 export type PostSocial = {
