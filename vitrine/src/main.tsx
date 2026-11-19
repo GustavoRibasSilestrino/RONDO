@@ -84,12 +84,13 @@ const montar = () => createRoot(raiz).render(
 /* Na página principal, o index.html já pôs a casca do topo (a foto) no lugar (public/assets/casca-1.js). Montar o site leva
    uns 100 a 200 ms com a thread ocupada, e o navegador só desenha depois: sem esperar, a casca nunca chegava a aparecer e a
    tela ficava preta até o site inteiro estar pronto (medido em 2026-11-19: primeira pintura aos 300 ms, com tudo em cache).
-   Por isso o site espera o navegador desenhar um quadro com a casca e só então monta. O prazo de 150 ms é para a aba aberta
+   Por isso o site espera o navegador desenhar um quadro com a casca e monta logo em seguida (o setTimeout dentro do
+   requestAnimationFrame roda assim que esse quadro é entregue, sem esperar o próximo). O prazo de 150 ms é para a aba aberta
    em segundo plano, onde o navegador não desenha quadros: lá o site monta do mesmo jeito. */
 if (raiz.querySelector(":scope > .hero[aria-hidden]")) {
   let feito = false;
   const umaVez = () => { if (!feito) { feito = true; montar(); } };
-  requestAnimationFrame(() => requestAnimationFrame(umaVez));
+  requestAnimationFrame(() => setTimeout(umaVez, 0));
   setTimeout(umaVez, 150);
 } else {
   montar();
