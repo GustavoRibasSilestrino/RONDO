@@ -1,6 +1,6 @@
 /* A trilha sonora da loja de pacotinhos (pedido do dono em 2026-11-18): música de jogo em 8 bits enquanto a pessoa está na
    loja, suspense enquanto o pacote treme e rasga, um estouro no clarão e uma fanfarra de recompensa quando o mascote aparece
-   (mais longa quanto mais rara a raridade).
+   (mais longa quanto mais rara a raridade). Na tela de compra, cada botão faz um clique (2026-11-19).
    Tudo é composto e tocado aqui mesmo, com a Web Audio do navegador (ondas quadradas, triangulares e ruído, como os
    videogames de 8 bits): nenhum arquivo de música, nada de terceiros, sem direitos autorais de ninguém.
 
@@ -266,6 +266,18 @@ export function recompensa(raridade: Raridade) {
   const brilhos = 4 + n * 3;
   for (let i = 0; i < brilhos; i++) nota(c, efeitosBus, "triangle", hz(96 + ((i * 5) % 12)), t + 0.1 + i * 0.07, 0.12, 0.03);
   window.setTimeout(voltarMusica, (1.2 + n * 0.3) * 1000);
+}
+
+/* ---------- o clique dos botões da tela de compra (pedido do dono em 2026-11-19) ----------
+   Um "tic" curto de videogame: uma nota quadrada aguda que cai rápido, com um estalinho de ruído. Toca em qualquer botão
+   da tela de compra do pacote (LojaAbrir.tsx) e só nela; com o som da loja desligado, fica mudo como o resto. */
+export function clique() {
+  const c = contexto();
+  if (!c) return;
+  destravar();
+  const t = c.currentTime + 0.005;
+  nota(c, efeitosBus, "square", hz(91), t, 0.035, 0.055, hz(84));
+  ruido(c, efeitosBus, t, 0.015, 0.045, "highpass", 6000);
 }
 
 /* ---------- ligar e desligar o som da loja ---------- */
