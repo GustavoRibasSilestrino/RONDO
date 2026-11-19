@@ -15,29 +15,81 @@ import { desenharBotaoGoogle } from "../lib/google";
 import { sairDaTela } from "../lib/navegar";
 import { APP_ENTRAR } from "../lib/rotas";
 import { vars } from "../lib/util";
+import vozInicio from "../assets/rondin/fala-entrar-inicio.mp3";
+import vozLoja from "../assets/rondin/fala-entrar-loja.mp3";
+import { FALAS_ENTRAR } from "../data/falaEntrar";
 import { FotoDaConta } from "./Conta";
 import { RondinVideo } from "./RondinVideo";
 import { Btn, Nome } from "./ui";
 
 /* para onde voltar depois de entrar (só destinos do próprio site: nada de mandar para fora) e o que o RONDIN diz em cada
-   caso: a saudação e, logo embaixo, a legenda do motivo. Vindo da loja, ele fala em adotar o mascote (pedido do dono). */
-const VOLTAS: Record<string, { caminho: string; rotulo: string; indo: string; ola: string; legenda: string }> = {
-  loja: {
-    caminho: "/loja", rotulo: "Voltar à loja", indo: "Voltando para a loja",
-    ola: "Olá, eu sou o RONDIN.",
-    legenda: "Você quer adotar um mascote? Para adotar, entre na sua conta ou crie uma agora. Ele vai direto para ela.",
-  },
-  inicio: {
-    caminho: "/", rotulo: "Voltar ao site", indo: "Voltando para o site",
-    ola: "Olá, eu sou o RONDIN e irei lhe acompanhar nessa jornada.",
-    legenda: "Entre na sua conta do RONDO ou crie uma agora.",
-  },
+   caso: a saudação e, logo embaixo, a legenda do motivo, com a voz dele gravada (scripts/gerar-voz-entrar.mjs; o texto vem
+   de data/falaEntrar.ts, gerado junto com o áudio). Vindo da loja, ele fala em adotar o mascote (pedido do dono). */
+type Fala = { ola: string; legenda: string; inicios: readonly number[] };
+const VOLTAS: Record<string, { caminho: string; rotulo: string; indo: string; fala: Fala; voz: string }> = {
+  loja: { caminho: "/loja", rotulo: "Voltar à loja", indo: "Voltando para a loja", fala: FALAS_ENTRAR.loja, voz: vozLoja },
+  inicio: { caminho: "/", rotulo: "Voltar ao site", indo: "Voltando para o site", fala: FALAS_ENTRAR.inicio, voz: vozInicio },
 };
 
-/* a fala surge palavra por palavra, como a legenda do RONDIN no app; `atraso` em palavras, para a legenda vir depois */
-function Palavras({ texto, atraso = 0 }: { texto: string; atraso?: number }) {
-  return <>{texto.split(" ").map((p, i) => <span key={i} style={vars({ "--i": i + atraso })}>{p} </span>)}</>;
+/* ---------- a voz do RONDIN ----------
+   Toca a fala ao abrir a tela. A legenda espera a voz começar e cada palavra aparece no momento em que ele a diz (o tempo
+   de cada uma veio da gravação). Sem voz (desligada, ou o navegador não deixou tocar), a legenda surge sozinha, no ritmo de
+   sempre. "Voz desligada" é a mesma escolha do app (yy.rondin.mudo, app/src/lib/rondinVoz.ts): desligou num, vale no outro. */
+type FaseDaFala = "esperando" | "voz" | "texto";
+const MUDO = "yy.rondin.mudo";
+const lerMudo = () => { try { return localStorage.getItem(MUDO) === "1"; } catch { return false; } };
+
+function useVoz(src: string, ativa: boolean) {
+  const [fase, setFase] = useState<FaseDaFala>(ativa ? "esperando" : "texto");
+  const [mudo, setMudo] = useState(lerMudo);
+  const [vez, setVez] = useState(0);   // cada vez que a fala recomeça do início (ao ligar o som ou tocar para ouvir)
+  const audio = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (!ativa) { setFase("texto"); return; }
+    setFase("esperando");
+    const a = new Audio(src);
+    audio.current = a;
+    let decidiu = false;
+    const decidir = (f: FaseDaFala) => { if (decidiu) return; decidiu = true; setFase(f); if (f === "texto") a.pause(); };
+    a.addEventListener("playing", () => decidir("voz"), { once: true });
+    if (lerMudo()) decidir("texto");
+    else a.play().catch(() => decidir("texto"));   // o navegador não deixou tocar sem um toque na página
+    const limite = window.setTimeout(() => decidir("texto"), 1800);   // rede lenta: a legenda não fica esperando
+    return () => { clearTimeout(limite); a.pause(); audio.current = null; };
+  }, [src, ativa, vez]);
+
+  /* o botão do alto-falante: com a voz tocando, desliga; desligada (ou bloqueada), liga e fala de novo do começo */
+  const alternar = () => {
+    if (!mudo && fase === "voz") {
+      audio.current?.pause();
+      setMudo(true);
+      try { localStorage.setItem(MUDO, "1"); } catch { /* sem armazenamento */ }
+      return;
+    }
+    setMudo(false);
+    try { localStorage.setItem(MUDO, "0"); } catch { /* sem armazenamento */ }
+    setVez((v) => v + 1);
+  };
+  return { fase, falando: !mudo && fase === "voz", alternar, vez };
 }
+
+/* a fala surge palavra por palavra, como a legenda do RONDIN no app: no tempo da voz, ou num ritmo fixo sem ela.
+   `de` é a posição da primeira palavra na fala inteira (a legenda continua de onde a saudação parou) */
+function Palavras({ texto, de = 0, fala, fase }: { texto: string; de?: number; fala: Fala; fase: FaseDaFala }) {
+  return (
+    <>
+      {texto.split(" ").map((p, i) => {
+        const n = de + i;
+        const atraso = fase === "voz" ? fala.inicios[n] ?? n * 0.3 : 0.25 + n * 0.09;
+        return <span key={i} style={vars({ "--d": `${atraso.toFixed(3)}s` })}>{p} </span>;
+      })}
+    </>
+  );
+}
+
+const SOM_LIGADO = "M4 9h3l4-4v14l-4-4H4zM15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12";
+const SOM_DESLIGADO = "M4 9h3l4-4v14l-4-4H4zM16 9.5l5 5M21 9.5l-5 5";
 
 type Modo = "entrar" | "criar";
 type Erros = Record<string, string>;
@@ -155,6 +207,8 @@ export default function Entrar() {
   const [modo, setModo] = useState<Modo>(params.get("modo") === "criar" ? "criar" : "entrar");
   const { conta } = useConta();
   const [feito, setFeito] = useState<ContaLogada | null>(null);
+  /* o RONDIN fala só para quem ainda vai entrar: entrou (ou já estava entrado), ele para */
+  const voz = useVoz(volta.voz, !conta && !feito);
   const [indo, setIndo] = useState(false);
   const [alerta, setAlerta] = useState<{ texto: string; paraEntrar?: boolean } | null>(null);
   const [erros, setErros] = useState<Erros>({});
@@ -350,12 +404,24 @@ export default function Entrar() {
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
           {volta.rotulo}
         </a>
-        <a className="entrar-marca" href="/" aria-label="RONDO, página inicial"><Nome /></a>
+        <div className="entrar-topo-dir">
+          {!feito && !conta ? (
+            <button type="button" className="entrar-som" onClick={voz.alternar} aria-label={voz.falando ? "Desligar a voz do RONDIN" : "Ouvir o RONDIN"} title={voz.falando ? "Desligar a voz" : "Ouvir o RONDIN"}>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d={voz.falando ? SOM_LIGADO : SOM_DESLIGADO} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </button>
+          ) : null}
+          <a className="entrar-marca" href="/" aria-label="RONDO, página inicial"><Nome /></a>
+        </div>
       </header>
       <main id="conteudo" className="entrar-palco">
         <div className="entrar-rondin" aria-hidden="true"><RondinVideo tamanho={128} /></div>
-        <h1 className="entrar-fala"><Palavras texto={volta.ola} /></h1>
-        {!feito && !conta ? <p className="entrar-legenda"><Palavras texto={volta.legenda} atraso={volta.ola.split(" ").length + 2} /></p> : null}
+        {/* a fala inteira (saudação e legenda) muda de chave a cada vez que recomeça, para a legenda acompanhar a voz de novo */}
+        <h1 className="entrar-fala" data-fala={voz.fase} key={`ola-${voz.vez}-${voz.fase === "esperando" ? "e" : "s"}`}><Palavras texto={volta.fala.ola} fala={volta.fala} fase={voz.fase} /></h1>
+        {!feito && !conta ? (
+          <p className="entrar-legenda" data-fala={voz.fase} key={`legenda-${voz.vez}-${voz.fase === "esperando" ? "e" : "s"}`}>
+            <Palavras texto={volta.fala.legenda} de={volta.fala.ola.split(" ").length} fala={volta.fala} fase={voz.fase} />
+          </p>
+        ) : null}
         <section className="entrar-cartao" aria-label="Sua conta do RONDO">{cartao}</section>
         <p className="entrar-nota">A conta é a mesma do app do RONDO: entrou aqui, já está entrado lá.</p>
       </main>

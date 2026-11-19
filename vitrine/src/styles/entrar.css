@@ -19,6 +19,15 @@
 .entrar-voltar:hover { color: var(--ink); }
 .entrar-marca { display: inline-flex; align-items: center; min-height: 44px; color: #fff; }
 .entrar-marca svg { height: 18px; width: auto; }
+.entrar-topo-dir { display: flex; align-items: center; gap: .6rem; }
+/* o alto-falante: liga e desliga a voz do RONDIN (a mesma escolha do app) */
+.entrar-som {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: var(--ink-2);
+  border: 1px solid var(--line); background: rgba(255, 255, 255, .03); transition: color .2s, border-color .2s, background .2s;
+}
+.entrar-som svg { width: 20px; height: 20px; }
+.entrar-som:hover { color: var(--ink); border-color: var(--line-2); background: rgba(139, 92, 246, .12); }
+.entrar-som:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* sem z-index aqui: o vídeo do RONDIN (mix-blend-mode: screen) precisa se misturar com o fundo da página, senão o preto
    do vídeo aparece como um quadrado escuro */
@@ -44,8 +53,13 @@
   max-width: 24ch; margin: 0 auto; text-align: center; text-wrap: balance;
   font: 700 clamp(1.45rem, 5.2vw, 1.85rem)/1.2 var(--font-titulo); letter-spacing: -.025em; color: #fff;
 }
-.entrar-fala span, .entrar-legenda span { display: inline; animation: entrar-palavra .5s var(--ease) both; animation-delay: calc(.25s + var(--i) * .09s); }
+/* cada palavra entra no momento em que ele a diz (--d vem do tempo da gravação; sem voz, um ritmo fixo). Enquanto a voz
+   não começa, a fala fica escondida, para a legenda não correr na frente dele */
+.entrar-fala span, .entrar-legenda span { display: inline; animation: entrar-palavra .45s var(--ease) both; animation-delay: var(--d, 0s); }
 @keyframes entrar-palavra { from { opacity: 0; filter: blur(6px); } to { opacity: 1; filter: blur(0); } }
+@media (prefers-reduced-motion: no-preference) {
+  [data-fala="esperando"] span { opacity: 0; animation: none; }
+}
 /* a legenda: o que o RONDIN diz logo depois da saudação (vindo da loja, o convite para adotar o mascote) */
 .entrar-legenda {
   max-width: 32ch; margin: .75rem auto 0; text-align: center; text-wrap: balance; color: #ddd3f7;
