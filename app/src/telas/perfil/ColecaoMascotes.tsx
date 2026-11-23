@@ -3,7 +3,9 @@
    (ao lado da foto, nas publicações e passeando pelo app). As missões, que dão os brownies, ficam em "Ver missões".
    Desde 2026-11-19 (pedido do dono): o mascote abre numa janela em pixel art no meio da tela (antes subia de baixo); o
    LÁPIS (comprado na loja do site) dá um nome próprio a um mascote; e os repetidos entram em TROCA com outra pessoa, achada
-   pela @ ou entre quem a conta segue. As janelas estão em MascotePopups.tsx e as peças de pixel em componentes/Pixel.tsx. */
+   pela @ ou entre quem a conta segue. As janelas estão em MascotePopups.tsx e as peças de pixel em componentes/Pixel.tsx.
+   Desde 2026-11-23 (pedido do dono): cada mascote liberado tem uma BARRA DE NÍVEL em cima dele; ela enche com o XP de cada
+   treino e de cada missão cumprida depois de ele entrar na coleção (lib/nivelMascote.ts). */
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { escolherMascote, lerColecao, type MascoteDaColecao } from '../../api/mascotes';
@@ -17,6 +19,7 @@ import { fmt } from '../../lib/datas';
 import { mascoteDe, RARIDADES, TODOS_MASCOTES, TOTAL_MASCOTES, type MascoteInfo } from '../../lib/mascotes';
 import { missoesDe } from '../../lib/missoes';
 import { progressoNivel, xpTotal } from '../../lib/nivel';
+import { progressoMascote, XP_MASCOTE, xpDoMascote } from '../../lib/nivelMascote';
 import { cores, estilos } from '../../tema';
 import { PopupLapis, PopupMascote, PopupPropostas, PopupTroca } from './MascotePopups';
 import { lerTrocas } from '../../api/mascotes';
@@ -70,6 +73,9 @@ export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) 
     }
   };
   const meuInfo = mascoteDe(meu);
+  /* o nível de um mascote da coleção: o XP dos treinos e das missões cumpridos desde que ele chegou */
+  const nivelDo = (chave: string) => progressoMascote(xpDoMascote(estado, tenho?.[chave]));
+  const meuNivel = meuInfo && tenho?.[meuInfo.chave] ? nivelDo(meuInfo.chave) : null;
   const meuNome = meuInfo ? tenho?.[meuInfo.chave]?.nome ?? meuInfo.nome : '';   // o nome próprio, se a pessoa deu um
   const repetidos = tenho ? Object.values(tenho).filter((m) => m.quantidade > 1).length : 0;
 
@@ -94,6 +100,15 @@ export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) 
           <T tam={12.5} style={{ marginTop: 3, lineHeight: 18 }}>
             {meuInfo ? `${meuInfo.raridade.nome}. Aparece ao lado da sua foto, nas suas publicações e passeia pelo app.` : n ? 'Toque num mascote da coleção para ele andar com você.' : 'Cumpra uma missão ou suba de nível para ganhar o seu primeiro brownie.'}
           </T>
+          {meuInfo && meuNivel ? (
+            <View style={{ marginTop: 10 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
+                <T tam={13.5} peso="500" cor={cores.texto}>Nível {meuNivel.nivel}</T>
+                <T tam={12}>{fmt(meuNivel.noNivel)}/{fmt(meuNivel.tamanho)} XP</T>
+              </View>
+              <Barra valor={meuNivel.noNivel} max={meuNivel.tamanho} cor={meuInfo.raridade.cor} />
+            </View>
+          ) : null}
         </View>
       </View>
 
@@ -131,6 +146,9 @@ export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) 
         <T tam={13}>{n} de {TOTAL_MASCOTES}</T>
       </View>
       <Barra valor={n} max={TOTAL_MASCOTES} cor={cores.destaque2} />
+      <T tam={12.5} style={{ lineHeight: 18 }}>
+        Todo mascote liberado sobe de nível: ganha {XP_MASCOTE.treino} XP a cada treino e {XP_MASCOTE.missao} XP a cada missão que você cumpre depois de ele chegar.
+      </T>
 
       {tenho === null ? (
         erro ? (
@@ -154,13 +172,21 @@ export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) 
                 {daLinha.map((m) => {
                   const tem = !!tenho[m.chave];
                   const ehMeu = m.chave === meu;
+                  const pm = tem ? nivelDo(m.chave) : null;
                   return (
                     <Pressable
                       key={m.chave} disabled={!tem} onPress={() => setAberto(m)}
-                      accessibilityRole="button" accessibilityLabel={tem ? `${tenho[m.chave].nome ?? m.nome}, ${r.nome}${ehMeu ? ', o seu mascote' : ''}` : `Mascote nº ${m.numero}, ainda não tem`}
+                      accessibilityRole="button" accessibilityLabel={tem ? `${tenho[m.chave].nome ?? m.nome}, ${r.nome}, nível ${pm?.nivel ?? 1}${ehMeu ? ', o seu mascote' : ''}` : `Mascote nº ${m.numero}, ainda não tem`}
                       style={({ pressed }) => [st.celula, ehMeu && { borderColor: r.cor, backgroundColor: 'rgba(255,255,255,0.06)' }, pressed && { opacity: 0.7 }]}
                     >
-                      <Mascote chave={m.chave} tamanho={54} apagado={!tem} />
+                      {/* a barra de nível, em cima de cada mascote liberado (os que faltam ficam com o espaço vazio, alinhados) */}
+                      {pm ? (
+                        <View style={st.nivel}>
+                          <T tam={10} peso="500" cor={cores.texto2}>Nv {pm.nivel}</T>
+                          <View style={st.nivelTrilho}><View style={{ width: `${Math.round(pm.p * 100)}%`, height: '100%', borderRadius: 3, backgroundColor: r.cor }} /></View>
+                        </View>
+                      ) : <View style={st.nivelVazio} />}
+                      <Mascote chave={m.chave} tamanho={48} apagado={!tem} />
                       {tem && tenho[m.chave].quantidade > 1 ? <View style={st.qtd}><T tam={10} peso="500" cor="#ffffff">x{tenho[m.chave].quantidade}</T></View> : null}
                     </Pressable>
                   );
@@ -176,6 +202,7 @@ export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) 
       {/* o mascote, grande, numa janela em pixel art no meio da tela */}
       <PopupMascote
         mascote={aberto} item={aberto ? tenho?.[aberto.chave] : undefined} ehMeu={!!aberto && aberto.chave === meu} salvando={salvando} lapis={lapis}
+        xp={aberto ? xpDoMascote(estado, tenho?.[aberto.chave]) : 0}
         aoFechar={() => setAberto(null)} aoUsar={escolher}
         aoDarNome={(m) => { setAberto(null); setParaNomear(m); setLapisAberto(true); }}
         aoTrocar={(m) => { setAberto(null); setParaTrocar(m); }}
@@ -200,7 +227,10 @@ const st = estilos(() => StyleSheet.create({
   cabecaRaridade: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   ponto: { width: 8, height: 8, borderRadius: 4 },
   grade: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -3 },
-  celula: { width: '20%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 14, borderWidth: 1, borderColor: 'transparent', minHeight: 44 },
+  celula: { width: '20%', aspectRatio: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 14, borderWidth: 1, borderColor: 'transparent', minHeight: 44, marginBottom: 10 },
   qtd: { position: 'absolute', right: 4, bottom: 4, paddingHorizontal: 5, borderRadius: 8, backgroundColor: cores.destaqueForte },
+  nivel: { alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', gap: 4, height: 13, paddingHorizontal: 6 },
+  nivelTrilho: { flex: 1, height: 5, borderRadius: 3, overflow: 'hidden', backgroundColor: cores.linha2 },
+  nivelVazio: { height: 13 },
   pixelCartao: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 60, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: PX.noite },
 }));

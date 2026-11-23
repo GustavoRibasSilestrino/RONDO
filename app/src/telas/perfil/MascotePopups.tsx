@@ -1,6 +1,6 @@
 /* As janelas da aba Coleção, todas em pixel art e no meio da tela (componentes/Pixel.tsx), desde 2026-11-19 (pedido do dono):
-   - PopupMascote: o mascote grande, com o nome próprio (se tiver), a raridade, o número, e as ações: usar como meu mascote,
-     dar um nome (lápis) e, se for repetido, propor troca;
+   - PopupMascote: o mascote grande, com o nome próprio (se tiver), a raridade, o número, o NÍVEL (a barra de XP, desde
+     2026-11-23: lib/nivelMascote.ts) e as ações: usar como meu mascote, dar um nome (lápis) e, se for repetido, propor troca;
    - PopupLapis: o lápis da loja. Mostra todos os mascotes da conta; a pessoa escolhe um, digita o nome e confirma. Cada nome
      gasta um lápis (comprado na loja do site). O nome é só dela e passa pelo filtro de palavras do servidor;
    - PopupTroca: propor a troca de um repetido. A outra pessoa é achada pela @ ou pelo nome (Buscar) ou na lista de quem a
@@ -14,6 +14,7 @@ import { buscarPessoas, lerSeguindo, type Pessoa } from '../../api/social';
 import { Mascote } from '../../componentes/Mascote';
 import { BotaoPixel, CampoPixel, ErroPixel, EstrelasPixel, LapisPixel, Moldura, PopupPixel, PX, TP } from '../../componentes/Pixel';
 import { mascoteDe, TODOS_MASCOTES, TOTAL_MASCOTES, type MascoteInfo } from '../../lib/mascotes';
+import { progressoMascote, XP_MASCOTE } from '../../lib/nivelMascote';
 import { SITE } from '../Login';
 
 export type Tenho = Record<string, MascoteDaColecao>;
@@ -66,15 +67,17 @@ function Grade({ itens, aoEscolher }: { itens: { m: MascoteInfo; nome?: string |
 /* ============================== o mascote, grande ============================== */
 type PopupMascoteProps = {
   mascote: MascoteInfo | null; item?: MascoteDaColecao; ehMeu: boolean; salvando: boolean; lapis: number;
+  xp?: number;   // o XP deste mascote (os treinos e as missões cumpridos desde que ele entrou na coleção)
   aoFechar: () => void; aoUsar: (chave: string | null) => void; aoDarNome: (m: MascoteInfo) => void; aoTrocar: (m: MascoteInfo) => void;
 };
-export function PopupMascote({ mascote, item, ehMeu, salvando, lapis, aoFechar, aoUsar, aoDarNome, aoTrocar }: PopupMascoteProps) {
+export function PopupMascote({ mascote, item, ehMeu, salvando, lapis, xp = 0, aoFechar, aoUsar, aoDarNome, aoTrocar }: PopupMascoteProps) {
   const [visto, setVisto] = useState<MascoteInfo | null>(mascote);   // o último aberto fica na tela enquanto a janela some
   useEffect(() => { if (mascote) setVisto(mascote); }, [mascote]);
   const m = mascote ?? visto;
   if (!m) return null;
   const proprio = item?.nome ?? null;
   const quantos = item?.quantidade ?? 1;
+  const pm = progressoMascote(xp);
   return (
     <PopupPixel aberto={mascote !== null} aoFechar={aoFechar} titulo={proprio ?? m.nome}>
       <View style={{ alignItems: 'center', gap: 8 }}>
@@ -89,6 +92,20 @@ export function PopupMascote({ mascote, item, ehMeu, salvando, lapis, aoFechar, 
         </View>
         <TP tam={15.5}>Nº {m.numero} de {TOTAL_MASCOTES}{quantos > 1 ? ` · você tem ${quantos}` : ''}</TP>
         {ehMeu ? <TP tam={15} cor={PX.verde}>Este é o seu mascote.</TP> : null}
+        {/* o nível: a barra enche com o XP de cada treino e de cada missão cumprida desde que ele chegou */}
+        <View style={{ alignSelf: 'stretch', gap: 6, marginTop: 4 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
+            <TP tam={18} peso="500" cor={PX.ouroClaro}>Nível {pm.nivel}</TP>
+            <TP tam={14.5} cor={PX.tinta2}>{pm.noNivel}/{pm.tamanho} XP</TP>
+          </View>
+          <View
+            accessible accessibilityRole="progressbar" accessibilityLabel={`Nível ${pm.nivel}: ${pm.noNivel} de ${pm.tamanho} XP para o próximo`}
+            accessibilityValue={{ min: 0, max: pm.tamanho, now: pm.noNivel }} style={st.trilhoNivel}
+          >
+            <View style={{ width: `${Math.round(pm.p * 100)}%`, height: '100%', backgroundColor: PX.ouro }} />
+          </View>
+          <TP tam={13.5} cor={PX.tinta2} centro style={{ lineHeight: 18 }}>+{XP_MASCOTE.treino} XP a cada treino e +{XP_MASCOTE.missao} XP a cada missão cumprida.</TP>
+        </View>
       </View>
       <View style={{ gap: 8, marginTop: 4 }}>
         {ehMeu
@@ -363,6 +380,7 @@ export function PopupPropostas({ aberto, aoFechar, aoMudou }: { aberto: boolean;
 const st = StyleSheet.create({
   palco: { alignItems: 'center', justifyContent: 'center', width: 190, height: 166 },
   brilho: { position: 'absolute', width: 150, height: 150, borderRadius: 75, opacity: 0.22 },
+  trilhoNivel: { height: 16, borderWidth: 3, borderColor: PX.contorno, backgroundColor: PX.noite2 },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   casa: { width: '31%', minWidth: 96, flexGrow: 1, maxWidth: 130 },
   casaDentro: { alignItems: 'center', gap: 4, paddingVertical: 8, paddingHorizontal: 4, backgroundColor: PX.noite2, minHeight: 104 },

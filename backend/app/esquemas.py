@@ -198,6 +198,11 @@ class MascoteOut(BaseModel):
     raridade: str
     quantidade: int
     nome: str | None = None      # o nome que a conta deu a ele com o lápis (vazio = o nome de fábrica)
+    # o nível do mascote (desde 2026-11-23): ele ganha XP a cada treino e a cada missão que a conta cumpre DEPOIS de ele entrar
+    # na coleção. `desde` é essa hora, em milissegundos; `missoes`, quantas missões foram cumpridas de lá para cá. Os treinos
+    # ficam no app, que faz a conta (app/src/lib/nivelMascote.ts). Só a coleção (/loja/colecao) preenche os dois.
+    desde: int | None = None
+    missoes: int = 0
 
 
 class ColecaoOut(BaseModel):

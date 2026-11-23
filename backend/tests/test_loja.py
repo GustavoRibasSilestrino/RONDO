@@ -5,6 +5,7 @@ import os
 os.environ["DATABASE_URL"] = "sqlite://"  # memória; precisa vir antes de importar o app
 
 import re
+import time
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -99,8 +100,10 @@ def test_mascote_repetido_soma_na_mesma_linha(cliente, monkeypatch):
     monkeypatch.setattr(loja, "sortear", lambda pacote: (4, 3))
     h = _conta(cliente)
     assert _comprar(cliente, h)["quantidade"] == 1
-    assert _comprar(cliente, h) == {"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2, "nome": None}
-    assert cliente.get("/loja/colecao", headers=h).json()["mascotes"] == [{"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2, "nome": None}]
+    assert _comprar(cliente, h) == {"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2, "nome": None, "desde": None, "missoes": 0}
+    col = cliente.get("/loja/colecao", headers=h).json()["mascotes"]
+    assert [{k: v for k, v in m.items() if k != "desde"} for m in col] == [{"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2, "nome": None, "missoes": 0}]
+    assert isinstance(col[0]["desde"], int)   # a hora em que ele entrou na coleção (para o nível do mascote)
     with Sessao() as s:
         assert s.query(Mascote).count() == 1
 
@@ -117,7 +120,7 @@ def test_codigo_vale_uma_vez_e_vai_para_quem_resgata(cliente):
     codigo = _codigo(linha=2, coluna=5)
     bagunçado = "  " + codigo.lower().replace("-", " ") + " "   # digitado de qualquer jeito
     r = cliente.post("/loja/resgatar", json={"codigo": bagunçado}, headers=ana)
-    assert r.status_code == 200 and r.json() == {"linha": 2, "coluna": 5, "raridade": "rara", "quantidade": 1, "nome": None}
+    assert r.status_code == 200 and r.json() == {"linha": 2, "coluna": 5, "raridade": "rara", "quantidade": 1, "nome": None, "desde": None, "missoes": 0}
     # a mesma conta de novo: não soma outra vez
     assert cliente.post("/loja/resgatar", json={"codigo": codigo}, headers=ana).json()["quantidade"] == 1
     # outra conta: recusado
@@ -242,6 +245,35 @@ def test_escolher_mascote_so_da_colecao(cliente):
     assert cliente.get("/loja/colecao", headers=h).json()["escolhido"] is None
     assert cliente.put("/loja/mascote", json={"linha": m["linha"], "coluna": m["coluna"]}, headers=h).status_code == 204
     assert cliente.get("/auth/eu", headers=h).json()["mascote"] == f"{m['linha']}-{m['coluna']}"
+
+
+# ---------- o nível dos mascotes (2026-11-23): desde quando ele é da conta e as missões cumpridas depois ----------
+def test_colecao_diz_desde_quando_e_as_missoes_de_cada_mascote(cliente):
+    h = _conta(cliente)
+    antes = datetime.now(timezone.utc).timestamp() * 1000
+    m = cliente.post("/loja/recompensa", json={"chave": "missao:t1"}, headers=h).json()["mascote"]
+    assert m["desde"] is None and m["missoes"] == 0   # só a coleção preenche
+
+    def o_primeiro():
+        col = cliente.get("/loja/colecao", headers=h).json()["mascotes"]
+        return next(x for x in col if (x["linha"], x["coluna"]) == (m["linha"], m["coluna"]))
+
+    p = o_primeiro()
+    assert abs(p["desde"] - antes) < 60_000
+    assert p["missoes"] == 0   # a missão que deu o próprio mascote não conta para ele
+    time.sleep(0.05)
+    outro = cliente.post("/loja/recompensa", json={"chave": "missao:t10"}, headers=h).json()["mascote"]
+    time.sleep(0.05)
+    cliente.post("/loja/recompensa", json={"chave": "nivel:2"}, headers=h)   # brownie de nível: não é missão
+    depois = o_primeiro()
+    assert depois["missoes"] == 1 and depois["desde"] == p["desde"]
+    # pedir de novo a mesma missão não soma outra vez
+    cliente.post("/loja/recompensa", json={"chave": "missao:t10"}, headers=h)
+    assert o_primeiro()["missoes"] == 1
+    if (outro["linha"], outro["coluna"]) != (m["linha"], m["coluna"]):   # o mascote que veio depois começa do zero
+        col = cliente.get("/loja/colecao", headers=h).json()["mascotes"]
+        novo = next(x for x in col if (x["linha"], x["coluna"]) == (outro["linha"], outro["coluna"]))
+        assert novo["missoes"] == 0 and novo["desde"] > p["desde"]
 
 
 # ---------- o lápis e o nome próprio do mascote (2026-11-19) ----------

@@ -2,7 +2,9 @@
    troca do mascote que a conta mostra e, desde 2026-11-19, o nome próprio dado com o lápis e a troca de repetidos. */
 import { chamar } from './cliente';
 
-export type MascoteDaColecao = { linha: number; coluna: number; raridade: string; quantidade: number; nome?: string | null };
+/* `desde` e `missoes` (só na coleção, desde 2026-11-23) são o que o nível do mascote precisa: a hora em que ele entrou na
+   coleção (em milissegundos) e quantas missões a conta cumpriu depois disso. A conta do XP fica em lib/nivelMascote.ts */
+export type MascoteDaColecao = { linha: number; coluna: number; raridade: string; quantidade: number; nome?: string | null; desde?: number | null; missoes?: number };
 /* `lapis`: lápis guardados na conta (comprados na loja do site); cada um dá um nome próprio a um mascote */
 export type Colecao = { total: number; mascotes: MascoteDaColecao[]; escolhido: string | null; lapis?: number };
 export type Recompensa = { chave: string; nova: boolean; mascote: MascoteDaColecao };

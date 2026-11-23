@@ -145,6 +145,24 @@ def colecao(sessao: Session, usuario_id: int) -> list[Mascote]:
     return [m for m in todos if (m.linha, m.coluna) not in TIRADOS]
 
 
+# ---------- o nível dos mascotes (desde 2026-11-23, pedido do dono) ----------
+# Cada mascote liberado tem um nível, que sobe com XP: cada treino e cada missão cumprida DEPOIS de ele entrar na coleção
+# dão XP a ele (o treino e a missão que deram o próprio mascote não contam). Nada novo é guardado: a hora em que o mascote
+# entrou já está na tabela (primeiro_em) e a hora de cada missão cumprida é a do brownie dela (recompensas.em). Os treinos
+# ficam nos dados do app, então é o app que soma o XP e calcula o nível (app/src/lib/nivelMascote.ts); o servidor entrega
+# o que só ele sabe: desde quando o mascote é da conta e quantas missões foram cumpridas de lá para cá.
+def horas_das_missoes(sessao: Session, usuario_id: int) -> list[datetime]:
+    """A hora do brownie de cada missão cumprida pela conta (as chaves "missao:..."; os brownies de nível não contam)."""
+    return list(sessao.scalars(select(Recompensa.em).where(Recompensa.usuario_id == usuario_id, Recompensa.chave.like("missao:%"))))
+
+
+def em_ms(quando: datetime) -> int:
+    """A hora em milissegundos desde 1970 (o SQLite dos testes devolve a hora sem fuso: ela é sempre UTC)."""
+    if quando.tzinfo is None:
+        quando = quando.replace(tzinfo=timezone.utc)
+    return int(quando.timestamp() * 1000)
+
+
 # ---------- os brownies de recompensa do app (desde 2026-11-19, no lugar das medalhas) ----------
 # Cada missão cumprida e cada nível de conta alcançado dão um brownie (um mascote sorteado para a coleção). A raridade sobe
 # com o caminho: quanto mais brownies a conta já ganhou, mais o sorteio pende para as raridades altas. No começo quase só sai
