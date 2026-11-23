@@ -2,10 +2,12 @@
    conta alcançado (lib/nivel.ts) pedem ao servidor um brownie, um mascote sorteado para a coleção. A raridade sobe a cada
    brownie ganho (o sorteio é do servidor). O servidor dá um só por chave; aqui o app lembra o que já pediu
    (estado.recompensasPedidas) e, quando chega um brownie novo, mostra a comemoração com o mascote. Sem rede, tenta de novo
-   mais tarde. */
+   mais tarde.
+   Desde 2026-11-23, também cuida do XP DO MASCOTE ESCOLHIDO (lib/nivelMascote.ts): a cada treino terminado, avisa o servidor,
+   que dá 30 XP ao mascote que a conta mostra, e um aviso rápido conta quanto ele ganhou. */
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, StyleSheet, View } from 'react-native';
-import { escolherMascote, pedirRecompensa } from '../api/mascotes';
+import { contarTreinos, escolherMascote, pedirRecompensa } from '../api/mascotes';
 import { useLoja } from '../estado/loja';
 import { mascoteDe, type MascoteInfo } from '../lib/mascotes';
 import { missoesDe, MISSOES } from '../lib/missoes';
@@ -13,6 +15,7 @@ import { useMovimentoReduzido } from '../lib/movimento';
 import { nivelDe, xpTotal } from '../lib/nivel';
 import { adicionar } from '../lib/notificacoes';
 import { cores, estilos, larguraMax } from '../tema';
+import { useAviso } from './Estrutura';
 import { Icone } from './Icone';
 import { Mascote } from './Mascote';
 import { Botao, T } from './Ui';
@@ -77,6 +80,25 @@ export function AvisoBrownie({ pausado }: { pausado?: boolean }) {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pronto, estado.usuario?.email, assinatura, commit]);
+
+  /* o XP do mascote escolhido: quando há treino novo (e ao abrir o app), manda a hora em que os últimos treinos terminaram;
+     o servidor conta só os que ainda não contaram, então repetir não soma duas vezes e o treino feito sem rede conta depois */
+  const avisar = useAviso();
+  const contando = useRef(false);
+  const ultimoTreino = estado.treinos.reduce((m, t) => Math.max(m, t.fim), 0);
+  useEffect(() => {
+    if (!pronto || !estado.usuario || !ultimoTreino || contando.current) return;
+    contando.current = true;
+    const fins = estado.treinos.map((t) => t.fim).sort((a, b) => b - a).slice(0, 20);
+    contarTreinos(fins)
+      .then((r) => {
+        const m = mascoteDe(r.mascote);
+        if (r.ganho > 0 && m) avisar(`${(r.mascote === estado.usuario?.mascote && estado.usuario?.mascoteNome) || m.nome} ganhou ${r.ganho} XP.`);
+      })
+      .catch(() => undefined)   // sem rede: o próximo treino (ou abrir o app de novo) manda outra vez
+      .finally(() => { contando.current = false; });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pronto, estado.usuario?.email, estado.treinos.length, ultimoTreino]);
 
   const atual = pausado ? undefined : fila[0];
   useEffect(() => {

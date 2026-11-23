@@ -100,10 +100,8 @@ def test_mascote_repetido_soma_na_mesma_linha(cliente, monkeypatch):
     monkeypatch.setattr(loja, "sortear", lambda pacote: (4, 3))
     h = _conta(cliente)
     assert _comprar(cliente, h)["quantidade"] == 1
-    assert _comprar(cliente, h) == {"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2, "nome": None, "desde": None, "missoes": 0}
-    col = cliente.get("/loja/colecao", headers=h).json()["mascotes"]
-    assert [{k: v for k, v in m.items() if k != "desde"} for m in col] == [{"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2, "nome": None, "missoes": 0}]
-    assert isinstance(col[0]["desde"], int)   # a hora em que ele entrou na coleção (para o nível do mascote)
+    assert _comprar(cliente, h) == {"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2, "nome": None, "xp": 0}
+    assert cliente.get("/loja/colecao", headers=h).json()["mascotes"] == [{"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2, "nome": None, "xp": 0}]
     with Sessao() as s:
         assert s.query(Mascote).count() == 1
 
@@ -120,7 +118,7 @@ def test_codigo_vale_uma_vez_e_vai_para_quem_resgata(cliente):
     codigo = _codigo(linha=2, coluna=5)
     bagunçado = "  " + codigo.lower().replace("-", " ") + " "   # digitado de qualquer jeito
     r = cliente.post("/loja/resgatar", json={"codigo": bagunçado}, headers=ana)
-    assert r.status_code == 200 and r.json() == {"linha": 2, "coluna": 5, "raridade": "rara", "quantidade": 1, "nome": None, "desde": None, "missoes": 0}
+    assert r.status_code == 200 and r.json() == {"linha": 2, "coluna": 5, "raridade": "rara", "quantidade": 1, "nome": None, "xp": 0}
     # a mesma conta de novo: não soma outra vez
     assert cliente.post("/loja/resgatar", json={"codigo": codigo}, headers=ana).json()["quantidade"] == 1
     # outra conta: recusado
@@ -247,33 +245,87 @@ def test_escolher_mascote_so_da_colecao(cliente):
     assert cliente.get("/auth/eu", headers=h).json()["mascote"] == f"{m['linha']}-{m['coluna']}"
 
 
-# ---------- o nível dos mascotes (2026-11-23): desde quando ele é da conta e as missões cumpridas depois ----------
-def test_colecao_diz_desde_quando_e_as_missoes_de_cada_mascote(cliente):
+# ---------- o XP e o nível dos mascotes (2026-11-23): só o mascote escolhido ganha XP ----------
+def _agora_ms() -> int:
+    return int(time.time() * 1000)
+
+
+def _xp(cliente, h) -> dict:
+    return {(m["linha"], m["coluna"]): m["xp"] for m in cliente.get("/loja/colecao", headers=h).json()["mascotes"]}
+
+
+def _manda_treinos(cliente, h, fins) -> dict:
+    r = cliente.post("/loja/xp", json={"treinos": fins}, headers=h)
+    assert r.status_code == 200
+    return r.json()
+
+
+def test_treino_da_xp_so_ao_mascote_escolhido(cliente, monkeypatch):
+    sorteio = iter([(0, 1), (2, 3)])
+    monkeypatch.setattr(loja, "_sortear_com", lambda chances: next(sorteio))
     h = _conta(cliente)
-    antes = datetime.now(timezone.utc).timestamp() * 1000
+    # sem mascote, o treino passa sem dar XP a ninguém
+    assert _manda_treinos(cliente, h, [_agora_ms()]) == {"mascote": None, "ganho": 0, "xp": 0}
+    cliente.post("/loja/recompensa", json={"chave": "nivel:2"}, headers=h)   # o primeiro mascote (0-1) vira o escolhido
+    cliente.post("/loja/recompensa", json={"chave": "nivel:3"}, headers=h)   # o segundo (2-3) só entra na coleção
+    assert _xp(cliente, h) == {(0, 1): 0, (2, 3): 0}
+    time.sleep(0.02)
+    t1 = _agora_ms()
+    assert _manda_treinos(cliente, h, [t1]) == {"mascote": "0-1", "ganho": loja.XP_TREINO, "xp": loja.XP_TREINO}
+    # o mesmo treino de novo, um mais antigo e um longe no futuro não contam
+    r = _manda_treinos(cliente, h, [t1, t1 - 60_000, _agora_ms() + 3_600_000])
+    assert r["ganho"] == 0 and r["xp"] == loja.XP_TREINO
+    assert _xp(cliente, h) == {(0, 1): loja.XP_TREINO, (2, 3): 0}
+    # troca de mascote: o treino terminado antes da troca não vale para o novo; os seguintes, sim; o de antes guarda o que tinha
+    time.sleep(0.02)
+    antes_da_troca = _agora_ms()
+    time.sleep(0.02)
+    assert cliente.put("/loja/mascote", json={"linha": 2, "coluna": 3}, headers=h).status_code == 204
+    assert _manda_treinos(cliente, h, [antes_da_troca]) == {"mascote": "2-3", "ganho": 0, "xp": 0}
+    time.sleep(0.02)
+    assert _manda_treinos(cliente, h, [_agora_ms()]) == {"mascote": "2-3", "ganho": loja.XP_TREINO, "xp": loja.XP_TREINO}
+    assert _xp(cliente, h) == {(0, 1): loja.XP_TREINO, (2, 3): loja.XP_TREINO}
+    # escolher de novo o mesmo mascote não mexe em nada; sem mascote escolhido, o treino não dá XP
+    assert cliente.put("/loja/mascote", json={"linha": None, "coluna": None}, headers=h).status_code == 204
+    time.sleep(0.02)
+    assert _manda_treinos(cliente, h, [_agora_ms()]) == {"mascote": None, "ganho": 0, "xp": 0}
+    assert _xp(cliente, h) == {(0, 1): loja.XP_TREINO, (2, 3): loja.XP_TREINO}
+
+
+def test_missao_da_xp_ao_mascote_escolhido(cliente, monkeypatch):
+    sorteio = iter([(0, 1), (2, 3), (1, 0)])
+    monkeypatch.setattr(loja, "_sortear_com", lambda chances: next(sorteio))
+    h = _conta(cliente)
     m = cliente.post("/loja/recompensa", json={"chave": "missao:t1"}, headers=h).json()["mascote"]
-    assert m["desde"] is None and m["missoes"] == 0   # só a coleção preenche
-
-    def o_primeiro():
-        col = cliente.get("/loja/colecao", headers=h).json()["mascotes"]
-        return next(x for x in col if (x["linha"], x["coluna"]) == (m["linha"], m["coluna"]))
-
-    p = o_primeiro()
-    assert abs(p["desde"] - antes) < 60_000
-    assert p["missoes"] == 0   # a missão que deu o próprio mascote não conta para ele
-    time.sleep(0.05)
-    outro = cliente.post("/loja/recompensa", json={"chave": "missao:t10"}, headers=h).json()["mascote"]
-    time.sleep(0.05)
-    cliente.post("/loja/recompensa", json={"chave": "nivel:2"}, headers=h)   # brownie de nível: não é missão
-    depois = o_primeiro()
-    assert depois["missoes"] == 1 and depois["desde"] == p["desde"]
-    # pedir de novo a mesma missão não soma outra vez
+    assert m["xp"] == 0 and _xp(cliente, h) == {(0, 1): 0}   # a missão que deu o primeiro mascote não conta para ele
     cliente.post("/loja/recompensa", json={"chave": "missao:t10"}, headers=h)
-    assert o_primeiro()["missoes"] == 1
-    if (outro["linha"], outro["coluna"]) != (m["linha"], m["coluna"]):   # o mascote que veio depois começa do zero
-        col = cliente.get("/loja/colecao", headers=h).json()["mascotes"]
-        novo = next(x for x in col if (x["linha"], x["coluna"]) == (outro["linha"], outro["coluna"]))
-        assert novo["missoes"] == 0 and novo["desde"] > p["desde"]
+    assert _xp(cliente, h) == {(0, 1): loja.XP_MISSAO, (2, 3): 0}
+    cliente.post("/loja/recompensa", json={"chave": "missao:t10"}, headers=h)   # pedir de novo não soma outra vez
+    cliente.post("/loja/recompensa", json={"chave": "nivel:2"}, headers=h)      # o brownie de nível não dá XP
+    assert _xp(cliente, h) == {(0, 1): loja.XP_MISSAO, (2, 3): 0, (1, 0): 0}
+
+
+def test_xp_dos_treinos_tem_limite_e_pede_a_conta(cliente, monkeypatch):
+    monkeypatch.setattr(loja, "_sortear_com", lambda chances: (0, 1))
+    h = _conta(cliente)
+    cliente.post("/loja/recompensa", json={"chave": "nivel:2"}, headers=h)
+    time.sleep(0.02)
+    base = _agora_ms()
+    muitos = [base + i for i in range(30)]
+    # um pedido conta no máximo 20 treinos novos (os mais antigos); o resto fica para o pedido seguinte
+    assert _manda_treinos(cliente, h, muitos)["ganho"] == loja.TREINOS_POR_PEDIDO * loja.XP_TREINO
+    assert _manda_treinos(cliente, h, muitos)["ganho"] == 10 * loja.XP_TREINO
+    assert _manda_treinos(cliente, h, muitos) == {"mascote": "0-1", "ganho": 0, "xp": 30 * loja.XP_TREINO}
+    assert cliente.post("/loja/xp", json={"treinos": [1] * 61}, headers=h).status_code == 422
+    assert cliente.post("/loja/xp", json={"treinos": ["ontem"]}, headers=h).status_code == 422
+    assert cliente.post("/loja/xp", json={"treinos": [base]}).status_code == 401
+
+
+def test_xp_igual_ao_do_app():
+    """O app mostra quanto XP cada treino e cada missão dão (app/src/lib/nivelMascote.ts): tem de ser o que o servidor dá."""
+    texto = (Path(__file__).resolve().parents[2] / "app" / "src" / "lib" / "nivelMascote.ts").read_text(encoding="utf-8")
+    m = re.search(r"XP_MASCOTE\s*=\s*\{\s*treino:\s*(\d+),\s*missao:\s*(\d+)", texto)
+    assert m and (int(m.group(1)), int(m.group(2))) == (loja.XP_TREINO, loja.XP_MISSAO)
 
 
 # ---------- o lápis e o nome próprio do mascote (2026-11-19) ----------

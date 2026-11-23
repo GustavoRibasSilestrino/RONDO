@@ -67,7 +67,7 @@ function Grade({ itens, aoEscolher }: { itens: { m: MascoteInfo; nome?: string |
 /* ============================== o mascote, grande ============================== */
 type PopupMascoteProps = {
   mascote: MascoteInfo | null; item?: MascoteDaColecao; ehMeu: boolean; salvando: boolean; lapis: number;
-  xp?: number;   // o XP deste mascote (os treinos e as missões cumpridos desde que ele entrou na coleção)
+  xp?: number;   // o XP deste mascote (só o mascote escolhido ganha XP, a cada treino e a cada missão cumprida)
   aoFechar: () => void; aoUsar: (chave: string | null) => void; aoDarNome: (m: MascoteInfo) => void; aoTrocar: (m: MascoteInfo) => void;
 };
 export function PopupMascote({ mascote, item, ehMeu, salvando, lapis, xp = 0, aoFechar, aoUsar, aoDarNome, aoTrocar }: PopupMascoteProps) {
@@ -92,7 +92,7 @@ export function PopupMascote({ mascote, item, ehMeu, salvando, lapis, xp = 0, ao
         </View>
         <TP tam={15.5}>Nº {m.numero} de {TOTAL_MASCOTES}{quantos > 1 ? ` · você tem ${quantos}` : ''}</TP>
         {ehMeu ? <TP tam={15} cor={PX.verde}>Este é o seu mascote.</TP> : null}
-        {/* o nível: a barra enche com o XP de cada treino e de cada missão cumprida desde que ele chegou */}
+        {/* o nível: só o mascote escolhido ganha XP (a cada treino e a cada missão cumprida); os outros guardam o que têm */}
         <View style={{ alignSelf: 'stretch', gap: 6, marginTop: 4 }}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
             <TP tam={18} peso="500" cor={PX.ouroClaro}>Nível {pm.nivel}</TP>
@@ -104,7 +104,11 @@ export function PopupMascote({ mascote, item, ehMeu, salvando, lapis, xp = 0, ao
           >
             <View style={{ width: `${Math.round(pm.p * 100)}%`, height: '100%', backgroundColor: PX.ouro }} />
           </View>
-          <TP tam={13.5} cor={PX.tinta2} centro style={{ lineHeight: 18 }}>+{XP_MASCOTE.treino} XP a cada treino e +{XP_MASCOTE.missao} XP a cada missão cumprida.</TP>
+          <TP tam={13.5} cor={PX.tinta2} centro style={{ lineHeight: 18 }}>
+            {ehMeu
+              ? `Ele ganha +${XP_MASCOTE.treino} XP a cada treino e +${XP_MASCOTE.missao} XP a cada missão cumprida.`
+              : `Só o seu mascote ganha XP. Use este para ele ganhar +${XP_MASCOTE.treino} a cada treino e +${XP_MASCOTE.missao} a cada missão.`}
+          </TP>
         </View>
       </View>
       <View style={{ gap: 8, marginTop: 4 }}>

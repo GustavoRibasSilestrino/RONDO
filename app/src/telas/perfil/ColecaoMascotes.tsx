@@ -4,11 +4,11 @@
    Desde 2026-11-19 (pedido do dono): o mascote abre numa janela em pixel art no meio da tela (antes subia de baixo); o
    LÁPIS (comprado na loja do site) dá um nome próprio a um mascote; e os repetidos entram em TROCA com outra pessoa, achada
    pela @ ou entre quem a conta segue. As janelas estão em MascotePopups.tsx e as peças de pixel em componentes/Pixel.tsx.
-   Desde 2026-11-23 (pedido do dono): cada mascote liberado tem uma BARRA DE NÍVEL em cima dele; ela enche com o XP de cada
-   treino e de cada missão cumprida depois de ele entrar na coleção (lib/nivelMascote.ts). */
+   Desde 2026-11-23 (pedido do dono): cada mascote liberado tem uma BARRA DE NÍVEL em cima dele. Só o mascote escolhido
+   ganha XP, a cada treino e a cada missão cumprida; os outros guardam o nível que têm (lib/nivelMascote.ts). */
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
-import { escolherMascote, lerColecao, type MascoteDaColecao } from '../../api/mascotes';
+import { aoGanharXp, escolherMascote, lerColecao, type MascoteDaColecao } from '../../api/mascotes';
 import { useAviso } from '../../componentes/Estrutura';
 import { Icone } from '../../componentes/Icone';
 import { Mascote } from '../../componentes/Mascote';
@@ -19,7 +19,7 @@ import { fmt } from '../../lib/datas';
 import { mascoteDe, RARIDADES, TODOS_MASCOTES, TOTAL_MASCOTES, type MascoteInfo } from '../../lib/mascotes';
 import { missoesDe } from '../../lib/missoes';
 import { progressoNivel, xpTotal } from '../../lib/nivel';
-import { progressoMascote, XP_MASCOTE, xpDoMascote } from '../../lib/nivelMascote';
+import { progressoMascote, XP_MASCOTE } from '../../lib/nivelMascote';
 import { cores, estilos } from '../../tema';
 import { PopupLapis, PopupMascote, PopupPropostas, PopupTroca } from './MascotePopups';
 import { lerTrocas } from '../../api/mascotes';
@@ -57,6 +57,8 @@ export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) 
   }, [commit, estado.usuario?.mascote]);
   // a coleção recarrega quando um brownie novo chega (a lista de recompensas pedidas cresce)
   useEffect(() => { void carregar(); }, [estado.recompensasPedidas?.length]);   // eslint-disable-line react-hooks/exhaustive-deps
+  // e quando o mascote escolhido ganha XP de um treino (a barra de nível dele anda)
+  useEffect(() => aoGanharXp(() => { void carregar(); }), [carregar]);
 
   const n = tenho ? Object.keys(tenho).length : 0;
   const escolher = async (chave: string | null) => {
@@ -73,8 +75,8 @@ export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) 
     }
   };
   const meuInfo = mascoteDe(meu);
-  /* o nível de um mascote da coleção: o XP dos treinos e das missões cumpridos desde que ele chegou */
-  const nivelDo = (chave: string) => progressoMascote(xpDoMascote(estado, tenho?.[chave]));
+  /* o nível de um mascote da coleção, pelo XP que ele tem (só o escolhido ganha XP; os outros guardam o que têm) */
+  const nivelDo = (chave: string) => progressoMascote(tenho?.[chave]?.xp ?? 0);
   const meuNivel = meuInfo && tenho?.[meuInfo.chave] ? nivelDo(meuInfo.chave) : null;
   const meuNome = meuInfo ? tenho?.[meuInfo.chave]?.nome ?? meuInfo.nome : '';   // o nome próprio, se a pessoa deu um
   const repetidos = tenho ? Object.values(tenho).filter((m) => m.quantidade > 1).length : 0;
@@ -147,7 +149,7 @@ export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) 
       </View>
       <Barra valor={n} max={TOTAL_MASCOTES} cor={cores.destaque2} />
       <T tam={12.5} style={{ lineHeight: 18 }}>
-        Todo mascote liberado sobe de nível: ganha {XP_MASCOTE.treino} XP a cada treino e {XP_MASCOTE.missao} XP a cada missão que você cumpre depois de ele chegar.
+        Só o seu mascote ganha XP: {XP_MASCOTE.treino} a cada treino e {XP_MASCOTE.missao} a cada missão cumprida. Troque o mascote para treinar outro; os que ficam guardam o nível que têm.
       </T>
 
       {tenho === null ? (
@@ -202,7 +204,7 @@ export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) 
       {/* o mascote, grande, numa janela em pixel art no meio da tela */}
       <PopupMascote
         mascote={aberto} item={aberto ? tenho?.[aberto.chave] : undefined} ehMeu={!!aberto && aberto.chave === meu} salvando={salvando} lapis={lapis}
-        xp={aberto ? xpDoMascote(estado, tenho?.[aberto.chave]) : 0}
+        xp={aberto ? tenho?.[aberto.chave]?.xp ?? 0 : 0}
         aoFechar={() => setAberto(null)} aoUsar={escolher}
         aoDarNome={(m) => { setAberto(null); setParaNomear(m); setLapisAberto(true); }}
         aoTrocar={(m) => { setAberto(null); setParaTrocar(m); }}

@@ -198,11 +198,9 @@ class MascoteOut(BaseModel):
     raridade: str
     quantidade: int
     nome: str | None = None      # o nome que a conta deu a ele com o lápis (vazio = o nome de fábrica)
-    # o nível do mascote (desde 2026-11-23): ele ganha XP a cada treino e a cada missão que a conta cumpre DEPOIS de ele entrar
-    # na coleção. `desde` é essa hora, em milissegundos; `missoes`, quantas missões foram cumpridas de lá para cá. Os treinos
-    # ficam no app, que faz a conta (app/src/lib/nivelMascote.ts). Só a coleção (/loja/colecao) preenche os dois.
-    desde: int | None = None
-    missoes: int = 0
+    # o XP do mascote (desde 2026-11-23): só o mascote escolhido ganha XP, a cada treino e a cada missão cumprida enquanto
+    # ele é o escolhido. O nível sai do XP, no app (app/src/lib/nivelMascote.ts).
+    xp: int = 0
 
 
 class ColecaoOut(BaseModel):
@@ -278,6 +276,17 @@ class RecompensaOut(BaseModel):
     chave: str
     nova: bool                   # falso = essa chave já tinha dado o brownie antes (o app pediu de novo)
     mascote: MascoteOut
+
+
+class XpTreinosIn(BaseModel):
+    # a hora em que cada treino terminou, em milissegundos (os mais recentes do app; o servidor conta só os que ainda não contou)
+    treinos: list[int] = Field(max_length=60)
+
+
+class XpTreinosOut(BaseModel):
+    mascote: str | None          # quem ganhou o XP: o mascote escolhido, "linha-coluna" (vazio = a conta não mostra nenhum)
+    ganho: int                   # o XP ganho neste pedido (0 = nenhum treino novo)
+    xp: int                      # o XP que o mascote escolhido tem agora
 
 
 class EscolherMascoteIn(BaseModel):

@@ -87,8 +87,9 @@ def _somar(sessao: Session, usuario_id: int, linha: int, coluna: int, agora: dat
     onde = (Mascote.usuario_id == usuario_id, Mascote.linha == linha, Mascote.coluna == coluna)
     if not sessao.execute(update(Mascote).where(*onde).values(quantidade=Mascote.quantidade + 1, ultimo_em=agora)).rowcount:
         sessao.add(Mascote(usuario_id=usuario_id, linha=linha, coluna=coluna, quantidade=1, primeiro_em=agora, ultimo_em=agora))
-    # o primeiro mascote da conta vira o que ela mostra (ao lado da foto, nos posts, passeando pelo app)
-    sessao.execute(update(Usuario).where(Usuario.id == usuario_id, Usuario.mascote.is_(None)).values(mascote=f"{linha}-{coluna}"))
+    # o primeiro mascote da conta vira o que ela mostra (ao lado da foto, nos posts, passeando pelo app); o XP dos treinos
+    # passa a contar para ele a partir de agora
+    sessao.execute(update(Usuario).where(Usuario.id == usuario_id, Usuario.mascote.is_(None)).values(mascote=f"{linha}-{coluna}", xp_treino_ate=_agora_ms()))
 
 
 def _quantos(sessao: Session, usuario_id: int, linha: int, coluna: int) -> int:
@@ -145,22 +146,67 @@ def colecao(sessao: Session, usuario_id: int) -> list[Mascote]:
     return [m for m in todos if (m.linha, m.coluna) not in TIRADOS]
 
 
-# ---------- o nível dos mascotes (desde 2026-11-23, pedido do dono) ----------
-# Cada mascote liberado tem um nível, que sobe com XP: cada treino e cada missão cumprida DEPOIS de ele entrar na coleção
-# dão XP a ele (o treino e a missão que deram o próprio mascote não contam). Nada novo é guardado: a hora em que o mascote
-# entrou já está na tabela (primeiro_em) e a hora de cada missão cumprida é a do brownie dela (recompensas.em). Os treinos
-# ficam nos dados do app, então é o app que soma o XP e calcula o nível (app/src/lib/nivelMascote.ts); o servidor entrega
-# o que só ele sabe: desde quando o mascote é da conta e quantas missões foram cumpridas de lá para cá.
-def horas_das_missoes(sessao: Session, usuario_id: int) -> list[datetime]:
-    """A hora do brownie de cada missão cumprida pela conta (as chaves "missao:..."; os brownies de nível não contam)."""
-    return list(sessao.scalars(select(Recompensa.em).where(Recompensa.usuario_id == usuario_id, Recompensa.chave.like("missao:%"))))
+# ---------- o XP e o nível dos mascotes (desde 2026-11-23, pedido do dono) ----------
+# Cada mascote liberado tem um nível, que sobe com XP (mascotes.xp). SÓ O MASCOTE ESCOLHIDO ganha XP (o que a conta mostra,
+# usuarios.mascote; decisão do dono): 30 a cada treino e 60 a cada missão cumprida enquanto ele é o escolhido. Os outros
+# guardam o XP que têm. O nível sai do XP, no app (app/src/lib/nivelMascote.ts, com os mesmos números; o teste
+# test_xp_igual_ao_do_app confere). É o nível que vai decidir a força do mascote no jogo de batalhas (que ainda não existe).
+#
+# A missão: quem dá o brownie dela é o servidor (recompensar), que já credita o XP no mascote escolhido naquela hora. A missão
+# que dá o primeiro mascote da conta não conta para ele (ainda não havia mascote).
+# O treino: os treinos ficam nos dados do app, então o app manda a hora em que cada um terminou (contar_treinos) e o servidor
+# conta só os que terminaram depois de usuarios.xp_treino_ate: o fim do último treino contado ou a hora em que o mascote de
+# agora foi escolhido, o que for mais novo. Assim nenhum treino conta duas vezes e treino feito antes da escolha não dá XP ao
+# mascote novo. Como todo o resto do app, o servidor confia no treino que o app informa; quando o jogo existir, isso precisa
+# de uma conferência de verdade.
+XP_TREINO, XP_MISSAO = 30, 60
+TREINOS_POR_PEDIDO = 20                 # quantos treinos novos um pedido pode contar
+FOLGA_DO_RELOGIO_MS = 5 * 60 * 1000     # o relógio do aparelho pode estar um pouco adiantado
 
 
-def em_ms(quando: datetime) -> int:
-    """A hora em milissegundos desde 1970 (o SQLite dos testes devolve a hora sem fuso: ela é sempre UTC)."""
-    if quando.tzinfo is None:
-        quando = quando.replace(tzinfo=timezone.utc)
-    return int(quando.timestamp() * 1000)
+def _agora_ms() -> int:
+    return int(datetime.now(timezone.utc).timestamp() * 1000)
+
+
+def _dar_xp(sessao: Session, usuario_id: int, mascote: str | None, xp: int) -> None:
+    """Soma XP ao mascote "linha-coluna" da conta, sem gravar (quem chama faz o commit)."""
+    if not mascote or xp <= 0:
+        return
+    linha, coluna = (int(x) for x in mascote.split("-"))
+    sessao.execute(update(Mascote).where(Mascote.usuario_id == usuario_id, Mascote.linha == linha, Mascote.coluna == coluna).values(xp=Mascote.xp + xp))
+
+
+def xp_de(sessao: Session, usuario_id: int, mascote: str | None) -> int:
+    if not mascote:
+        return 0
+    linha, coluna = (int(x) for x in mascote.split("-"))
+    return sessao.scalar(select(Mascote.xp).where(Mascote.usuario_id == usuario_id, Mascote.linha == linha, Mascote.coluna == coluna)) or 0
+
+
+def contar_treinos(sessao: Session, usuario_id: int, fins: list[int]) -> tuple[str | None, int, int]:
+    """Dá ao mascote escolhido o XP dos treinos que ainda não contaram. `fins`: a hora em que cada treino terminou, em
+    milissegundos. Devolve (o mascote escolhido, o XP ganho agora, o XP que ele tem). Mandar de novo os mesmos treinos não
+    soma outra vez."""
+    for _ in range(3):
+        mascote, ate = sessao.execute(select(Usuario.mascote, Usuario.xp_treino_ate).where(Usuario.id == usuario_id)).one()
+        agora = _agora_ms()
+        if ate is None:   # nunca contou e nunca escolheu mascote: começa a contar daqui
+            novos, marca = [], agora
+        else:
+            novos = sorted({f for f in fins if ate < f <= agora + FOLGA_DO_RELOGIO_MS})[:TREINOS_POR_PEDIDO]
+            marca = max([ate, *novos])
+        if marca == ate:
+            return mascote, 0, xp_de(sessao, usuario_id, mascote)
+        # avança a marca só se ninguém avançou antes (dois pedidos juntos: um só conta os treinos)
+        mesma = Usuario.xp_treino_ate.is_(None) if ate is None else Usuario.xp_treino_ate == ate
+        if not sessao.execute(update(Usuario).where(Usuario.id == usuario_id, mesma).values(xp_treino_ate=marca)).rowcount:
+            sessao.rollback()
+            continue
+        ganho = len(novos) * XP_TREINO if mascote else 0   # sem mascote escolhido, os treinos passam sem dar XP
+        _dar_xp(sessao, usuario_id, mascote, ganho)
+        sessao.commit()
+        return mascote, ganho, xp_de(sessao, usuario_id, mascote)
+    raise RuntimeError("não foi possível contar os treinos agora")
 
 
 # ---------- os brownies de recompensa do app (desde 2026-11-19, no lugar das medalhas) ----------
@@ -207,6 +253,8 @@ def recompensar(sessao: Session, usuario_id: int, chave: str) -> tuple[int, int,
         linha, coluna = _sortear_com(chances_recompensa(ganhos))
         agora = datetime.now(timezone.utc)
         sessao.add(Recompensa(usuario_id=usuario_id, chave=chave, linha=linha, coluna=coluna, em=agora))
+        if chave.startswith("missao:"):   # a missão cumprida dá XP ao mascote que a conta já mostrava (o de nível, não)
+            _dar_xp(sessao, usuario_id, sessao.scalar(select(Usuario.mascote).where(Usuario.id == usuario_id)), XP_MISSAO)
         _somar(sessao, usuario_id, linha, coluna, agora)
         try:
             sessao.commit()
@@ -218,12 +266,16 @@ def recompensar(sessao: Session, usuario_id: int, chave: str) -> tuple[int, int,
 
 
 def escolher_mascote(sessao: Session, usuario: Usuario, linha: int | None, coluna: int | None) -> bool:
-    """Troca o mascote que a conta mostra por um da coleção dela (ou por nenhum). Falso se ela não tem esse mascote."""
+    """Troca o mascote que a conta mostra por um da coleção dela (ou por nenhum). Falso se ela não tem esse mascote.
+    Ao trocar, o XP dos treinos passa a contar para o novo a partir de agora (os treinos feitos antes não valem para ele)."""
+    antes = usuario.mascote
     if linha is None or coluna is None:
         usuario.mascote = None
         usuario.mascote_nome = None
     elif (linha, coluna) not in TIRADOS and _quantos(sessao, usuario.id, linha, coluna) > 0:
         usuario.mascote = f"{linha}-{coluna}"
+        if usuario.mascote != antes:
+            usuario.xp_treino_ate = max(usuario.xp_treino_ate or 0, _agora_ms())
         # o nome que a conta deu a ele (se deu) vai junto, para aparecer no perfil e nas publicações
         usuario.mascote_nome = sessao.scalar(select(Mascote.nome).where(Mascote.usuario_id == usuario.id, Mascote.linha == linha, Mascote.coluna == coluna))
     else:

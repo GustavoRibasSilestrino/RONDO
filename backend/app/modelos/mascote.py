@@ -20,6 +20,9 @@ class Mascote(Base):
     quantidade: Mapped[int] = mapped_column(Integer, default=1, server_default="1")
     # o nome que a conta deu a este mascote com um lápis da loja (desde 2026-11-19); vazio = o nome de fábrica
     nome: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    # o XP deste mascote (desde 2026-11-23): só o mascote que a conta escolheu ganha XP, a cada treino e a cada missão
+    # cumprida enquanto ele é o escolhido; o nível sai do XP (app/src/lib/nivelMascote.ts). Ver servicos/loja.py
+    xp: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     primeiro_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     ultimo_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 

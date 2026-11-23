@@ -58,7 +58,7 @@ def exportar(sessao: Session, u: Usuario) -> dict:
             {"plano": a.plano_id, "status": a.status, "criado_em": _data(a.criado_em)} for a in todos(Assinatura, Assinatura.usuario_id == uid)
         ],
         "mascotes_da_loja": [
-            {"linha": m.linha, "coluna": m.coluna, "raridade": RARIDADES[m.linha][0], "quantidade": m.quantidade, "nome": m.nome,
+            {"linha": m.linha, "coluna": m.coluna, "raridade": RARIDADES[m.linha][0], "quantidade": m.quantidade, "nome": m.nome, "xp": m.xp,
              "primeiro_em": _data(m.primeiro_em), "ultimo_em": _data(m.ultimo_em)}
             for m in todos(Mascote, Mascote.usuario_id == uid)
         ],

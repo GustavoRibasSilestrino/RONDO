@@ -14,7 +14,7 @@ from app.banco import obter_sessao
 from app.deps import usuario_atual
 from app.esquemas import (
     AbrirPacoteIn, CasaMascote, ColecaoOut, EscolherMascoteIn, LapisOut, MascoteOut, NomeMascoteIn, NomeMascoteOut, PessoaDaTroca,
-    RecompensaIn, RecompensaOut, RepetidosOut, ResgatarIn, TrocaIn, TrocaOut, TrocasOut,
+    RecompensaIn, RecompensaOut, RepetidosOut, ResgatarIn, TrocaIn, TrocaOut, TrocasOut, XpTreinosIn, XpTreinosOut,
 )
 from app.modelos import Troca, Usuario
 from app.servicos import loja as servico_loja
@@ -23,8 +23,8 @@ from app.servicos.social import ha_bloqueio, notificar
 router = APIRouter(prefix="/loja", tags=["loja"])
 
 
-def _mascote(linha: int, coluna: int, quantidade: int, nome: str | None = None, desde: int | None = None, missoes: int = 0) -> MascoteOut:
-    return MascoteOut(linha=linha, coluna=coluna, raridade=servico_loja.RARIDADES[linha][0], quantidade=quantidade, nome=nome, desde=desde, missoes=missoes)
+def _mascote(linha: int, coluna: int, quantidade: int, nome: str | None = None, xp: int = 0) -> MascoteOut:
+    return MascoteOut(linha=linha, coluna=coluna, raridade=servico_loja.RARIDADES[linha][0], quantidade=quantidade, nome=nome, xp=xp)
 
 
 @router.post("/abrir", response_model=MascoteOut, status_code=201)
@@ -47,14 +47,9 @@ def resgatar(dados: ResgatarIn, usuario: Usuario = Depends(usuario_atual), sessa
 
 @router.get("/colecao", response_model=ColecaoOut)
 def colecao(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
-    # para o nível de cada mascote: desde quando ele é da conta e quantas missões ela cumpriu depois disso
-    missoes = servico_loja.horas_das_missoes(sessao, usuario.id)
     return ColecaoOut(
         total=servico_loja.TOTAL,
-        mascotes=[
-            _mascote(m.linha, m.coluna, m.quantidade, m.nome, desde=servico_loja.em_ms(m.primeiro_em), missoes=sum(1 for em in missoes if em > m.primeiro_em))
-            for m in servico_loja.colecao(sessao, usuario.id)
-        ],
+        mascotes=[_mascote(m.linha, m.coluna, m.quantidade, m.nome, m.xp) for m in servico_loja.colecao(sessao, usuario.id)],
         pode_comprar=servico_loja.pode_comprar(usuario.papel),
         escolhido=usuario.mascote,
         lapis=usuario.lapis,
@@ -69,6 +64,14 @@ def recompensa(dados: RecompensaIn, usuario: Usuario = Depends(usuario_atual), s
     except servico_loja.LimiteDeRecompensas:
         raise HTTPException(429, "Essa conta já ganhou todos os brownies de recompensa.")
     return RecompensaOut(chave=dados.chave, nova=nova, mascote=_mascote(linha, coluna, quantidade))
+
+
+@router.post("/xp", response_model=XpTreinosOut)
+def xp_dos_treinos(dados: XpTreinosIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    """O XP dos treinos para o mascote escolhido (só ele ganha XP). O app manda a hora em que os últimos treinos terminaram;
+    só os que ainda não contaram dão XP (30 cada). O XP das missões o servidor já dá junto com o brownie (/loja/recompensa)."""
+    mascote, ganho, xp = servico_loja.contar_treinos(sessao, usuario.id, [f for f in dados.treinos if f > 0])
+    return XpTreinosOut(mascote=mascote, ganho=ganho, xp=xp)
 
 
 @router.put("/mascote", status_code=204)

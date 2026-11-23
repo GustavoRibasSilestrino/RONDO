@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, String, event, false
+from sqlalchemy import BigInteger, Boolean, Date, DateTime, ForeignKey, Integer, String, event, false
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.banco import Base
@@ -30,6 +30,9 @@ class Usuario(Base):
     mascote_nome: Mapped[str | None] = mapped_column(String(24), nullable=True)
     # lápis da loja que a conta tem guardados: cada um dá um nome novo a um mascote da coleção (2026-11-19)
     lapis: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # até que treino o XP do mascote já foi contado (2026-11-23): o fim, em milissegundos, do último treino que deu XP, ou a
+    # hora em que o mascote de agora foi escolhido, o que for mais novo. Só treinos terminados depois disso dão XP.
+    xp_treino_ate: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     criado_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     # só para saber se é menor de idade (precisa de responsável); contas antigas ficam sem
     nascimento: Mapped[date | None] = mapped_column(Date, nullable=True)
