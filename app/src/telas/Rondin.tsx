@@ -13,7 +13,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { cadastrar, entrar, nomeEstaLivre } from '../api/conta';
+import { acordarServidor, cadastrar, entrar, nomeEstaLivre } from '../api/conta';
 import { concluirCadastroSocial, type ResultadoSocial } from '../api/loginSocial';
 import { BotoesSociais, temLoginSocial } from '../componentes/BotoesSociais';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
@@ -168,6 +168,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [enviando, setEnviando] = useState(false);
+  useEffect(() => { acordarServidor(); }, []);   // o servidor pode estar dormindo: acorda já, para o nome (pergunta 2) não travar
   /* o servidor demorou (estava dormindo): passados 3 s, avisa que ele está acordando, para não parecer travado */
   const [demorando, setDemorando] = useState(false);
   useEffect(() => {

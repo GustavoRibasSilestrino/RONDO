@@ -54,10 +54,11 @@ export function estagnado(estado: Estado, exId: string, hoje: Date): boolean {
 }
 
 /* ---------- dieta ---------- */
-export const tmb = (p: Perfil): number => 10 * p.peso + 6.25 * p.altura - 5 * p.idade + (p.sexo === 'm' ? 5 : -161);   // Mifflin-St Jeor
+/* Mifflin-St Jeor: +5 para homens e -161 para mulheres; quem prefere não dizer fica no meio (-78) */
+export const tmb = (p: Perfil): number => 10 * p.peso + 6.25 * p.altura - 5 * p.idade + (p.sexo === 'm' ? 5 : p.sexo === 'f' ? -161 : -78);
 
 export function metaKcal(p: Perfil): number {
-  const piso = p.sexo === 'm' ? 1500 : 1200;   // sem metas extremas
+  const piso = p.sexo === 'm' ? 1500 : p.sexo === 'f' ? 1200 : 1350;   // sem metas extremas
   return Math.max(piso, Math.round(tmb(p) * p.atividade * p.objetivo));
 }
 

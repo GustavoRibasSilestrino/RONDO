@@ -1,7 +1,7 @@
 /* Tipos do que o app guarda no aparelho. Datas são "AAAA-MM-DD"; momentos são milissegundos (Date.now()). */
 import type { Rotina } from './dados';
 
-export type Sexo = 'm' | 'f';
+export type Sexo = 'm' | 'f' | 'nd';   // 'nd' = prefiro não dizer: as contas de calorias usam a média das duas fórmulas
 
 /* `arroba` é o nome de usuário (sem o @) e `foto` é o id da foto de perfil (guardada em lib/midia.ts); sem eles, vale o nome e a inicial. */
 export type Usuario = { email: string; nome: string; arroba?: string; foto?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; mascote?: string | null; mascoteNome?: string | null /* o nome que a conta deu ao mascote que ela mostra, com o lápis */ };

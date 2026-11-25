@@ -70,7 +70,7 @@ export function SeusDados() {
       <View style={{ gap: 10 }}>
         <T tam={13} peso="500">Sexo</T>
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          {([['m', 'Masculino'], ['f', 'Feminino']] as [Sexo, string][]).map(([v, n]) => <Opcao key={v} rotulo={n} ativo={p.sexo === v} aoPressionar={() => commit((e) => { e.perfil.sexo = v; })} />)}
+          {([['m', 'Masculino'], ['f', 'Feminino'], ['nd', 'Prefiro não dizer']] as [Sexo, string][]).map(([v, n]) => <Opcao key={v} rotulo={n} ativo={p.sexo === v} aoPressionar={() => commit((e) => { e.perfil.sexo = v; })} />)}
         </View>
       </View>
 

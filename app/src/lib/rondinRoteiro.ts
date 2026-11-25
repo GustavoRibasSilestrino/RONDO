@@ -196,7 +196,7 @@ export function montarPerfil(r: Respostas, sotaque: string, hoje: Date = new Dat
   };
   return {
     perfil: {
-      sexo: sexo === 'f' ? 'f' : 'm',   // as contas de calorias só têm duas fórmulas; "prefiro não dizer" usa a masculina como média
+      sexo: sexo === 'f' || sexo === 'm' ? sexo : 'nd',   // "prefiro não dizer": as contas usam a média das duas fórmulas (lib/calc.ts)
       idade: nasc ? idadeDe(nasc) : 28, peso, altura: fit.altura,
       atividade: ATIVIDADE[fit.dia] ?? 1.55, objetivo: META_CALORICA[fit.objetivo] ?? 1,
     },

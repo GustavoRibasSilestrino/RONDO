@@ -72,14 +72,34 @@ export async function redefinirSenha(email: string, codigo: string, nova: string
   if (!r.ok) throw new Error(await mensagemDe(r, 'Não foi possível trocar a senha agora. Tente de novo.'));
 }
 
-/* O nome já é de outra conta? O servidor compara sem acento e sem maiúscula. Se a pergunta falhar (sem rede), segue: o cadastro confere de novo. */
+/* Acorda o servidor logo que a conversa do RONDIN abre (pedido do dono, 2026-11-25: a pergunta 2, a do nome, "travava"). No plano
+   grátis o servidor dorme quando ninguém usa e leva até um minuto para acordar; chamando já na primeira tela, ele está de pé
+   quando a pessoa termina de digitar o nome. Não espera a resposta nem mostra erro. */
+let acordado = false;
+export function acordarServidor(): void {
+  const api = process.env.EXPO_PUBLIC_API_URL;
+  if (!api || acordado) return;
+  acordado = true;
+  fetch(`${api}/saude`).catch(() => { acordado = false; });
+}
+
+/* O nome já é de outra conta? O servidor compara sem acento e sem maiúscula. Espera no máximo 4 s (o servidor pode estar
+   acordando): passou disso, ou se a pergunta falhar (sem rede), segue em frente, porque o cadastro confere de novo no fim. */
 export async function nomeEstaLivre(nome: string): Promise<boolean> {
+  const api = process.env.EXPO_PUBLIC_API_URL;
+  if (!api) return true;
+  const controle = new AbortController();
+  const limite = setTimeout(() => controle.abort(), 4000);
   try {
-    const r = await enviarJson('/auth/nome-livre', { nome });
+    const r = await fetch(`${api}/auth/nome-livre`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nome }), signal: controle.signal,
+    });
     if (!r.ok) return true;
     return ((await r.json()) as { livre?: boolean }).livre !== false;
   } catch {
     return true;
+  } finally {
+    clearTimeout(limite);
   }
 }
 

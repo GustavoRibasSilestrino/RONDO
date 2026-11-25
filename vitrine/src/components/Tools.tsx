@@ -66,9 +66,11 @@ function Forca() {
 function Calorias() {
   const [f, setF] = useState({ sexo: "m", idade: "28", peso: "78", altura: "178", ativ: "1.55", obj: "1" });
   const set = (k: keyof typeof f) => (v: string) => setF((o) => ({ ...o, [k]: v }));
-  const m = f.sexo === "m", peso = num(f.peso);
-  const tmb = 10 * peso + 6.25 * num(f.altura) - 5 * num(f.idade) + (m ? 5 : -161);
-  const kcal = Math.max(m ? 1500 : 1200, Math.round(tmb * num(f.ativ) * num(f.obj)));
+  const peso = num(f.peso);
+  /* Mifflin-St Jeor: +5 para homens e -161 para mulheres; quem prefere não dizer fica no meio */
+  const ajuste = f.sexo === "m" ? 5 : f.sexo === "f" ? -161 : -78, piso = f.sexo === "m" ? 1500 : f.sexo === "f" ? 1200 : 1350;
+  const tmb = 10 * peso + 6.25 * num(f.altura) - 5 * num(f.idade) + ajuste;
+  const kcal = Math.max(piso, Math.round(tmb * num(f.ativ) * num(f.obj)));
   const select = (label: string, k: keyof typeof f, opts: [string, string][]) => (
     <label className="field">{label}
       <select value={f[k]} onChange={(e) => set(k)(e.target.value)}>{opts.map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>
@@ -80,7 +82,7 @@ function Calorias() {
       <h3>Meta calórica</h3>
       <p>Mifflin-St Jeor × nível de atividade, ajustado ao objetivo e com piso de segurança.</p>
       <div className="fields">
-        {select("SEXO", "sexo", [["m", "Masculino"], ["f", "Feminino"]])}
+        {select("SEXO", "sexo", [["m", "Masculino"], ["f", "Feminino"], ["nd", "Prefiro não dizer"]])}
         <NumberField label="IDADE" value={f.idade} onChange={set("idade")} min={14} max={90} />
         <NumberField label="PESO (KG)" value={f.peso} onChange={set("peso")} min={30} max={250} step={0.1} />
         <NumberField label="ALTURA (CM)" value={f.altura} onChange={set("altura")} min={120} max={230} />

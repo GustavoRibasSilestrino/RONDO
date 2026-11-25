@@ -24,6 +24,7 @@ import { MenuLateral } from './src/componentes/MenuLateral';
 import { tirarCarregando } from './src/lib/carregando';
 import { voltaPedida } from './src/lib/entrada';
 import { chamar } from './src/api/cliente';
+import { acordarServidor } from './src/api/conta';
 import { lerToken } from './src/api/sessao';
 import type { Estado, Usuario } from './src/tipos';
 import { guardarColuna } from './src/lib/coluna';
@@ -299,6 +300,9 @@ function SoCamera() {
   };
   return <AnaliseExecucao aberta aoFechar={fechar} />;
 }
+
+/* o servidor pode estar dormindo (plano grátis): já no abrir do app ele é chamado, para o cadastro e o login não travarem */
+if (!SO_CAMERA) acordarServidor();
 
 export default function App() {
   if (SO_CAMERA) return <SoCamera />;
