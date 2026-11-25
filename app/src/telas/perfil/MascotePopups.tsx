@@ -1,6 +1,7 @@
 /* As janelas da aba Coleção, todas em pixel art e no meio da tela (componentes/Pixel.tsx), desde 2026-11-19 (pedido do dono):
    - PopupMascote: o mascote grande, com o nome próprio (se tiver), a raridade, o número, o NÍVEL (a barra de XP, desde
-     2026-11-23: lib/nivelMascote.ts) e as ações: usar como meu mascote, dar um nome (lápis) e, se for repetido, propor troca;
+     2026-11-23: lib/nivelMascote.ts) e as ações: usar como meu mascote, dar um nome (lápis) e, se for repetido, propor troca.
+     Tocar no mascote (ou em "Ver em 3D") abre a tela do mascote em 3D, para girar e aproximar (Visor3D, desde 2026-11-25);
    - PopupLapis: o lápis da loja. Mostra todos os mascotes da conta; a pessoa escolhe um, digita o nome e confirma. Cada nome
      gasta um lápis (comprado na loja do site). O nome é só dela e passa pelo filtro de palavras do servidor;
    - PopupTroca: propor a troca de um repetido. A outra pessoa é achada pela @ ou pelo nome (Buscar) ou na lista de quem a
@@ -12,6 +13,7 @@ import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from 'react-n
 import { darNome, lerRepetidosDe, lerTrocas, proporTroca, responderTroca, type Casa, type MascoteDaColecao, type Troca } from '../../api/mascotes';
 import { buscarPessoas, lerSeguindo, type Pessoa } from '../../api/social';
 import { Mascote } from '../../componentes/Mascote';
+import { Visor3D } from '../../componentes/Visor3D';
 import { BotaoPixel, CampoPixel, ErroPixel, EstrelasPixel, LapisPixel, Moldura, PopupPixel, PX, TP } from '../../componentes/Pixel';
 import { mascoteDe, TODOS_MASCOTES, TOTAL_MASCOTES, type MascoteInfo } from '../../lib/mascotes';
 import { progressoMascote, XP_MASCOTE } from '../../lib/nivelMascote';
@@ -72,7 +74,8 @@ type PopupMascoteProps = {
 };
 export function PopupMascote({ mascote, item, ehMeu, salvando, lapis, xp = 0, aoFechar, aoUsar, aoDarNome, aoTrocar }: PopupMascoteProps) {
   const [visto, setVisto] = useState<MascoteInfo | null>(mascote);   // o último aberto fica na tela enquanto a janela some
-  useEffect(() => { if (mascote) setVisto(mascote); }, [mascote]);
+  const [em3d, setEm3d] = useState(false);
+  useEffect(() => { if (mascote) setVisto(mascote); else setEm3d(false); }, [mascote]);
   const m = mascote ?? visto;
   if (!m) return null;
   const proprio = item?.nome ?? null;
@@ -81,10 +84,14 @@ export function PopupMascote({ mascote, item, ehMeu, salvando, lapis, xp = 0, ao
   return (
     <PopupPixel aberto={mascote !== null} aoFechar={aoFechar} titulo={proprio ?? m.nome}>
       <View style={{ alignItems: 'center', gap: 8 }}>
-        <View style={st.palco}>
+        <Pressable
+          accessibilityRole="button" accessibilityLabel={`Ver ${proprio ?? m.nome} em 3D`} onPress={() => setEm3d(true)}
+          style={({ pressed }) => [st.palco, pressed && { transform: [{ scale: 0.97 }] }]}
+        >
           <View pointerEvents="none" style={[st.brilho, { backgroundColor: m.raridade.cor }]} />
           <Mascote chave={m.chave} tamanho={150} />
-        </View>
+          <View pointerEvents="none" style={st.selo3d}><TP tam={12.5} peso="500" cor={PX.contorno}>3D</TP></View>
+        </Pressable>
         {proprio ? <TP tam={14.5} cor={PX.tinta2}>{m.nome}, com o nome que você deu</TP> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <EstrelasPixel n={m.raridade.estrelas} cor={m.raridade.cor} tamanho={13} />
@@ -117,7 +124,10 @@ export function PopupMascote({ mascote, item, ehMeu, salvando, lapis, xp = 0, ao
           : <BotaoPixel titulo="Usar como meu mascote" aoPressionar={() => aoUsar(m.chave)} carregando={salvando} />}
         <BotaoPixel tipo="escuro" titulo={proprio ? `Mudar o nome (${lapis} lápis)` : `Dar um nome (${lapis} lápis)`} aoPressionar={() => aoDarNome(m)} />
         {quantos > 1 ? <BotaoPixel tipo="escuro" titulo="Propor troca" aoPressionar={() => aoTrocar(m)} /> : null}
+        <BotaoPixel tipo="escuro" titulo="Ver em 3D" aoPressionar={() => setEm3d(true)} />
       </View>
+      {/* dentro da janela (e não ao lado), para o iPhone abrir uma tela por cima da outra */}
+      <Visor3D chave={em3d && mascote ? m.chave : null} nome={proprio} aoFechar={() => setEm3d(false)} />
     </PopupPixel>
   );
 }
@@ -384,6 +394,7 @@ export function PopupPropostas({ aberto, aoFechar, aoMudou }: { aberto: boolean;
 const st = StyleSheet.create({
   palco: { alignItems: 'center', justifyContent: 'center', width: 190, height: 166 },
   brilho: { position: 'absolute', width: 150, height: 150, borderRadius: 75, opacity: 0.22 },
+  selo3d: { position: 'absolute', right: 6, bottom: 6, backgroundColor: PX.ouro, paddingHorizontal: 6, paddingVertical: 1, borderWidth: 2, borderColor: PX.contorno },
   trilhoNivel: { height: 16, borderWidth: 3, borderColor: PX.contorno, backgroundColor: PX.noite2 },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   casa: { width: '31%', minWidth: 96, flexGrow: 1, maxWidth: 130 },

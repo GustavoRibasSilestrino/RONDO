@@ -36,9 +36,12 @@ def pode_comprar(papel: str) -> bool:
 # sorteio e da coleção, mas a casa dele continua na folha, vazia: assim a chave de cada mascote ("linha-coluna") não muda
 # e ninguém perde o que já tem.
 CASAS = (13, 14, 14, 14, 14)
-TIRADOS = {(1, 6), (3, 5), (4, 10)}   # o Browdiabinho, o Browinferno e o Browdemônio, tirados em 2026-11-19
+TIRADOS = {(1, 6), (3, 5), (4, 10),   # o Browdiabinho, o Browinferno e o Browdemônio, tirados em 2026-11-19
+           # os que ficaram sem 3D, tirados em 2026-11-25 (pedido do dono, quando os mascotes viraram 3D): o Browpolicial,
+           # o Browgelo, o Browcosmonauta, o Browmagma, o Browglacial, o Browdiamante, o Browciber, o Browglitch e o Browsombra
+           (0, 1), (2, 3), (3, 2), (3, 12), (4, 8), (4, 9), (4, 11), (4, 12), (4, 13)}
 COLUNAS: list[list[int]] = [[c for c in range(n) if (linha, c) not in TIRADOS] for linha, n in enumerate(CASAS)]
-# as raridades na ordem das linhas da folha, com quantos mascotes cada uma tem de verdade (66 no total)
+# as raridades na ordem das linhas da folha, com quantos mascotes cada uma tem de verdade (57 no total)
 RARIDADES: list[tuple[str, int]] = [(nome, len(COLUNAS[i])) for i, nome in enumerate(("comum", "incomum", "rara", "epica", "lendaria"))]
 TOTAL = sum(quantos for _, quantos in RARIDADES)
 

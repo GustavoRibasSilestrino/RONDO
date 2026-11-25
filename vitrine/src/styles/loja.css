@@ -29,11 +29,10 @@
 [data-r="epica"] { --cor-r: #cf8bff; }
 [data-r="lendaria"] { --cor-r: #ffc83d; }
 
-/* ---------- mascote: um recorte da folha (14 colunas x 5 linhas de 160 x 176) ---------- */
+/* ---------- mascote: um recorte da folha (14 colunas x 5 linhas, células na proporção 160 x 176) ---------- */
 .masc {
   display: block; width: var(--masc, 4rem); aspect-ratio: 160 / 176; flex: none;
   background: url("../assets/loja/mascotes.webp") var(--mx) var(--my) / 1400% 500% no-repeat;
-  image-rendering: pixelated;   /* é pixel art: ampliar sem borrar */
 }
 
 /* ---------- estrelas de pixel ---------- */
@@ -306,7 +305,7 @@ html:has(dialog.abre[open]) { overflow: hidden; }
 .abre[data-fase="revelado"] .abre-raios { opacity: 1; transition: opacity .6s .3s; animation: abre-gira 30s linear infinite; }
 @keyframes abre-gira { to { rotate: 360deg; } }
 .abre-mascote {
-  --masc: min(62%, 16rem); position: absolute; z-index: 5; left: 50%; top: 50%; translate: -50% -50%; image-rendering: pixelated;
+  --masc: min(62%, 16rem); position: absolute; z-index: 5; left: 50%; top: 50%; translate: -50% -50%;
   filter: drop-shadow(0 8px 0 rgba(0, 0, 0, .35)); animation: abre-pula .7s var(--lj-salto) .28s both;
 }
 @keyframes abre-pula { from { scale: .15; opacity: 0; } 55% { opacity: 1; } to { scale: 1; opacity: 1; } }

@@ -51,7 +51,7 @@ const LAPIS_MAPA = [
 const LAPIS_CORES = { K: '#1b0d06', Y: '#ffc83d', y: '#d2921a', P: '#ff8fa3', M: '#c9c4da', W: '#f6dfb8', G: '#4d3489' };
 export const LapisPixel = ({ tamanho = 48 }: { tamanho?: number }) => <Pixels mapa={LAPIS_MAPA} cores={LAPIS_CORES} tamanho={tamanho} />;
 
-const X_MAPA = ['X.....X', '.X...X.', '..X.X..', '...X...', '..X.X..', '.X...X.', 'X.....X'];
+export const X_MAPA = ['X.....X', '.X...X.', '..X.X..', '...X...', '..X.X..', '.X...X.', 'X.....X'];
 const ESTRELA_MAPA = ['....X....', '...XXX...', '...XXX...', 'XXXXXXXXX', '.XXXXXXX.', '..XXXXX..', '.XXXXXXX.', '.XXX.XXX.', 'XX.....XX'];
 export const EstrelasPixel = ({ n, cor, tamanho = 11 }: { n: number; cor: string; tamanho?: number }) => (
   <View style={{ flexDirection: 'row', gap: 2 }}>

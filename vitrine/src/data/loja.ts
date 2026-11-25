@@ -1,6 +1,7 @@
-/* A loja de pacotinhos (desde 2026-11-18, pedido do dono). Três pacotes; cada um sorteia um browniezinho entre 66 mascotes
-   (13 comuns, 13 incomuns, 14 raros, 13 épicos e 13 lendários: a folha de arte do dono tinha 69, e o Browdiabinho, o
-   Browinferno e o Browdemônio saíram a pedido dele). Os preços são uma estimativa "bem acessível" do dono, ainda sem pagamento de verdade: a compra é uma prévia e não cobra nada (ver PRODUCT.md).
+/* A loja de pacotinhos (desde 2026-11-18, pedido do dono). Três pacotes; cada um sorteia um browniezinho entre 57 mascotes
+   (12 comuns, 13 incomuns, 13 raros, 11 épicos e 8 lendários: a folha de arte do dono tinha 69; o Browdiabinho, o
+   Browinferno e o Browdemônio saíram a pedido dele, e em 2026-11-25, quando os mascotes viraram 3D, saíram os nove que
+   ficaram sem 3D). Os preços são uma estimativa "bem acessível" do dono, ainda sem pagamento de verdade: a compra é uma prévia e não cobra nada (ver PRODUCT.md).
    Comprar exige a conta do RONDO (a mesma do app): o sorteio é feito no servidor e o mascote fica guardado na conta
    (backend/app/servicos/loja.py, que usa estas mesmas chances; um teste de lá confere que os números batem).
    As chances ficam à vista em cada pacote e somam sempre 100% (aqui em décimos de ponto: 1000 = 100%). */
@@ -12,17 +13,17 @@ export type Raridade = "comum" | "incomum" | "rara" | "epica" | "lendaria";
 
 /* a ordem é a das linhas da folha de mascotes (assets/loja/mascotes.webp): comum em cima, lendária embaixo */
 export const RARIDADES: { id: Raridade; nome: string; estrelas: number; quantos: number }[] = [
-  { id: "comum", nome: "Comum", estrelas: 1, quantos: 13 },
+  { id: "comum", nome: "Comum", estrelas: 1, quantos: 12 },   // 13 casas, uma vazia (o Browpolicial saiu)
   { id: "incomum", nome: "Incomum", estrelas: 2, quantos: 13 },   // 14 casas, uma vazia (o Browdiabinho saiu)
-  { id: "rara", nome: "Rara", estrelas: 3, quantos: 14 },
-  { id: "epica", nome: "Épica", estrelas: 4, quantos: 13 },   // 14 casas, uma vazia (o Browinferno saiu)
-  { id: "lendaria", nome: "Lendária", estrelas: 5, quantos: 13 },   // 14 casas, uma vazia (o Browdemônio saiu)
+  { id: "rara", nome: "Rara", estrelas: 3, quantos: 13 },   // 14 casas, uma vazia (o Browgelo saiu)
+  { id: "epica", nome: "Épica", estrelas: 4, quantos: 11 },   // 14 casas, três vazias (o Browinferno, o Browcosmonauta e o Browmagma saíram)
+  { id: "lendaria", nome: "Lendária", estrelas: 5, quantos: 8 },   // 14 casas, seis vazias (o Browdemônio, o Browglacial, o Browdiamante, o Browciber, o Browglitch e o Browsombra saíram)
 ];
-/* a folha tem 14 colunas por 5 linhas de células iguais (160 x 176 px cada); a linha dos comuns tem 13. Desde 2026-11-19 é a
-   pixel art de verdade, desenhada por código em brand/mascotes-pixel (cada mascote 80 x 88 px, ampliado 2x sem borrar);
-   ela é montada por brand/mascotes-pixel/montar_folha.py, que lê os NOMES daqui. */
+/* a folha tem 14 colunas por 5 linhas de células iguais (proporção 160 x 176); a linha dos comuns tem 13. Desde 2026-11-25
+   cada mascote é o retrato do modelo 3D (brand/mascotes-voxel/exportar_todos.py), e a folha é montada por
+   brand/mascotes-voxel/montar_folha.py, que lê os NOMES daqui. */
 export const FOLHA = { colunas: 14, linhas: 5, celula: [160, 176] as const };
-export const TOTAL_MASCOTES = RARIDADES.reduce((a, r) => a + r.quantos, 0);   // 66
+export const TOTAL_MASCOTES = RARIDADES.reduce((a, r) => a + r.quantos, 0);   // 57
 
 export type PacoteId = "roxo" | "prata" | "ouro";
 export type Pacote = {
@@ -68,11 +69,11 @@ export const porcento = (decimos: number) => `${(decimos / 10).toString().replac
    do dono (a casa fica vazia e as chaves dos outros não mudam): o Browdiabinho, o Browinferno e o Browdemônio, em 2026-11-19. O servidor tira o mesmo
    (backend/app/servicos/loja.py, TIRADOS). */
 export const NOMES: (string | null)[][] = [
-  ["Browraiz", "Browpolicial", "Browchef", "Browmaneiro", "Browpiloto", "BrowDJ", "Browanjo", "Brownoel", "Browcaubói", "Browmago", "Browpolar", "Browsapo", "Browgamer"],
+  ["Browraiz", null, "Browchef", "Browmaneiro", "Browpiloto", "BrowDJ", "Browanjo", "Brownoel", "Browcaubói", "Browmago", "Browpolar", "Browsapo", "Browgamer"],
   ["Browpedreiro", "Browdelegado", "Browenfermeiro", "Browabóbora", "Browfantasma", "Browalien", null, "Browgato", "Browpirata", "Browcavaleiro", "Browcoelho", "Browurso", "Browsafira", "Browdino"],
-  ["Browrei", "Browquerubim", "Browastronauta", "Browgelo", "Browfogo", "Browcoringa", "Browcristal", "Browfeiticeiro", "Browfaraó", "Browvampiro", "Browfera", "Browcoral", "Browrena", "Browpanda"],
-  ["Browfênix", "Browhacker", "Browcosmonauta", "Browvalquíria", "Browcupido", null, "Browgeada", "Browarquimago", "Browametista", "Browsamurai", "Browunicórnio", "Browninja", "Browmagma", "Browrubi"],
-  ["Browimperador", "Browramsés", "Browsolar", "Browdivino", "Browdragão", "Browceleste", "Browneon", "Browtrevas", "Browglacial", "Browdiamante", null, "Browciber", "Browglitch", "Browsombra"],
+  ["Browrei", "Browquerubim", "Browastronauta", null, "Browfogo", "Browcoringa", "Browcristal", "Browfeiticeiro", "Browfaraó", "Browvampiro", "Browfera", "Browcoral", "Browrena", "Browpanda"],
+  ["Browfênix", "Browhacker", null, "Browvalquíria", "Browcupido", null, "Browgeada", "Browarquimago", "Browametista", "Browsamurai", "Browunicórnio", "Browninja", null, "Browrubi"],
+  ["Browimperador", "Browramsés", "Browsolar", "Browdivino", "Browdragão", "Browceleste", "Browneon", "Browtrevas", null, null, null, null, null, null],
 ];
 export const nomeDe = (linha: number, coluna: number) => NOMES[linha]?.[coluna] ?? "Brownie";
 /* as colunas da folha que têm mascote, em cada linha */

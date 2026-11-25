@@ -71,7 +71,7 @@ def test_loja_fechada_so_o_dono_compra(cliente, monkeypatch):
         s.commit()
     r = cliente.post("/loja/abrir", json={"pacote": "ouro"}, headers=ana)
     assert r.status_code == 403 and "em breve" in r.json()["detail"]
-    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 66, "mascotes": [], "pode_comprar": False, "escolhido": None, "lapis": 0}
+    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 57, "mascotes": [], "pode_comprar": False, "escolhido": None, "lapis": 0}
     assert cliente.get("/loja/colecao", headers=dono).json()["pode_comprar"] is True
     assert _comprar(cliente, dono)["quantidade"] == 1
     with Sessao() as s:
@@ -91,7 +91,7 @@ def test_a_compra_vai_direto_para_a_conta(cliente):
         assert 0 <= m["linha"] < 5 and m["coluna"] in loja.COLUNAS[m["linha"]]
         assert m["raridade"] == loja.RARIDADES[m["linha"]][0]
     col = cliente.get("/loja/colecao", headers=h).json()
-    assert col["total"] == 66
+    assert col["total"] == 57
     assert sum(m["quantidade"] for m in col["mascotes"]) == 15
     assert {(m["linha"], m["coluna"]) for m in col["mascotes"]} == {(m["linha"], m["coluna"]) for m in comprados}
 
@@ -151,10 +151,12 @@ def test_exportar_e_apagar_a_conta_levam_os_mascotes(cliente):
 
 
 def test_chances_do_sorteio():
-    assert loja.TOTAL == 66
+    assert loja.TOTAL == 57
+    assert loja.RARIDADES[0] == ("comum", 12)
     assert loja.RARIDADES[1] == ("incomum", 13)
-    assert loja.RARIDADES[3] == ("epica", 13)
-    assert loja.RARIDADES[4] == ("lendaria", 13)
+    assert loja.RARIDADES[2] == ("rara", 13)
+    assert loja.RARIDADES[3] == ("epica", 11)
+    assert loja.RARIDADES[4] == ("lendaria", 8)
     for pacote, chances in loja.CHANCES.items():
         assert sum(chances) == 1000, pacote
         assert len(chances) == len(loja.RARIDADES)
@@ -172,7 +174,9 @@ def test_mascote_tirado_nao_sai_nem_aparece(cliente, monkeypatch):
     assert all(loja.sortear("ouro") not in ((1, 6), (3, 5), (4, 10)) for _ in range(3000))
     assert 6 not in loja.COLUNAS[1] and 13 in loja.COLUNAS[1]
     assert 5 not in loja.COLUNAS[3] and 13 in loja.COLUNAS[3]
-    assert 10 not in loja.COLUNAS[4] and 13 in loja.COLUNAS[4]
+    assert 10 not in loja.COLUNAS[4] and 7 in loja.COLUNAS[4]
+    # os nove que ficaram sem 3D, tirados em 2026-11-25
+    assert all(c not in loja.COLUNAS[l] for l, c in ((0, 1), (2, 3), (3, 2), (3, 12), (4, 8), (4, 9), (4, 11), (4, 12), (4, 13)))
     h = _conta(cliente)
     with Sessao() as s:   # uma conta que já tinha ganhado ele antes de ser tirado
         uid = s.query(Usuario).one().id
@@ -261,52 +265,52 @@ def _manda_treinos(cliente, h, fins) -> dict:
 
 
 def test_treino_da_xp_so_ao_mascote_escolhido(cliente, monkeypatch):
-    sorteio = iter([(0, 1), (2, 3)])
+    sorteio = iter([(0, 2), (2, 4)])
     monkeypatch.setattr(loja, "_sortear_com", lambda chances: next(sorteio))
     h = _conta(cliente)
     # sem mascote, o treino passa sem dar XP a ninguém
     assert _manda_treinos(cliente, h, [_agora_ms()]) == {"mascote": None, "ganho": 0, "xp": 0}
     cliente.post("/loja/recompensa", json={"chave": "nivel:2"}, headers=h)   # o primeiro mascote (0-1) vira o escolhido
     cliente.post("/loja/recompensa", json={"chave": "nivel:3"}, headers=h)   # o segundo (2-3) só entra na coleção
-    assert _xp(cliente, h) == {(0, 1): 0, (2, 3): 0}
+    assert _xp(cliente, h) == {(0, 2): 0, (2, 4): 0}
     time.sleep(0.02)
     t1 = _agora_ms()
-    assert _manda_treinos(cliente, h, [t1]) == {"mascote": "0-1", "ganho": loja.XP_TREINO, "xp": loja.XP_TREINO}
+    assert _manda_treinos(cliente, h, [t1]) == {"mascote": "0-2", "ganho": loja.XP_TREINO, "xp": loja.XP_TREINO}
     # o mesmo treino de novo, um mais antigo e um longe no futuro não contam
     r = _manda_treinos(cliente, h, [t1, t1 - 60_000, _agora_ms() + 3_600_000])
     assert r["ganho"] == 0 and r["xp"] == loja.XP_TREINO
-    assert _xp(cliente, h) == {(0, 1): loja.XP_TREINO, (2, 3): 0}
+    assert _xp(cliente, h) == {(0, 2): loja.XP_TREINO, (2, 4): 0}
     # troca de mascote: o treino terminado antes da troca não vale para o novo; os seguintes, sim; o de antes guarda o que tinha
     time.sleep(0.02)
     antes_da_troca = _agora_ms()
     time.sleep(0.02)
-    assert cliente.put("/loja/mascote", json={"linha": 2, "coluna": 3}, headers=h).status_code == 204
-    assert _manda_treinos(cliente, h, [antes_da_troca]) == {"mascote": "2-3", "ganho": 0, "xp": 0}
+    assert cliente.put("/loja/mascote", json={"linha": 2, "coluna": 4}, headers=h).status_code == 204
+    assert _manda_treinos(cliente, h, [antes_da_troca]) == {"mascote": "2-4", "ganho": 0, "xp": 0}
     time.sleep(0.02)
-    assert _manda_treinos(cliente, h, [_agora_ms()]) == {"mascote": "2-3", "ganho": loja.XP_TREINO, "xp": loja.XP_TREINO}
-    assert _xp(cliente, h) == {(0, 1): loja.XP_TREINO, (2, 3): loja.XP_TREINO}
+    assert _manda_treinos(cliente, h, [_agora_ms()]) == {"mascote": "2-4", "ganho": loja.XP_TREINO, "xp": loja.XP_TREINO}
+    assert _xp(cliente, h) == {(0, 2): loja.XP_TREINO, (2, 4): loja.XP_TREINO}
     # escolher de novo o mesmo mascote não mexe em nada; sem mascote escolhido, o treino não dá XP
     assert cliente.put("/loja/mascote", json={"linha": None, "coluna": None}, headers=h).status_code == 204
     time.sleep(0.02)
     assert _manda_treinos(cliente, h, [_agora_ms()]) == {"mascote": None, "ganho": 0, "xp": 0}
-    assert _xp(cliente, h) == {(0, 1): loja.XP_TREINO, (2, 3): loja.XP_TREINO}
+    assert _xp(cliente, h) == {(0, 2): loja.XP_TREINO, (2, 4): loja.XP_TREINO}
 
 
 def test_missao_da_xp_ao_mascote_escolhido(cliente, monkeypatch):
-    sorteio = iter([(0, 1), (2, 3), (1, 0)])
+    sorteio = iter([(0, 2), (2, 4), (1, 0)])
     monkeypatch.setattr(loja, "_sortear_com", lambda chances: next(sorteio))
     h = _conta(cliente)
     m = cliente.post("/loja/recompensa", json={"chave": "missao:t1"}, headers=h).json()["mascote"]
-    assert m["xp"] == 0 and _xp(cliente, h) == {(0, 1): 0}   # a missão que deu o primeiro mascote não conta para ele
+    assert m["xp"] == 0 and _xp(cliente, h) == {(0, 2): 0}   # a missão que deu o primeiro mascote não conta para ele
     cliente.post("/loja/recompensa", json={"chave": "missao:t10"}, headers=h)
-    assert _xp(cliente, h) == {(0, 1): loja.XP_MISSAO, (2, 3): 0}
+    assert _xp(cliente, h) == {(0, 2): loja.XP_MISSAO, (2, 4): 0}
     cliente.post("/loja/recompensa", json={"chave": "missao:t10"}, headers=h)   # pedir de novo não soma outra vez
     cliente.post("/loja/recompensa", json={"chave": "nivel:2"}, headers=h)      # o brownie de nível não dá XP
-    assert _xp(cliente, h) == {(0, 1): loja.XP_MISSAO, (2, 3): 0, (1, 0): 0}
+    assert _xp(cliente, h) == {(0, 2): loja.XP_MISSAO, (2, 4): 0, (1, 0): 0}
 
 
 def test_xp_dos_treinos_tem_limite_e_pede_a_conta(cliente, monkeypatch):
-    monkeypatch.setattr(loja, "_sortear_com", lambda chances: (0, 1))
+    monkeypatch.setattr(loja, "_sortear_com", lambda chances: (0, 2))
     h = _conta(cliente)
     cliente.post("/loja/recompensa", json={"chave": "nivel:2"}, headers=h)
     time.sleep(0.02)
@@ -315,7 +319,7 @@ def test_xp_dos_treinos_tem_limite_e_pede_a_conta(cliente, monkeypatch):
     # um pedido conta no máximo 20 treinos novos (os mais antigos); o resto fica para o pedido seguinte
     assert _manda_treinos(cliente, h, muitos)["ganho"] == loja.TREINOS_POR_PEDIDO * loja.XP_TREINO
     assert _manda_treinos(cliente, h, muitos)["ganho"] == 10 * loja.XP_TREINO
-    assert _manda_treinos(cliente, h, muitos) == {"mascote": "0-1", "ganho": 0, "xp": 30 * loja.XP_TREINO}
+    assert _manda_treinos(cliente, h, muitos) == {"mascote": "0-2", "ganho": 0, "xp": 30 * loja.XP_TREINO}
     assert cliente.post("/loja/xp", json={"treinos": [1] * 61}, headers=h).status_code == 422
     assert cliente.post("/loja/xp", json={"treinos": ["ontem"]}, headers=h).status_code == 422
     assert cliente.post("/loja/xp", json={"treinos": [base]}).status_code == 401
