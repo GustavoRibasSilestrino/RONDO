@@ -22,7 +22,7 @@ const CANTOS: Canto[] = ['se', 'sd', 'ie', 'id'];
 const PRIMEIRA_VEZ = 25_000;   // depois de abrir o app
 const INTERVALO = 4 * 60_000;  // entre uma visita e outra
 const FICA = 14_000;           // quanto tempo ele fica, se ninguém mexer
-const TAM = 72;
+const TAM = 112;               // (pedido do dono, 2026-11-25: maior; antes 72)
 
 /* `margens`: no computador, o menu lateral (à esquerda) e o painel (à direita) ocupam as bordas; o mascote fica na área do conteúdo */
 export function MascoteFlutuante({ ir, oculto, margens }: { ir: (tela: string) => void; oculto?: boolean; margens?: { esquerda: number; direita: number } }) {

@@ -2,7 +2,7 @@
    verdade sobre os treinos da pessoa, do jeito que estão: se a semana está melhor ou pior que a anterior, se faz dias que ela
    não treina, se a sequência está para apagar. Também lembra de treinar e de beber água, e às vezes só motiva.
    Cada fala pode trazer um atalho (a função útil do mascote): beber um copo de água ali mesmo, ir treinar ou ver a missão mais
-   perto de dar um brownie. Tudo é calculado no aparelho, com os dados da própria pessoa; nada sai daqui. */
+   perto de dar um brownie. Desde 2026-11-25 ele também conta piadas (ENGRACADAS). Tudo é calculado no aparelho, com os dados da própria pessoa; nada sai daqui. */
 import type { Estado } from '../tipos';
 import { aguaDoDia, COPO_ML, litros, metaAgua } from './agua';
 import { comparar, situacaoDaSequencia, statsSemana } from './calc';
@@ -21,6 +21,31 @@ const MOTIVACAO = [
   'O seu eu de ontem está te olhando. Bora passar ele?',
   'Força não é só carga. É voltar todo dia.',
   'Cada série é um tijolo. Hoje é dia de obra.',
+];
+
+/* as engraçadas (pedido do dono, 2026-11-25): o mascote brincando com ele mesmo (é um ursinho de bloquinhos) e com a
+   academia, sem zoar a pessoa */
+const ENGRACADAS = [
+  'Eu sou feito de bloquinhos e mesmo assim não pulo o dia de perna. Qual é a sua desculpa?',
+  'Cardio? Achei que era um jogo de cartas.',
+  'O sofá ligou. Eu disse que você está ocupado treinando.',
+  'Levantei da cama hoje. Já conta como agachamento?',
+  'Pular o dia de perna é coisa de flamingo.',
+  'Bíceps não cresce em story. Só no treino.',
+  'Se o treino estiver pesado, lembra que eu carrego esta cabeça quadrada o dia inteiro.',
+  'Eu treinaria com você, mas os meus braços só têm quatro bloquinhos.',
+  'O halter não vai se levantar sozinho. Eu tentei. Ele ganhou.',
+  'O espelho da academia mandou dizer que está com saudade de você.',
+  'Me chamam de brownie, mas o meu sonho é ser fitness.',
+  'Dormir na esteira não emagrece. Pode confiar, eu testei.',
+  'Água: zero calorias e zero desculpas.',
+  'Alongar é importante. Para mim é difícil, eu já nasci quadrado.',
+  'Hoje é dia de quê? De treino. E amanhã? Também. Eu sou repetitivo, igual uma série.',
+  'Se suor fosse dinheiro, hoje você saía rico. Bora?',
+  'Fiz as contas: um treino hoje dá zero arrependimento amanhã.',
+  'Proteína, água e sono. O resto é fofoca de academia.',
+  'Eu não tenho pescoço e ainda assim faço o meu melhor. Você consegue também.',
+  'A esteira me perguntou de você. Falei que você chega já já.',
 ];
 
 const LEMBRETES = [
@@ -91,6 +116,8 @@ export function falasPossiveis(e: Estado, agora: Date): Fala[] {
   if (!treinouHoje) falas.push({ id: `lembrete-${agora.getDate() % LEMBRETES.length}`, tom: 'lembrete', atalho: 'treinar', peso: 2, texto: LEMBRETES[agora.getDate() % LEMBRETES.length] });
   const i = Math.floor(Math.random() * MOTIVACAO.length);
   falas.push({ id: `motiva-${i}`, tom: 'motiva', peso: 2, texto: MOTIVACAO[i] });
+  const j = Math.floor(Math.random() * ENGRACADAS.length);
+  falas.push({ id: `piada-${j}`, tom: 'motiva', peso: 3, texto: ENGRACADAS[j] });
   return falas;
 }
 
