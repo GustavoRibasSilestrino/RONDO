@@ -22,7 +22,18 @@ function avisarApp(msg) {
   try { if (window.parent !== window) window.parent.postMessage({ visor3d: msg }, location.origin); } catch { /* sem quadro */ }
 }
 
-if (!/^\d-\d{1,2}$/.test(chave)) {
+const DRACO = 'https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/libs/draco/gltf/';
+const pre = params.get('pre');
+if (pre !== null) {
+  // o pré-carregamento (visor3d.html?pre=<chaves>): a aba Coleção abre esta página escondida para o three.js, o
+  // decodificador e os modelos da conta já estarem no cache quando a pessoa tocar num mascote (pedido do dono: o 3D
+  // abrir na hora, sem ficar carregando). Não desenha nada.
+  aviso.remove(); dica.remove();
+  const draco = new DRACOLoader();
+  draco.setDecoderPath(DRACO);
+  draco.preload();
+  for (const k of pre.split(',').filter((k) => /^\d-\d{1,2}$/.test(k))) fetch(`modelos/${k}.glb`).catch(() => undefined);
+} else if (!/^\d-\d{1,2}$/.test(chave)) {
   aviso.textContent = 'Mascote não encontrado.';
 } else {
   iniciar().catch(() => { aviso.textContent = 'Não foi possível carregar o mascote. Confira a internet.'; avisarApp('erro'); });
@@ -47,7 +58,7 @@ async function iniciar() {
   const luzes = [chaveLuz, preenche, recorte].map((l) => ({ l, p: l.position.clone() }));
 
   const draco = new DRACOLoader();
-  draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/libs/draco/gltf/');
+  draco.setDecoderPath(DRACO);
   const loader = new GLTFLoader();
   loader.setDRACOLoader(draco);
   const gltf = await loader.loadAsync(`modelos/${chave}.glb`);

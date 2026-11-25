@@ -1,7 +1,5 @@
 /* As janelas da aba Coleção, todas em pixel art e no meio da tela (componentes/Pixel.tsx), desde 2026-11-19 (pedido do dono):
-   - PopupMascote: o mascote grande, com o nome próprio (se tiver), a raridade, o número, o NÍVEL (a barra de XP, desde
-     2026-11-23: lib/nivelMascote.ts) e as ações: usar como meu mascote, dar um nome (lápis) e, se for repetido, propor troca.
-     Tocar no mascote (ou em "Ver em 3D") abre a tela do mascote em 3D, para girar e aproximar (Visor3D, desde 2026-11-25);
+   - o mascote grande, com o nível e as ações, não é mais janela: desde 2026-11-25 é a tela em 3D (TelaMascote.tsx);
    - PopupLapis: o lápis da loja. Mostra todos os mascotes da conta; a pessoa escolhe um, digita o nome e confirma. Cada nome
      gasta um lápis (comprado na loja do site). O nome é só dela e passa pelo filtro de palavras do servidor;
    - PopupTroca: propor a troca de um repetido. A outra pessoa é achada pela @ ou pelo nome (Buscar) ou na lista de quem a
@@ -13,10 +11,8 @@ import { ActivityIndicator, Linking, Pressable, StyleSheet, View } from 'react-n
 import { darNome, lerRepetidosDe, lerTrocas, proporTroca, responderTroca, type Casa, type MascoteDaColecao, type Troca } from '../../api/mascotes';
 import { buscarPessoas, lerSeguindo, type Pessoa } from '../../api/social';
 import { Mascote } from '../../componentes/Mascote';
-import { Visor3D } from '../../componentes/Visor3D';
 import { BotaoPixel, CampoPixel, ErroPixel, EstrelasPixel, LapisPixel, Moldura, PopupPixel, PX, TP } from '../../componentes/Pixel';
-import { mascoteDe, TODOS_MASCOTES, TOTAL_MASCOTES, type MascoteInfo } from '../../lib/mascotes';
-import { progressoMascote, XP_MASCOTE } from '../../lib/nivelMascote';
+import { mascoteDe, TODOS_MASCOTES, type MascoteInfo } from '../../lib/mascotes';
 import { SITE } from '../Login';
 
 export type Tenho = Record<string, MascoteDaColecao>;
@@ -63,72 +59,6 @@ function Grade({ itens, aoEscolher }: { itens: { m: MascoteInfo; nome?: string |
         </Pressable>
       ))}
     </View>
-  );
-}
-
-/* ============================== o mascote, grande ============================== */
-type PopupMascoteProps = {
-  mascote: MascoteInfo | null; item?: MascoteDaColecao; ehMeu: boolean; salvando: boolean; lapis: number;
-  xp?: number;   // o XP deste mascote (só o mascote escolhido ganha XP, a cada treino e a cada missão cumprida)
-  aoFechar: () => void; aoUsar: (chave: string | null) => void; aoDarNome: (m: MascoteInfo) => void; aoTrocar: (m: MascoteInfo) => void;
-};
-export function PopupMascote({ mascote, item, ehMeu, salvando, lapis, xp = 0, aoFechar, aoUsar, aoDarNome, aoTrocar }: PopupMascoteProps) {
-  const [visto, setVisto] = useState<MascoteInfo | null>(mascote);   // o último aberto fica na tela enquanto a janela some
-  const [em3d, setEm3d] = useState(false);
-  useEffect(() => { if (mascote) setVisto(mascote); else setEm3d(false); }, [mascote]);
-  const m = mascote ?? visto;
-  if (!m) return null;
-  const proprio = item?.nome ?? null;
-  const quantos = item?.quantidade ?? 1;
-  const pm = progressoMascote(xp);
-  return (
-    <PopupPixel aberto={mascote !== null} aoFechar={aoFechar} titulo={proprio ?? m.nome}>
-      <View style={{ alignItems: 'center', gap: 8 }}>
-        <Pressable
-          accessibilityRole="button" accessibilityLabel={`Ver ${proprio ?? m.nome} em 3D`} onPress={() => setEm3d(true)}
-          style={({ pressed }) => [st.palco, pressed && { transform: [{ scale: 0.97 }] }]}
-        >
-          <View pointerEvents="none" style={[st.brilho, { backgroundColor: m.raridade.cor }]} />
-          <Mascote chave={m.chave} tamanho={150} />
-          <View pointerEvents="none" style={st.selo3d}><TP tam={12.5} peso="500" cor={PX.contorno}>3D</TP></View>
-        </Pressable>
-        {proprio ? <TP tam={14.5} cor={PX.tinta2}>{m.nome}, com o nome que você deu</TP> : null}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <EstrelasPixel n={m.raridade.estrelas} cor={m.raridade.cor} tamanho={13} />
-          <TP tam={16} peso="500" cor={m.raridade.cor} style={{ textTransform: 'uppercase', letterSpacing: 1 }}>{m.raridade.nome}</TP>
-        </View>
-        <TP tam={15.5}>Nº {m.numero} de {TOTAL_MASCOTES}{quantos > 1 ? ` · você tem ${quantos}` : ''}</TP>
-        {ehMeu ? <TP tam={15} cor={PX.verde}>Este é o seu mascote.</TP> : null}
-        {/* o nível: só o mascote escolhido ganha XP (a cada treino e a cada missão cumprida); os outros guardam o que têm */}
-        <View style={{ alignSelf: 'stretch', gap: 6, marginTop: 4 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
-            <TP tam={18} peso="500" cor={PX.ouroClaro}>Nível {pm.nivel}</TP>
-            <TP tam={14.5} cor={PX.tinta2}>{pm.noNivel}/{pm.tamanho} XP</TP>
-          </View>
-          <View
-            accessible accessibilityRole="progressbar" accessibilityLabel={`Nível ${pm.nivel}: ${pm.noNivel} de ${pm.tamanho} XP para o próximo`}
-            accessibilityValue={{ min: 0, max: pm.tamanho, now: pm.noNivel }} style={st.trilhoNivel}
-          >
-            <View style={{ width: `${Math.round(pm.p * 100)}%`, height: '100%', backgroundColor: PX.ouro }} />
-          </View>
-          <TP tam={13.5} cor={PX.tinta2} centro style={{ lineHeight: 18 }}>
-            {ehMeu
-              ? `Ele ganha +${XP_MASCOTE.treino} XP a cada treino e +${XP_MASCOTE.missao} XP a cada missão cumprida.`
-              : `Só o seu mascote ganha XP. Use este para ele ganhar +${XP_MASCOTE.treino} a cada treino e +${XP_MASCOTE.missao} a cada missão.`}
-          </TP>
-        </View>
-      </View>
-      <View style={{ gap: 8, marginTop: 4 }}>
-        {ehMeu
-          ? <BotaoPixel tipo="escuro" titulo="Não mostrar mascote" aoPressionar={() => aoUsar(null)} carregando={salvando} />
-          : <BotaoPixel titulo="Usar como meu mascote" aoPressionar={() => aoUsar(m.chave)} carregando={salvando} />}
-        <BotaoPixel tipo="escuro" titulo={proprio ? `Mudar o nome (${lapis} lápis)` : `Dar um nome (${lapis} lápis)`} aoPressionar={() => aoDarNome(m)} />
-        {quantos > 1 ? <BotaoPixel tipo="escuro" titulo="Propor troca" aoPressionar={() => aoTrocar(m)} /> : null}
-        <BotaoPixel tipo="escuro" titulo="Ver em 3D" aoPressionar={() => setEm3d(true)} />
-      </View>
-      {/* dentro da janela (e não ao lado), para o iPhone abrir uma tela por cima da outra */}
-      <Visor3D chave={em3d && mascote ? m.chave : null} nome={proprio} aoFechar={() => setEm3d(false)} />
-    </PopupPixel>
   );
 }
 
@@ -392,10 +322,6 @@ export function PopupPropostas({ aberto, aoFechar, aoMudou }: { aberto: boolean;
 }
 
 const st = StyleSheet.create({
-  palco: { alignItems: 'center', justifyContent: 'center', width: 190, height: 166 },
-  brilho: { position: 'absolute', width: 150, height: 150, borderRadius: 75, opacity: 0.22 },
-  selo3d: { position: 'absolute', right: 6, bottom: 6, backgroundColor: PX.ouro, paddingHorizontal: 6, paddingVertical: 1, borderWidth: 2, borderColor: PX.contorno },
-  trilhoNivel: { height: 16, borderWidth: 3, borderColor: PX.contorno, backgroundColor: PX.noite2 },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   casa: { width: '31%', minWidth: 96, flexGrow: 1, maxWidth: 130 },
   casaDentro: { alignItems: 'center', gap: 4, paddingVertical: 8, paddingHorizontal: 4, backgroundColor: PX.noite2, minHeight: 104 },

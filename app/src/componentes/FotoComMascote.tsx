@@ -57,9 +57,11 @@ export function FotoComMascote({ chave, tamanhoFoto, dono, nomeProprio, children
 
 const st = estilos(() => StyleSheet.create({
   mascote: { position: 'absolute', left: 0, bottom: -4, zIndex: 3 },
+  /* (pedido do dono, 2026-11-25: o balão ficava por cima do nome e do nível) ele entra no lugar, embaixo da foto, e empurra o
+     que vem depois enquanto aparece; o fundo é opaco, para nada transparecer por trás */
   balao: {
-    position: 'absolute', left: 0, top: '100%', marginTop: 10, width: 240, zIndex: 20, padding: 12, borderRadius: 16, borderTopLeftRadius: 6,
-    borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.painel,
+    marginTop: 12, width: 240, padding: 12, borderRadius: 16, borderTopLeftRadius: 6,
+    borderWidth: 1, borderColor: cores.linha2, backgroundColor: '#1c1530',
     shadowColor: '#000', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8,
   },
 }));

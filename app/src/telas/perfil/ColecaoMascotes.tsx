@@ -5,7 +5,9 @@
    LÁPIS (comprado na loja do site) dá um nome próprio a um mascote; e os repetidos entram em TROCA com outra pessoa, achada
    pela @ ou entre quem a conta segue. As janelas estão em MascotePopups.tsx e as peças de pixel em componentes/Pixel.tsx.
    Desde 2026-11-23 (pedido do dono): cada mascote liberado tem uma BARRA DE NÍVEL em cima dele. Só o mascote escolhido
-   ganha XP, a cada treino e a cada missão cumprida; os outros guardam o nível que têm (lib/nivelMascote.ts). */
+   ganha XP, a cada treino e a cada missão cumprida; os outros guardam o nível que têm (lib/nivelMascote.ts).
+   Desde 2026-11-25 (pedido do dono): tocar num mascote abre direto a TELA DO MASCOTE EM 3D (TelaMascote.tsx), com as
+   ações dentro dela; o 3D e os modelos da conta ficam pré-carregados enquanto a Coleção está aberta, para ela abrir na hora. */
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { aoGanharXp, escolherMascote, lerColecao, type MascoteDaColecao } from '../../api/mascotes';
@@ -21,7 +23,8 @@ import { missoesDe } from '../../lib/missoes';
 import { progressoNivel, xpTotal } from '../../lib/nivel';
 import { progressoMascote, XP_MASCOTE } from '../../lib/nivelMascote';
 import { cores, estilos } from '../../tema';
-import { PopupLapis, PopupMascote, PopupPropostas, PopupTroca } from './MascotePopups';
+import { PopupLapis, PopupPropostas, PopupTroca } from './MascotePopups';
+import { PreCarregar3D, TelaMascote } from './TelaMascote';
 import { lerTrocas } from '../../api/mascotes';
 
 export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) {
@@ -201,8 +204,10 @@ export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) 
 
       <Botao tipo="fantasma" icone="brownie" titulo={`Ver missões (${cumpridas}/${missoes.length})`} aoPressionar={aoVerMissoes} style={{ alignSelf: 'stretch' }} />
 
-      {/* o mascote, grande, numa janela em pixel art no meio da tela */}
-      <PopupMascote
+      {/* o 3D e os modelos da conta, carregados em segundo plano: a tela do mascote abre na hora */}
+      {tenho ? <PreCarregar3D chaves={Object.keys(tenho).filter((k) => mascoteDe(k))} /> : null}
+      {/* o mascote em 3D, em tela cheia, com as ações */}
+      <TelaMascote
         mascote={aberto} item={aberto ? tenho?.[aberto.chave] : undefined} ehMeu={!!aberto && aberto.chave === meu} salvando={salvando} lapis={lapis}
         xp={aberto ? tenho?.[aberto.chave]?.xp ?? 0 : 0}
         aoFechar={() => setAberto(null)} aoUsar={escolher}
