@@ -6,7 +6,7 @@ import { chamar } from './cliente';
 export const CHAVES_SINCRONIZADAS = [
   'perfil', 'perfilFit', 'treinos', 'treinoAtual', 'rotinasProprias', 'refeicoes', 'refeicoesConfig', 'alimentosProprios', 'agua', 'checkins', 'pesos',
   'perfilSocial',
-  'recados', 'notificacoes', 'profissionais', 'storiesVistos', 'nivelAvisado',
+  'recados', 'notificacoes', 'profissionais', 'nivelAvisado',
 ] as const satisfies readonly (keyof Estado)[];
 
 export type ChaveSincronizada = (typeof CHAVES_SINCRONIZADAS)[number];
@@ -16,7 +16,7 @@ export const baixarDados = async (): Promise<Record<string, unknown>> =>
 
 export const enviarDados = (itens: Record<string, unknown>) => chamar<{ itens: Record<string, unknown> }>('PUT', '/me/dados', { itens });
 
-export const salvarPerfilNoServidor = (dados: { nome?: string; arroba?: string; bio?: string; foto?: string | null }) =>
+export const salvarPerfilNoServidor = (dados: { nome?: string; arroba?: string; bio?: string; foto?: string | null; capa?: string | null }) =>
   chamar<{ nome: string; arroba: string | null; bio: string }>('PATCH', '/me/perfil', dados);
 
 export const trocarSenhaNoServidor = (atual: string, nova: string) => chamar<{ status: string; token?: string }>('POST', '/auth/senha', { atual, nova });

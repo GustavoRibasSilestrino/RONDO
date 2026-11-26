@@ -94,6 +94,28 @@ def test_endereco_de_midia_nao_aceita_pasta_de_outra_pessoa(cliente):
         assert cliente.post("/social/posts", json={"texto": "x", "midia": [m]}, headers=a).status_code == 422, ruim
         if not ruim.endswith("\n"):   # no perfil o espaço e a quebra de linha das pontas são tirados antes
             assert cliente.patch("/me/perfil", json={"foto": ruim}, headers=a).status_code == 422, ruim
-        assert cliente.post("/social/stories", json={"texto": "oi", "midia": m}, headers=a).status_code == 422, ruim
     # o endereço certo continua valendo
     assert cliente.patch("/me/perfil", json={"foto": url}, headers=a).status_code == 200
+
+
+def test_capa_do_perfil_aparece_para_os_outros_e_so_aceita_url_propria(cliente):
+    """A capa do perfil (2026-11-26): fica no perfil público, só aceita arquivo da pasta da própria pessoa, e a trocada ou
+    removida é apagada do Storage."""
+    a, b = conta(cliente, "ana@x.com", "Ana"), conta(cliente, "bia@x.com", "Bia")
+    url = cliente.post("/midia/upload", json={"tipo": "imagem", "ext": "jpg"}, headers=a).json()["url"]
+    eu = cliente.patch("/me/perfil", json={"capa": url}, headers=a)
+    assert eu.status_code == 200 and eu.json()["capa"] == url
+    assert cliente.get("/auth/eu", headers=a).json()["capa"] == url
+    id_a = cliente.get("/pessoas", params={"q": "Ana"}, headers=b).json()["itens"][0]["id"]
+    assert cliente.get(f"/pessoas/{id_a}", headers=b).json()["capa"] == url
+
+    # endereço de fora, ou arquivo de outra pessoa, não vale
+    assert cliente.patch("/me/perfil", json={"capa": "https://evil.com/a.jpg"}, headers=a).status_code == 422
+    assert cliente.patch("/me/perfil", json={"capa": url}, headers=b).status_code == 422
+    # mudar outra coisa não mexe na capa
+    assert cliente.patch("/me/perfil", json={"bio": "oi"}, headers=a).json()["capa"] == url
+
+    # tirar a capa (volta o cinza) apaga o arquivo
+    assert cliente.patch("/me/perfil", json={"capa": None}, headers=a).json()["capa"] is None
+    apagou = [c for c in cliente.chamadas if c[0] == "DELETE"]
+    assert apagou and apagou[-1][2] == {"prefixes": [url.split("/public/midia/")[1]]}

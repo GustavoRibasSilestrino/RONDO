@@ -1,55 +1,64 @@
-/* Perfil, no estilo do Instagram: nome de usuário e ações no alto (o plano PRO, os recados, editar e configurações), foto com anel de story e as contagens ao lado, descrição,
-   e abaixo duas abas: Publicações (em grade) e Coleção (o nível e os mascotes ganhos; no lugar das medalhas desde 2026-11-19). O resto fica em Configurações (o ícone ☰). */
-import React, { useEffect, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+/* O seu perfil. Desde 2026-11-26 no mesmo layout de "página de jogo" do perfil das outras pessoas (pedido do dono, com referência):
+   a CAPA no alto (a sua imagem ou, sem ela, o cinza com "Adicionar capa"), as ações redondas de vidro sobre ela (o plano, o diário
+   de recados e as configurações), a foto encostada na borda da capa com o mascote, as etiquetas ao lado (verificado, nível,
+   mascote, selo), o nome, o @, os títulos e a bio, os números em chips, os botões Compartilhar e Editar perfil, a GALERIA das
+   suas fotos e, embaixo, as abas Publicações e Coleção de mascotes. Trocar ou tirar a capa: Configurações > Editar perfil. */
+import React, { useEffect, useRef, useState } from 'react';
+import { Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CampoFlutuante } from '../componentes/CampoFlutuante';
 import { ErroHttp } from '../api/cliente';
 import { salvarPerfilNoServidor } from '../api/sincronia';
 import { Folha, Tela, useAviso } from '../componentes/Estrutura';
-import { Icone } from '../componentes/Icone';
+import { Icone, type NomeIcone } from '../componentes/Icone';
 import { Selo, tipoDeSelo } from '../componentes/Selos';
-import { FotoComMascote } from '../componentes/FotoComMascote';
+import { BalaoMascote, FotoComMascote } from '../componentes/FotoComMascote';
+import { Vidro } from '../componentes/Vidro';
+import { useLayoutLargo } from '../lib/largura';
+import { mascoteDe } from '../lib/mascotes';
 import { TelaPlanos } from '../componentes/TelaPlanos';
-import { AnelStory } from '../componentes/stories/AnelStory';
-import { CriarStory } from '../componentes/stories/CriarStory';
-import { VisorStory } from '../componentes/stories/VisorStory';
 import { Botao, T } from '../componentes/Ui';
 import { useLoja } from '../estado/loja';
 import { limitesDe } from '../lib/beneficios';
 import { fmt } from '../lib/datas';
 import { enviarMidia, escolherFoto, removerMidia } from '../lib/midia';
 import { progressoNivel, TITULOS, xpTotal } from '../lib/nivel';
-import { useStories } from '../lib/stories';
-import { cores, estilos } from '../tema';
+import { CENA, cores, estilos, VERDE } from '../tema';
 import type { Midia } from '../tipos';
-import { apagarStory, lerPostsDaPessoa, lerSeguidores, lerSeguindo } from '../api/social';
+import { lerPostsDaPessoa, lerSeguidores, lerSeguindo } from '../api/social';
 import type { PostSocial } from '../api/social';
 import { useLista } from '../estado/lista';
 import { Avatar } from './comunidade/Avatar';
 import { CartaoPost } from './comunidade/CartaoPost';
-import { Miniatura, VisorMidia } from './comunidade/Midia';
-import { PerfilPessoa } from './comunidade/PerfilPessoa';
+import { VisorMidia } from './comunidade/Midia';
+import { BotaoRedondo, Chip, Miniatura as MiniaturaGaleria, PerfilPessoa } from './comunidade/PerfilPessoa';
+import { CapaPerfil, useCapaPerfil } from './perfil/CapaPerfil';
 import { BotaoSeguir } from './comunidade/Seguir';
 import { ColecaoMascotes } from './perfil/ColecaoMascotes';
-import { Configuracoes } from './perfil/Configuracoes';
+import { Configuracoes, ITENS_CONFIG, type SecaoConfig } from './perfil/Configuracoes';
+import { MenuMais } from '../componentes/MenuMais';
+import type { Retangulo } from '../lib/botaoMais';
 import { EditarTitulos } from './perfil/EditarTitulos';
 
 /* nome de usuário de partida: o nome sem acentos, em minúsculas */
 export const arrobaPadrao = (nome: string): string => (nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '.').replace(/^\.+|\.+$/g, '').slice(0, 20) || 'rondo');
 
+const ALTURA_CAPA = 220;
+const FOTO = 92;
+
 export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const { estado, commit } = useLoja();
   const avisar = useAviso();
   const nome = estado.usuario?.nome ?? 'Você';
-  const { width } = useWindowDimensions();
-  const tamFoto = width < 360 ? 70 : 86;   // em telas estreitas a foto encolhe, para as três contagens caberem ao lado
+  const insets = useSafeAreaInsets();
+  const { largo } = useLayoutLargo();
+  const capaConta = useCapaPerfil();
+  const [fala, setFala] = useState<string | null>(null);   // a fala do mascote, mostrada numa linha própria
 
   const [aba, setAba] = useState<'posts' | 'colecao'>('posts');
   const [editando, setEditando] = useState(false);
   const [config, setConfig] = useState(false);
   const [planos, setPlanos] = useState(false);   // a tela de planos, aberta por "Melhorar plano"
-  const [criandoStory, setCriandoStory] = useState(false);
-  const [verStory, setVerStory] = useState(false);
   const [postAberto, setPostAberto] = useState<PostSocial | null>(null);
   const [bio, setBio] = useState('');
   const [nomeEd, setNomeEd] = useState('');
@@ -59,7 +68,7 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const [erroEd, setErroEd] = useState<{ nome?: string; arroba?: string }>({});
   const [editandoTitulos, setEditandoTitulos] = useState(false);
   const [lista, setLista] = useState<'seguidores' | 'seguindo' | null>(null);
-  const [perfilAberto, setPerfilAberto] = useState<number | null>(null);   // o perfil de alguém da lista de seguidores/seguindo ou de um story
+  const [perfilAberto, setPerfilAberto] = useState<number | null>(null);   // o perfil de alguém da lista de seguidores/seguindo
   const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
 
   const xp = xpTotal(estado);
@@ -71,7 +80,6 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
   const conexoes = useLista((cursor) => (lista === 'seguidores' ? lerSeguidores(meuId, cursor) : lerSeguindo(meuId, cursor)), [meuId, lista], meuId > 0 && lista !== null);
   const exibidos = TITULOS.filter((t) => estado.perfilSocial.titulos.includes(t.id) && t.nivel <= nivel.nivel);
   const arrobaAtual = estado.usuario?.arroba ?? arrobaPadrao(nome);
-  const { meus: stories, recarregar: recarregarStories } = useStories();
 
   /* publicações em grade: as fixadas (destacadas) primeiro */
   const fixadas = new Set(estado.perfilSocial.destaques);
@@ -131,82 +139,111 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
     avisar('Perfil atualizado.');
   };
 
-  const excluirStory = async (id: string) => {
+  /* a galeria: as fotos e os vídeos das minhas publicações, na ordem delas */
+  const galeria = grade.flatMap((p) => p.midia ?? []);
+  const mascote = mascoteDe(estado.usuario?.mascote);
+  /* as etiquetas ao lado da foto (como "Action" e "Fantasy" da referência) */
+  const etiquetas: { icone: NomeIcone; texto: string }[] = [{ icone: 'evolucao', texto: `Nível ${nivel.nivel}` }];
+  if (estado.usuario?.verificado || estado.pro) etiquetas.unshift({ icone: 'verificado', texto: 'Verificado' });
+  if (mascote) etiquetas.push({ icone: 'estrela', texto: estado.usuario?.mascoteNome || mascote.nome });
+  /* o menu dos três pontinhos: abre colado no botão (mede onde ele está na hora do toque) */
+  const pontinhos = useRef<React.ElementRef<typeof View>>(null);
+  const [menu, setMenu] = useState<Retangulo | null>(null);
+  const [secaoConfig, setSecaoConfig] = useState<SecaoConfig | null>(null);
+  const abrirMenu = () => {
+    const el = pontinhos.current;
+    if (!el) { setMenu({ x: 0, y: 0, w: 0, h: 0 }); return; }
+    el.measureInWindow((x, y, w, h) => setMenu({ x, y, w, h }));
+  };
+  const abrirConfig = (secao: SecaoConfig | null) => { setSecaoConfig(secao); setConfig(true); };
+  const compartilhar = async () => {
     try {
-      await apagarStory(Number(id));
-    } catch (e) {
-      avisar(e instanceof Error ? e.message : 'Não foi possível excluir agora.');
-      return;
+      await Share.share({ message: `Me acha no RONDO: ${nome} (@${arrobaAtual}). Compita com quem você foi ontem.` });
+    } catch {
+      avisar('Compartilhar não está disponível neste aparelho.');
     }
-    avisar('Story excluído.');
-    if (stories.length <= 1) setVerStory(false);
-    recarregarStories().catch(() => {});
   };
 
   return (
     <Tela semCabecalho>
-      {/* topo: @usuário e as ações (sem o cabeçalho do app e sem o fogo da sequência: o perfil começa perto do topo) */}
-      <View style={st.barra}>
-        <T tam={17} peso="500" linhas={1} style={{ flex: 1 }}>@{arrobaAtual}</T>
-        {/* o plano: quem é PRO vê a estrela; quem não é, o convite "Melhorar plano". Os dois abrem a tela de planos */}
-        {estado.pro ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Seu plano: PRO" onPress={() => setPlanos(true)} style={({ pressed }) => [st.redondo, st.pro, pressed && { opacity: 0.8 }]}>
-            <Icone nome="estrela" tamanho={19} cor="#ffffff" />
-          </Pressable>
-        ) : (
-          <Pressable accessibilityRole="button" accessibilityLabel="Melhorar plano: conhecer o PRO" onPress={() => setPlanos(true)} hitSlop={4}
-            style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 38, paddingHorizontal: 14, borderRadius: 19, backgroundColor: cores.acao }, (pressed || hovered) && { opacity: 0.85 }]}>
-            <Icone nome="estrela" tamanho={14} cor="#ffffff" espessura={2} />
-            <T tam={13} peso="500" cor="#ffffff">Melhorar plano</T>
-          </Pressable>
-        )}
-        {/* o microfone do recado e o lápis saíram daqui (2026-11-13): o recado continua no cartão do dia e no diário, e
-            "Editar perfil" fica dentro das Configurações */}
-        <Pressable accessibilityRole="button" accessibilityLabel="Diário de recados" onPress={() => ir('diario')} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
-          <Icone nome="calendario" tamanho={19} cor={cores.texto} />
-        </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="Configurações" onPress={() => setConfig(true)} style={({ pressed }) => [st.redondo, pressed && { opacity: 0.8 }]}>
-          <Icone nome="engrenagem" tamanho={20} cor={cores.texto} />
-        </Pressable>
+      {/* a capa, de ponta a ponta e encostada no alto (desde 2026-11-26, no layout de "página de jogo" que o dono mandou):
+          a imagem da pessoa ou, sem ela, o cinza com "Adicionar capa"; trocar ou tirar fica em Configurações > Editar perfil */}
+      <View style={[st.capaCaixa, { marginTop: -(insets.top + (largo ? 14 : 10)) }]}>
+        <CapaPerfil capa={capaConta.capa} altura={ALTURA_CAPA + insets.top} aoAdicionar={capaConta.escolher} enviando={capaConta.enviando} fundo={CENA.degrade[0]} />
+        {/* as ações sobre a capa, redondas e de vidro: o plano, o diário de recados e as configurações */}
+        <View pointerEvents="box-none" style={[st.topo, { top: insets.top + 10 }]}>
+          {estado.pro ? (
+            <BotaoRedondo icone="estrela" rotulo="Seu plano: PRO" aoPressionar={() => setPlanos(true)} />
+          ) : (
+            <Vidro interativo tom={VERDE.botao} style={st.melhorar}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Melhorar plano: conhecer o PRO" onPress={() => setPlanos(true)} style={({ pressed }) => [st.melhorarToque, pressed && { opacity: 0.85 }]}>
+                <Icone nome="estrela" tamanho={14} cor="#ffffff" espessura={2} />
+                <T tam={13} peso="500" cor="#ffffff">Melhorar plano</T>
+              </Pressable>
+            </Vidro>
+          )}
+          <BotaoRedondo icone="calendario" rotulo="Diário de recados" aoPressionar={() => ir('diario')} />
+          {/* os três pontinhos no lugar da engrenagem (pedido do dono, 2026-11-26): abrem o menu com Compartilhar, Editar perfil
+              e as mesmas opções da engrenagem */}
+          <View ref={pontinhos} collapsable={false}>
+            <BotaoRedondo icone="pontos" rotulo="Mais opções do perfil" aoPressionar={abrirMenu} />
+          </View>
+        </View>
       </View>
 
-      {/* foto com o anel de story e as contagens */}
-      <View style={st.cabeca}>
-        <FotoComMascote chave={estado.usuario?.mascote} tamanhoFoto={tamFoto}>
-        <AnelStory
-          tamanho={tamFoto}
-          estado={stories.length ? 'novo' : 'nenhum'}
-          mais
-          aoMais={() => setCriandoStory(true)}
-          aoPressionar={() => (stories.length ? setVerStory(true) : setCriandoStory(true))}
-          rotulo={stories.length ? 'Ver o seu story' : 'Criar um story'}
-        >
-          <Avatar nome={nome} voce tamanho={tamFoto} />
-        </AnelStory>
+      {/* a foto encostada na borda de baixo da capa (com o mascote ao lado) e, à direita, as etiquetas */}
+      <View style={st.linhaFoto}>
+        <FotoComMascote chave={estado.usuario?.mascote} tamanhoFoto={FOTO + 8} aoFalar={setFala}>
+          <View style={st.anel}><Avatar nome={nome} voce tamanho={FOTO} /></View>
         </FotoComMascote>
-        <View style={st.contagens}>
-          <Contagem n={estado.social.posts} rotulo="Publicações" />
-          <Contagem n={estado.social.seguidores} rotulo="Seguidores" aoTocar={() => setLista('seguidores')} />
-          <Contagem n={estado.social.seguindo} rotulo="Seguindo" aoTocar={() => setLista('seguindo')} />
+        <View style={st.etiquetas}>
+          {etiquetas.map((e) => (
+            <View key={e.texto} style={st.etiqueta}>
+              <Icone nome={e.icone} tamanho={14} cor={cores.texto} />
+              <T tam={12.5} peso="400" linhas={1} style={{ flexShrink: 1 }}>{e.texto}</T>
+            </View>
+          ))}
+          {tipoDeSelo(estado.usuario?.selo) ? <Selo tipo={tipoDeSelo(estado.usuario?.selo)!} /> : null}
         </View>
       </View>
+      {/* a fala do mascote numa linha própria, de largura inteira (antes o balão cobria as contagens e o mascote caía em cima do texto) */}
+      <View style={{ marginTop: fala ? 10 : 0 }}><BalaoMascote fala={fala} aoFechar={() => setFala(null)} /></View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 12 }}>
-        {/* o nome e, para quem tem (verificado, PRO ou o dono), o selo de verificado ao lado */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <T tam={17} peso="500" linhas={1} style={{ flexShrink: 1 }}>{nome}</T>
-          {estado.usuario?.verificado || estado.pro ? <View accessible accessibilityLabel="Verificado"><Icone nome="verificado" tamanho={17} cor={cores.destaque2} /></View> : null}
-        </View>
-        {tipoDeSelo(estado.usuario?.selo) ? <Selo tipo={tipoDeSelo(estado.usuario?.selo)!} /> : null}
-      </View>
-      <T tam={13} style={{ marginTop: 2 }}>Nível {nivel.nivel}</T>
+      <T tam={24} peso="500" linhas={2} style={{ marginTop: 12, letterSpacing: -0.5 }}>{nome}</T>
+      <T tam={13.5} cor={cores.texto3} style={{ marginTop: 2 }}>@{arrobaAtual}</T>
       <View style={st.titulos}>
         {exibidos.map((t) => <View key={t.id} style={st.titulo}><T tam={12} peso="500">{t.nome}</T></View>)}
         <Pressable accessibilityRole="button" accessibilityLabel="Editar títulos" onPress={() => setEditandoTitulos(true)} hitSlop={8} style={st.lapis}>
           <Icone nome="lapis" tamanho={15} cor={cores.texto} />
         </Pressable>
       </View>
-      <T tam={14} style={{ marginTop: 10, lineHeight: 20, opacity: estado.perfilSocial.bio ? 1 : 0.6 }}>{estado.perfilSocial.bio || 'Conte em uma frase quem você é.'}</T>
+      <T tam={14} cor={cores.texto2} style={{ marginTop: 10, lineHeight: 21, opacity: estado.perfilSocial.bio ? 1 : 0.7 }}>{estado.perfilSocial.bio || 'Conte em uma frase quem você é.'}</T>
+
+      {/* os números em chips: seguidores e seguindo abrem a lista */}
+      <View style={st.chips}>
+        <Chip icone="grade" texto={`${fmt(estado.social.posts)} ${estado.social.posts === 1 ? 'publicação' : 'publicações'}`} />
+        <Chip icone="social" texto={`${fmt(estado.social.seguidores)} ${estado.social.seguidores === 1 ? 'seguidor' : 'seguidores'}`} rotulo="Ver quem segue você" aoPressionar={() => setLista('seguidores')} />
+        <Chip icone="perfil" texto={`${fmt(estado.social.seguindo)} seguindo`} rotulo="Ver quem você segue" aoPressionar={() => setLista('seguindo')} />
+      </View>
+
+      {/* o botão principal, invertido: Editar perfil (fica em linha aqui, não preso ao pé, porque o pé já tem a barra de abas) */}
+      <View style={st.acoes}>
+        <Vidro interativo tom={cores.texto} style={[st.acao, st.acaoPrincipal]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Editar perfil" onPress={abrirEdicao} style={({ pressed }) => [st.acaoToque, pressed && { opacity: 0.85 }]}>
+            <Icone nome="lapis" tamanho={17} cor={cores.fundo} />
+            <T tam={15.5} peso="500" cor={cores.fundo}>Editar perfil</T>
+          </Pressable>
+        </Vidro>
+      </View>
+
+      {galeria.length ? (
+        <>
+          <T tam={15} peso="400" cor={cores.texto3} style={st.secao}>Galeria</T>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={st.carrossel} contentContainerStyle={st.carrosselMiolo}>
+            {galeria.map((m, i) => <MiniaturaGaleria key={`${m.id}-${i}`} midia={m} aoPressionar={() => setVisor({ itens: galeria, indice: i })} />)}
+          </ScrollView>
+        </>
+      ) : null}
 
       {/* abas */}
       <View style={st.abas}>
@@ -244,6 +281,14 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
 
       {/* editar o perfil: foto, nome, nome de usuário e descrição */}
       <Folha aberta={editando} aoFechar={fecharEdicao} titulo="Editar perfil">
+        {/* a capa: trocar ou tirar (salva na hora, sem esperar o Salvar) */}
+        <T tam={13} cor={cores.texto2} style={{ marginBottom: 8 }}>Capa</T>
+        <CapaPerfil capa={capaConta.capa} altura={110} arredondada />
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 10, marginBottom: 18, flexWrap: 'wrap' }}>
+          <Botao pequeno tipo="fantasma" icone="imagem" titulo={capaConta.capa ? 'Trocar capa' : 'Escolher capa'} carregando={capaConta.enviando} aoPressionar={capaConta.escolher} />
+          {capaConta.capa ? <Botao pequeno tipo="discreto" icone="lixo" titulo="Tirar capa" aoPressionar={capaConta.remover} /> : null}
+        </View>
+        <T tam={13} cor={cores.texto2} style={{ marginBottom: 8 }}>Foto</T>
         <View style={{ alignItems: 'center', marginBottom: 16 }}>
           <Avatar nome={nomeEd || nome} voce foto={fotoEd ?? undefined} tamanho={96} semFoto={fotoEd === null} />
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 14, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -292,43 +337,47 @@ export function Perfil({ ir }: { ir: (tela: string) => void }) {
         )}
       </Folha>
 
-      <Configuracoes aberto={config} aoFechar={() => setConfig(false)} aoEditarPerfil={abrirEdicao} />
+      <Configuracoes aberto={config} aoFechar={() => { setConfig(false); setSecaoConfig(null); }} aoEditarPerfil={abrirEdicao} secaoInicial={secaoConfig} />
+      <MenuMais
+        aberto={menu !== null} aoFechar={() => setMenu(null)} rotulo="Mais opções do perfil" ancora={menu && menu.w ? menu : null}
+        itens={[
+          { rotulo: 'Compartilhar perfil', aoPressionar: () => { void compartilhar(); } },
+          { rotulo: 'Editar perfil', aoPressionar: abrirEdicao },
+          ...ITENS_CONFIG.filter((i) => i.id !== 'denuncias' || estado.usuario?.papel === 'dono').map((i) => ({ rotulo: i.titulo, aoPressionar: () => abrirConfig(i.id) })),
+        ]}
+      />
       <TelaPlanos aberto={planos} aoFechar={() => setPlanos(false)} />
       <EditarTitulos aberta={editandoTitulos} aoFechar={() => setEditandoTitulos(false)} />
-      <CriarStory aberto={criandoStory} aoFechar={() => setCriandoStory(false)} aoPublicar={() => { recarregarStories().catch(() => {}); }} />
-      <VisorStory aberto={verStory} listas={[{ autor: 'Você', itens: stories }]} aoFechar={() => setVerStory(false)} aoExcluir={(s) => excluirStory(s.id)} />
       <VisorMidia itens={visor?.itens ?? []} inicio={visor ? visor.indice : null} aoFechar={() => setVisor(null)} />
       <PerfilPessoa id={perfilAberto} aoFechar={() => setPerfilAberto(null)} aoAbrirMidia={(itens, indice) => setVisor({ itens, indice })} />
     </Tela>
   );
 }
 
-function Contagem({ n, rotulo, aoTocar }: { n: number; rotulo: string; aoTocar?: () => void }) {
-  return (
-    <Pressable accessibilityRole={aoTocar ? 'button' : 'text'} accessibilityLabel={`${rotulo}: ${n}`} disabled={!aoTocar} onPress={aoTocar} style={st.contagem}>
-      <T tam={18} peso="500">{fmt(n)}</T>
-      <T tam={12}>{rotulo}</T>
-    </Pressable>
-  );
-}
-
 const st = estilos(() => StyleSheet.create({
-  barra: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
-  redondo: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
-  pro: { backgroundColor: cores.destaqueForte, borderColor: 'rgba(205,205,205,0.45)' },   // o plano em roxo: o único botão do topo que é um convite
-  cabeca: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  contagens: { flex: 1, minWidth: 0, flexDirection: 'row', justifyContent: 'space-around' },
-  contagem: { alignItems: 'center', flex: 1, minWidth: 0, minHeight: 44, justifyContent: 'center' },
+  capaCaixa: { marginHorizontal: -20 },
+  topo: { position: 'absolute', left: 16, right: 16, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8 },
+  melhorar: { height: 46, borderRadius: 23, overflow: 'hidden', backgroundColor: VERDE.botao },
+  melhorarToque: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16 },
+  linhaFoto: { flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginTop: -FOTO / 2 },
+  anel: { borderRadius: (FOTO + 8) / 2, padding: 4, backgroundColor: CENA.degrade[0] },   // o anel da cor do fundo de trás
+  etiquetas: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-end', alignItems: 'center', gap: 6, paddingBottom: 6 },
+  etiqueta: { flexDirection: 'row', alignItems: 'center', gap: 5, maxWidth: '100%', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 999, backgroundColor: cores.cartao2 },
   titulos: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginTop: 10 },
   lapis: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: cores.linha2 },
   titulo: { paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: `rgba(${cores.tom},0.16)` },
-  abas: { flexDirection: 'row', marginTop: 20, borderTopWidth: 1, borderTopColor: cores.linha },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 16 },
+  acoes: { flexDirection: 'row', gap: 10, marginTop: 16 },
+  acao: { flex: 1, height: 50, borderRadius: 25, overflow: 'hidden' },
+  acaoSecundaria: { backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
+  acaoPrincipal: { backgroundColor: cores.texto },
+  acaoToque: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  secao: { marginTop: 24, marginBottom: 12 },
+  carrossel: { marginHorizontal: -20 },
+  carrosselMiolo: { paddingHorizontal: 20, gap: 12 },
+  abas: { flexDirection: 'row', marginTop: 22, borderTopWidth: 1, borderTopColor: cores.linha },
   aba: { flex: 1, height: 48, alignItems: 'center', justifyContent: 'center', borderTopWidth: 2, borderTopColor: 'transparent', marginTop: -1, opacity: 0.55 },
   abaAtiva: { borderTopColor: cores.texto, opacity: 1 },
   linhaDoTempo: { marginTop: 4 },
-  tile: { width: '32.7%', aspectRatio: 1, backgroundColor: cores.cartao, overflow: 'hidden' },
-  tileTexto: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 8, backgroundColor: cores.cartao2 },
-  fixada: { position: 'absolute', right: 6, top: 6, width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.destaqueForte },
   vazio: { alignItems: 'center', paddingVertical: 48, paddingHorizontal: 24 },
-  nivel: { alignSelf: 'stretch', padding: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
 }));

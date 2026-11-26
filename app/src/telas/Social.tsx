@@ -17,7 +17,6 @@ import { comparar, statsSemana } from '../lib/calc';
 import { cores, estilos } from '../tema';
 import type { Midia } from '../tipos';
 import { RecadoDoDia } from '../componentes/RecadoDoDia';
-import { BarraStories } from '../componentes/stories/BarraStories';
 import { CartaoPost } from './comunidade/CartaoPost';
 import { BuscaUsuarios } from './comunidade/BuscaUsuarios';
 import { PerfilPessoa } from './comunidade/PerfilPessoa';
@@ -149,7 +148,6 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
           <>
             {/* a lupa mora no alto do app (ao lado do tema no celular; no canto do feed no computador) */}
             <SeparacoesFeed valor={separacao} aoMudar={setSeparacao} />
-            <BarraStories aoAbrirPerfil={abrirPerfil} />
             <View style={{ marginTop: 14 }}><RecadoDoDia aoAbrir={() => ir('recado')} /></View>
             <CarrosselFeed indice={SEPARACOES.findIndex((x) => x.id === separacao)}>
             <View style={{ marginTop: 16 }}>

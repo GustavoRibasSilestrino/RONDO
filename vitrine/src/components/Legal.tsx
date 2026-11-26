@@ -8,7 +8,7 @@ import { Nome } from "./ui";
 
 export const CONTATO = "rondooficial.dev@gmail.com";
 export const RESPONSAVEL = "Gustavo Ribas Silestrino";
-const ATUALIZADO = "19 de novembro de 2026";
+const ATUALIZADO = "26 de novembro de 2026";   // saíram os stories; entraram os desafios da Comunidade
 
 const Email = () => <a href={`mailto:${CONTATO}`}>{CONTATO}</a>;
 
@@ -77,7 +77,7 @@ function Privacidade() {
           consentimento, para as funções do app.
         </li>
         <li>Perfil público: nome, @, bio e o selo, se houver.</li>
-        <li>O que você publica: posts, fotos, comentários, cheers, stories, clubes, quem você segue e quem segue você.</li>
+        <li>O que você publica: posts, fotos, comentários, cheers, clubes, desafios, quem você segue e quem segue você.</li>
         <li>Avisos do app (quem deu cheers, comentou ou começou a seguir você).</li>
         <li>
           Segurança da comunidade: quem você bloqueou e as denúncias que você fez (o que foi denunciado, uma cópia do texto, o
@@ -142,7 +142,7 @@ function Privacidade() {
       <h2>4. Quem vê os seus dados</h2>
       <ul>
         <li>Os seus registros de saúde e rotina são privados: só você vê.</li>
-        <li>Posts, comentários, cheers, stories (por 24 horas, para quem segue você) e o perfil público aparecem para outras pessoas do app.</li>
+        <li>Posts, comentários, cheers, clubes, desafios e o perfil público aparecem para outras pessoas do app.</li>
         <li>
           As fotos publicadas ficam num armazenamento com endereço público: quem tiver o link da foto consegue abri-la,
           mesmo fora do app. Publique só o que você aceita que seja visto.
@@ -162,7 +162,6 @@ function Privacidade() {
         <thead><tr><th scope="col">Dado</th><th scope="col">Prazo</th></tr></thead>
         <tbody>
           <tr><td>Conta, dados do app e publicações</td><td>Enquanto a conta existir. Ao apagar a conta, tudo sai do banco na hora.</td></tr>
-          <tr><td>Stories</td><td>24 horas; depois são apagados do banco, com a foto.</td></tr>
           <tr><td>Avisos do app</td><td>180 dias.</td></tr>
           <tr><td>Avisos, suspensões e banimento</td><td>Enquanto a conta existir. Ao apagar a conta, o histórico sai junto.</td></tr>
           <tr><td>Bloqueios e denúncias que você fez</td><td>Enquanto a conta existir. Denúncias contra uma conta apagada ficam, sem ligação com ela, como histórico da moderação.</td></tr>
@@ -268,7 +267,7 @@ function Termos() {
       </ul>
       <p>
         <b>Tolerância zero</b> com conteúdo ofensivo, de ódio, assédio, nudez, violência ou golpe, e com quem abusa de outras
-        pessoas. Toda publicação, comentário, story e perfil tem a opção de <b>denunciar</b> e de <b>bloquear</b> quem publicou
+        pessoas. Toda publicação, comentário e perfil tem a opção de <b>denunciar</b> e de <b>bloquear</b> quem publicou
         (nos três pontinhos). A equipe do RONDO analisa as denúncias em até 24 horas e tira do ar o que viola estes termos.
         Contato da equipe: {CONTATO}.
       </p>
@@ -276,7 +275,7 @@ function Termos() {
       <h3>Avisos, suspensão e banimento</h3>
       <ul>
         <li>O RONDO bloqueia palavras ofensivas (xingamentos, palavrões fortes, termos sexuais e ofensas de preconceito) em
-          publicações, comentários, stories, clubes, nome, @ e bio. O que tiver uma delas não é publicado.</li>
+          publicações, comentários, clubes, desafios, nome, @ e bio. O que tiver uma delas não é publicado.</li>
         <li>Cada tentativa de publicar algo bloqueado é um <b>aviso</b>. Um conteúdo tirado do ar pela equipe depois de uma
           denúncia também conta como aviso.</li>
         <li>São <b>3 avisos</b>. Passou do limite, a conta é <b>suspensa por 7 dias</b>: dá para continuar usando o app, mas não

@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Modal, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayoutLargo } from '../lib/largura';
-import { posicaoMais } from '../lib/botaoMais';
+import { posicaoMais, type Retangulo } from '../lib/botaoMais';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { cores, estilos, larguraMax, VIDRO } from '../tema';
 import { T } from './Ui';
@@ -14,7 +14,9 @@ export type ItemMenu = { rotulo: string; aoPressionar: () => void; desligado?: b
 
 const nativo = Platform.OS !== 'web';
 
-export function MenuMais({ aberto, aoFechar, itens, rotulo }: { aberto: boolean; aoFechar: () => void; itens: ItemMenu[]; rotulo: string }) {
+/* `ancora`: o botão que abriu o menu, quando não é o + (os três pontinhos do perfil, 2026-11-26): o menu abre colado nele, embaixo
+   (ou em cima, se não couber), com o mesmo desenho */
+export function MenuMais({ aberto, aoFechar, itens, rotulo, ancora }: { aberto: boolean; aoFechar: () => void; itens: ItemMenu[]; rotulo: string; ancora?: Retangulo | null }) {
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const { largo } = useLayoutLargo();
@@ -34,9 +36,10 @@ export function MenuMais({ aberto, aoFechar, itens, rotulo }: { aberto: boolean;
 
   /* logo acima do + e alinhado à borda direita dele, em qualquer tela (o + mede onde está: lib/botaoMais.ts). Sem a medida,
      a conta de antes: o canto de baixo à direita da coluna */
-  const r = posicaoMais();
+  const r = ancora ?? posicaoMais();
   const lateral = r ? Math.max(8, width - (r.x + r.w)) : largo ? 20 : Math.max(0, (width - Math.min(width, larguraMax)) / 2) + 20;
   const fundo = r ? Math.max(8, height - r.y + 12) : insets.bottom + (largo ? 28 : 16 + 64 + 12) + 58 + 12;
+  const aEsquerda = !!ancora && ancora.x + ancora.w / 2 < width / 2;
   /* responsivo (pedido do dono, 2026-11-18): maior no tablet e no computador */
   const tam = width >= 1024 ? { fonte: 17, linha: 56, min: 280, max: 360, pad: 24 } : width >= 768 ? { fonte: 16.5, linha: 52, min: 250, max: 320, pad: 22 } : width < 360 ? { fonte: 14.5, linha: 46, min: 190, max: 260, pad: 18 } : { fonte: 15.5, linha: 48, min: 210, max: 280, pad: 20 };
 
@@ -50,9 +53,13 @@ export function MenuMais({ aberto, aoFechar, itens, rotulo }: { aberto: boolean;
         accessibilityLabel={rotulo}
         style={[
           st.cartao,
-          { right: lateral, bottom: fundo, minWidth: tam.min, maxWidth: tam.max, opacity: v },
+          /* com âncora e espaço embaixo dela, o menu abre para baixo; senão, para cima (como no +) */
+          /* e, com a âncora na metade esquerda da tela, ele se alinha pela esquerda dela (senão sairia da tela) */
+          { minWidth: tam.min, maxWidth: tam.max, opacity: v },
+          aEsquerda ? { left: Math.max(8, (ancora as Retangulo).x) } : { right: lateral },
+          ancora && ancora.y + ancora.h + 8 + itens.length * tam.linha < height - insets.bottom - 90 ? { top: ancora.y + ancora.h + 8 } : { bottom: fundo },
           { transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }, { scale: v.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] }) }] },
-          Platform.OS === 'web' ? ({ transformOrigin: 'bottom right' } as object) : null,
+          Platform.OS === 'web' ? ({ transformOrigin: `${ancora && ancora.y + ancora.h + 8 + itens.length * tam.linha < height - insets.bottom - 90 ? 'top' : 'bottom'} ${aEsquerda ? 'left' : 'right'}` } as object) : null,
         ]}
       >
         {itens.map((it, i) => (

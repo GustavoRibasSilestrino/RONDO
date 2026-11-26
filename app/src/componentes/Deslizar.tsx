@@ -30,7 +30,7 @@ function useSurgir(): Animated.Value {
 const horizontal = (dx: number, dy: number) => Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 2;
 const soVertical = Platform.OS === 'web' ? ({ touchAction: 'pan-y' } as object) : null;
 
-/* no navegador, uma lista que rola de lado (os stories, os filtros) não vira o responder do toque: o arrasto nela é dela. No
+/* no navegador, uma lista que rola de lado (os filtros) não vira o responder do toque: o arrasto nela é dela. No
    aparelho a própria ScrollView já fica com o toque. */
 function emRolagemLateral(e: GestureResponderEvent): boolean {
   if (Platform.OS !== 'web') return false;

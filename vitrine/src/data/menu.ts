@@ -23,7 +23,7 @@ export const MENU: MenuEntry[] = [
       { t: "Recado para o futuro", d: "Grave hoje e ouça daqui a 90 dias.", href: "#recado" },
     ] },
     { t: "Memória", d: "Sua evolução contada pela sua voz.", items: [
-      { t: "Seu ano em áudio", d: "Retrospectiva para compartilhar nos stories.", href: "#recado" },
+      { t: "Seu ano em áudio", d: "Retrospectiva para ouvir e compartilhar.", href: "#recado" },
       { t: "Privacidade", d: "Os áudios ficam só no seu aparelho.", href: "#recado" },
     ] },
   ] },

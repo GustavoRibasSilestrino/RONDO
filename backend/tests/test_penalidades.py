@@ -37,7 +37,7 @@ def test_tres_avisos_depois_suspensao(cliente):
     eu = cliente.get("/auth/eu", headers=a).json()
     assert (eu["avisos"], eu["suspensoes"]) == (0, 1) and eu["suspenso_ate"]
     # suspensa: não publica nada (nem texto limpo), mas continua usando o app
-    for rota, corpo in (("/social/posts", BOM), ("/social/stories", {"texto": "oi"}), ("/clubes", {"nome": "Clube bom"})):
+    for rota, corpo in (("/social/posts", BOM), ("/clubes", {"nome": "Clube bom"})):
         r = cliente.post(rota, json=corpo, headers=a)
         assert r.status_code == 403 and "suspensa até" in r.json()["detail"], rota
     assert cliente.patch("/me/perfil", json={"bio": "nova bio"}, headers=a).status_code == 403
@@ -68,11 +68,11 @@ def test_depois_da_segunda_suspensao_a_proxima_violacao_bane(cliente):
     assert login.status_code == 403 and "banida" in login.json()["detail"]
 
 
-def test_comentario_story_clube_e_perfil_tambem_passam_pelo_filtro(cliente):
+def test_comentario_clube_e_perfil_tambem_passam_pelo_filtro(cliente):
     a, b = duas(cliente)
     post = _postar(cliente, b, BOM).json()["id"]
     assert cliente.post(f"/social/posts/{post}/comentarios", json={"texto": "seu otario"}, headers=a).status_code == 422
-    assert cliente.post("/social/stories", json={"texto": "merda"}, headers=a).status_code == 422
+    assert _postar(cliente, a, {"texto": "bom", "destaque": "merda"}).status_code == 422   # o destaque da publicação também
     assert cliente.post("/clubes", json={"nome": "Clube dos babacas"}, headers=a).status_code == 422
     r = cliente.patch("/me/perfil", json={"bio": "sou fdp"}, headers=a)
     assert r.status_code == 403 and "suspensa" in r.json()["detail"]   # foi a 4ª: suspensão

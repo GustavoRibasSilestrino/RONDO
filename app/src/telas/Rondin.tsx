@@ -481,7 +481,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
             {respondendo ? (
               <View style={{ marginTop: 14, width: '100%' }}>
                 {passo.tipo === 'idioma' ? (
-                  <View style={st.grade}>
+                  <View style={[st.grade, largo && { maxWidth: 560, flexWrap: 'nowrap' }]}>
                     {SOTAQUES.map((s, i) => (
                       <Pressable
                         key={s.id} accessibilityRole="button" accessibilityLabel={`${s.nome}, ${s.nota}`} onPress={() => escolherIdioma(s)}
@@ -669,7 +669,9 @@ const st = estilos(() => StyleSheet.create({
     flexGrow: 1, flexBasis: '100%', minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 11, paddingVertical: 7, paddingHorizontal: 14,
     borderRadius: 12, borderWidth: 1, borderColor: cores.linha2, backgroundColor: `rgba(${cores.tom},0.07)`,
   },
-  cartaoIdiomaLargo: { flexBasis: '30%', minWidth: 140 },   // computador: as três línguas lado a lado; no celular, uma embaixo da outra
+  /* computador: as três línguas lado a lado e do MESMO tamanho (antes a terceira caía para outra linha e esticava, 2026-11-26);
+     no celular, uma embaixo da outra */
+  cartaoIdiomaLargo: { flexBasis: 0, flexGrow: 1, minWidth: 0 },
   olho: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   /* os campos de digitar: mais estreitos que o texto da fala, no meio (pedido do dono, 2026-11-16) */
   formulario: { gap: 10, width: '100%', maxWidth: 320, alignSelf: 'center' },

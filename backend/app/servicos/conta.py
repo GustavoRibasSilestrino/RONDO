@@ -5,9 +5,9 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import delete, or_, select, update
 from sqlalchemy.orm import Session
 
-from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_RESGATES, RETENCAO_STORIES, RETENCAO_SUPORTE
+from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_RESGATES, RETENCAO_SUPORTE
 from app.modelos import (
-    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Desafio, Mascote, Membro, MensagemSuporte, Notificacao, Participante, Penalidade, Post, Recompensa, RedefinicaoSenha, Resgate, Seguidor, Story, StoryReacao, StoryVisto, Troca, Usuario,
+    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Desafio, Mascote, Membro, MensagemSuporte, Notificacao, Participante, Penalidade, Post, Recompensa, RedefinicaoSenha, Resgate, Seguidor, Troca, Usuario,
 )
 from app.servicos.loja import RARIDADES
 from app.servicos import midia as servico_midia
@@ -25,7 +25,7 @@ def exportar(sessao: Session, u: Usuario) -> dict:
     return {
         "gerado_em": datetime.now(timezone.utc).isoformat(),
         "conta": {
-            "email": u.email, "nome": u.nome, "arroba": u.arroba, "bio": u.bio, "foto": u.foto, "nascimento": _data(u.nascimento),
+            "email": u.email, "nome": u.nome, "arroba": u.arroba, "bio": u.bio, "foto": u.foto, "capa": u.capa, "nascimento": _data(u.nascimento),
             "papel": u.papel, "pro": u.pro, "selo": u.selo, "mascote": u.mascote, "marketing": u.marketing, "criado_em": _data(u.criado_em),
         },
         "dados_do_app": {d.chave: d.valor for d in todos(DadoUsuario, DadoUsuario.usuario_id == uid)},
@@ -51,10 +51,6 @@ def exportar(sessao: Session, u: Usuario) -> dict:
             for d in todos(Desafio, Desafio.dono_id == uid)
         ],
         "desafios_em_que_participa": [p.desafio_id for p in todos(Participante, Participante.usuario_id == uid)],
-        "stories_no_ar": [
-            {"id": s.id, "texto": s.texto, "legenda": s.legenda, "midia": s.midia, "criado_em": _data(s.criado_em)}
-            for s in todos(Story, Story.autor_id == uid)
-        ],
         "notificacoes": [
             {"tipo": n.tipo, "de_usuario_id": n.ator_id, "post_id": n.post_id, "lida": n.lida, "criado_em": _data(n.criado_em)}
             for n in todos(Notificacao, Notificacao.usuario_id == uid)
@@ -101,15 +97,10 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
     meus_clubes = list(sessao.scalars(select(Clube.id).where(Clube.dono_id == uid)))
     posts = set(sessao.scalars(select(Post.id).where(or_(Post.autor_id == uid, Post.clube_id.in_(meus_clubes)))))
     apagar_posts(sessao, list(posts))
-    for m in sessao.scalars(select(Story.midia).where(Story.autor_id == uid)):
-        if m and m.get("url"):
-            servico_midia.apagar_arquivos([m["url"]])
+    if u.capa:
+        servico_midia.apagar_arquivos([u.capa])
     if u.foto:
         servico_midia.apagar_arquivos([u.foto])
-    meus_stories = select(Story.id).where(Story.autor_id == uid)
-    for tabela in (StoryVisto, StoryReacao):   # o que as pessoas fizeram nos seus stories, e o que você fez nos dos outros
-        sessao.execute(delete(tabela).where(or_(tabela.story_id.in_(meus_stories), tabela.usuario_id == uid)))
-    sessao.execute(delete(Story).where(Story.autor_id == uid))
     sessao.execute(delete(Comentario).where(Comentario.autor_id == uid))
     sessao.execute(delete(Curtida).where(Curtida.usuario_id == uid))
     sessao.execute(delete(Seguidor).where(or_(Seguidor.seguidor_id == uid, Seguidor.seguido_id == uid)))
@@ -142,21 +133,15 @@ _ultima_limpeza: datetime | None = None
 
 
 def limpar_vencidos(sessao: Session, forcar: bool = False) -> None:
-    """Retenção: apaga stories com mais de 24 horas (e as fotos deles), avisos com mais de 180 dias e os códigos de
-    resgate da loja com mais de 7 dias (o mascote já resgatado continua na coleção da conta).
+    """Retenção: apaga avisos com mais de 180 dias, os códigos de redefinição de senha com mais de 1 dia, os códigos de
+    resgate da loja com mais de 7 dias (o mascote já resgatado continua na coleção da conta) e as mensagens do suporte
+    com mais de 1 ano.
     Roda no máximo uma vez a cada 10 minutos por processo, pegando carona nas leituras."""
     global _ultima_limpeza
     agora = datetime.now(timezone.utc)
     if not forcar and _ultima_limpeza and (agora - _ultima_limpeza).total_seconds() < 600:
         return
     _ultima_limpeza = agora
-    velhos = list(sessao.scalars(select(Story).where(Story.criado_em < agora - RETENCAO_STORIES)))
-    for s in velhos:
-        sessao.execute(delete(StoryVisto).where(StoryVisto.story_id == s.id))
-        sessao.execute(delete(StoryReacao).where(StoryReacao.story_id == s.id))
-        if s.midia and s.midia.get("url"):
-            servico_midia.apagar_arquivos([s.midia["url"]])
-        sessao.delete(s)
     sessao.execute(delete(Notificacao).where(Notificacao.criado_em < agora - RETENCAO_NOTIFICACOES))
     sessao.execute(delete(RedefinicaoSenha).where(RedefinicaoSenha.criado_em < agora - timedelta(days=1)))   # códigos de redefinição velhos, usados ou não
     sessao.execute(delete(Resgate).where(Resgate.criado_em < agora - RETENCAO_RESGATES))

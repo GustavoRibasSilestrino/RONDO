@@ -10,7 +10,7 @@ O que já está no código e o que ainda depende do responsável. Não é parece
 - **Marketing separado**: caixa própria, desmarcada por padrão; liga e desliga no app (Configurações > Privacidade e dados) ou pela rota `PATCH /me/marketing`. Cada mudança é registrada. Hoje o RONDO não envia nenhum e-mail de marketing.
 - **Menores de idade**: data de nascimento no cadastro; abaixo de 18 anos, o cadastro exige nome, e-mail e a autorização do responsável (registrada em `consentimentos`).
 - **Direitos do titular**: `GET /me/exportar` (cópia de tudo) e `DELETE /me` (apaga a conta e tudo dela, inclusive fotos no Storage), com botões no app.
-- **Retenção**: stories somem do banco em 24 h; avisos em 180 dias (`backend/app/servicos/conta.py`). Prazos em `backend/app/legal.py`.
+- **Retenção**: avisos em 180 dias (`backend/app/servicos/conta.py`). Prazos em `backend/app/legal.py`.
 - **Cookies**: aviso com aceitar e recusar do mesmo tamanho; nada opcional liga sem escolha (`vitrine/src/lib/consentimento.ts`). Hoje não há nenhum rastreador. As fontes do site são servidas pelo próprio site (sem Google Fonts).
 - **Textos enganosos corrigidos**: "profissionais verificados", "armazenamento criptografado", "prêmios de marcas parceiras", recursos de IA e planos pagos passaram a dizer a verdade ("em breve", "fica só no aparelho"), e as telas de exemplo estão marcadas como ilustrativas.
 - **Acessibilidade**: link "Pular para o conteúdo", foco visível, abas e streak navegáveis por teclado, contraste das cores principais acima de 4,5:1.

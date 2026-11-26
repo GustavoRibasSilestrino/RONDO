@@ -29,7 +29,7 @@ No app, a exclusão fica em Configurações > Conta e segurança > Apagar conta.
 | Informações pessoais | Outras informações (data de nascimento) | Sim | Obrigatório | Gerenciamento da conta (saber se precisa de responsável) |
 | Saúde e condicionamento físico | Informações de saúde (peso, alimentação) | Sim | Obrigatório | Funcionalidade do app |
 | Saúde e condicionamento físico | Informações de condicionamento físico (treinos) | Sim | Obrigatório | Funcionalidade do app |
-| Fotos e vídeos | Fotos | Sim | Opcional | Funcionalidade do app (posts e stories) |
+| Fotos e vídeos | Fotos | Sim | Opcional | Funcionalidade do app (posts e foto de perfil) |
 | Mensagens e conteúdo | Outro conteúdo gerado pelo usuário (posts, comentários) | Sim | Opcional | Funcionalidade do app |
 
 Não coletado: localização, contatos, dados financeiros, histórico de navegação, IDs de publicidade, registros de falhas e diagnósticos.

@@ -1,6 +1,6 @@
 /* Configurações do perfil, em uma tela só com um menu: Seus dados, Benefícios por nível, Privacidade e Conta.
    Tudo o que deixaria o perfil carregado mora aqui. */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { apagarContaNoServidor } from '../../api/privacidade';
@@ -23,7 +23,8 @@ import { DeslizarParaVoltar } from '../../componentes/Deslizar';
 
 type Secao = 'dados' | 'beneficios' | 'voz' | 'comunidade' | 'denuncias' | 'privacidade' | 'conta';
 
-const ITENS: { id: Secao; titulo: string; sub: string; icone: NomeIcone }[] = [
+/* exportado: os três pontinhos do perfil listam estas mesmas opções (2026-11-26) */
+export const ITENS_CONFIG: { id: Secao; titulo: string; sub: string; icone: NomeIcone }[] = [
   { id: 'dados', titulo: 'Seus dados', sub: 'Medidas, atividade e objetivo', icone: 'perfil' },
   { id: 'beneficios', titulo: 'Benefícios por nível', sub: 'O que cada nível libera', icone: 'estrela' },
   { id: 'voz', titulo: 'RONDIN pela voz', sub: 'Chamar dizendo “Olá Rondin”', icone: 'recado' },
@@ -33,13 +34,16 @@ const ITENS: { id: Secao; titulo: string; sub: string; icone: NomeIcone }[] = [
   { id: 'conta', titulo: 'Conta e segurança', sub: 'Senha, e-mail, sair e apagar', icone: 'cadeado' },
 ];
 
-type Props = { aberto: boolean; aoFechar: () => void; aoEditarPerfil?: () => void };
+/* `secaoInicial`: abrir já numa seção (os três pontinhos do perfil abrem direto em Conta e segurança) */
+type Props = { aberto: boolean; aoFechar: () => void; aoEditarPerfil?: () => void; secaoInicial?: Secao | null };
+export type SecaoConfig = Secao;
 
-export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
+export function Configuracoes({ aberto, aoFechar, aoEditarPerfil, secaoInicial }: Props) {
   const insets = useSafeAreaInsets();
   const { estado, commit, limpar } = useLoja();
   const avisar = useAviso();
   const [secao, setSecao] = useState<Secao | null>(null);
+  useEffect(() => { if (aberto) setSecao(secaoInicial ?? null); }, [aberto, secaoInicial]);
   const [apagando, setApagando] = useState(false);
   const [senhaApagar, setSenhaApagar] = useState('');
   const [erroApagar, setErroApagar] = useState<string | undefined>();
@@ -62,7 +66,7 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
   };
 
   const nivel = progressoNivel(xpTotal(estado)).nivel;
-  const titulo = secao ? ITENS.find((i) => i.id === secao)!.titulo : 'Configurações';
+  const titulo = secao ? ITENS_CONFIG.find((i) => i.id === secao)!.titulo : 'Configurações';
   const sair = () => { setSecao(null); aoFechar(); };
 
   return (
@@ -91,7 +95,7 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
                     <Icone nome="setaDireita" tamanho={18} cor={cores.texto3} />
                   </Pressable>
                 ) : null}
-                {ITENS.filter((i) => i.id !== 'denuncias' || estado.usuario?.papel === 'dono').map((i) => (
+                {ITENS_CONFIG.filter((i) => i.id !== 'denuncias' || estado.usuario?.papel === 'dono').map((i) => (
                   <Pressable key={i.id} accessibilityRole="button" accessibilityLabel={i.titulo} onPress={() => setSecao(i.id)} style={({ pressed }) => [st.linha, pressed && { opacity: 0.85 }]}>
                     <View style={st.icone}><Icone nome={i.icone} tamanho={20} cor="#ffffff" /></View>
                     <View style={{ flex: 1 }}>
@@ -144,7 +148,7 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil }: Props) {
       <Folha aberta={apagando} aoFechar={() => { if (!apagandoAgora) setApagando(false); }} titulo="Apagar conta?">
         <T tam={14} style={{ lineHeight: 21 }}>
           Isso apaga a sua conta e todos os seus dados no servidor e neste aparelho: treinos, dieta, publicações, comentários,
-          stories, clubes que você criou, a coleção de mascotes e os recados. Não dá para desfazer. Se quiser uma cópia antes, use Baixar meus
+          clubes e desafios que você criou, a coleção de mascotes e os recados. Não dá para desfazer. Se quiser uma cópia antes, use Baixar meus
           dados, em Privacidade e dados.
         </T>
         <View style={{ height: 16 }} />

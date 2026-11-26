@@ -135,7 +135,7 @@ export function Planos() {
 /* ---------- perguntas ---------- */
 const FAQ = [
   ["O RONDO substitui treinador ou nutricionista?", "Não. O app organiza o plano, facilita os registros e mantém a evolução visível. A avaliação individual continua sendo do profissional."],
-  ["Meus dados de saúde ficam públicos?", "Não. Peso, medidas e treinos são privados. Só aparece para os outros o que você publica no feed ou nos stories. Quando o acompanhamento por profissionais abrir, eles só verão os dados de quem aceitar."],
+  ["Meus dados de saúde ficam públicos?", "Não. Peso, medidas e treinos são privados. Só aparece para os outros o que você publica no feed. Quando o acompanhamento por profissionais abrir, eles só verão os dados de quem aceitar."],
   ["Quem escuta os meus recados de voz?", "Só você. Os áudios ficam só no seu aparelho e não vão para o nosso servidor. Você pode apagar tudo a qualquer momento. O recado é um diário, não um serviço de terapia."],
   ["Como vejo ou apago os meus dados?", "No app, em Configurações, você baixa uma cópia de tudo o que o servidor guarda sobre você e pode apagar a conta com todos os dados. Também dá para pedir pelo e-mail rondooficial.dev@gmail.com."],
   ["Vocês usam os meus dados para treinar inteligência artificial?", "Não. Os seus dados não são usados para treinar IA, nossa nem de terceiros. Hoje o RONDO não usa IA; quando usar, o que for gerado por IA vai aparecer identificado."],

@@ -17,17 +17,20 @@ from app.banco import obter_sessao
 from app.deps import usuario_atual
 from app.esquemas import StatusOut
 from app.esquemas_social import PaginaPessoas, PessoaOut
-from app.modelos import Bloqueio, Comentario, Denuncia, Notificacao, Post, Seguidor, Story, StoryReacao, StoryVisto, Usuario
+from app.modelos import Bloqueio, Comentario, Denuncia, Notificacao, Post, Seguidor, Usuario
 from app.servicos import conta as servico_conta
 from app.servicos import email as servico_email
 from app.servicos import penalidades
-from app.servicos import midia as servico_midia
 from app.servicos.social import ha_bloqueio, ms, pessoas_out, post_visivel
 
 log = logging.getLogger("rondo.moderacao")
 router = APIRouter(tags=["moderação"])
 
-Tipo = Literal["post", "comentario", "story", "pessoa"]
+Tipo = Literal["post", "comentario", "pessoa"]
+# os stories saíram do RONDO em 2026-11-26 (pedido do dono): não dá mais para denunciar um, mas as denúncias antigas de
+# tipo "story" continuam no banco, aparecem na fila e podem ser decididas como antes (o trecho foi copiado na denúncia;
+# o story em si já não existe, então "remover" não tem o que apagar, mas o aviso a quem publicou vale como antes)
+TipoLido = Literal["post", "comentario", "pessoa", "story"]
 Motivo = Literal["spam", "ofensa", "odio", "nudez", "violencia", "golpe", "outro"]
 
 
@@ -46,7 +49,7 @@ class DenunciaIn(BaseModel):
 
 class DenunciaOut(BaseModel):
     id: int
-    tipo: Tipo
+    tipo: TipoLido
     alvo_id: int
     motivo: Motivo
     detalhe: str | None
@@ -81,11 +84,6 @@ def _alvo(sessao: Session, uid: int, tipo: str, alvo_id: int) -> tuple[int, str 
             raise HTTPException(404, "Comentário não encontrado.")
         post_visivel(sessao, uid, c.post_id)
         return c.autor_id, c.texto
-    if tipo == "story":
-        s = sessao.get(Story, alvo_id)
-        if not s or (s.autor_id != uid and not sessao.get(Seguidor, (uid, s.autor_id))):
-            raise HTTPException(404, "Story não encontrado.")
-        return s.autor_id, " · ".join(x for x in (s.texto, s.legenda) if x) or None
     u = sessao.get(Usuario, alvo_id)
     if not u or ha_bloqueio(sessao, uid, u.id) and not sessao.get(Bloqueio, (uid, u.id)):
         raise HTTPException(404, "Pessoa não encontrada.")
@@ -176,10 +174,7 @@ def _midia_do_alvo(sessao: Session, tipo: str, alvo_id: int) -> str | None:
     if tipo == "post":
         p = sessao.get(Post, alvo_id)
         return next((m.get("url") for m in (p.midia or []) if m.get("url")), None) if p else None
-    if tipo == "story":
-        s = sessao.get(Story, alvo_id)
-        return (s.midia or {}).get("url") if s else None
-    return None
+    return None   # comentário, pessoa e as denúncias antigas de story (o story já não existe)
 
 
 @router.get("/moderacao/denuncias", response_model=PaginaDenuncias)
@@ -213,18 +208,11 @@ def _tirar_do_ar(sessao: Session, tipo: str, alvo_id: int) -> None:
         apagar_posts(sessao, [alvo_id])
     elif tipo == "comentario":
         sessao.execute(delete(Comentario).where(Comentario.id == alvo_id))
-    elif tipo == "story":
-        s = sessao.get(Story, alvo_id)
-        if s:
-            if s.midia and s.midia.get("url"):
-                servico_midia.apagar_arquivos([s.midia["url"]])
-            sessao.execute(delete(StoryVisto).where(StoryVisto.story_id == s.id))
-            sessao.execute(delete(StoryReacao).where(StoryReacao.story_id == s.id))
-            sessao.delete(s)
     elif tipo == "pessoa":
         u = sessao.get(Usuario, alvo_id)
         if u and u.papel != "dono":
             servico_conta.apagar_conta(sessao, u)   # a conta sai do RONDO, com tudo o que ela publicou
+    # tipo "story" (denúncia antiga): o story já saiu do banco junto com a tabela; não há nada a apagar
 
 
 @router.post("/moderacao/denuncias/{denuncia_id}", response_model=StatusOut)

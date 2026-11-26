@@ -20,13 +20,11 @@ def test_bloquear_esconde_nos_dois_sentidos_e_desfaz_o_seguir(cliente):
     post_b = cliente.post("/social/posts", json={"texto": "post da Bia"}, headers=b).json()["id"]
     post_a = cliente.post("/social/posts", json={"texto": "post da Ana"}, headers=a).json()["id"]
     cliente.post(f"/social/posts/{post_a}/comentarios", json={"texto": "comentario da Bia"}, headers=b)
-    cliente.post("/social/stories", json={"texto": "story da Bia"}, headers=b)
 
     assert cliente.put(f"/bloqueios/{id_b}", headers=a).json()["status"] == "bloqueado"
     # a Ana não vê mais nada da Bia
     assert all(p["autor"]["id"] != id_b for p in cliente.get("/social/feed", headers=a).json()["itens"])
     assert cliente.get(f"/social/posts/{post_a}/comentarios", headers=a).json()["itens"] == []
-    assert all(x["autor"]["id"] != id_b for x in cliente.get("/social/stories", headers=a).json()["pessoas"])
     assert cliente.get(f"/pessoas/{id_b}", headers=a).status_code == 404
     assert cliente.get("/pessoas", params={"q": "Bia"}, headers=a).json()["itens"] == []
     # e a Bia não vê mais a Ana (nem consegue seguir de novo ou dar cheers)
@@ -83,3 +81,25 @@ def test_dono_remove_a_conta_denunciada(cliente):
     d = cliente.get("/moderacao/denuncias", headers=b).json()["itens"][0]
     assert cliente.post(f"/moderacao/denuncias/{d['id']}", json={"acao": "remover"}, headers=b).status_code == 200
     assert cliente.get("/auth/eu", headers=a).status_code == 401   # a conta não existe mais
+
+
+def test_stories_sairam_mas_denuncias_antigas_de_story_continuam_na_fila(cliente):
+    """Os stories saíram do RONDO em 2026-11-26. Não dá mais para denunciar um story, mas as denúncias antigas de tipo
+    "story" que ficaram no banco aparecem na fila (sem mídia, o story já não existe) e podem ser decididas."""
+    from app.modelos import Denuncia
+
+    a, b = duas(cliente)
+    id_a, id_b = id_de(cliente, b, "Ana"), id_de(cliente, a, "Bia")
+    assert cliente.get("/social/stories", headers=a).status_code == 404
+    assert cliente.post("/denuncias", json={"tipo": "story", "alvo_id": 1, "motivo": "spam"}, headers=b).status_code == 422
+    with Sessao() as s:
+        s.add(Denuncia(denunciante_id=id_b, tipo="story", alvo_id=7, autor_id=id_a, motivo="ofensa", trecho="story antigo"))
+        s.commit()
+    _virar_dono("bia@x.com")
+    fila = cliente.get("/moderacao/denuncias", headers=b)
+    assert fila.status_code == 200
+    d = fila.json()["itens"][0]
+    assert (d["tipo"], d["trecho"], d["midia"], d["autor"]["id"]) == ("story", "story antigo", None, id_a)
+    assert cliente.post(f"/moderacao/denuncias/{d['id']}", json={"acao": "remover"}, headers=b).json()["status"] == "removido"
+    assert cliente.get("/moderacao/denuncias", headers=b).json()["pendentes"] == 0
+    assert cliente.get("/auth/eu", headers=a).status_code == 200   # a conta da Ana segue normal

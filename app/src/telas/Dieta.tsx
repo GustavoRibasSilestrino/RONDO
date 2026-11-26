@@ -4,6 +4,7 @@
    a quantidade do alimento se digita (antes era só de 10 em 10 g). */
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Platform, Pressable, TextInput, View } from 'react-native';
+import { CapaIlustrada, FraseCapa, NumerosCapa } from '../componentes/CapaIlustrada';
 import { SeletorData } from '../componentes/SeletorData';
 import { escolherMidia, removerMidia, useUriMidia } from '../lib/midia';
 import { BotaoMais } from '../componentes/BotaoMais';
@@ -24,6 +25,8 @@ import { macrosDe, macrosMeta, metaKcal, totaisDia } from '../lib/calc';
 import { dataCurta, doIso, fmt, iso, num, somarDias } from '../lib/datas';
 import { cores, FONTE } from '../tema';
 import type { TipoRefeicao } from '../tipos';
+
+const IMAGEM_CAPA = require('../../assets/dieta-capa.webp');
 
 const semAcento = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -75,22 +78,36 @@ export function Dieta() {
   return (
     <>
     <Tela>
-      <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: cores.cartao2, borderRadius: 99 }}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Dia anterior" onPress={() => mudarDia(-1)} style={{ padding: 10 }}>
-            <Icone nome="seta" tamanho={16} cor={cores.texto2} />
-          </Pressable>
-          <T pixel tam={14.5} peso="400" style={{ minWidth: 54, textAlign: 'center' }}>{rotuloDia}</T>
-          <Pressable accessibilityRole="button" accessibilityLabel="Próximo dia" disabled={dia === hoje} onPress={() => mudarDia(1)} style={{ padding: 10, opacity: dia === hoje ? 0.3 : 1 }}>
-            <View style={{ transform: [{ rotate: '180deg' }] }}><Icone nome="seta" tamanho={16} cor={cores.texto2} /></View>
+      {/* a capa ilustrada (a salada em pixel art, pedido do dono em 2026-11-26), no mesmo desenho da capa da Comunidade:
+          o + verde abre o "adicionar na dieta"; embaixo, o dia (setas e calendário) e os números do dia escolhido */}
+      <CapaIlustrada
+        imagem={IMAGEM_CAPA} proporcao={1536 / 1024} descricaoImagem="Uma tigela de salada com frango grelhado, ovo e tomate"
+        titulo="Dieta" subtitulo="o que você come no dia"
+        botao={{ icone: 'mais', rotulo: 'Adicionar na dieta', aoPressionar: () => setMenu(true) }}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 99 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Dia anterior" onPress={() => mudarDia(-1)} style={{ padding: 11 }}>
+              <Icone nome="seta" tamanho={16} cor="#ffffff" />
+            </Pressable>
+            <T pixel tam={14.5} peso="400" cor="#ffffff" style={{ minWidth: 54, textAlign: 'center' }}>{rotuloDia}</T>
+            <Pressable accessibilityRole="button" accessibilityLabel="Próximo dia" disabled={dia === hoje} onPress={() => mudarDia(1)} style={{ padding: 11, opacity: dia === hoje ? 0.3 : 1 }}>
+              <View style={{ transform: [{ rotate: '180deg' }] }}><Icone nome="seta" tamanho={16} cor="#ffffff" /></View>
+            </Pressable>
+          </View>
+          {/* o calendário: escolher o dia direto, sem passar seta por seta */}
+          <Pressable accessibilityRole="button" accessibilityLabel="Escolher o dia no calendário" onPress={() => setCalendario(true)} hitSlop={4}
+            style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [{ width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' }, (pressed || hovered) && { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+            <Icone nome="calendario" tamanho={18} cor="#ffffff" />
           </Pressable>
         </View>
-        {/* o calendário: escolher o dia direto, sem passar seta por seta */}
-        <Pressable accessibilityRole="button" accessibilityLabel="Escolher o dia no calendário" onPress={() => setCalendario(true)} hitSlop={4}
-          style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [{ marginLeft: 8, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2 }, (pressed || hovered) && { backgroundColor: cores.linha2 }]}>
-          <Icone nome="calendario" tamanho={18} cor={cores.texto} />
-        </Pressable>
-      </View>
+        <NumerosCapa itens={[
+          { icone: 'refeicao', valor: fmt(tot.kcal), nome: 'kcal no dia' },
+          { icone: 'evolucao', valor: fmt(Math.abs(restante)), nome: restante < 0 ? 'kcal acima' : 'kcal restantes' },
+          { icone: 'gota', valor: Math.floor(agua / COPO_ML), nome: 'água (copos)' },
+        ]} />
+        <FraseCapa>A meta se ajusta ao seu perfil. Registre as refeições e a água; o + adiciona e a foto do prato vira o ícone do dia.</FraseCapa>
+      </CapaIlustrada>
       <SeletorData aberto={calendario} valor={dia} aoEscolher={setDia} aoFechar={() => setCalendario(false)} fotoDoDia={(d) => fotoDoDia(estado.fotosRefeicao[d])} />
 
       <Cartao style={{ marginTop: 22 }}>

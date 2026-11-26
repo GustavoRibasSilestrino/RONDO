@@ -76,7 +76,7 @@ export function ComunidadeSeguranca() {
           ))}
         </View>
         <T tam={13} cor={cores.texto2} style={{ marginTop: 10, lineHeight: 19 }}>
-          Viu algo assim? Toque nos três pontos da publicação, do comentário, do story ou do perfil e escolha Denunciar. A equipe
+          Viu algo assim? Toque nos três pontos da publicação, do comentário ou do perfil e escolha Denunciar. A equipe
           analisa toda denúncia em até 24 horas.
         </T>
       </View>

@@ -1,4 +1,4 @@
-/* O menu de segurança de um conteúdo de outra pessoa (publicação, comentário, story ou o perfil): denunciar, com o motivo, e
+/* O menu de segurança de um conteúdo de outra pessoa (publicação, comentário ou o perfil): denunciar, com o motivo, e
    bloquear a pessoa. Depois de denunciar ou bloquear, quem chamou esconde o conteúdo (`aoEsconder`). */
 import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
@@ -121,7 +121,7 @@ export function MenuDenunciar({ alvo, aoFechar, aoEsconder }: Props) {
       {etapa === 'bloquear' ? (
         <View>
           <T tam={14.5} style={{ lineHeight: 21 }}>
-            Vocês deixam de se seguir, e nenhum dos dois vê mais as publicações, os comentários, os stories e o perfil do outro.
+            Vocês deixam de se seguir, e nenhum dos dois vê mais as publicações, os comentários e o perfil do outro.
             {` ${primeiro}`} não recebe aviso. Dá para desbloquear quando quiser, em Configurações.
           </T>
           <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>

@@ -91,6 +91,7 @@ class UsuarioOut(BaseModel):
     arroba: str | None = None
     bio: str = ""
     foto: str | None = None
+    capa: str | None = None   # a capa do perfil (vazio = capa cinza)
     mascote: str | None = None   # o mascote que a conta mostra, "linha-coluna" na folha de mascotes (vazio = nenhum)
     mascote_nome: str | None = None   # o nome que a conta deu a ele com o lápis (vazio = o nome de fábrica)
     marketing: bool = False
@@ -166,6 +167,8 @@ class PerfilIn(BaseModel):
     bio: str | None = Field(default=None, max_length=300)
     # só vale se vier no corpo: null apaga a foto; sem o campo, a foto não muda (quem confere o endereço é a rota)
     foto: str | None = Field(default=None, max_length=300)
+    # a capa do perfil, igual à foto: só vale se vier no corpo; null tira a capa (volta o cinza)
+    capa: str | None = Field(default=None, max_length=300)
 
     @field_validator("arroba")
     @classmethod

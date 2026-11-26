@@ -23,11 +23,11 @@ router = APIRouter(prefix="/me", tags=["me"])
 CHAVES = {
     "perfil", "perfilFit", "treinos", "treinoAtual", "rotinasProprias", "refeicoes", "refeicoesConfig", "alimentosProprios", "agua", "checkins", "pesos",
     "perfilSocial",
-    "recados", "notificacoes", "profissionais", "storiesVistos", "tema", "nivelAvisado", "medalhasAvisadas",
+    "recados", "notificacoes", "profissionais", "tema", "nivelAvisado", "medalhasAvisadas",
 }
 # chaves que o app já mandou e não manda mais: são ignoradas em silêncio, para um app antigo não ter a sincronia
-# inteira recusada. Os stories agora ficam na tabela própria (rotas /social/stories).
-LEGADAS = {"stories"}
+# inteira recusada. "stories" e "storiesVistos" eram dos stories, que saíram do RONDO em 2026-11-26 (pedido do dono).
+LEGADAS = {"stories", "storiesVistos"}
 MAX_BYTES = 2_000_000   # por chave
 
 
@@ -73,7 +73,12 @@ def mudar_perfil(dados: PerfilIn, usuario: Usuario = Depends(usuario_atual), ses
         usuario.arroba = dados.arroba or None
     if dados.bio is not None:
         usuario.bio = dados.bio.strip()
-    foto_antiga = usuario.foto
+    foto_antiga, capa_antiga = usuario.foto, usuario.capa
+    if "capa" in dados.model_fields_set:
+        nova_capa = (dados.capa or "").strip() or None
+        if nova_capa and not servico_midia.url_da_pessoa(nova_capa, usuario.id):   # a capa também só da pasta da própria pessoa
+            raise HTTPException(422, "Capa inválida.")
+        usuario.capa = nova_capa
     if "foto" in dados.model_fields_set:
         nova = (dados.foto or "").strip() or None
         # só aceita arquivo da pasta do próprio usuário no Storage (não um endereço qualquer)
@@ -87,6 +92,8 @@ def mudar_perfil(dados: PerfilIn, usuario: Usuario = Depends(usuario_atual), ses
         raise HTTPException(409, "Esse @ já está em uso.")
     if foto_antiga and foto_antiga != usuario.foto:
         servico_midia.apagar_arquivos([foto_antiga])   # a foto trocada ou removida não fica sobrando no Storage
+    if capa_antiga and capa_antiga != usuario.capa:
+        servico_midia.apagar_arquivos([capa_antiga])   # a capa também
     return usuario
 
 

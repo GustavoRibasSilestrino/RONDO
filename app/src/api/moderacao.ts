@@ -3,6 +3,7 @@
 import { chamar } from './cliente';
 import type { Pagina, Pessoa } from './social';
 
+/* 'story' só aparece em denúncias antigas: os stories saíram do RONDO em 2026-11-26 e não dá mais para denunciar um */
 export type TipoDenuncia = 'post' | 'comentario' | 'story' | 'pessoa';
 export type MotivoDenuncia = 'spam' | 'ofensa' | 'odio' | 'nudez' | 'violencia' | 'golpe' | 'outro';
 

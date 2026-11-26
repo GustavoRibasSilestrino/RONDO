@@ -29,7 +29,7 @@ export function ExcluirConta() {
       <ul>
         <li>A conta: nome, e-mail, senha, data de nascimento e os registros de aceite.</li>
         <li>Os dados do app: treinos, dieta, água, peso e o resto que estava sincronizado.</li>
-        <li>Publicações, fotos, comentários, cheers, stories, quem você segue e quem segue você, e os clubes que você criou.</li>
+        <li>Publicações, fotos, comentários, cheers, quem você segue e quem segue você, e os clubes e desafios que você criou.</li>
       </ul>
       <p>
         A exclusão é imediata e não dá para desfazer. Cópias de segurança do provedor do banco podem manter dados por um

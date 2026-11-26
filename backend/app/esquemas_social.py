@@ -89,6 +89,7 @@ class PaginaComentarios(BaseModel):
 
 class PerfilOut(PessoaOut):
     bio: str = ""
+    capa: str | None = None   # a capa do perfil (vazio = capa cinza)
     posts: int
     seguidores: int
     seguindo_n: int
@@ -167,63 +168,6 @@ class ResumoOut(BaseModel):
     clubes_criados: int
     clubes: list[int]
     nao_lidas: int
-
-
-class StoryIn(BaseModel):
-    texto: str | None = Field(default=None, max_length=140)
-    fundo: int = Field(default=0, ge=0, le=20)
-    legenda: str | None = Field(default=None, max_length=120)
-    midia: dict[str, Any] | None = None
-
-    @model_validator(mode="after")
-    def tem_conteudo(self):
-        self.texto = (self.texto or "").strip() or None
-        self.legenda = (self.legenda or "").strip() or None
-        if not self.texto and not self.midia:
-            raise ValueError("O story está vazio.")
-        return self
-
-
-REACOES_STORY = ("curtir", "fogo", "forca", "palmas", "risada", "uau")
-
-
-class StoryOut(BaseModel):
-    id: int
-    texto: str | None = None
-    fundo: int = 0
-    legenda: str | None = None
-    midia: dict[str, Any] | None = None
-    quando: int
-    # só nos seus stories: quantas pessoas viram, quantas reagiram e as 3 últimas que viram (as bolinhas do canto)
-    visualizacoes: int = 0
-    reacoes: int = 0
-    vistos: list[PessoaOut] = []
-    # nos stories dos outros: a sua reação (ou nada)
-    minha_reacao: str | None = None
-
-
-class ReacaoStoryIn(BaseModel):
-    tipo: Literal["curtir", "fogo", "forca", "palmas", "risada", "uau"]
-
-
-class VisualizacaoOut(BaseModel):
-    pessoa: PessoaOut
-    reacao: str | None = None
-    quando: int
-
-
-class PaginaVisualizacoes(BaseModel):
-    total: int
-    itens: list[VisualizacaoOut]
-
-
-class StoriesDaPessoa(BaseModel):
-    autor: PessoaOut
-    itens: list[StoryOut]   # do mais antigo para o mais novo
-
-
-class StoriesOut(BaseModel):
-    pessoas: list[StoriesDaPessoa]   # você primeiro, depois quem você segue
 
 
 SituacaoDesafio = Literal["em_breve", "em_andamento", "encerrado"]

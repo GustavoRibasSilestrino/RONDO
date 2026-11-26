@@ -4,7 +4,7 @@ import type { Rotina } from './dados';
 export type Sexo = 'm' | 'f' | 'nd';   // 'nd' = prefiro não dizer: as contas de calorias usam a média das duas fórmulas
 
 /* `arroba` é o nome de usuário (sem o @) e `foto` é o id da foto de perfil (guardada em lib/midia.ts); sem eles, vale o nome e a inicial. */
-export type Usuario = { email: string; nome: string; arroba?: string; foto?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; mascote?: string | null; mascoteNome?: string | null /* o nome que a conta deu ao mascote que ela mostra, com o lápis */ };
+export type Usuario = { email: string; nome: string; arroba?: string; foto?: string; capa?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; mascote?: string | null; mascoteNome?: string | null /* o nome que a conta deu ao mascote que ela mostra, com o lápis */ };
 
 export type Perfil = {
   sexo: Sexo;
@@ -123,7 +123,6 @@ export type Estado = {
   semeadoSocial: boolean;
   recados: Recado[];
   notificacoes: Notificacao[];
-  storiesVistos: Record<string, boolean>;      // stories de outras pessoas que você já viu, pelo id do servidor (os stories ficam no servidor)
   ultimoEmail: string;                         // o e-mail da última conta que entrou neste aparelho: outra conta começa com os dados limpos
   xpExtra: number;                             // XP somado ao da atividade; só o dono da conta usa (vem da API)
   pro: boolean;                                // plano PRO ativo, vindo da API

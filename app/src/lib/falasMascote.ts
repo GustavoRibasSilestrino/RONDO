@@ -31,7 +31,6 @@ const ENGRACADAS = [
   'O sofá ligou. Eu disse que você está ocupado treinando.',
   'Levantei da cama hoje. Já conta como agachamento?',
   'Pular o dia de perna é coisa de flamingo.',
-  'Bíceps não cresce em story. Só no treino.',
   'Se o treino estiver pesado, lembra que eu carrego esta cabeça quadrada o dia inteiro.',
   'Eu treinaria com você, mas os meus braços só têm quatro bloquinhos.',
   'O halter não vai se levantar sozinho. Eu tentei. Ele ganhou.',

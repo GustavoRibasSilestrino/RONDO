@@ -14,7 +14,7 @@ if (!cad.ok) throw new Error(`Cadastro falhou: ${cad.status} ${await cad.text()}
 const h = { Authorization: 'Bearer ' + (await cad.json()).token };
 for (let i = 0; i < 25; i++) await fetch(base + '/social/posts', { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify({ texto: `post ${i}` }) });
 
-const rotas = ['/social/feed', '/social/resumo', '/social/notificacoes', '/social/stories', '/clubes'];
+const rotas = ['/social/feed', '/social/resumo', '/social/notificacoes', '/desafios', '/clubes'];
 const inicio = Date.now();
 const status = await Promise.all(Array.from({ length: total }, (_, i) => fetch(base + rotas[i % rotas.length], { headers: h }).then((r) => r.status).catch(() => 0)));
 const contagem = {};

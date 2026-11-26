@@ -30,7 +30,7 @@ def test_cadastro_login_e_eu(cliente):
     assert r.status_code == 200
     token = r.json()["token"]
     eu = cliente.get("/auth/eu", headers={"Authorization": f"Bearer {token}"})
-    assert eu.json() == {"email": "ana@x.com", "nome": "Ana", "papel": "usuario", "verificado": False, "pro": False, "selo": None, "arroba": None, "bio": "", "foto": None, "mascote": None, "mascote_nome": None, "marketing": False, "avisos": 0, "suspensoes": 0, "suspenso_ate": None}
+    assert eu.json() == {"email": "ana@x.com", "nome": "Ana", "papel": "usuario", "verificado": False, "pro": False, "selo": None, "arroba": None, "bio": "", "foto": None, "capa": None, "mascote": None, "mascote_nome": None, "marketing": False, "avisos": 0, "suspensoes": 0, "suspenso_ate": None}
     assert cliente.get("/auth/eu").status_code == 401
 
 
@@ -98,8 +98,10 @@ def test_dados_so_aceitam_chaves_conhecidas(cliente):
 
 def test_stories_saiu_da_sincronia(cliente):
     ana = _conta(cliente)
-    # um app antigo ainda manda "stories": é ignorado, e o resto da sincronia continua valendo
-    r = cliente.put("/me/dados", json={"itens": {"stories": [{"id": "s1"}], "agua": {"2026-11-05": 3}}}, headers=ana)
+    # os stories saíram do RONDO: um app antigo que ainda manda "stories" ou "storiesVistos" tem essas chaves ignoradas,
+    # e o resto da sincronia continua valendo
+    itens = {"stories": [{"id": "s1"}], "storiesVistos": ["s1"], "agua": {"2026-11-05": 3}}
+    r = cliente.put("/me/dados", json={"itens": itens}, headers=ana)
     assert r.status_code == 200
     assert cliente.get("/me/dados", headers=ana).json()["itens"] == {"agua": {"2026-11-05": 3}}
 

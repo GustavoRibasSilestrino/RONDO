@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 from app.banco import Base, Sessao, engine
 from app.main import app
-from app.modelos import Consentimento, Notificacao, Post, Seguidor, Story, Usuario
+from app.modelos import Consentimento, Notificacao, Post, Seguidor, Usuario
 from app.servicos.conta import limpar_vencidos
 
 
@@ -94,6 +94,7 @@ def test_exportar_traz_os_dados_da_pessoa(cliente):
     assert [p["texto"] for p in d["publicacoes"]] == ["Primeiro treino"]
     assert {c["tipo"] for c in d["consentimentos"]} == {"termos", "privacidade", "marketing"}
     assert "senha_hash" not in str(d)
+    assert "stories_no_ar" not in d   # os stories saíram do RONDO
     assert cliente.get("/me/exportar").status_code == 401
 
 
@@ -102,13 +103,12 @@ def test_apagar_conta_pede_senha_e_apaga_tudo(cliente):
     post = cliente.post("/social/posts", json={"texto": "oi"}, headers=ana).json()
     cliente.put(f"/social/posts/{post['id']}/curtida", headers=bia)
     cliente.put("/pessoas/1/seguir", headers=bia)
-    cliente.post("/social/stories", json={"texto": "story"}, headers=ana)
 
     assert cliente.request("DELETE", "/me", json={"senha": "errada"}, headers=ana).status_code == 401
     assert cliente.request("DELETE", "/me", json={"senha": "segredo1"}, headers=ana).status_code == 200
     with Sessao() as s:
         assert s.query(Usuario).filter_by(email="ana@x.com").count() == 0
-        assert s.query(Post).count() == 0 and s.query(Story).count() == 0
+        assert s.query(Post).count() == 0
         assert s.query(Seguidor).count() == 0 and s.query(Notificacao).count() == 0
         assert s.query(Consentimento).filter_by(usuario_id=1).count() == 0
     assert cliente.get("/me/dados", headers=ana).status_code == 401   # o token da conta apagada não vale mais
@@ -116,19 +116,16 @@ def test_apagar_conta_pede_senha_e_apaga_tudo(cliente):
     assert cliente.get("/me/dados", headers=bia).status_code == 200   # a outra conta segue normal
 
 
-def test_retencao_apaga_stories_e_avisos_vencidos(cliente):
+def test_retencao_apaga_avisos_vencidos(cliente):
     _conta(cliente)
     agora = datetime.now(timezone.utc)
     with Sessao() as s:
         s.add_all([
-            Story(autor_id=1, texto="velho", criado_em=agora - timedelta(hours=25)),
-            Story(autor_id=1, texto="novo", criado_em=agora - timedelta(hours=1)),
             Notificacao(usuario_id=1, ator_id=1, tipo="seguidor", criado_em=agora - timedelta(days=181)),
             Notificacao(usuario_id=1, ator_id=1, tipo="seguidor", criado_em=agora - timedelta(days=2)),
         ])
         s.commit()
         limpar_vencidos(s, forcar=True)
-        assert [x.texto for x in s.query(Story).all()] == ["novo"]
         assert s.query(Notificacao).count() == 1
 
 

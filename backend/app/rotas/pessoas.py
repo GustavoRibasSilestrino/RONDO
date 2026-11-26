@@ -78,7 +78,7 @@ def perfil(pessoa_id: int, usuario: Usuario = Depends(usuario_atual), sessao: Se
         .order_by(Membro.entrou_em.desc())
         .limit(20)
     ).all()
-    return PerfilOut(**p.model_dump(), bio=u.bio, posts=posts, seguidores=seguidores, seguindo_n=seguindo, clubes=[ClubeResumo(id=i, nome=n) for i, n in clubes])
+    return PerfilOut(**p.model_dump(), bio=u.bio, capa=u.capa, posts=posts, seguidores=seguidores, seguindo_n=seguindo, clubes=[ClubeResumo(id=i, nome=n) for i, n in clubes])
 
 
 @router.get("/{pessoa_id}/posts", response_model=PaginaPosts)

@@ -11,8 +11,10 @@ import { cores, estilos } from '../tema';
 import { Mascote } from './Mascote';
 import { T } from './Ui';
 
-/* `nomeProprio`: o nome que o dono deu ao mascote com o lápis (o de outra pessoa vem do perfil dela; o meu, da conta) */
-export function FotoComMascote({ chave, tamanhoFoto, dono, nomeProprio, children }: { chave: string | null | undefined; tamanhoFoto: number; dono?: string; nomeProprio?: string | null; children: React.ReactNode }) {
+/* `nomeProprio`: o nome que o dono deu ao mascote com o lápis (o de outra pessoa vem do perfil dela; o meu, da conta).
+   `aoFalar`: quem usa mostra o balão onde houver espaço (o perfil põe numa linha de largura inteira, 2026-11-26); sem ele, o
+   balão aparece aqui embaixo da foto. */
+export function FotoComMascote({ chave, tamanhoFoto, dono, nomeProprio, aoFalar, children }: { chave: string | null | undefined; tamanhoFoto: number; dono?: string; nomeProprio?: string | null; aoFalar?: (fala: string | null) => void; children: React.ReactNode }) {
   const { estado } = useLoja();
   const reduzido = useMovimentoReduzido();
   const info = mascoteDe(chave);
@@ -23,10 +25,11 @@ export function FotoComMascote({ chave, tamanhoFoto, dono, nomeProprio, children
   const tam = Math.round(tamanhoFoto * 0.62);
   const nomeDele = (dono ? nomeProprio : estado.usuario?.mascoteNome) || info.nome;
 
+  const mostrar = (f: string | null) => { if (aoFalar) aoFalar(f); else setFala(f); };
   const tocar = () => {
-    setFala(dono ? `${nomeDele}, mascote ${info.raridade.nome.toLowerCase()} de ${dono}.` : escolherFala(estado, new Date(), []).texto);
+    mostrar(dono ? `${nomeDele}, mascote ${info.raridade.nome.toLowerCase()} de ${dono}.` : escolherFala(estado, new Date(), []).texto);
     if (sumir.current) clearTimeout(sumir.current);
-    sumir.current = setTimeout(() => setFala(null), 6000);
+    sumir.current = setTimeout(() => mostrar(null), 6000);
     if (reduzido) return;
     pulo.setValue(0);
     Animated.sequence([
@@ -37,6 +40,9 @@ export function FotoComMascote({ chave, tamanhoFoto, dono, nomeProprio, children
 
   return (
     <View style={{ width: tamanhoFoto + tam * 0.45 }}>
+      {/* a foto e o mascote num bloco só: o mascote fica preso à foto, e não desce para cima do balão quando ele aparece
+          (antes ele era preso à base do bloco todo; corrigido em 2026-11-26) */}
+      <View>
       <View style={{ alignSelf: 'flex-end' }}>{children}</View>
       <Pressable
         accessibilityRole="button" accessibilityLabel={dono ? `${nomeDele}, o mascote de ${dono}` : `${nomeDele}, o seu mascote. Tocar para ele falar`}
@@ -46,12 +52,23 @@ export function FotoComMascote({ chave, tamanhoFoto, dono, nomeProprio, children
           <Mascote chave={info.chave} tamanho={tam} />
         </Animated.View>
       </Pressable>
-      {fala ? (
+      </View>
+      {fala && !aoFalar ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Fechar a fala do mascote" onPress={() => setFala(null)} style={st.balao}>
           <T tam={13} style={{ lineHeight: 18 }}>{fala}</T>
         </Pressable>
       ) : null}
     </View>
+  );
+}
+
+/* o balão da fala, para quem mostra a fala fora da foto (com `aoFalar`): ocupa a largura que tiver */
+export function BalaoMascote({ fala, aoFechar }: { fala: string | null; aoFechar: () => void }) {
+  if (!fala) return null;
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel="Fechar a fala do mascote" onPress={aoFechar} style={[st.balao, st.balaoLargo]}>
+      <T tam={13.5} style={{ lineHeight: 19 }}>{fala}</T>
+    </Pressable>
   );
 }
 
@@ -64,4 +81,5 @@ const st = estilos(() => StyleSheet.create({
     borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.tinta === '255,255,255' ? '#191919' : '#ffffff',   // opaco nos dois temas
     shadowColor: '#000', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8,
   },
+  balaoLargo: { width: '100%', alignSelf: 'stretch' },
 }));

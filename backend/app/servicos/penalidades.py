@@ -5,7 +5,7 @@ Regra (pedida pelo dono em 2026-11-12):
   AVISO; um conteúdo tirado do ar pela moderação depois de denúncia também conta como aviso;
 - a pessoa tem 3 avisos; passou do limite (a 4ª vez), a conta é SUSPENSA por 7 dias e os avisos voltam a zero;
 - quem já tem 2 suspensões é BANIDO na próxima violação (sem novo ciclo de avisos): a conta não entra mais.
-Suspensa, a pessoa continua usando o app (treinos, dieta...), mas não publica nada (posts, comentários, stories, clubes,
+Suspensa, a pessoa continua usando o app (treinos, dieta...), mas não publica nada (posts, comentários, clubes,
 nome, @ e bio). Banida, nenhum pedido passa e o login é recusado. Tudo fica no histórico (tabela penalidades).
 """
 from datetime import datetime, timedelta, timezone

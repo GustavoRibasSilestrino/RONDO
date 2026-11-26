@@ -73,7 +73,7 @@ const TELAS: ItemAba[] = [
 /* telas que moram dentro do Perfil: a barra mantém o Perfil aceso e o voltar leva para ele */
 const DO_PERFIL = ['hoje', 'evolucao', 'colecoes', 'recado', 'diario'];
 
-const ESPERA_RONDIN = 5000;   // ms entre o app abrir e o RONDIN chegar com a pergunta do dia
+const ESPERA_RONDIN = 0;   // ms entre o app abrir e o RONDIN chegar com a pergunta do dia (era 5000; desde 2026-11-26 ele chega na hora)
 
 function Raiz() {
   const { estado, pronto: dadosProntos, commit, puxarDoServidor, guardarAgora } = useLoja();
@@ -89,8 +89,9 @@ function Raiz() {
   const [voltarPara, setVoltarPara] = useState('perfil');   // de onde a pessoa veio ao abrir Hoje, Evolução, Recado ou Coleções: o voltar leva para lá (o recado do feed volta para o feed)
   const [buscando, setBuscando] = useState(false);
   const [opcoes, setOpcoes] = useState<'treino' | 'dieta' | 'comunidade' | null>(null);   // a tela de opções da aba, aberta pelo botão do cabeçalho   // a busca de pessoas, aberta pela lupa (no alto do app, ou no canto do feed no computador)
-  /* a chegada (componentes/Chegada.tsx): desde 2026-11-13 o app abre primeiro e o RONDIN chega 5 s depois (pedido do dono),
-     fazendo a pergunta do dia. Uma vez por abertura do app. */
+  /* a chegada (componentes/Chegada.tsx): o RONDIN chega com a pergunta do dia assim que a pessoa entra (desde 2026-11-26, pedido
+     do dono; de 2026-11-13 até então ele chegava 5 s depois). No celular, só espera a abertura preta com o nome RONDO acabar.
+     Uma vez por abertura do app. */
   const [chegando, setChegando] = useState(false);
   const chegadaMarcada = useRef(false);
   const logado = pronto && !!estado.usuario;

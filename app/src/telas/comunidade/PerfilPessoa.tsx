@@ -1,5 +1,5 @@
 /* O perfil de outra pessoa, aberto ao tocar na foto de quem publicou. Desde 2026-11-26 no desenho de "página de jogo" que o dono
-   mandou de referência: uma CAPA no alto (a cor da pessoa e o mascote dela grande), os botões redondos de vidro voltar e "...",
+   mandou de referência: uma CAPA no alto (a imagem que a pessoa escolheu ou, sem ela, um cinza: telas/perfil/CapaPerfil.tsx), os botões redondos de vidro voltar e "...",
    a foto grande encostada na borda de baixo da capa, as etiquetas ao lado (verificado, selo, mascote), o nome, o @ e a bio, os
    números em chips (seguidores e seguindo abrem a lista), a GALERIA das fotos publicadas num carrossel, os CLUBES e, por fim,
    as publicações. No pé, fixos, dois botões: Compartilhar (escuro) e Seguir (o principal, invertido).
@@ -16,16 +16,15 @@ import { DeslizarParaVoltar } from '../../componentes/Deslizar';
 import { useAviso } from '../../componentes/Estrutura';
 import { Icone, type NomeIcone } from '../../componentes/Icone';
 import { Janela } from '../../componentes/Janela';
-import { Mascote } from '../../componentes/Mascote';
 import { Botao, Cartao, T } from '../../componentes/Ui';
 import { Vidro } from '../../componentes/Vidro';
 import { useLista } from '../../estado/lista';
 import { fmt } from '../../lib/datas';
-import { CORES_GRUPO } from '../../lib/grupos';
 import { mascoteDe } from '../../lib/mascotes';
 import { useUriMidia } from '../../lib/midia';
 import { cores, estilos, larguraMax } from '../../tema';
 import type { Midia } from '../../tipos';
+import { CapaPerfil } from '../perfil/CapaPerfil';
 import { Avatar } from './Avatar';
 import { CartaoPost } from './CartaoPost';
 import { BotaoSeguir, useSeguir } from './Seguir';
@@ -89,7 +88,7 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
       <View style={st.tela}>
         <View style={st.coluna}>
           <ScrollView key={atual} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + (comPe ? ALTURA_PE + 40 : 32) }}>
-            <Capa idPessoa={atual} chaveMascote={perfil?.mascote} altura={ALTURA_CAPA + insets.top} />
+            <CapaPerfil capa={perfil?.capa} altura={ALTURA_CAPA + insets.top} />
 
             <View style={st.corpo}>
               {/* a foto encostada na borda de baixo da capa e, à direita, as etiquetas */}
@@ -224,26 +223,7 @@ export function PerfilPessoa({ id, aoFechar, aoAbrirMidia, aoAbrirClube }: Props
   );
 }
 
-/* a capa: a cor da pessoa (das capas de clube, pelo id) e o mascote dela grande à direita; sem mascote, o ícone de pessoa
-   apagado. Embaixo, um degradê para o fundo da tela, onde a foto encosta. */
-function Capa({ idPessoa, chaveMascote, altura }: { idPessoa: number; chaveMascote: string | null | undefined; altura: number }) {
-  const par = CORES_GRUPO[idPessoa % CORES_GRUPO.length];
-  const temMascote = !!mascoteDe(chaveMascote);
-  return (
-    <View style={{ height: altura, overflow: 'hidden', backgroundColor: par[0] }}>
-      <LinearGradient pointerEvents="none" colors={[par[0], par[1]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-      {temMascote ? (
-        <View pointerEvents="none" style={st.capaMascote}><Mascote chave={chaveMascote} tamanho={Math.round(altura * 0.62)} /></View>
-      ) : (
-        <View pointerEvents="none" style={[st.capaIcone, { opacity: 0.18 }]}><Icone nome="perfil" tamanho={Math.round(altura * 0.9)} cor="#ffffff" espessura={1.1} /></View>
-      )}
-      {/* a capa se desfaz no fundo da tela, onde a foto encosta */}
-      <LinearGradient pointerEvents="none" colors={['transparent', cores.fundo]} style={st.capaSombra} />
-    </View>
-  );
-}
-
-function Chip({ icone, texto, rotulo, aoPressionar }: { icone: NomeIcone; texto: string; rotulo?: string; aoPressionar?: () => void }) {
+export function Chip({ icone, texto, rotulo, aoPressionar }: { icone: NomeIcone; texto: string; rotulo?: string; aoPressionar?: () => void }) {
   const miolo = (
     <>
       <Icone nome={icone} tamanho={15} cor={cores.texto} />
@@ -260,7 +240,7 @@ function Chip({ icone, texto, rotulo, aoPressionar }: { icone: NomeIcone; texto:
 }
 
 /* uma foto (ou vídeo) da galeria, com o canto bem arredondado */
-function Miniatura({ midia, aoPressionar }: { midia: Midia; aoPressionar: () => void }) {
+export function Miniatura({ midia, aoPressionar }: { midia: Midia; aoPressionar: () => void }) {
   const uri = useUriMidia(midia.id, midia.url);
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={midia.tipo === 'video' ? 'Abrir o vídeo' : 'Abrir a foto'} onPress={aoPressionar} style={({ pressed }) => [st.miniatura, pressed && { opacity: 0.85 }]}>
@@ -275,7 +255,7 @@ function Miniatura({ midia, aoPressionar }: { midia: Midia; aoPressionar: () => 
 }
 
 /* voltar e "...": redondos, de vidro, sobre a capa */
-function BotaoRedondo({ icone, rotulo, aoPressionar }: { icone: NomeIcone; rotulo: string; aoPressionar: () => void }) {
+export function BotaoRedondo({ icone, rotulo, aoPressionar }: { icone: NomeIcone; rotulo: string; aoPressionar: () => void }) {
   return (
     <Vidro interativo style={st.redondo}>
       <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={aoPressionar} hitSlop={4} style={({ pressed }) => [st.redondoToque, pressed && { opacity: 0.75 }]}>
@@ -307,9 +287,6 @@ function BotaoSeguirGrande({ pessoa, aoMudar }: { pessoa: PerfilPublico; aoMudar
 const st = estilos(() => StyleSheet.create({
   tela: { flex: 1, backgroundColor: cores.fundo, alignItems: 'center' },
   coluna: { flex: 1, width: '100%', maxWidth: larguraMax },
-  capaMascote: { position: 'absolute', right: 74, bottom: 40 },   // longe do botão "..." do canto
-  capaIcone: { position: 'absolute', right: -30, bottom: -20 },
-  capaSombra: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 90 },
   corpo: { paddingHorizontal: 20, marginTop: -FOTO / 2 },
   linhaFoto: { flexDirection: 'row', alignItems: 'flex-end', gap: 12 },
   anel: { borderRadius: (FOTO + 8) / 2, padding: 4, backgroundColor: cores.fundo },
