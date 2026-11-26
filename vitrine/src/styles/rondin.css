@@ -25,9 +25,9 @@
 }
 /* a animação de entrada isola o orbe, e o preto do vídeo não some: fica o círculo escuro, sem os cantos */
 .rondin-orbe .rondin-video { border-radius: 50%; }
-.rondin-orbe::before {   /* a luz roxa atrás dele */
+.rondin-orbe::before {   /* a luz verde atrás dele (era roxa até 2026-11-26) */
   content: ""; position: absolute; inset: -14px; border-radius: 50%; z-index: -1;
-  background: radial-gradient(closest-side, rgba(123, 123, 123, .42), rgba(88, 88, 88, .14) 60%, transparent);
+  background: radial-gradient(closest-side, rgba(34, 197, 94, .42), rgba(21, 128, 61, .14) 60%, transparent);
   animation: rondin-respira 3.2s ease-in-out infinite;
 }
 .rondin-fala {
@@ -41,7 +41,7 @@
 .canto-ie .rondin-fala { border-radius: 14px 14px 14px 4px; transform-origin: left center; }
 .canto-sd .rondin-fala { border-radius: 14px 4px 14px 14px; }
 .canto-se .rondin-fala { border-radius: 4px 14px 14px 14px; transform-origin: left center; }
-.rondin-chamada:hover .rondin-fala { border-color: rgba(182, 182, 182, .55); }
+.rondin-chamada:hover .rondin-fala { border-color: rgba(134, 239, 172, .55); }
 
 .rondin-canto.is-on .rondin-orbe { opacity: 1; transform: none; }
 .rondin-canto.is-on .rondin-fala { opacity: 1; transform: none; transition-delay: .25s; }
@@ -70,7 +70,7 @@
 }
 .canto-se .rondin-balao::after { right: auto; left: 22px; }
 .rondin-balao p { font-size: 1.12rem; line-height: 1.4; color: var(--ink); max-width: 22ch; text-wrap: balance; }
-.rondin-balao p b { color: var(--accent-2); font-weight: 700; }
+.rondin-balao p b { color: #86efac; font-weight: 700; }   /* as palavras em destaque na fala do RONDIN: o verde dele */
 /* no balão, o preto do vídeo não some com o `screen` (o vidro do balão isola a mistura e o preto aparecia como um quadrado):
    aqui a esfera é recortada num círculo que se apaga nas bordas */
 .rondin-balao .rondin-video {

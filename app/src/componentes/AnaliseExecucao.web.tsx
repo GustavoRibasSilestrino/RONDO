@@ -23,7 +23,7 @@ const INTEGRIDADE = 'sha384-33ConKAFiqnDTqoc8FFsTiKhp23eN52R5hP3ZqPBuRvIe9XyWblq
 const WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VERSAO}/wasm`;
 const MODELO = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
 
-const ROXO = '#b6b6b6', VERMELHO = '#ff5d73', AMARELO = '#ffcf5c', VERDE = '#3ddc97';
+const ROXO = '#86efac',   /* o destaque do RONDIN, verde desde 2026-11-26 */ VERMELHO = '#ff5d73', AMARELO = '#ffcf5c', VERDE = '#3ddc97';
 const FONTE = 'Poppins_400Regular, system-ui, sans-serif', FONTE_FORTE = 'Poppins_600SemiBold, system-ui, sans-serif';
 
 /* o detector é carregado uma vez e fica guardado para as próximas aberturas */
@@ -402,6 +402,6 @@ const css: Record<string, React.CSSProperties> = {
   tela: { position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' },
   cobertura: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24, textAlign: 'center', background: 'rgba(7,7,7,0.82)', fontSize: 15 },
   girando: { width: 34, height: 34, borderRadius: '50%', border: '3px solid rgba(182,182,182,0.25)', borderTopColor: ROXO, animation: 'analiseGira 0.9s linear infinite' },
-  botao: { minHeight: 46, padding: '0 20px', borderRadius: 14, border: '1px solid rgba(205,205,205,0.36)', background: '#4f4f4f', color: '#fff', fontFamily: FONTE_FORTE, fontSize: 15, cursor: 'pointer' },
+  botao: { minHeight: 46, padding: '0 20px', borderRadius: 14, border: '1px solid rgba(134,239,172,0.36)', background: '#15803d', color: '#fff', fontFamily: FONTE_FORTE, fontSize: 15, cursor: 'pointer' },
   base: { padding: '12px 16px max(14px, env(safe-area-inset-bottom))', borderTop: '1px solid rgba(157,157,157,0.13)', background: '#0c0c0c', maxWidth: 760, width: '100%', alignSelf: 'center', boxSizing: 'border-box' },
 };

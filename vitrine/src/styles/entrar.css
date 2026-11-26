@@ -29,7 +29,7 @@
 .entrar-rondin { position: relative; display: grid; place-items: center; width: 128px; height: 128px; margin-bottom: .6rem; }
 .entrar-rondin::before {   /* a luz atrás da esfera */
   content: ""; position: absolute; left: 50%; top: 50%; width: 230px; height: 230px; translate: -50% -50%; border-radius: 50%;
-  background: radial-gradient(circle, rgba(123, 123, 123, .3), transparent 66%); pointer-events: none;
+  background: radial-gradient(circle, rgba(34, 197, 94, .3), transparent 66%); pointer-events: none;   /* verde, como o RONDIN */
 }
 /* as bordas do vídeo somem num degradê redondo: o fundo do vídeo não é preto puro e, sem isso, aparecia um quadrado em volta
    da esfera (visto pelo dono em 2026-11-18) */

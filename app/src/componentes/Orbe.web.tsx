@@ -84,9 +84,9 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
     const cc = carimbo.getContext('2d');
     if (cc) {
       const g = cc.createRadialGradient(32, 32, 0, 32, 32, 32);
-      g.addColorStop(0, 'rgba(214,214,214,0.9)');
-      g.addColorStop(0.25, 'rgba(153,153,153,0.35)');
-      g.addColorStop(1, 'rgba(103,103,103,0)');
+      g.addColorStop(0, 'rgba(137,234,173,0.9)');
+      g.addColorStop(0.25, 'rgba(31,176,84,0.35)');
+      g.addColorStop(1, 'rgba(21,119,57,0)');
       cc.fillStyle = g;
       cc.fillRect(0, 0, 64, 64);
     }
@@ -116,7 +116,7 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
       document.documentElement.addEventListener('pointerleave', aoSairDaJanela);
     }
 
-    const lilas = (a: number) => `rgba(196,168,255,${a.toFixed(3)})`;
+    const lilas = (a: number) => `rgba(37,209,100,${a.toFixed(3)})`;
     const arco = (r: number, de: number, ate: number, cor: string, larg: number) => {
       ctx.strokeStyle = cor; ctx.lineWidth = larg;
       ctx.beginPath(); ctx.arc(c, c, r, de, ate); ctx.stroke();
@@ -178,9 +178,9 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
       if (hud) {
         const forca = 0.34 + 0.22 * amp + 0.12 * brilho;   // sem respirar sozinha: só cresce com a voz e o cursor
         const halo = ctx.createRadialGradient(c, c, R * 0.2, c, c, tamanho * 0.5);
-        halo.addColorStop(0, `rgba(176,128,255,${Math.min(0.62, forca).toFixed(3)})`);
-        halo.addColorStop(0.45, `rgba(124,58,237,${(forca * 0.42).toFixed(3)})`);
-        halo.addColorStop(1, 'rgba(73,73,73,0)');
+        halo.addColorStop(0, `rgba(31,176,84,${Math.min(0.62, forca).toFixed(3)})`);
+        halo.addColorStop(0.45, `rgba(21,118,56,${(forca * 0.42).toFixed(3)})`);
+        halo.addColorStop(1, 'rgba(15,84,40,0)');
         ctx.fillStyle = halo;
         ctx.fillRect(0, 0, tamanho, tamanho);
       }

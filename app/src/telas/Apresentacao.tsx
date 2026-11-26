@@ -123,7 +123,7 @@ const st = StyleSheet.create({
   tela: { flex: 1, backgroundColor: '#000000', paddingHorizontal: 24, alignItems: 'center' },
   voz: { position: 'absolute', right: 16, zIndex: 2 },
   meio: { flex: 1, width: '100%', maxWidth: 560, alignItems: 'center', justifyContent: 'center' },
-  nome: { letterSpacing: 5, color: '#b6b6b6', marginTop: 2, opacity: 0.9 },
+  nome: { letterSpacing: 5, color: '#86efac', marginTop: 2, opacity: 0.9 },   // o nome RONDIN, no verde dele
   fala: { width: '100%', maxWidth: 460, minHeight: 100 },
   base: { width: '100%', maxWidth: 340, alignItems: 'stretch' },
   aviso: { paddingTop: 18, paddingHorizontal: 16, alignItems: 'center' },

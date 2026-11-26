@@ -14,21 +14,26 @@
     #2a2a2a;
 }
 .hero-marca { display: none; }
-/* no computador (desde 2026-11-26, com a floresta): a foto ocupa a largura toda no alto, com o nome RONDO inteiro à vista, e o
-   título entra logo abaixo do nome (que termina em ~66% da altura da foto), sobre a grama e o rio, que escurecem até o preto da
-   página. Um véu escuro do lado esquerdo, atrás do texto, garante a leitura. */
+/* no computador (2026-11-26, pedido do dono: tudo da primeira tela dentro da visão, sem rolar): a primeira tela tem a altura exata
+   da janela. A foto cobre a tela e sobe o quanto for preciso para a base do nome RONDO (a 66% da altura da foto) ficar logo acima
+   do bloco de texto, que mora no pé da tela (--hero-texto é a altura reservada para ele). O título encolhe em janelas baixas
+   (até 7% da altura) para o bloco caber. Embaixo, a foto escurece atrás do texto; à esquerda, um véu a mais para a leitura. */
 @media (min-width: 961px) {
-  .hero-grade { align-items: start; min-height: 0; padding-bottom: 0; }
-  .hero-texto { padding-top: max(0px, calc(100vw / 1.78 * .67 - var(--nav-h) - clamp(1rem, 5vh, 3rem))); }
   .hero {
-    min-height: max(100svh, calc(100vw / 1.78 * .67 + 22rem));
+    --hero-texto: calc(min(5.4vw, 7.2svh, 5rem) * 2.1 + 14.5rem);   /* as duas linhas do título + a frase, os botões e as margens */
+    height: 100svh; min-height: 34rem; padding-bottom: clamp(1.6rem, 5svh, 3rem);
     background:
-      linear-gradient(180deg, rgba(2, 2, 2, .3) 0, rgba(2, 2, 2, 0) calc(100vw / 1.78 * .14), rgba(2, 2, 2, 0) calc(100vw / 1.78 * .64),
-        rgba(5, 5, 5, .72) calc(100vw / 1.78 * .86), #050505 calc(100vw / 1.78 + 2px), var(--bg) 100%),
-      radial-gradient(52% 40% at 14% calc(100vw / 1.78 * .84), rgba(5, 5, 5, .6) 0%, rgba(5, 5, 5, 0) 75%),
-      url("../assets/cenas/hero-floresta.webp") 50% 0 / 100% auto no-repeat,
+      linear-gradient(180deg, rgba(2, 2, 2, .32) 0, rgba(2, 2, 2, 0) 14%, rgba(2, 2, 2, 0) calc(100% - var(--hero-texto) - 2rem),
+        rgba(5, 5, 5, .55) calc(100% - var(--hero-texto) * .55), rgba(5, 5, 5, .88) 100%),
+      radial-gradient(48% 46% at 14% 88%, rgba(5, 5, 5, .55) 0%, rgba(5, 5, 5, 0) 75%),
+      url("../assets/cenas/hero-floresta.webp") 50% min(0px, calc(100svh - var(--hero-texto) - .66 * max(100vw / 1.7768, 100svh))) / cover no-repeat,
       #050505;
   }
+  .hero-grade { align-items: end; height: 100%; min-height: 0; padding-bottom: 0; }
+  .hero-texto { padding-top: 0; }
+  .hero-title { font-size: min(5.4vw, 7.2svh, 5rem); line-height: 1.02; }
+  .hero-texto .lead { margin-top: clamp(.6rem, 1.6svh, 1.2rem); }
+  .hero-cta { margin-top: clamp(1rem, 2.6svh, 1.8rem); }
 }
 .hero-texto .lead { text-shadow: 0 1px 16px rgba(12, 12, 12, .8); }
 /* sombra no título da primeira tela, nas duas linhas (pedido do dono em 2026-11-19): uma sombra justa, que destaca as letras
@@ -38,6 +43,7 @@
    dela se funde no escuro, onde ficam o título e os botões, logo abaixo do nome (que termina em ~66% da altura da foto). */
 @media (max-width: 960px), (max-aspect-ratio: 4/5) {
   .hero {
+    height: auto; min-height: 100svh;   /* sem a altura fixa do computador: aqui o texto vem abaixo da foto */
     background:
       linear-gradient(180deg, rgba(2, 2, 2, 0) 0, rgba(2, 2, 2, 0) calc(118vw / 1.78 * .66), rgba(9, 9, 9, .9) calc(118vw / 1.78 * .95), #090909 calc(118vw / 1.78 + 2px), var(--bg) 100%),
       url("../assets/cenas/hero-floresta.webp") 50% 0 / 118% auto no-repeat,

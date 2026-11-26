@@ -34,5 +34,5 @@ const st = StyleSheet.create({
     width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(182,182,182,0.22)',
   },
-  ativo: { backgroundColor: 'rgba(157,157,157,0.16)', borderColor: 'rgba(182,182,182,0.45)' },
+  ativo: { backgroundColor: 'rgba(34,197,94,0.18)', borderColor: 'rgba(134,239,172,0.45)' },
 });

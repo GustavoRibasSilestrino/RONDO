@@ -112,7 +112,7 @@ const st = estilos(() => StyleSheet.create({
   direita: { position: 'absolute', flexDirection: 'row', alignItems: 'center', gap: 8 },
   botaoRedondo: {
     width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(182,182,182,0.22)',
+    backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(37,209,100,0.22)',
   },
-  botaoRedondoAceso: { backgroundColor: 'rgba(157,157,157,0.16)', borderColor: 'rgba(182,182,182,0.45)' },
+  botaoRedondoAceso: { backgroundColor: 'rgba(32,180,86,0.16)', borderColor: 'rgba(37,209,100,0.45)' },
 }));

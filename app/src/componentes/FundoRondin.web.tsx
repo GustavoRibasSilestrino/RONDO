@@ -20,7 +20,7 @@ import type { EstadoOrbe } from '../lib/orbe';
 type Props = { estado: EstadoOrbe; cx?: number; cy?: number };
 
 const css = (o: object): never => o as never;   // propriedades de CSS que o tipo de estilo do React Native não conhece
-const LILAS = '182,182,182';
+const LILAS = '37,209,100';
 const ONDAS = 4;
 const CICLO = 14;      // segundos de uma onda, do orbe até a borda: devagar, para não competir com o texto
 const FORCA: Record<EstadoOrbe, number> = { falando: 0.85, ouvindo: 0.5, pensando: 0.65, quieto: 0.4 };
@@ -28,7 +28,7 @@ const FORCA: Record<EstadoOrbe, number> = { falando: 0.85, ouvindo: 0.5, pensand
 /* a aparência de um anel: um fio lilás bem fraco e um brilho que sobe até a borda */
 const ANEL = {
   borderWidth: 1, borderColor: `rgba(${LILAS},0.24)`,
-  backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0) 62%, rgba(103,103,103,0.05) 84%, rgba(157,157,157,0.11) 99%, rgba(0,0,0,0) 100%)',
+  backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0) 62%, rgba(21,119,57,0.05) 84%, rgba(32,180,86,0.11) 99%, rgba(0,0,0,0) 100%)',
 };
 
 /* a poeira, em três profundidades: quanto mais perto, maior, mais rápida (sobe mais no tempo dela) e mais forte */
@@ -135,8 +135,8 @@ export function FundoRondin({ estado, cx, cy }: Props) {
 
   const m = Math.max(W, H);
   const nevoas = [
-    { x: W * 0.06, y: H * 1.02, m: m * 0.95, cor: '73,73,73', a: 0.1, dur: 38, estilo: anim.nevoaA },
-    { x: W * 0.98, y: H * 0.5, m: m * 0.7, cor: '103,103,103', a: 0.06, dur: 52, estilo: anim.nevoaB },
+    { x: W * 0.06, y: H * 1.02, m: m * 0.95, cor: '15,84,40', a: 0.1, dur: 38, estilo: anim.nevoaA },
+    { x: W * 0.98, y: H * 0.5, m: m * 0.7, cor: '21,119,57', a: 0.06, dur: 52, estilo: anim.nevoaB },
   ];
   /* o deslocamento do cursor é suave (a transição de CSS tira o tranco do movimento do mouse) */
   const suave = parado ? null : css({ transition: 'transform 900ms cubic-bezier(0.16, 1, 0.3, 1)' });

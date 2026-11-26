@@ -168,4 +168,4 @@ h2.display { font-size: clamp(2.1rem, 4.6vw, 3.8rem); }
 .is-off, .is-off::before, .is-off::after { animation-play-state: paused !important; }
 
 /* o RONDIN em 3D (components/RondinVideo.tsx): o fundo preto do vídeo some sobre o fundo escuro */
-.rondin-video { display: block; flex: none; object-fit: cover; mix-blend-mode: screen; pointer-events: none; filter: grayscale(1); }   /* o vídeo é roxo: em cinza desde 2026-11-26 (site só preto, cinza e branco) */
+.rondin-video { display: block; flex: none; object-fit: cover; mix-blend-mode: screen; pointer-events: none; filter: hue-rotate(235deg) saturate(1.1); }   /* o vídeo é roxo: o RONDIN é verde desde 2026-11-26 (gira o matiz do roxo até o verde) */

@@ -94,8 +94,8 @@ function BrilhoAndante({ forte, perigo }: { forte: boolean; perigo?: boolean }) 
           <Svg width="100%" height="100%" viewBox="0 0 100 50" preserveAspectRatio="none">
             <Defs>
               <RadialGradient id={perigo ? 'brilhoAndantePerigo' : 'brilhoAndante'} cx="50%" cy="50%" r="50%">
-                <Stop offset="0" stopColor={perigo ? '#ffd0d8' : '#d3d3d3'} stopOpacity={forte ? 0.75 : 0.55} />
-                <Stop offset="1" stopColor={perigo ? '#ff8fa1' : '#a5a5a5'} stopOpacity={0} />
+                <Stop offset="0" stopColor={perigo ? '#ffd0d8' : '#bbf7d0'} stopOpacity={forte ? 0.75 : 0.55} />
+                <Stop offset="1" stopColor={perigo ? '#ff8fa1' : '#4ade80'} stopOpacity={0} />
               </RadialGradient>
             </Defs>
             <Ellipse cx="50" cy="25" rx="50" ry="25" fill={perigo ? 'url(#brilhoAndantePerigo)' : 'url(#brilhoAndante)'} />
@@ -244,7 +244,7 @@ function BotaoEscuro({ titulo, aoPressionar, tipo = 'primario', desabilitado, ca
           <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, st.acesoBorda, perigo && st.acesoBordaPerigo, vidro && st.acesoVidro, { opacity: luz }]}>
             {vidro && !perigo ? null : (
               <>
-                <LinearGradient pointerEvents="none" colors={perigo ? (vidro ? ['#c42f4b', '#b3203a', '#9a1830'] : ['#ff7a8e', '#e5485f', '#c42f4b']) : ['#848484', '#6e6e6e', '#626262']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+                <LinearGradient pointerEvents="none" colors={perigo ? (vidro ? ['#c42f4b', '#b3203a', '#9a1830'] : ['#ff7a8e', '#e5485f', '#c42f4b']) : ['#22a855', '#18913f', '#127a36']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
                 {vidro ? null : <BrilhoAndante forte={cursor || tocando} perigo={perigo} />}
                 <LinearGradient pointerEvents="none" colors={['rgba(255,255,255,0.26)', 'rgba(255,255,255,0)']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 0.55 }} style={StyleSheet.absoluteFill} />
               </>
@@ -267,7 +267,7 @@ function BotaoEscuro({ titulo, aoPressionar, tipo = 'primario', desabilitado, ca
       }}
     >
       <LinearGradient
-        colors={['rgba(255,255,255,0)', 'rgba(195,195,195,0.95)', 'rgba(255,255,255,0)']}
+        colors={['rgba(255,255,255,0)', 'rgba(134,239,172,0.95)', 'rgba(255,255,255,0)']}
         start={{ x: 0, y: 0.5 }}
         end={{ x: 1, y: 0.5 }}
         style={{ position: 'absolute', left: lado / 2 - 44, top: 0, width: 88, height: lado / 2 }}
@@ -283,9 +283,9 @@ function BotaoEscuro({ titulo, aoPressionar, tipo = 'primario', desabilitado, ca
           <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
             <Defs>
               <RadialGradient id={perigo ? 'auraBotaoPerigo' : 'auraBotao'} cx="50%" cy="55%" r="50%">
-                <Stop offset="0" stopColor={perigo ? '#ff4d6a' : '#727272'} stopOpacity={0.5} />
-                <Stop offset="0.55" stopColor={perigo ? '#d6334f' : '#636363'} stopOpacity={0.16} />
-                <Stop offset="1" stopColor={perigo ? '#7a1426' : '#3c3c3c'} stopOpacity={0} />
+                <Stop offset="0" stopColor={perigo ? '#ff4d6a' : '#22c55e'} stopOpacity={0.5} />
+                <Stop offset="0.55" stopColor={perigo ? '#d6334f' : '#16a34a'} stopOpacity={0.16} />
+                <Stop offset="1" stopColor={perigo ? '#7a1426' : '#14532d'} stopOpacity={0} />
               </RadialGradient>
             </Defs>
             <Ellipse cx="50" cy="50" rx="50" ry="50" fill={perigo ? 'url(#auraBotaoPerigo)' : 'url(#auraBotao)'} />
@@ -445,7 +445,7 @@ const st = estilos(() => StyleSheet.create({
   },
   cartaoDestaque: { borderColor: `rgba(${cores.tom},0.32)`, backgroundColor: `rgba(${cores.tom},0.12)`, boxShadow: `0 22px 46px -24px ${cores.sombra}` },
   fio: { position: 'absolute', top: 0, left: 24, right: 24, height: 1 },
-  orbita: { borderRadius: raio.pilula, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(182,182,182,0.2)' },
+  orbita: { borderRadius: raio.pilula, overflow: 'hidden', padding: 1.5, backgroundColor: 'rgba(134,239,172,0.2)' },
   campoFoco: { borderColor: cores.destaque, backgroundColor: `rgba(${cores.tom},0.06)` },
   /* botões: a mesma altura e o mesmo canto em todos; no navegador, as trocas de cor são suaves */
   botao: {
@@ -460,7 +460,7 @@ const st = estilos(() => StyleSheet.create({
   /* o principal aceso, no vidro: violeta translúcido com desfoque (antes era roxo quase preto; pedido do dono, 2026-11-18) */
   acesoVidro: { borderColor: 'rgba(255,255,255,0.95)', boxShadow: '0 10px 26px -10px rgba(113,113,113,0.75)' },
   botaoApagadoPerigo: { borderColor: 'rgba(255,107,129,0.28)' },
-  acesoBorda: { borderRadius: raio.pilula, borderWidth: 1, borderColor: 'rgba(196,196,196,0.65)', overflow: 'hidden', margin: -1 },
+  acesoBorda: { borderRadius: raio.pilula, borderWidth: 1, borderColor: 'rgba(134,239,172,0.65)', overflow: 'hidden', margin: -1 },
   acesoBordaPerigo: { borderColor: 'rgba(255,190,200,0.7)' },
   /* a luz em volta: maior que o botão, atrás dele */
   aura: { position: 'absolute', left: '-14%', right: '-14%', top: '-70%', bottom: '-90%' },

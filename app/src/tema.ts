@@ -24,6 +24,10 @@ export type Paleta = {
   sombra: string;   // a sombra dos cartões e das barras
 };
 
+/* o VERDE dos botões e do menu (pedido do dono, 2026-11-26): não é o tema, só os botões de ação, a aba ativa, a barra de abas e o
+   cabeçalho. Branco sobre `VERDE.botao`: 5:1. */
+export const VERDE = { botao: '#15803d', sobre: '#178a43', toque: '#116432' } as const;
+
 /* a paleta escura: as telas do RONDIN */
 export const escuro: Paleta = {
   fundo: '#070707',
@@ -35,18 +39,19 @@ export const escuro: Paleta = {
   texto: '#f2f2f2',
   texto2: '#c5c5c5',   // 10:1 sobre o cartão
   texto3: '#9a9a9a',   // 6:1 sobre o cartão: legendas e ícones apagados
-  violeta: '#4f4f4f',
-  violetaEscuro: '#131313',
-  destaque: '#6f6f6f',
-  destaqueForte: '#4f4f4f', /* o roxo puro da marca: leva texto branco (9:1) */
-  destaque2: '#b6b6b6', /* lilás para links, números e ícones em destaque (9:1 sobre o cartão) */
-  acao: '#6f6f6f',
+  /* o RONDIN é verde (desde 2026-11-26): os destaques das telas dele são verdes */
+  violeta: '#16a34a',
+  violetaEscuro: '#052e16',
+  destaque: '#22c55e',
+  destaqueForte: VERDE.botao, /* leva texto branco (5:1) */
+  destaque2: '#86efac', /* verde-claro para as palavras em destaque na fala dele, links e números (13:1 sobre o cartão) */
+  acao: VERDE.botao,
   bom: '#3ddc97',
   alerta: '#ff9a5c',
   erro: '#ff6b81',
   branco: '#ffffff',
   placeholder: 'rgba(197,197,197,0.55)',
-  tom: '123,123,123',
+  tom: '34,197,94',
   painel: '#0f0f0f',
   aviso: '#181818',
   barra: 'rgba(15,15,15,0.97)',   // quase opaca: dispensa o desfoque, que pesa ao rolar
@@ -57,9 +62,6 @@ export const escuro: Paleta = {
 
 /* a paleta de vidro escuro: as telas de dentro do app (desde 2026-11-18; antes era vidro claro lilás). Contraste do texto sobre
    o vidro (≈ #181818): texto 15:1, texto2 10:1, texto3 6:1; destaque2 (links e números) 9:1; branco sobre `acao` 5,7:1. */
-/* o VERDE dos botões e do menu (pedido do dono, 2026-11-26): não é o tema, só os botões de ação, a aba ativa, a barra de abas e o
-   cabeçalho. Branco sobre `VERDE.botao`: 5:1. */
-export const VERDE = { botao: '#15803d', sobre: '#178a43', toque: '#116432' } as const;
 
 const vidroEscuro: Paleta = {
   fundo: '#0d0d0d',                       // por baixo do degradê do fundo (FundoCena)

@@ -27,3 +27,8 @@
 .nav::before { opacity: 1; background: var(--verde-menu); border-bottom-color: rgba(74, 222, 128, .22); }
 .nav.menu-open::before { background: var(--verde-menu-cheio); }
 @media (max-width: 980px) { .mnav { background: rgba(6, 32, 15, .98); } }
+
+/* o botão "Responder" da conversa com o RONDIN (seção do recado): verde, como os outros botões e o próprio RONDIN.
+   Gravando, ele continua vermelho (recado.css). */
+.conversa-responder:not(.is-gravando) { background: var(--verde); color: #fff; }
+.conversa-responder:not(.is-gravando):hover { background: var(--verde-escuro); }
