@@ -69,8 +69,8 @@ export const lerSeguindo = (id: number, antes?: number | null) => chamar<Pagina<
 export const seguirPessoa = (id: number) => chamar<{ status: string }>('PUT', `/pessoas/${id}/seguir`);
 export const deixarDeSeguir = (id: number) => chamar<{ status: string }>('DELETE', `/pessoas/${id}/seguir`);
 
-export const listarClubes = (p: { q?: string; meus?: boolean; antes?: number | null }) =>
-  chamar<Pagina<Clube>>('GET', `/clubes${qs({ q: p.q, meus: p.meus ? true : undefined, antes: p.antes })}`);
+export const listarClubes = (p: { q?: string; meus?: boolean; populares?: boolean; antes?: number | null }) =>
+  chamar<Pagina<Clube>>('GET', `/clubes${qs({ q: p.q, meus: p.meus ? true : undefined, populares: p.populares ? true : undefined, antes: p.antes })}`);
 export const lerClube = (id: number) => chamar<Clube>('GET', `/clubes/${id}`);
 export const criarClube = (d: { nome: string; descricao: string; categoria: CategoriaClube; privado: boolean; cor: number; meta?: string }) => chamar<Clube>('POST', '/clubes', d);
 export const entrarNoClube = (id: number) => chamar<Clube>('POST', `/clubes/${id}/entrar`);
@@ -96,3 +96,18 @@ export const quemViuOStory = (id: number) => chamar<{ total: number; itens: Visu
 export const apagarStory = (id: number) => chamar<{ status: string }>('DELETE', `/social/stories/${id}`);
 
 export const pedirUpload = (tipo: 'imagem' | 'video', ext: string) => chamar<{ url_envio: string; url: string }>('POST', '/midia/upload', { tipo, ext });
+
+/* desafios: criados pelas pessoas (o app não traz nenhum pronto), com o dia de começar e o de acabar ("AAAA-MM-DD") */
+export type SituacaoDesafio = 'em_breve' | 'em_andamento' | 'encerrado';
+export type Desafio = {
+  id: number; titulo: string; descricao: string; meta: string | null; inicio: string; fim: string; cor: number;
+  participantes: number; situacao: SituacaoDesafio; meu: boolean; proprio: boolean; dono: Pessoa | null;
+};
+export const listarDesafios = (situacao: 'ativos' | SituacaoDesafio | 'meus' = 'ativos') =>
+  chamar<{ itens: Desafio[] }>('GET', `/desafios${qs({ situacao })}`);
+export const lerDesafio = (id: number) => chamar<Desafio>('GET', `/desafios/${id}`);
+export const criarDesafio = (d: { titulo: string; descricao: string; meta?: string; inicio: string; fim: string; cor: number }) => chamar<Desafio>('POST', '/desafios', d);
+export const entrarNoDesafio = (id: number) => chamar<Desafio>('POST', `/desafios/${id}/entrar`);
+export const sairDoDesafio = (id: number) => chamar<Desafio>('POST', `/desafios/${id}/sair`);
+export const apagarDesafio = (id: number) => chamar<{ status: string }>('DELETE', `/desafios/${id}`);
+export const lerParticipantes = (id: number) => chamar<Pagina<Pessoa>>('GET', `/desafios/${id}/participantes`);

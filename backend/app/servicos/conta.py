@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_RESGATES, RETENCAO_STORIES, RETENCAO_SUPORTE
 from app.modelos import (
-    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Mascote, Membro, MensagemSuporte, Notificacao, Penalidade, Post, Recompensa, RedefinicaoSenha, Resgate, Seguidor, Story, StoryReacao, StoryVisto, Troca, Usuario,
+    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Desafio, Mascote, Membro, MensagemSuporte, Notificacao, Participante, Penalidade, Post, Recompensa, RedefinicaoSenha, Resgate, Seguidor, Story, StoryReacao, StoryVisto, Troca, Usuario,
 )
 from app.servicos.loja import RARIDADES
 from app.servicos import midia as servico_midia
@@ -46,6 +46,11 @@ def exportar(sessao: Session, u: Usuario) -> dict:
         "seguidores": [s.seguidor_id for s in todos(Seguidor, Seguidor.seguido_id == uid)],
         "clubes_criados": [{"id": c.id, "nome": c.nome, "descricao": c.descricao} for c in todos(Clube, Clube.dono_id == uid)],
         "clubes_em_que_participa": [m.clube_id for m in todos(Membro, Membro.usuario_id == uid)],
+        "desafios_criados": [
+            {"id": d.id, "titulo": d.titulo, "descricao": d.descricao, "meta": d.meta, "inicio": _data(d.inicio), "fim": _data(d.fim)}
+            for d in todos(Desafio, Desafio.dono_id == uid)
+        ],
+        "desafios_em_que_participa": [p.desafio_id for p in todos(Participante, Participante.usuario_id == uid)],
         "stories_no_ar": [
             {"id": s.id, "texto": s.texto, "legenda": s.legenda, "midia": s.midia, "criado_em": _data(s.criado_em)}
             for s in todos(Story, Story.autor_id == uid)
@@ -111,6 +116,9 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
     sessao.execute(delete(Notificacao).where(or_(Notificacao.usuario_id == uid, Notificacao.ator_id == uid)))
     sessao.execute(delete(Membro).where(or_(Membro.usuario_id == uid, Membro.clube_id.in_(meus_clubes))))
     sessao.execute(delete(Clube).where(Clube.id.in_(meus_clubes)))
+    meus_desafios = select(Desafio.id).where(Desafio.dono_id == uid)
+    sessao.execute(delete(Participante).where(or_(Participante.usuario_id == uid, Participante.desafio_id.in_(meus_desafios))))
+    sessao.execute(delete(Desafio).where(Desafio.dono_id == uid))
     sessao.execute(delete(DadoUsuario).where(DadoUsuario.usuario_id == uid))
     sessao.execute(delete(Mascote).where(Mascote.usuario_id == uid))
     sessao.execute(delete(Recompensa).where(Recompensa.usuario_id == uid))

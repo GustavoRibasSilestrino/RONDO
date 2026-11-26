@@ -1,11 +1,13 @@
 /* O fundo das telas de dentro do app. Desde 2026-11-17 (o vidro claro, pedido do dono): em vez das fotos de paisagem, um
    degradê lilás acinzentado com dois brilhos suaves, que dá ao vidro dos cartões algo para desfocar e refletir.
    Cada aba muda um pouco o lugar dos brilhos, para as telas não ficarem idênticas.
+   O degradê e os brilhos acompanham o tema escolhido (CENA, em tema.ts; o claro desde 2026-11-26).
    (As telas do Rondin, a inicial e a conversa, não usam este fundo: o delas é preto e animado, em componentes/FundoRondin.) */
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
+import { CENA } from '../tema';
 
 export type NomeCena = 'dia' | 'noite' | 'vale' | 'picos';
 
@@ -25,16 +27,16 @@ export function FundoCena({ cena }: { cena: NomeCena; forca?: number; veu?: bool
   const [x1, y1, x2, y2] = BRILHOS[cena];
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
-      <LinearGradient colors={['#1b1430', '#100c1b', '#08070d']} locations={[0, 0.5, 1]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={CENA.degrade} locations={[0, 0.5, 1]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={StyleSheet.absoluteFill} />
       <Svg width="100%" height="100%" style={StyleSheet.absoluteFill}>
         <Defs>
           <RadialGradient id="brilho-claro" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor="#c4a8ff" stopOpacity={0.2} />
-            <Stop offset="1" stopColor="#c4a8ff" stopOpacity={0} />
+            <Stop offset="0" stopColor={CENA.claro} stopOpacity={CENA.claroForca} />
+            <Stop offset="1" stopColor={CENA.claro} stopOpacity={0} />
           </RadialGradient>
           <RadialGradient id="brilho-roxo" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor="#7c3aed" stopOpacity={0.55} />
-            <Stop offset="1" stopColor="#7c3aed" stopOpacity={0} />
+            <Stop offset="0" stopColor={CENA.roxo} stopOpacity={CENA.roxoForca} />
+            <Stop offset="1" stopColor={CENA.roxo} stopOpacity={0} />
           </RadialGradient>
         </Defs>
         <Ellipse cx={`${x1}%`} cy={`${y1}%`} rx="48%" ry="30%" fill="url(#brilho-claro)" />

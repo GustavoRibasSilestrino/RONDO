@@ -25,7 +25,7 @@
     background: linear-gradient(180deg, rgba(255, 255, 255, .045), rgba(255, 255, 255, .015));
     box-shadow: 0 24px 48px -32px rgba(0, 0, 0, .9), inset 0 1px 0 rgba(255, 255, 255, .05);
   }
-  .plan.hot { background: linear-gradient(170deg, #2b1558, rgba(255, 255, 255, .02) 70%); }
+  .plan.hot { background: linear-gradient(170deg, #242424, rgba(255, 255, 255, .02) 70%); }
   .tool h3, .panel h3, .plan h3, .recado-side h3 { text-align: center; }
   .tool > p { text-align: center; }
   .plan { align-items: center; text-align: center; }

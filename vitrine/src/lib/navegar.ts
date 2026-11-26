@@ -4,7 +4,7 @@
    As outras páginas (as legais e o /app) seguem como links comuns.
    O "voltar" do navegador funciona igual, e a página principal volta no ponto em que a pessoa estava. */
 import { useSyncExternalStore } from "react";
-import heroFoto from "../assets/cenas/hero-foto.webp";
+import heroFoto from "../assets/cenas/hero-floresta.webp";
 import tenda from "../assets/loja/tenda.webp";
 import { PACOTES } from "../data/loja";
 

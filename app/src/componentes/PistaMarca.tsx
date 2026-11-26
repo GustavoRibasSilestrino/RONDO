@@ -64,7 +64,7 @@ export function PistaMarca({ altura = 124 }: { altura?: number }) {
         <Path d={raia(65)} fill="none" stroke="rgba(255,255,255,0.11)" strokeWidth={1} />
         <Path d={raia(50)} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
         <Path d={raia(35)} fill="none" stroke="rgba(255,255,255,0.11)" strokeWidth={1} />
-        <Path d={`M${X0} ${CY - 65}V${CY - 35}`} stroke="rgba(196,168,255,0.45)" strokeWidth={1.5} />
+        <Path d={`M${X0} ${CY - 65}V${CY - 35}`} stroke="rgba(182,182,182,0.45)" strokeWidth={1.5} />
 
         {/* o ontem: um anel vazado, com rastro apagado */}
         {RASTRO.map((d, k) => {

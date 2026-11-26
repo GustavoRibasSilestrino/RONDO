@@ -33,7 +33,7 @@
 
 /* ===== Seções ===== */
 .section { padding: clamp(4.5rem, 9vw, 8rem) 0; position: relative; border-top: 1px solid var(--line); }
-.section.tint, .section.tint-2 { background: linear-gradient(180deg, rgba(109, 40, 217, .11), transparent 55%); }
+.section.tint, .section.tint-2 { background: linear-gradient(180deg, rgba(88, 88, 88, .11), transparent 55%); }
 .section-head { max-width: 780px; margin-bottom: clamp(2.2rem, 5vw, 3.5rem); }
 .section-head .lead { margin-top: 1.3rem; }
 
@@ -52,10 +52,10 @@
 .cta-final {
   position: relative; overflow: hidden;
   border-radius: var(--r-lg); padding: clamp(3rem, 8vw, 5.5rem) 2rem; text-align: center;
-  background: linear-gradient(160deg, rgba(109, 40, 217, .36), rgba(5, 5, 7, .2) 62%);
+  background: linear-gradient(160deg, rgba(88, 88, 88, .36), rgba(5, 5, 7, .2) 62%);
   border: 1px solid var(--line-2);
 }
-.cta-final .lead { margin: 1.3rem auto 2.2rem; color: #cdc3ee; }
+.cta-final .lead { margin: 1.3rem auto 2.2rem; color: #c9c9c9; }
 #entrar { padding-block: clamp(4.5rem, 9vw, 8rem) 0; }
 
 /* rodapé */

@@ -195,6 +195,6 @@ const st = estilos(() => StyleSheet.create({
   abaAtiva: { backgroundColor: cores.destaqueForte, borderColor: cores.destaque },
   denuncia: { padding: 14, borderRadius: 16, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   selo: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, backgroundColor: cores.cartao2 },
-  trecho: { marginTop: 10, padding: 12, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.04)', borderLeftWidth: 3, borderLeftColor: cores.erro },
+  trecho: { marginTop: 10, padding: 12, borderRadius: 12, backgroundColor: `rgba(${cores.tinta},0.04)`, borderLeftWidth: 3, borderLeftColor: cores.erro },
   midia: { marginTop: 10, width: '100%', aspectRatio: 1, borderRadius: 12, backgroundColor: '#000000' },
 }));

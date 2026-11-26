@@ -2,7 +2,7 @@
    atravessa, sem acelerar o contorno de luz e sem a seta andar; a troca de cor é na hora, sem transição.
    Este arquivo vem por último (main.tsx), para valer sobre as regras de :hover de base.css, acabamento.css, day.css,
    pastas.css e recado.css. */
-:root { --cinza-botao: #3a3842; --cinza-botao-borda: #5a5866; --cinza-botao-claro: #d6d4dc; }
+:root { --cinza-botao: #393939; --cinza-botao-borda: #5a5a5a; --cinza-botao-claro: #d5d5d5; }
 
 .btn, .btn .arrow, .day-seta, .pastas-aba, .conversa-responder { transition: none; }
 
@@ -10,7 +10,7 @@
   transform: none; background: var(--cinza-botao); border-color: var(--cinza-botao-borda); box-shadow: none; color: #fff;
 }
 /* o botão branco da primeira tela fica num cinza claro, para o texto escuro continuar legível */
-.hero-cta .btn-primary:hover { transform: none; background: var(--cinza-botao-claro); border-color: var(--cinza-botao-claro); box-shadow: none; color: #1b0a3d; }
+.hero-cta .btn-primary:hover { transform: none; background: var(--cinza-botao-claro); border-color: var(--cinza-botao-claro); box-shadow: none; color: #161616; }
 .btn:hover::after { background-position: 160% 0; transition: none; }
 .btn:hover::before { animation-duration: 3.2s; }
 .btn:hover .arrow { translate: none; }

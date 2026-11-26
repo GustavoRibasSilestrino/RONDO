@@ -44,7 +44,7 @@ export function Hoje({ ir }: { ir: (id: string) => void }) {
   return (
     <Tela>
       <View style={{ alignItems: 'center', gap: 2 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: situacao === 'apagada' ? 'rgba(255,255,255,0.05)' : 'rgba(138,61,255,0.16)', paddingVertical: 7, paddingHorizontal: 14, borderRadius: 99, marginBottom: 14 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: situacao === 'apagada' ? `rgba(${cores.tinta},0.05)` : 'rgba(111,111,111,0.16)', paddingVertical: 7, paddingHorizontal: 14, borderRadius: 99, marginBottom: 14 }}>
           <ChamaJoia tamanho={20} situacao={situacao} />
           <T tam={15} peso="500" cor={situacao === 'apagada' ? cores.texto3 : cores.destaque2}>{streak} {streak === 1 ? 'dia' : 'dias'}</T>
         </View>

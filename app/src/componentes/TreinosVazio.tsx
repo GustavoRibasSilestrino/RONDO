@@ -4,7 +4,7 @@
    O celular é só ilustração: o leitor de tela pula ele e lê o texto e o botão. */
 import React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
-import { cores, estilos, VIDRO } from '../tema';
+import { CENA, cores, estilos, VIDRO } from '../tema';
 import { LinearGradient as FundoTela } from 'expo-linear-gradient';
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { ABA, ALTURA, contorno, DESLOCA, PASSO } from './PilhaPastas';
@@ -34,10 +34,10 @@ function PastasMini() {
               <LinearGradient id={`mini-${i}`} x1="0" y1="0" x2="0.35" y2="1">
                 <Stop offset="0" stopColor="#ffffff" stopOpacity={0.14} />
                 <Stop offset="0.55" stopColor="#ffffff" stopOpacity={0.09} />
-                <Stop offset="1" stopColor="#8b5cf6" stopOpacity={0.1} />
+                <Stop offset="1" stopColor="#7b7b7b" stopOpacity={0.1} />
               </LinearGradient>
             </Defs>
-            <Path d={contorno(w, ALTURA, aba)} fill={`url(#mini-${i})`} stroke="rgba(255,255,255,0.2)" strokeWidth={1.5} strokeLinejoin="round" />
+            <Path d={contorno(w, ALTURA, aba)} fill={`url(#mini-${i})`} stroke={`rgba(${cores.tinta},0.2)`} strokeWidth={1.5} strokeLinejoin="round" />
           </Svg>
           <View style={{ position: 'absolute', left: 14 * K, top: 5 * K }}>
             <T tam={8.5} peso="500" style={{ letterSpacing: 0.4 }} linhas={1}>{x.nome}</T>
@@ -59,8 +59,8 @@ export function TreinosVazio({ aoNovo }: { aoNovo: () => void }) {
     <View style={st.raiz}>
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[st.janela, dissolver]}>
         <View style={st.celular}>
-          {/* a tela do celular com o fundo do app (o mesmo degradê de componentes/FundoCena.tsx) */}
-          <FundoTela colors={['#1b1430', '#100c1b', '#08070d']} locations={[0, 0.5, 1]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={StyleSheet.absoluteFill} />
+          {/* a tela do celular com o fundo do app (o mesmo degradê de componentes/FundoCena.tsx, que acompanha o tema) */}
+          <FundoTela colors={CENA.degrade} locations={[0, 0.5, 1]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={StyleSheet.absoluteFill} />
           <View style={st.ilha} />
           <View style={st.topoCelular}>
             <T tam={9} peso="500">9:41</T>
@@ -86,7 +86,7 @@ const st = estilos(() => StyleSheet.create({
   janela: { height: 268, width: 210, overflow: 'hidden', alignItems: 'center' },
   celular: {
     width: 196, height: 360, marginTop: 6, borderRadius: 34, padding: 14, paddingTop: 10, overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 5, borderColor: 'rgba(255,255,255,0.16)', ...VIDRO,
+    backgroundColor: `rgba(${cores.tinta},0.05)`, borderWidth: 5, borderColor: `rgba(${cores.tinta},0.16)`, ...VIDRO,
     shadowColor: '#000000', shadowOpacity: 0.5, shadowRadius: 20, shadowOffset: { width: 0, height: 10 },
   },
   ilha: { position: 'absolute', top: 8, alignSelf: 'center', left: 63, width: 60, height: 16, borderRadius: 8, backgroundColor: '#000000' },

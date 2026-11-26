@@ -40,7 +40,7 @@ function Onda({ x, y, D, indice, parado }: { x: number; y: number; D: number; in
       pointerEvents="none"
       style={{
         position: 'absolute', left: x - D / 2, top: y - D / 2, width: D, height: D, borderRadius: D / 2,
-        borderWidth: 1, borderColor: 'rgba(196,168,255,0.24)', backgroundColor: 'rgba(124,58,237,0.02)',
+        borderWidth: 1, borderColor: 'rgba(182,182,182,0.24)', backgroundColor: 'rgba(103,103,103,0.02)',
         opacity: opacidade, transform: [{ scale: escala as never }],
       }}
     />
@@ -62,7 +62,7 @@ function Grao({ x, y, tam, dur, comeco, camada, lilas, parado }: { x: number; y:
       pointerEvents="none"
       style={{
         position: 'absolute', left: x, top: y, width: tam, height: tam, borderRadius: tam,
-        backgroundColor: lilas ? 'rgb(196,168,255)' : '#ffffff',
+        backgroundColor: lilas ? 'rgb(182,182,182)' : '#ffffff',
         opacity: parado ? c.pico * 0.5 : t.interpolate({ inputRange: [0, 0.15, 0.7, 1], outputRange: [0, c.pico, c.pico * 0.7, 0] }),
         transform: parado ? [] : [
           { translateY: t.interpolate({ inputRange: [0, 1], outputRange: [0, -c.subida] }) },
@@ -129,8 +129,8 @@ export function FundoRondin({ estado, cx, cy }: Props) {
 
   return (
     <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden', backgroundColor: '#000000' }]}>
-      <Nevoa x={W * 0.06} y={H * 1.02} m={m * 0.95} cor="#5b21b6" forca={0.1} dur={38000} dx={m * 0.085} dy={-m * 0.066} parado={parado} />
-      <Nevoa x={W * 0.98} y={H * 0.5} m={m * 0.7} cor="#7c3aed" forca={0.06} dur={52000} dx={-m * 0.056} dy={m * 0.042} parado={parado} />
+      <Nevoa x={W * 0.06} y={H * 1.02} m={m * 0.95} cor="#494949" forca={0.1} dur={38000} dx={m * 0.085} dy={-m * 0.066} parado={parado} />
+      <Nevoa x={W * 0.98} y={H * 0.5} m={m * 0.7} cor="#676767" forca={0.06} dur={52000} dx={-m * 0.056} dy={m * 0.042} parado={parado} />
       <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { opacity: forca }]}>
         {Array.from({ length: ONDAS }, (_, i) => <Onda key={i} x={x0} y={y0} D={D} indice={i} parado={parado} />)}
       </Animated.View>

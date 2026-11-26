@@ -34,6 +34,7 @@ import "./styles/vidro.css";
 import "./styles/loja.css";
 import "./styles/entrar.css";
 import "./styles/suporte.css";
+import "./styles/verde.css";   // verde só nos botões e no menu (2026-11-26); por último, para valer sobre os outros
 import { acordarServidor } from "./lib/api";
 
 /* sem zoom de pinça: o Safari do iPhone ignora o user-scalable=no do index.html, mas respeita cancelar o gesto

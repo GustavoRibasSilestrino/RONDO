@@ -4,8 +4,8 @@
   position: relative; isolation: isolate; overflow: hidden; display: block; min-height: 100vh; min-height: 100svh;
   padding: calc(var(--nav-h) + clamp(1rem, 5vh, 3rem)) 0 clamp(4.5rem, 10vh, 6.5rem);
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0) 52%, rgba(3, 1, 8, .78) 82%, #030108 100%),
-    radial-gradient(ellipse 62% 78% at 68% 36%, #a35cff 0%, #6a1ee8 38%, #35108f 68%, #170544 100%);
+    linear-gradient(180deg, rgba(0, 0, 0, 0) 52%, rgba(2, 2, 2, .78) 82%, #020202 100%),
+    radial-gradient(ellipse 62% 78% at 68% 36%, #838383 0%, #585858 38%, #313131 68%, #141414 100%);
 }
 .hero-grao {
   position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: .16; mix-blend-mode: overlay;

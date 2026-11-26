@@ -4,12 +4,12 @@ import type { CategoriaGrupo } from '../tipos';
 
 /* capas: pares de cor (topo, fundo), todos na família do roxo do app */
 export const CORES_GRUPO: readonly (readonly [string, string])[] = [
-  ['#6d28d9', '#2e1065'],
-  ['#8b5cf6', '#4c1d95'],
-  ['#7c3aed', '#1e1b4b'],
-  ['#a855f7', '#581c87'],
-  ['#6366f1', '#312e81'],
-  ['#4b4570', '#17142b'],
+  ['#585858', '#252525'],
+  ['#7b7b7b', '#3c3c3c'],
+  ['#676767', '#222222'],
+  ['#808080', '#3d3d3d'],
+  ['#777777', '#3a3a3a'],
+  ['#4a4a4a', '#171717'],
 ];
 
 export const CATEGORIAS: { id: CategoriaGrupo; nome: string; icone: NomeIcone }[] = [

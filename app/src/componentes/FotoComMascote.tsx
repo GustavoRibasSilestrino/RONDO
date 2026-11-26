@@ -61,7 +61,7 @@ const st = estilos(() => StyleSheet.create({
      que vem depois enquanto aparece; o fundo é opaco, para nada transparecer por trás */
   balao: {
     marginTop: 12, width: 240, padding: 12, borderRadius: 16, borderTopLeftRadius: 6,
-    borderWidth: 1, borderColor: cores.linha2, backgroundColor: '#1c1530',
+    borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.tinta === '255,255,255' ? '#191919' : '#ffffff',   // opaco nos dois temas
     shadowColor: '#000', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 8,
   },
 }));

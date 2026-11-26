@@ -9,7 +9,7 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 export type TipoSelo = 'profissional' | 'famoso' | 'dono';
 
-const COR: Record<TipoSelo, string> = { profissional: '#0a6cff', famoso: '#7a0cf5', dono: '#fbb305' };
+const COR: Record<TipoSelo, string> = { profissional: '#0a6cff', famoso: '#5d5d5d', dono: '#fbb305' };
 const NOME: Record<TipoSelo, string> = { profissional: 'Profissional verificado', famoso: 'Conta verificada de pessoa pública', dono: 'Dono do RONDO' };
 
 /* contorno ondulado do selo: um círculo com 10 ondas suaves */

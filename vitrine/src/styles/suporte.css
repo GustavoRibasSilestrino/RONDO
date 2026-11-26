@@ -7,7 +7,7 @@
 .suporte-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); gap: clamp(.8rem, 1.6vw, 1.2rem); list-style: none; }
 .suporte-cartao {
   display: flex; flex-direction: column; gap: .55rem; padding: 1.25rem 1.2rem 1.1rem; border: 1px solid var(--vidro-borda, var(--line));
-  border-radius: 14px; background: var(--vidro-reflexo, none), var(--vidro-fundo-forte, rgba(18, 13, 30, .8));
+  border-radius: 14px; background: var(--vidro-reflexo, none), var(--vidro-fundo-forte, rgba(16, 16, 16, .8));
   -webkit-backdrop-filter: var(--vidro-desfoque, none); backdrop-filter: var(--vidro-desfoque, none);
 }
 .suporte-cartao svg { width: 26px; height: 26px; color: var(--accent-2); margin-bottom: .2rem; }
@@ -24,9 +24,9 @@
 /* ---------- a janela para escrever à equipe ---------- */
 .suporte-janela {
   width: min(100% - 1.5rem, 34rem); max-height: calc(100dvh - 2rem); margin: auto; padding: 0; border: 1px solid var(--line-2);
-  border-radius: 16px; background: #0f0b1a; color: var(--ink); box-shadow: 0 40px 100px -30px rgba(0, 0, 0, .9); overflow: auto;
+  border-radius: 16px; background: #0d0d0d; color: var(--ink); box-shadow: 0 40px 100px -30px rgba(0, 0, 0, .9); overflow: auto;
 }
-.suporte-janela::backdrop { background: rgba(5, 3, 12, .6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.suporte-janela::backdrop { background: rgba(4, 4, 4, .6); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 html:has(dialog.suporte-janela[open]) { overflow: hidden; }
 .suporte-janela-in { position: relative; padding: 1.5rem 1.4rem 1.3rem; }
 .suporte-janela h2 { margin: 0 2.4rem .9rem 0; font: 700 1.4rem/1.2 var(--font-titulo); letter-spacing: -.02em; color: #fff; }
@@ -44,14 +44,14 @@ html:has(dialog.suporte-janela[open]) { overflow: hidden; }
 .suporte-campo select { color-scheme: dark; }
 .suporte-campo textarea { min-height: 9rem; resize: vertical; }
 .suporte-campo textarea::placeholder { color: var(--ink-3); }
-.suporte-campo :is(input, select, textarea):focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139, 92, 246, .2); }
+.suporte-campo :is(input, select, textarea):focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(123, 123, 123, .2); }
 .suporte-contagem { justify-self: end; color: var(--ink-3); font-size: .8rem; font-variant-numeric: tabular-nums; }
 .suporte-duplo { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
 .suporte-quem { color: var(--ink-2); font-size: .92rem; }
 .suporte-quem b { color: var(--ink); font-weight: 600; }
 .suporte-erro { padding: .7rem .85rem; border: 1px solid rgba(255, 125, 147, .42); border-radius: 10px; background: rgba(255, 90, 120, .09); color: #ffd0d8; font-size: .92rem; }
 /* o aviso pedido pelo dono: a mensagem vai para a equipe */
-.suporte-obs { display: flex; align-items: center; gap: .55rem; padding: .7rem .85rem; border-radius: 10px; background: rgba(139, 92, 246, .1); color: #ddd3f7; font-size: .92rem; }
+.suporte-obs { display: flex; align-items: center; gap: .55rem; padding: .7rem .85rem; border-radius: 10px; background: rgba(123, 123, 123, .1); color: #d8d8d8; font-size: .92rem; }
 .suporte-obs svg { width: 18px; height: 18px; flex: none; color: var(--accent-2); }
 .suporte-botoes { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .2rem; }
 .suporte-botoes .btn { flex: 1 1 auto; justify-content: center; min-height: 48px; }

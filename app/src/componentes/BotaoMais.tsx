@@ -8,8 +8,9 @@ import { guardarPosicaoMais, useBotaoMaisEscondido } from '../lib/botaoMais';
 import { useMovimentoReduzido } from '../lib/movimento';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayoutLargo } from '../lib/largura';
-import { cores, larguraMax, estilos, VIDRO } from '../tema';
+import { cores, larguraMax, estilos, VERDE, VIDRO } from '../tema';
 import { Icone } from './Icone';
+import { Vidro } from './Vidro';
 
 export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPressionar: () => void }) {
   const caixa = useRef<React.ElementRef<typeof View>>(null);
@@ -41,9 +42,11 @@ export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPression
         }}
       >
         <View ref={caixa} onLayout={medir}>
-        <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={() => { medir(); aoPressionar(); }} style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.mais, hovered && st.maisSobre, pressed && { transform: [{ scale: 0.94 }] }]}>
-          <View pointerEvents="none" style={{ zIndex: 1 }}><Icone nome="mais" tamanho={28} cor={cores.texto} espessura={2} /></View>
+        <Vidro interativo tom={VERDE.botao} style={st.mais}>
+        <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={() => { medir(); aoPressionar(); }} style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.toque, hovered && st.maisSobre, pressed && { transform: [{ scale: 0.94 }] }]}>
+          <View pointerEvents="none" style={{ zIndex: 1 }}><Icone nome="mais" tamanho={28} cor="#ffffff" espessura={2} /></View>
         </Pressable>
+        </Vidro>
         </View>
       </Animated.View>
     </View>
@@ -52,6 +55,7 @@ export function BotaoMais({ rotulo, aoPressionar }: { rotulo: string; aoPression
 
 const st = estilos(() => StyleSheet.create({
   faixa: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  mais: { width: 58, height: 58, borderRadius: 29, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.09)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', boxShadow: '0 12px 28px -12px rgba(0,0,0,0.7)', ...VIDRO },
-  maisSobre: { backgroundColor: 'rgba(255,255,255,0.16)' },   // cursor em cima: cinza claro, como os outros botões
+  mais: { width: 58, height: 58, borderRadius: 29, overflow: 'hidden', backgroundColor: VERDE.botao, borderWidth: 1, borderColor: 'rgba(134,239,172,0.35)', boxShadow: `0 12px 28px -12px ${cores.sombra}`, ...VIDRO },
+  toque: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  maisSobre: { backgroundColor: VERDE.sobre },   // o + é um botão: verde (2026-11-26)
 }));

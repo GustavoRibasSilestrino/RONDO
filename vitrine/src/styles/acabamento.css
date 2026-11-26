@@ -24,7 +24,7 @@ p, .lead, li { text-wrap: pretty; }
 
 /* ---- cartões: um fio de luz na borda de cima, como uma quina que pega a luz ---- */
 .tool, .panel, .pro, .plan, .mini, .streak-board, .step, .recorder { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .055); }
-.plan.hot { box-shadow: inset 0 1px 0 rgba(196, 168, 255, .28), 0 30px 70px -40px rgba(139, 92, 246, .55); }
+.plan.hot { box-shadow: inset 0 1px 0 rgba(182, 182, 182, .28), 0 30px 70px -40px rgba(123, 123, 123, .55); }
 .panel, .mini, .step, .streak-board { transition: border-color .3s; }
 .panel:hover, .mini:hover, .step:hover { border-color: var(--line-2); }
 
@@ -54,7 +54,7 @@ input, select, textarea { caret-color: var(--accent-2); accent-color: var(--acce
 .field input::placeholder { color: var(--ink-3); opacity: .8; }
 .field input:hover, .signup:hover { border-color: rgba(255, 255, 255, .24); }
 .signup { transition: border-color .2s, box-shadow .2s; }
-.signup:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139, 92, 246, .15); }
+.signup:focus-within { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(123, 123, 123, .15); }
 
 /* ---- foco pelo teclado: o mesmo anel em tudo, um pouco mais claro sobre o roxo ---- */
 :focus-visible { outline-color: var(--accent-2); }
@@ -97,12 +97,12 @@ h2.display { font-size: clamp(2rem, 4.2vw, 3.5rem); }
 .btn { border-radius: 12px; font-weight: 600; letter-spacing: .01em; padding: .95rem 1.6rem; transition: transform .25s var(--ease), background .25s, box-shadow .3s, border-color .25s; }
 .btn-sm { border-radius: 10px; padding: .6rem 1.05rem; }
 .btn-primary {
-  background: linear-gradient(135deg, #5a0fc4 0%, #7426ec 48%, #9a5cff 100%); color: #fff; border: 1px solid rgba(214, 196, 255, .34);
-  box-shadow: 0 14px 30px -16px rgba(122, 38, 236, .95), inset 0 1px 0 rgba(255, 255, 255, .3), inset 0 -12px 18px -12px rgba(20, 0, 60, .55);
+  background: linear-gradient(135deg, #484848 0%, #5e5e5e 48%, #808080 100%); color: #fff; border: 1px solid rgba(205, 205, 205, .34);
+  box-shadow: 0 14px 30px -16px rgba(96, 96, 96, .95), inset 0 1px 0 rgba(255, 255, 255, .3), inset 0 -12px 18px -12px rgba(15, 15, 15, .55);
 }
-.btn-primary:hover { box-shadow: 0 20px 36px -16px rgba(139, 92, 246, 1), inset 0 1px 0 rgba(255, 255, 255, .42), inset 0 -12px 18px -12px rgba(20, 0, 60, .45); border-color: rgba(232, 220, 255, .7); }
-.btn-ghost { border: 1px solid rgba(196, 168, 255, .32); background: rgba(139, 92, 246, .08); backdrop-filter: blur(6px); }
-.btn-ghost:hover { background: rgba(139, 92, 246, .18); border-color: rgba(196, 168, 255, .72); box-shadow: 0 0 22px -8px rgba(139, 92, 246, .9); }
+.btn-primary:hover { box-shadow: 0 20px 36px -16px rgba(123, 123, 123, 1), inset 0 1px 0 rgba(255, 255, 255, .42), inset 0 -12px 18px -12px rgba(15, 15, 15, .45); border-color: rgba(225, 225, 225, .7); }
+.btn-ghost { border: 1px solid rgba(182, 182, 182, .32); background: rgba(123, 123, 123, .08); backdrop-filter: blur(6px); }
+.btn-ghost:hover { background: rgba(123, 123, 123, .18); border-color: rgba(182, 182, 182, .72); box-shadow: 0 0 22px -8px rgba(123, 123, 123, .9); }
 /* o reflexo que atravessa o botão quando o cursor chega */
 .btn::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
@@ -111,12 +111,12 @@ h2.display { font-size: clamp(2rem, 4.2vw, 3.5rem); }
 .btn:hover::after { background-position: -60% 0; transition: background-position .75s var(--ease); }
 /* primeira tela: o botão principal é claro, para saltar do roxo; o segundo é de vidro */
 .hero-cta .btn { border-radius: 12px; font-weight: 600; }
-.hero-cta .btn-primary { background: #fff; color: #1b0a3d; border: 1px solid #fff; box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .8), inset 0 -10px 16px -12px rgba(106, 30, 232, .35); }
-.hero-cta .btn-primary:hover { background: #f3ecff; box-shadow: 0 24px 46px -18px rgba(0, 0, 0, .85), inset 0 -10px 16px -12px rgba(106, 30, 232, .45); }
+.hero-cta .btn-primary { background: #fff; color: #161616; border: 1px solid #fff; box-shadow: 0 18px 40px -18px rgba(0, 0, 0, .8), inset 0 -10px 16px -12px rgba(88, 88, 88, .35); }
+.hero-cta .btn-primary:hover { background: #efefef; box-shadow: 0 24px 46px -18px rgba(0, 0, 0, .85), inset 0 -10px 16px -12px rgba(88, 88, 88, .45); }
 .hero-cta .btn-primary::before { display: none; }   /* sem o contorno girando: o branco já chama */
-.hero-cta .btn-primary::after { background-image: linear-gradient(105deg, transparent 38%, rgba(139, 92, 246, .24) 50%, transparent 62%); }
-.hero-cta .btn-ghost { border: 1px solid rgba(255, 255, 255, .28); background: rgba(10, 4, 30, .34); }
-.hero-cta .btn-ghost:hover { background: rgba(10, 4, 30, .5); border-color: rgba(255, 255, 255, .6); box-shadow: none; }
+.hero-cta .btn-primary::after { background-image: linear-gradient(105deg, transparent 38%, rgba(123, 123, 123, .24) 50%, transparent 62%); }
+.hero-cta .btn-ghost { border: 1px solid rgba(255, 255, 255, .28); background: rgba(8, 8, 8, .34); }
+.hero-cta .btn-ghost:hover { background: rgba(8, 8, 8, .5); border-color: rgba(255, 255, 255, .6); box-shadow: none; }
 .btn-mini { border-radius: 10px; }
 @media (prefers-reduced-motion: reduce) { .btn::after { display: none; } }
 @media (hover: none) { .btn::after { display: none; } }

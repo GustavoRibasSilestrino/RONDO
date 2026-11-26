@@ -88,9 +88,10 @@ export function CriarStory({ aberto, aoFechar, aoPublicar }: { aberto: boolean; 
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={st.coluna}>
           <View style={[st.topo, { paddingTop: insets.top + 8 }]}>
             <Pressable accessibilityRole="button" accessibilityLabel={etapa === 'escolher' ? 'Fechar' : 'Voltar'} onPress={() => { if (enviando) return; if (etapa === 'escolher') fechar(); else limpar(true); }} style={st.botaoTopo}>
-              <Icone nome={etapa === 'escolher' ? 'fechar' : 'voltar'} tamanho={22} cor="#ffffff" />
+              {/* no texto, o fundo é a cor do story (branco por cima); nas outras etapas, o fundo do tema */}
+              <Icone nome={etapa === 'escolher' ? 'fechar' : 'voltar'} tamanho={22} cor={etapa === 'texto' || cores.tinta === '255,255,255' ? '#ffffff' : cores.texto} />
             </Pressable>
-            <T tam={16} peso="500" style={{ flex: 1 }}>Novo story</T>
+            <T tam={16} peso="500" cor={etapa === 'texto' && cores.tinta !== '255,255,255' ? '#ffffff' : undefined} style={{ flex: 1 }}>Novo story</T>
           </View>
 
           {etapa === 'escolher' ? (

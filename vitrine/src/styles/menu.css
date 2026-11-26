@@ -4,7 +4,7 @@
    letra mais firme, branca de vez (sem a transparência de antes) e uma sombra escura justa mais um halo */
 .nav-trigger {
   padding: .5rem .9rem; border-radius: 6px; color: #fff; font-weight: 500; transition: background .2s;
-  text-shadow: 0 1px 1px rgba(5, 3, 14, .9), 0 1px 3px rgba(5, 3, 14, .75), 0 0 16px rgba(5, 3, 14, .55);
+  text-shadow: 0 1px 1px rgba(4, 4, 4, .9), 0 1px 3px rgba(4, 4, 4, .75), 0 0 16px rgba(4, 4, 4, .55);
 }
 .nav-item:hover .nav-trigger,
 .nav-item:focus-within .nav-trigger,
@@ -26,7 +26,7 @@
 
 .mega-card {
   display: grid; grid-template-columns: 1fr 1fr; overflow: hidden;
-  border: 1px solid var(--line-2); border-radius: var(--r-lg); background: #09070f;
+  border: 1px solid var(--line-2); border-radius: var(--r-lg); background: #080808;
   box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .9);
 }
 .mega-col { padding: 1.5rem 1.5rem 1.3rem; display: grid; gap: .25rem; align-content: start; }

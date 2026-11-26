@@ -1,16 +1,19 @@
 /* O botão redondo de ouvir um recado. Do diário, recebe o recado (o áudio pode estar no IndexedDB do navegador: lib/audioGuardado.ts);
    da conversa, recebe o endereço do rascunho que acabou de ser gravado. Sem áudio (o navegador limpou os dados), fica apagado. */
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Pressable, View } from 'react-native';
 import { useUriDoRecado } from '../lib/audioGuardado';
 import { cores } from '../tema';
 import type { Recado } from '../tipos';
 import { Icone } from './Icone';
+import { EscuroContexto } from './Ui';
 
 function Reprodutor({ uri, tamanho, rotulo }: { uri: string; tamanho: number; rotulo: string }) {
   const player = useAudioPlayer(uri);
   const status = useAudioPlayerStatus(player);
+  /* o ícone branco só nas telas escuras do RONDIN e no tema escuro; no claro, o texto do tema */
+  const corIcone = useContext(EscuroContexto) || cores.tinta === '255,255,255' ? '#ffffff' : cores.texto;
   return (
     <Pressable
       accessibilityRole="button"
@@ -22,7 +25,7 @@ function Reprodutor({ uri, tamanho, rotulo }: { uri: string; tamanho: number; ro
       }}
       style={{ width: tamanho, height: tamanho, borderRadius: tamanho / 2, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 }}
     >
-      <Icone nome={status.playing ? 'parar' : 'tocar'} tamanho={Math.round(tamanho * 0.4)} />
+      <Icone nome={status.playing ? 'parar' : 'tocar'} tamanho={Math.round(tamanho * 0.4)} cor={corIcone} />
     </Pressable>
   );
 }

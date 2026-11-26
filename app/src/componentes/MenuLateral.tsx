@@ -13,6 +13,7 @@ import { T } from './Ui';
 import { Avatar } from '../telas/comunidade/Avatar';
 import { useLoja } from '../estado/loja';
 import { TelaPlanos } from './TelaPlanos';
+import { BotaoTema } from './BotaoTema';
 
 type Props = {
   itens: ItemAba[]; atual: string; aoEscolher: (id: string) => void;
@@ -101,7 +102,7 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
       accessibilityRole="button"
       accessibilityLabel={estado.pro ? 'Plano PRO ativo' : 'Fazer upgrade para o plano PRO'}
       onPress={() => setPro(true)}
-      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.pro, recolhido && st.proFechado, estado.pro && st.proAtivo, (pressed || hovered) && { backgroundColor: 'rgba(255,255,255,0.12)' }]}
+      style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.pro, recolhido && st.proFechado, estado.pro && st.proAtivo, (pressed || hovered) && { backgroundColor: `rgba(${cores.tinta},0.12)` }]}
     >
       <View style={st.proIcone}><Icone nome="estrela" tamanho={15} cor="#ffffff" espessura={2} /></View>
       {recolhido ? null : (
@@ -142,6 +143,9 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
 
       <View style={{ flex: 1 }} />
 
+      {/* o ícone do tema (sol/lua, desde 2026-11-26): no computador não há o cabeçalho de cima, então ele mora aqui */}
+      <View style={[st.tema, recolhido && { alignItems: 'center' }]}><BotaoTema tamanho={36} /></View>
+
       <View style={st.rodape}>
         <Item papel="button" icone="sino" rotulo="Notificações" recolhido={recolhido} ativo={notificacoesAbertas} selo={naoLidas} aoPressionar={aoAbrirNotificacoes} />
       </View>
@@ -154,12 +158,13 @@ export function MenuLateral({ itens, atual, aoEscolher, recolhido, aoAlternar, n
 const st = estilos(() => StyleSheet.create({
   menu: { height: '100%', paddingHorizontal: 12, paddingTop: 16, paddingBottom: 14, borderRightWidth: 1, borderRightColor: cores.linha, backgroundColor: cores.fundo2, zIndex: 10, overflow: 'hidden' },
   topo: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  tema: { paddingHorizontal: 6, marginBottom: 8 },
   botaoMenu: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   conta: { flexDirection: 'row', alignItems: 'center', gap: 10, height: 52, paddingHorizontal: 7, borderRadius: 14 },
   contaFechada: { justifyContent: 'center', paddingHorizontal: 0, width: 48 },
   pro: {
     flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 50, paddingVertical: 8, paddingHorizontal: 10, borderRadius: 14,
-    borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#000000', backgroundColor: 'rgba(255,255,255,0.08)',
+    borderWidth: 1.5, borderStyle: 'dashed', borderColor: '#000000', backgroundColor: `rgba(${cores.tinta},0.08)`,
   },
   proFechado: { width: 48, minHeight: 48, paddingHorizontal: 0, justifyContent: 'center' },
   proAtivo: { borderStyle: 'solid', borderColor: cores.linha2 },

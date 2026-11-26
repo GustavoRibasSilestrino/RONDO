@@ -52,13 +52,13 @@ export function Lixeira({ visivel, sobre, aviso, aoTocar, aoMedir, aoCancelar }:
         style={{ alignItems: 'center', opacity: entra, transform: [{ translateY: entra.interpolate({ inputRange: [0, 1], outputRange: [70, 0] }) }, { scale: entra.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }] }}
       >
         <View style={{ marginBottom: 8, paddingVertical: 5, paddingHorizontal: 12, borderRadius: 999, backgroundColor: sobre ? cores.erro : cores.aviso }}>
-          <T tam={12} peso="500" cor="#ffffff">{aviso ?? (sobre ? 'Solte para excluir' : 'Arraste até aqui para excluir')}</T>
+          <T tam={12} peso="500" cor={sobre || cores.tinta === '255,255,255' ? '#ffffff' : cores.texto}>{aviso ?? (sobre ? 'Solte para excluir' : 'Arraste até aqui para excluir')}</T>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         {/* cancelar sem arrastar: a pasta volta para o lugar dela */}
         <Pressable
           accessibilityRole="button" accessibilityLabel="Cancelar e colocar a pasta de volta" onPress={aoCancelar} hitSlop={8}
-          style={({ hovered }: { pressed: boolean; hovered?: boolean }): ViewStyle[] => [{ height: 40, paddingHorizontal: 16, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)', backgroundColor: hovered ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.09)', opacity: sobre ? 0 : 1 }, VIDRO as ViewStyle]}
+          style={({ hovered }: { pressed: boolean; hovered?: boolean }): ViewStyle[] => [{ height: 40, paddingHorizontal: 16, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: `rgba(${cores.tinta},0.18)`, backgroundColor: hovered ? `rgba(${cores.tinta},0.16)` : `rgba(${cores.tinta},0.09)`, opacity: sobre ? 0 : 1 }, VIDRO as ViewStyle]}
         >
           <T tam={13} peso="500">Cancelar</T>
         </Pressable>
@@ -71,9 +71,9 @@ export function Lixeira({ visivel, sobre, aviso, aoTocar, aoMedir, aoCancelar }:
             onPress={aoTocar}
             style={({ hovered }: { pressed: boolean; hovered?: boolean }): ViewStyle[] => [{
               width: TAMANHO, height: TAMANHO, borderRadius: TAMANHO / 2, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5,
-              borderColor: sobre ? cores.erro : 'rgba(255,255,255,0.18)',
-              backgroundColor: sobre ? cores.erro : hovered ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.09)',
-              boxShadow: sobre ? '0 12px 30px -10px rgba(179,32,58,0.75)' : '0 12px 28px -12px rgba(42,22,80,0.55)',
+              borderColor: sobre ? cores.erro : `rgba(${cores.tinta},0.18)`,
+              backgroundColor: sobre ? cores.erro : hovered ? `rgba(${cores.tinta},0.16)` : `rgba(${cores.tinta},0.09)`,
+              boxShadow: sobre ? '0 12px 30px -10px rgba(179,32,58,0.75)' : '0 12px 28px -12px rgba(35,35,35,0.55)',
             }, VIDRO as ViewStyle]}
           >
             {/* a tampa inclina quando a pasta chega */}

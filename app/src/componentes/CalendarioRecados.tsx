@@ -81,6 +81,6 @@ const st = estilos(() => StyleSheet.create({
   dia: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: 'transparent' },
   diaFeito: { backgroundColor: cores.destaqueForte, borderColor: cores.destaqueForte },
   diaHoje: { borderColor: cores.destaque },
-  diaMarcado: { borderColor: '#ffffff' },
+  diaMarcado: { borderColor: `rgb(${cores.tinta})` },   // o anel do dia escolhido: branco no escuro, roxo-escuro no claro
   resumo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 14, borderTopWidth: 1, borderTopColor: cores.linha },
 }));

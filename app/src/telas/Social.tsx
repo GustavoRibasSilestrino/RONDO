@@ -1,5 +1,6 @@
 /* Início e Comunidade. O Início é o feed: as publicações de quem você segue e dos clubes (texto, fotos e vídeos).
-   A Comunidade tem os clubes (criar, entrar, convidar e publicar dentro) e o ranking semanal de constância.
+   A Comunidade tem duas abas (desde 2026-11-26): Clubes (criar, entrar, convidar e publicar dentro) e Desafios (criados pelas
+   pessoas, com contagem para começar; no fim dela, o ranking semanal de constância). Nada vem pronto: as listas começam vazias.
    O botão + roxo, sobre a barra, cria uma publicação. Feed, clubes e perfis vêm do servidor e são os mesmos para todo mundo. */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, BackHandler, Easing, Platform, Pressable, Share, StyleSheet, View } from 'react-native';
@@ -9,7 +10,7 @@ import type { Pessoa } from '../api/social';
 import { Tela, useAviso } from '../componentes/Estrutura';
 import { MenuMais } from '../componentes/MenuMais';
 import { BotaoMais } from '../componentes/BotaoMais';
-import { Botao, Cartao, Segmentos, T } from '../componentes/Ui';
+import { Botao, Cartao, T } from '../componentes/Ui';
 import { useLista } from '../estado/lista';
 import { useLoja } from '../estado/loja';
 import { comparar, statsSemana } from '../lib/calc';
@@ -25,9 +26,10 @@ import { CriarGrupo } from './comunidade/CriarGrupo';
 import { GrupoTela } from './comunidade/GrupoTela';
 import { Grupos } from './comunidade/Grupos';
 import { VisorMidia } from './comunidade/Midia';
-import { Ranking } from './comunidade/Ranking';
+import { Desafios } from './comunidade/Desafios';
+import { CapaComunidade } from './comunidade/CapaComunidade';
 
-type Aba = 'grupos' | 'ranking';
+type Aba = 'grupos' | 'desafios';
 
 /* as separações do Feed, logo abaixo do cabeçalho (pedido do dono, 2026-11-18): quem você segue, os seus clubes e o explorar
    (tudo o que você pode ver). O servidor já filtra (filtro do GET /social/feed). */
@@ -101,6 +103,7 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
   const [grupoAberto, setGrupoAberto] = useState<number | null>(null);
   const [compor, setCompor] = useState<{ aberto: boolean; grupo: number | null }>({ aberto: false, grupo: null });
   const [criando, setCriando] = useState(false);
+  const [criandoDesafio, setCriandoDesafio] = useState(false);
   const [menuMais, setMenuMais] = useState(false);   // o menu do botão +
   const [perfilAberto, setPerfilAberto] = useState<number | null>(null);   // o perfil de quem publicou, aberto ao tocar na foto
   const [visor, setVisor] = useState<{ itens: Midia[]; indice: number } | null>(null);
@@ -182,12 +185,11 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
           </>
         ) : (
           <>
-            <T tam={13.5} cor={cores.texto2} centro>Clubes e gente que também voltou hoje.</T>
-            <Botao pixel icone="mais" titulo="Criar clube" aoPressionar={() => setCriando(true)} style={{ marginTop: 16 }} />
-            <View style={{ marginTop: 16 }}>
-              <Segmentos<Aba> pixel valor={aba} aoMudar={setAba} opcoes={[{ valor: 'grupos', nome: 'Clubes' }, { valor: 'ranking', nome: 'Ranking' }]} />
-            </View>
-            {aba === 'grupos' ? <Grupos aoAbrir={setGrupoAberto} aoCriar={() => setCriando(true)} /> : <Ranking />}
+            {/* a capa ilustrada (os dragõezinhos), com as abas Clubes e Desafios em pílulas e o botão de criar (2026-11-26) */}
+            <CapaComunidade aba={aba} aoMudarAba={setAba} aoCriar={() => setMenuMais(true)} />
+            {aba === 'grupos'
+              ? <Grupos aoAbrir={setGrupoAberto} aoCriar={() => setCriando(true)} />
+              : <Desafios criando={criandoDesafio} aoCriando={setCriandoDesafio} />}
           </>
         )}
 
@@ -206,7 +208,10 @@ export function Social({ modo, ir, buscaAberta, aoFecharBusca }: { modo: 'home' 
         aberto={menuMais} aoFechar={() => setMenuMais(false)} rotulo="Criar"
         itens={[
           { rotulo: 'Nova publicação', aoPressionar: () => abrirCompositor(null) },
-          ...(modo === 'comunidade' ? [{ rotulo: 'Criar clube', aoPressionar: () => setCriando(true) }] : []),
+          ...(modo === 'comunidade' ? [
+            { rotulo: 'Criar clube', aoPressionar: () => { setAba('grupos'); setCriando(true); } },
+            { rotulo: 'Criar desafio', aoPressionar: () => { setAba('desafios'); setCriandoDesafio(true); } },
+          ] : []),
           { rotulo: 'Compartilhar minha semana', aoPressionar: () => { void compartilhar(); } },
         ]}
       />

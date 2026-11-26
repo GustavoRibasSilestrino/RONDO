@@ -46,7 +46,7 @@
   transition: background .15s;
 }
 .pastas-linha:hover { background: rgba(255, 255, 255, .26); }
-.pastas-linha.is-escolhido { background: #0d0919; color: #fff; }
+.pastas-linha.is-escolhido { background: #0c0c0c; color: #fff; }
 .pastas-linha:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
 .pastas-nome, .pastas-ontem, .pastas-hoje { display: grid; gap: .15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 .pastas-nome { font-size: 1rem; }
@@ -60,7 +60,7 @@
 .pastas-rondin { display: flex; align-items: flex-end; justify-content: flex-end; gap: .8rem; margin-top: 1.3rem; }
 .pastas-fala {
   position: relative; max-width: 34ch; padding: .9rem 1.1rem; border-radius: 16px 16px 4px 16px;
-  background: #0d0919; color: #f1eefb; font-size: .95rem; line-height: 1.5;
+  background: #0c0c0c; color: #f0f0f0; font-size: .95rem; line-height: 1.5;
   box-shadow: 0 14px 30px -16px rgba(0, 0, 0, .7);
 }
 .pastas-orbe { display: grid; justify-items: center; gap: .2rem; flex: none; }

@@ -10,7 +10,8 @@ import { T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
 import { cores, estilos } from '../../tema';
 
-export function BotaoSeguir({ pessoa }: { pessoa: Pick<Pessoa, 'id' | 'nome' | 'seguindo'> }) {
+/* seguir ou deixar de seguir: muda na hora e o servidor confirma; se falhar, volta ao que era (o perfil usa no botão grande) */
+export function useSeguir(pessoa: Pick<Pessoa, 'id' | 'nome' | 'seguindo'>) {
   const { atualizarSocial } = useLoja();
   const avisar = useAviso();
   const [seguindo, setSeguindo] = useState(pessoa.seguindo);
@@ -32,7 +33,11 @@ export function BotaoSeguir({ pessoa }: { pessoa: Pick<Pessoa, 'id' | 'nome' | '
       ocupado.current = false;
     }
   };
+  return { seguindo, alternar };
+}
 
+export function BotaoSeguir({ pessoa }: { pessoa: Pick<Pessoa, 'id' | 'nome' | 'seguindo'> }) {
+  const { seguindo, alternar } = useSeguir(pessoa);
   return (
     <Pressable
       accessibilityRole="button"

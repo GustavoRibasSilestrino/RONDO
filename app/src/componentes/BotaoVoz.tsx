@@ -32,7 +32,7 @@ export function BotaoVoz({ idioma = 'pt', style }: { idioma?: 'pt' | 'en' | 'es'
 const st = StyleSheet.create({
   botao: {
     width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(196,168,255,0.22)',
+    backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(182,182,182,0.22)',
   },
-  ativo: { backgroundColor: 'rgba(167,139,250,0.16)', borderColor: 'rgba(196,168,255,0.45)' },
+  ativo: { backgroundColor: 'rgba(157,157,157,0.16)', borderColor: 'rgba(182,182,182,0.45)' },
 });

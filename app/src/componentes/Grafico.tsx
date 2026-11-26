@@ -65,7 +65,7 @@ export function MapaCalor({ semanas, largura }: { semanas: { ativo: boolean; fol
           <Rect
             key={`${c}-${l}`}
             x={c * (lado + folga)} y={l * (lado + folga)} width={lado} height={lado} rx={2.5}
-            fill={dia.futuro ? 'transparent' : dia.ativo ? cores.destaque : dia.folga ? 'transparent' : 'rgba(255,255,255,0.06)'}
+            fill={dia.futuro ? 'transparent' : dia.ativo ? cores.destaque : dia.folga ? 'transparent' : `rgba(${cores.tinta},0.06)`}
             stroke={dia.folga && !dia.ativo ? cores.texto3 : 'none'} strokeDasharray={dia.folga && !dia.ativo ? '3 2' : undefined} strokeWidth={1}
           />
         )),

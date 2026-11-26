@@ -23,7 +23,7 @@ const INTEGRIDADE = 'sha384-33ConKAFiqnDTqoc8FFsTiKhp23eN52R5hP3ZqPBuRvIe9XyWblq
 const WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${VERSAO}/wasm`;
 const MODELO = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
 
-const ROXO = '#c4a8ff', VERMELHO = '#ff5d73', AMARELO = '#ffcf5c', VERDE = '#3ddc97';
+const ROXO = '#b6b6b6', VERMELHO = '#ff5d73', AMARELO = '#ffcf5c', VERDE = '#3ddc97';
 const FONTE = 'Poppins_400Regular, system-ui, sans-serif', FONTE_FORTE = 'Poppins_600SemiBold, system-ui, sans-serif';
 
 /* o detector é carregado uma vez e fica guardado para as próximas aberturas */
@@ -132,7 +132,7 @@ function Pergunta({ aoEscolher, aoFechar }: { aoEscolher: (e: Exercicio) => void
           placeholder="Ex.: rosca direta, agachamento, flexão" autoComplete="off" enterKeyHint="go" maxLength={60} style={css.campo}
         />
         <button type="submit" disabled={!texto.trim() || estado === 'pensando'} style={{ ...css.botao, width: '100%', maxWidth: 440, opacity: texto.trim() ? 1 : 0.5 }}>Abrir a câmera</button>
-        <div style={{ fontSize: 12.5, color: '#9e96b8', textAlign: 'center', maxWidth: 440, lineHeight: 1.45 }}>A análise roda neste aparelho: o vídeo não é gravado nem enviado.</div>
+        <div style={{ fontSize: 12.5, color: '#9a9a9a', textAlign: 'center', maxWidth: 440, lineHeight: 1.45 }}>A análise roda neste aparelho: o vídeo não é gravado nem enviado.</div>
       </form>
     </div>
   );
@@ -242,7 +242,7 @@ function Camera({ exercicio, aoFechar, aoTrocar }: { exercicio: Exercicio; aoFec
       const em = (x: number, y: number) => ({ X: ox + (espelhar ? 1 - x : x) * w, Y: oy + y * h });
 
       ctx.lineCap = 'round';
-      ctx.strokeStyle = 'rgba(196,168,255,0.85)'; ctx.lineWidth = 3;
+      ctx.strokeStyle = 'rgba(182,182,182,0.85)'; ctx.lineWidth = 3;
       for (const [a, b] of LIGACOES) {
         if (pts[a].v < 0.4 || pts[b].v < 0.4) continue;
         const A = em(pts[a].x, pts[a].y), B = em(pts[b].x, pts[b].y);
@@ -290,7 +290,7 @@ function Camera({ exercicio, aoFechar, aoTrocar }: { exercicio: Exercicio; aoFec
         usadas.push({ x: bx, y: by, w: bw, h: bh });
         ctx.strokeStyle = 'rgba(255,93,115,0.8)'; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(P.X, P.Y); ctx.lineTo(bx + (bx > P.X ? 0 : bw), by + bh / 2); ctx.stroke();
-        ctx.fillStyle = 'rgba(14,8,26,0.9)';
+        ctx.fillStyle = 'rgba(11,11,11,0.9)';
         ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 10); ctx.fill();
         ctx.strokeStyle = VERMELHO; ctx.lineWidth = 1.5; ctx.stroke();
         ctx.fillStyle = '#ffffff'; ctx.textBaseline = 'middle';
@@ -314,7 +314,7 @@ function Camera({ exercicio, aoFechar, aoTrocar }: { exercicio: Exercicio; aoFec
   const daRep = leitura?.ultima && !leitura.ultima.certa ? leitura.ultima.correcoes : [];
   const lista = [...vivas, ...daRep].filter((c, i, a) => a.findIndex((x) => x.texto === c.texto) === i).slice(0, 3);
   const veredito = situacao !== 'pronto' ? null
-    : !leitura || leitura.aviso ? { cor: '#9e96b8', texto: leitura?.aviso ?? 'Procurando uma pessoa no quadro...' }
+    : !leitura || leitura.aviso ? { cor: '#9a9a9a', texto: leitura?.aviso ?? 'Procurando uma pessoa no quadro...' }
     : vivas.length ? { cor: VERMELHO, texto: 'Corrija a execução' }
     : daRep.length ? { cor: AMARELO, texto: 'A última repetição precisa de ajuste' }
     : leitura.ultima ? { cor: VERDE, texto: 'Execução certa' }
@@ -362,18 +362,18 @@ function Camera({ exercicio, aoFechar, aoTrocar }: { exercicio: Exercicio; aoFec
         {veredito ? (
           <div aria-live="polite" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ width: 12, height: 12, borderRadius: 6, background: veredito.cor, boxShadow: `0 0 12px ${veredito.cor}` }} />
-            <span style={{ fontFamily: FONTE_FORTE, fontSize: 17, color: veredito.cor === '#9e96b8' ? '#f4f1fb' : veredito.cor }}>{veredito.texto}</span>
-            <span style={{ marginLeft: 'auto', fontSize: 13.5, color: '#c9c2db', whiteSpace: 'nowrap' }}>
+            <span style={{ fontFamily: FONTE_FORTE, fontSize: 17, color: veredito.cor === '#9a9a9a' ? '#f2f2f2' : veredito.cor }}>{veredito.texto}</span>
+            <span style={{ marginLeft: 'auto', fontSize: 13.5, color: '#c5c5c5', whiteSpace: 'nowrap' }}>
               {exercicio === 'prancha' ? `${leitura?.segundosCertos ?? 0} s na posição certa` : `${leitura?.reps ?? 0} ${leitura?.reps === 1 ? 'repetição' : 'repetições'} · ${leitura?.certas ?? 0} ${leitura?.certas === 1 ? 'certa' : 'certas'}`}
             </span>
           </div>
         ) : null}
         {lista.length ? (
           <ul style={{ listStyle: 'none', margin: '10px 0 0', padding: 0, display: 'grid', gap: 6 }}>
-            {lista.map((c) => <li key={c.texto} style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontSize: 14.5, color: '#f4f1fb' }}><span style={{ color: vivas.includes(c) ? VERMELHO : AMARELO }}>●</span>{c.texto}</li>)}
+            {lista.map((c) => <li key={c.texto} style={{ display: 'flex', gap: 8, alignItems: 'baseline', fontSize: 14.5, color: '#f2f2f2' }}><span style={{ color: vivas.includes(c) ? VERMELHO : AMARELO }}>●</span>{c.texto}</li>)}
           </ul>
         ) : null}
-        <div style={{ marginTop: 10, fontSize: 12.5, color: '#9e96b8', lineHeight: 1.45 }}>{ex.dica} A análise roda neste aparelho: o vídeo não é gravado nem enviado.</div>
+        <div style={{ marginTop: 10, fontSize: 12.5, color: '#9a9a9a', lineHeight: 1.45 }}>{ex.dica} A análise roda neste aparelho: o vídeo não é gravado nem enviado.</div>
       </div>
     </div>
   );
@@ -391,17 +391,17 @@ if (typeof document !== 'undefined' && !document.getElementById('analise-execuca
 }
 
 const css: Record<string, React.CSSProperties> = {
-  fundo: { position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', flexDirection: 'column', background: '#07060b', color: '#f4f1fb', fontFamily: FONTE },
+  fundo: { position: 'fixed', inset: 0, zIndex: 10000, display: 'flex', flexDirection: 'column', background: '#070707', color: '#f2f2f2', fontFamily: FONTE },
   topo: { display: 'flex', alignItems: 'center', padding: 'max(10px, env(safe-area-inset-top)) 12px 8px' },
-  redondo: { width: 44, height: 44, borderRadius: 22, display: 'grid', placeItems: 'center', border: '1px solid rgba(167,139,250,0.26)', background: '#1a1626', cursor: 'pointer' },
+  redondo: { width: 44, height: 44, borderRadius: 22, display: 'grid', placeItems: 'center', border: '1px solid rgba(157,157,157,0.26)', background: '#181818', cursor: 'pointer' },
   trocar: { background: 'none', border: 0, padding: '2px 6px', color: ROXO, fontFamily: FONTE, fontSize: 12.5, textDecoration: 'underline', cursor: 'pointer' },
   pergunta: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '0 20px 40px' },
-  campo: { width: '100%', maxWidth: 440, minHeight: 52, padding: '0 16px', borderRadius: 14, border: '1px solid rgba(196,168,255,0.4)', background: '#0d0b13', color: '#f4f1fb', fontFamily: FONTE, fontSize: 16, outline: 'none', boxSizing: 'border-box' },
+  campo: { width: '100%', maxWidth: 440, minHeight: 52, padding: '0 16px', borderRadius: 14, border: '1px solid rgba(182,182,182,0.4)', background: '#0c0c0c', color: '#f2f2f2', fontFamily: FONTE, fontSize: 16, outline: 'none', boxSizing: 'border-box' },
   palco: { position: 'relative', flex: 1, minHeight: 0, background: '#000', overflow: 'hidden' },
   video: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' },
   tela: { position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' },
-  cobertura: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24, textAlign: 'center', background: 'rgba(7,6,11,0.82)', fontSize: 15 },
-  girando: { width: 34, height: 34, borderRadius: '50%', border: '3px solid rgba(196,168,255,0.25)', borderTopColor: ROXO, animation: 'analiseGira 0.9s linear infinite' },
-  botao: { minHeight: 46, padding: '0 20px', borderRadius: 14, border: '1px solid rgba(214,196,255,0.36)', background: '#6a00d4', color: '#fff', fontFamily: FONTE_FORTE, fontSize: 15, cursor: 'pointer' },
-  base: { padding: '12px 16px max(14px, env(safe-area-inset-bottom))', borderTop: '1px solid rgba(167,139,250,0.13)', background: '#0d0b13', maxWidth: 760, width: '100%', alignSelf: 'center', boxSizing: 'border-box' },
+  cobertura: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, padding: 24, textAlign: 'center', background: 'rgba(7,7,7,0.82)', fontSize: 15 },
+  girando: { width: 34, height: 34, borderRadius: '50%', border: '3px solid rgba(182,182,182,0.25)', borderTopColor: ROXO, animation: 'analiseGira 0.9s linear infinite' },
+  botao: { minHeight: 46, padding: '0 20px', borderRadius: 14, border: '1px solid rgba(205,205,205,0.36)', background: '#4f4f4f', color: '#fff', fontFamily: FONTE_FORTE, fontSize: 15, cursor: 'pointer' },
+  base: { padding: '12px 16px max(14px, env(safe-area-inset-bottom))', borderTop: '1px solid rgba(157,157,157,0.13)', background: '#0c0c0c', maxWidth: 760, width: '100%', alignSelf: 'center', boxSizing: 'border-box' },
 };

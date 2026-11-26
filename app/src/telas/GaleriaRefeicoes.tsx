@@ -168,7 +168,7 @@ const st = estilos(() => StyleSheet.create({
   veu: { backgroundColor: 'rgba(0,0,0,0.5)' },
   painel: {
     position: 'absolute', borderRadius: 28, overflow: 'hidden', borderWidth: 1, borderColor: cores.linha2,
-    backgroundColor: 'rgba(22,17,33,0.72)', ...VIDRO, boxShadow: '0 40px 90px -30px rgba(0,0,0,0.95)',
+    backgroundColor: cores.tinta === '255,255,255' ? 'rgba(20,20,20,0.72)' : cores.painel, ...VIDRO,   // no claro, o vidro claro das folhas boxShadow: '0 40px 90px -30px rgba(0,0,0,0.95)',
   },
   topo: { flexDirection: 'row', alignItems: 'center', paddingLeft: 20, paddingRight: 10, height: 60 },
   fechar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },

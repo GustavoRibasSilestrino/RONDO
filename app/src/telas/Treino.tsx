@@ -251,8 +251,9 @@ function Lista() {
     {desfazer ? (
       <View pointerEvents="box-none" style={st.desfazerFaixa}>
         <View style={st.desfazer} accessibilityLiveRegion="polite">
-          <T tam={13.5} cor="#ffffff" style={{ flex: 1 }} linhas={1}>{desfazer.nome} excluído</T>
-          <Pressable accessibilityRole="button" onPress={voltarExcluido} hitSlop={10}><T tam={13.5} peso="500" cor="#c4b5fd">Desfazer</T></Pressable>
+          {/* a faixa usa o fundo do aviso, que no claro é branco: o texto segue o tema */}
+          <T tam={13.5} cor={cores.tinta === '255,255,255' ? '#ffffff' : cores.texto} style={{ flex: 1 }} linhas={1}>{desfazer.nome} excluído</T>
+          <Pressable accessibilityRole="button" onPress={voltarExcluido} hitSlop={10}><T tam={13.5} peso="500" cor={cores.tinta === '255,255,255' ? '#bfbfbf' : cores.destaque2}>Desfazer</T></Pressable>
         </View>
       </View>
     ) : null}
@@ -516,7 +517,7 @@ const st = estilos(() => StyleSheet.create({
   metas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 999, backgroundColor: cores.cartao2 },
   desfazerFaixa: { position: 'absolute', left: 0, right: 0, bottom: 16 + 64 + 12 + 58 + 14, alignItems: 'center' },   // acima do + do canto, para não ficar por baixo dele
-  desfazer: { flexDirection: 'row', alignItems: 'center', gap: 16, width: 300, maxWidth: '86%', paddingVertical: 12, paddingHorizontal: 18, borderRadius: 999, backgroundColor: cores.aviso, boxShadow: '0 16px 34px -14px rgba(42,22,80,0.8)' },
+  desfazer: { flexDirection: 'row', alignItems: 'center', gap: 16, width: 300, maxWidth: '86%', paddingVertical: 12, paddingHorizontal: 18, borderRadius: 999, backgroundColor: cores.aviso, boxShadow: '0 16px 34px -14px rgba(35,35,35,0.8)' },
   anatomiaFigura: { padding: 8, borderRadius: 16, backgroundColor: cores.destaqueForte },
   anatomia: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao2 },
   linhaEx: { flexDirection: 'row', alignItems: 'center', gap: 12 },

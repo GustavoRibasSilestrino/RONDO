@@ -315,7 +315,7 @@ function Contagem({ n, rotulo, aoTocar }: { n: number; rotulo: string; aoTocar?:
 const st = estilos(() => StyleSheet.create({
   barra: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
   redondo: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
-  pro: { backgroundColor: cores.destaqueForte, borderColor: 'rgba(214,196,255,0.45)' },   // o plano em roxo: o único botão do topo que é um convite
+  pro: { backgroundColor: cores.destaqueForte, borderColor: 'rgba(205,205,205,0.45)' },   // o plano em roxo: o único botão do topo que é um convite
   cabeca: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   contagens: { flex: 1, minWidth: 0, flexDirection: 'row', justifyContent: 'space-around' },
   contagem: { alignItems: 'center', flex: 1, minWidth: 0, minHeight: 44, justifyContent: 'center' },

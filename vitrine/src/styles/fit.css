@@ -20,10 +20,10 @@
 .tool, .panel, .pro, .plan, .s-card { position: relative; isolation: isolate; }
 .spot { position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .35s; }
 .spot::before, .spot::after { content: ""; position: absolute; inset: 0; border-radius: inherit; }
-.spot::before { background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(139, 92, 246, .16), transparent 62%); }
+.spot::before { background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(123, 123, 123, .16), transparent 62%); }
 .spot::after {
   padding: 1px;
-  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(196, 168, 255, .75), transparent 70%);
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(182, 182, 182, .75), transparent 70%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
 }
@@ -35,8 +35,8 @@
 .btn-primary { translate: var(--tx, 0px) var(--ty, 0px); transition: transform .25s var(--ease), background .25s, box-shadow .25s, translate .35s var(--ease); }
 
 /* ---- superfícies do navegador: seleção, rolagem ---- */
-::selection { background: rgba(139, 92, 246, .45); color: #fff; }
-html { scrollbar-color: #3b2a6b var(--bg); scrollbar-width: thin; }
+::selection { background: rgba(123, 123, 123, .45); color: #fff; }
+html { scrollbar-color: #363636 var(--bg); scrollbar-width: thin; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-title .ln, .hero-art, .hero-bottom { animation: none; }

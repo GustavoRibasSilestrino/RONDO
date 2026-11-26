@@ -84,9 +84,9 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
     const cc = carimbo.getContext('2d');
     if (cc) {
       const g = cc.createRadialGradient(32, 32, 0, 32, 32, 32);
-      g.addColorStop(0, 'rgba(226,206,255,0.9)');
-      g.addColorStop(0.25, 'rgba(176,128,255,0.35)');
-      g.addColorStop(1, 'rgba(124,58,237,0)');
+      g.addColorStop(0, 'rgba(214,214,214,0.9)');
+      g.addColorStop(0.25, 'rgba(153,153,153,0.35)');
+      g.addColorStop(1, 'rgba(103,103,103,0)');
       cc.fillStyle = g;
       cc.fillRect(0, 0, 64, 64);
     }
@@ -180,7 +180,7 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
         const halo = ctx.createRadialGradient(c, c, R * 0.2, c, c, tamanho * 0.5);
         halo.addColorStop(0, `rgba(176,128,255,${Math.min(0.62, forca).toFixed(3)})`);
         halo.addColorStop(0.45, `rgba(124,58,237,${(forca * 0.42).toFixed(3)})`);
-        halo.addColorStop(1, 'rgba(91,33,182,0)');
+        halo.addColorStop(1, 'rgba(73,73,73,0)');
         ctx.fillStyle = halo;
         ctx.fillRect(0, 0, tamanho, tamanho);
       }
@@ -188,9 +188,9 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
         if (passe === 1) {
           const vol = 1 + (0.05 + 0.2 * amp) * 0.4;
           const miolo = ctx.createRadialGradient(c, c - R * 0.25, 0, c, c, R * 0.97 * vol);
-          miolo.addColorStop(0, 'rgba(10,6,20,0.9)');
-          miolo.addColorStop(0.92, 'rgba(5,3,10,0.86)');
-          miolo.addColorStop(1, 'rgba(5,3,10,0)');
+          miolo.addColorStop(0, 'rgba(8,8,8,0.9)');
+          miolo.addColorStop(0.92, 'rgba(4,4,4,0.86)');
+          miolo.addColorStop(1, 'rgba(4,4,4,0)');
           ctx.fillStyle = miolo;
           ctx.beginPath();
           ctx.arc(c, c, R * 0.97 * vol, 0, Math.PI * 2);

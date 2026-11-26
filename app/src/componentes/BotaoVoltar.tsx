@@ -7,6 +7,7 @@ import { useLayoutLargo } from '../lib/largura';
 import { cores, estilos, larguraMax } from '../tema';
 import { ALTURA_CABECALHO } from './CabecalhoApp';
 import { Icone } from './Icone';
+import { Vidro } from './Vidro';
 
 export function BotaoVoltar({ rotulo, aoPressionar }: { rotulo: string; aoPressionar: () => void }) {
   const insets = useSafeAreaInsets();
@@ -14,9 +15,11 @@ export function BotaoVoltar({ rotulo, aoPressionar }: { rotulo: string; aoPressi
   return (
     <View pointerEvents="box-none" style={[st.faixa, { top: insets.top + (largo ? 16 : ALTURA_CABECALHO + 8) }]}>
       <View pointerEvents="box-none" style={st.coluna}>
-        <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={aoPressionar} hitSlop={6} style={({ pressed }) => [st.botao, pressed && { opacity: 0.8 }]}>
-          <Icone nome="voltar" tamanho={20} cor={cores.texto} />
-        </Pressable>
+        <Vidro interativo style={st.botao}>
+          <Pressable accessibilityRole="button" accessibilityLabel={rotulo} onPress={aoPressionar} hitSlop={6} style={({ pressed }) => [st.toque, pressed && { opacity: 0.8 }]}>
+            <Icone nome="voltar" tamanho={20} cor={cores.texto} />
+          </Pressable>
+        </Vidro>
       </View>
     </View>
   );
@@ -25,5 +28,6 @@ export function BotaoVoltar({ rotulo, aoPressionar }: { rotulo: string; aoPressi
 const st = estilos(() => StyleSheet.create({
   faixa: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 15 },
   coluna: { width: '100%', maxWidth: larguraMax, paddingLeft: 12 },
-  botao: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
+  botao: { width: 42, height: 42, borderRadius: 21, overflow: 'hidden', backgroundColor: cores.cartao2, borderWidth: 1, borderColor: cores.linha2 },
+  toque: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 }));

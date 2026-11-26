@@ -52,15 +52,15 @@ function Grafico({ largura }: { largura: number }) {
       <Svg width={largura} height={alt}>
         <Defs>
           <Degrade id="linhaPro" x1="0" y1="0" x2="1" y2="0">
-            <Stop offset="0" stopColor="#8b5cf6" stopOpacity={0.6} />
-            <Stop offset="1" stopColor="#c4a8ff" />
+            <Stop offset="0" stopColor="#7b7b7b" stopOpacity={0.6} />
+            <Stop offset="1" stopColor={cores.destaque2} />
           </Degrade>
         </Defs>
-        {[0.33, 0.66].map((f) => <Line key={f} x1={px} x2={largura - px} y1={topo + f * (base - topo)} y2={topo + f * (base - topo)} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />)}
+        {[0.33, 0.66].map((f) => <Line key={f} x1={px} x2={largura - px} y1={topo + f * (base - topo)} y2={topo + f * (base - topo)} stroke={`rgba(${cores.tinta},0.08)`} strokeWidth={1} />)}
         <Path d={d} stroke="url(#linhaPro)" strokeWidth={4} fill="none" strokeLinecap="round" />
-        <Circle cx={x(0)} cy={y(PONTOS[0])} r={6} fill="#8b5cf6" />
-        <Circle cx={x(fim)} cy={y(PONTOS[fim])} r={14} fill="rgba(196,168,255,0.18)" />
-        <Circle cx={x(fim)} cy={y(PONTOS[fim])} r={7} fill="#c4a8ff" />
+        <Circle cx={x(0)} cy={y(PONTOS[0])} r={6} fill="#7b7b7b" />
+        <Circle cx={x(fim)} cy={y(PONTOS[fim])} r={14} fill={cores.tinta === '255,255,255' ? 'rgba(182,182,182,0.18)' : `rgba(${cores.tom},0.18)`} />
+        <Circle cx={x(fim)} cy={y(PONTOS[fim])} r={7} fill={cores.destaque2} />
       </Svg>
       <View style={[st.rotuloGrafico, { left: px, top: y(PONTOS[0]) - 34 }]}><T tam={12.5} peso="500">Você hoje</T></View>
       <View style={[st.rotuloGrafico, { right: px, top: y(PONTOS[fim]) - 40 }]}><T tam={12.5} peso="500" cor={cores.destaque2}>Você em 12 semanas</T></View>
@@ -107,7 +107,7 @@ export function TelaPlanos({ aberto, aoFechar }: { aberto: boolean; aoFechar: ()
                 <Icone nome="fechar" tamanho={20} cor={cores.texto} />
               </Pressable>
               <View style={st.titulo} pointerEvents="none">
-                <NomeMarca altura={20} cor="#ffffff" />
+                <NomeMarca altura={20} cor={cores.tinta === '255,255,255' ? '#ffffff' : cores.texto} />
                 <T tam={20} peso="500" cor={cores.destaque2} style={{ letterSpacing: 1 }}>PRO</T>
               </View>
             </View>
@@ -159,11 +159,11 @@ const st = estilos(() => StyleSheet.create({
   topo: { height: 52, justifyContent: 'center', paddingHorizontal: 10 },
   fechar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.cartao, zIndex: 1 },
   titulo: { position: 'absolute', left: 60, right: 60, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  rotuloGrafico: { position: 'absolute', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: 'rgba(14,11,22,0.7)', borderWidth: 1, borderColor: cores.linha },
+  rotuloGrafico: { position: 'absolute', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: cores.tinta === '255,255,255' ? 'rgba(13,13,13,0.7)' : cores.painel, borderWidth: 1, borderColor: cores.linha },
   eixo: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 14, marginTop: -16 },
-  inclui: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(139,92,246,0.16)' },
+  inclui: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(123,123,123,0.16)' },
   plano: { flex: 1, alignItems: 'center', paddingTop: 22, paddingBottom: 16, paddingHorizontal: 10, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
-  planoAtivo: { borderColor: cores.acao, borderWidth: 1.5, backgroundColor: 'rgba(124,58,237,0.14)' },
+  planoAtivo: { borderColor: cores.acao, borderWidth: 1.5, backgroundColor: 'rgba(103,103,103,0.14)' },
   selo: { position: 'absolute', top: -12, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: cores.acao },
   marca: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, borderColor: cores.linha2, alignItems: 'center', justifyContent: 'center', marginTop: 12 },
   ativo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 22, minHeight: 48, borderRadius: 24, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },

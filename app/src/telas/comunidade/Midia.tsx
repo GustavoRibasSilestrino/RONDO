@@ -146,7 +146,7 @@ const st = estilos(() => StyleSheet.create({
   play: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: `rgba(${cores.tom},0.85)` },
   duracao: { position: 'absolute', right: 8, bottom: 8, paddingVertical: 3, paddingHorizontal: 7, borderRadius: 6, backgroundColor: 'rgba(0,0,0,0.6)' },
   extra: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(5,5,7,0.6)' },
-  visor: { flex: 1, backgroundColor: 'rgba(3,2,8,0.97)' },
+  visor: { flex: 1, backgroundColor: 'rgba(3,3,3,0.97)' },
   topo: { position: 'absolute', left: 20, right: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   fechar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
   seta: { position: 'absolute', top: '50%', marginTop: -22, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },

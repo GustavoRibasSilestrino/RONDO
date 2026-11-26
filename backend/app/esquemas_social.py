@@ -1,4 +1,5 @@
 """Entrada e saída da parte social."""
+from datetime import date
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -223,3 +224,47 @@ class StoriesDaPessoa(BaseModel):
 
 class StoriesOut(BaseModel):
     pessoas: list[StoriesDaPessoa]   # você primeiro, depois quem você segue
+
+
+SituacaoDesafio = Literal["em_breve", "em_andamento", "encerrado"]
+
+
+class DesafioIn(BaseModel):
+    titulo: str = Field(min_length=3, max_length=60)
+    descricao: str = Field(default="", max_length=200)
+    meta: str | None = Field(default=None, max_length=80)
+    inicio: date
+    fim: date
+    cor: int = Field(default=0, ge=0, le=20)
+
+    @field_validator("titulo", "descricao")
+    @classmethod
+    def limpo(cls, v: str) -> str:
+        return v.strip()
+
+    @model_validator(mode="after")
+    def periodo(self) -> "DesafioIn":
+        if self.fim < self.inicio:
+            raise ValueError("O desafio precisa acabar depois de começar.")
+        if (self.fim - self.inicio).days > 365:
+            raise ValueError("Um desafio dura no máximo 1 ano.")
+        return self
+
+
+class DesafioOut(BaseModel):
+    id: int
+    titulo: str
+    descricao: str
+    meta: str | None = None
+    inicio: date
+    fim: date
+    cor: int
+    participantes: int
+    situacao: SituacaoDesafio
+    meu: bool          # quem está logado participa
+    proprio: bool      # quem está logado criou
+    dono: PessoaOut | None = None
+
+
+class PaginaDesafios(BaseModel):
+    itens: list[DesafioOut]

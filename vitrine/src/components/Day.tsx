@@ -82,7 +82,7 @@ function Corrida() {
       <h4>Corrida</h4>
       <div className="route">
         <svg viewBox="0 0 260 130" fill="none">
-          <defs><linearGradient id="gr" x1="0" x2="1"><stop stopColor="#6d28d9" /><stop offset="1" stopColor="#c4a8ff" /></linearGradient></defs>
+          <defs><linearGradient id="gr" x1="0" x2="1"><stop stopColor="#585858" /><stop offset="1" stopColor="#b6b6b6" /></linearGradient></defs>
           <path d="M12 108 C50 20 90 130 130 60 S210 10 248 40" stroke="url(#gr)" strokeWidth="3" strokeLinecap="round" />
           <circle cx="248" cy="40" r="5" fill="#fff" />
         </svg>

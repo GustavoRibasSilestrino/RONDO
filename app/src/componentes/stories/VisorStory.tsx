@@ -12,7 +12,7 @@ import { Avatar } from '../../telas/comunidade/Avatar';
 import { MenuDenunciar } from '../Denunciar';
 import { Folha } from '../Estrutura';
 import { Icone } from '../Icone';
-import { T } from '../Ui';
+import { EscuroContexto, T } from '../Ui';
 
 export type ListaStory = { autor: string; itens: StoryVista[]; rotulo?: string; pessoa?: Pessoa };
 
@@ -94,6 +94,8 @@ export function VisorStory({ aberto, listas, inicio = 0, aoFechar, aoVer, aoExcl
 
   return (
     <Modal visible animationType="fade" onRequestClose={aoFechar} statusBarTranslucent>
+      {/* o story é sempre escuro (foto ou fundo colorido): o texto fica claro também no tema claro */}
+      <EscuroContexto.Provider value>
       <View style={st.tela}>
         <View style={st.coluna}>
           <View style={[StyleSheet.absoluteFill, { backgroundColor: story.midia ? '#000000' : FUNDOS_STORY[(story.fundo ?? 0) % FUNDOS_STORY.length] }]} />
@@ -185,6 +187,7 @@ export function VisorStory({ aberto, listas, inicio = 0, aoFechar, aoVer, aoExcl
           </View>
         </View>
       </View>
+      </EscuroContexto.Provider>
 
       <MenuDenunciar
         alvo={denunciando && lista.pessoa ? { tipo: 'story', id: Number(story.id), pessoa: lista.pessoa } : null}
@@ -240,7 +243,7 @@ const st = estilos(() => StyleSheet.create({
   menuReacoes: { position: 'absolute', bottom: 60, right: 0, flexDirection: 'column', gap: 8, alignItems: 'center' },
   reacaoPrincipal: { width: 52, height: 52, borderRadius: 26 },
   reacao: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.45)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
-  reacaoOn: { backgroundColor: 'rgba(139,92,246,0.55)', borderColor: '#c4a8ff' },
+  reacaoOn: { backgroundColor: 'rgba(123,123,123,0.55)', borderColor: '#b6b6b6' },
   acoes: { flexDirection: 'row', gap: 12 },
   acao: { flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44, paddingHorizontal: 18, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
 }));

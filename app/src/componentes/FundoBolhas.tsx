@@ -53,10 +53,10 @@ export function FundoBolhas() {
   const m = Math.max(520, Math.min(Math.max(W, H), 1200));   // o tamanho de referência: não cresce sem fim em telas grandes
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <Bola cor="#7c3aed" tamanho={m * 0.95} x0={W * 0.12} y0={H * 0.1} dx={W * 0.12} dy={H * 0.08} duracao={12000} forca={0.5} parado={parado} />
-      <Bola cor="#a855f7" tamanho={m * 0.7} x0={W * 0.92} y0={H * 0.3} dx={-W * 0.14} dy={H * 0.1} duracao={15000} forca={0.38} atraso={1200} parado={parado} />
-      <Bola cor="#5b21b6" tamanho={m * 1.0} x0={W * 0.78} y0={H * 0.95} dx={-W * 0.16} dy={-H * 0.07} duracao={14000} forca={0.5} atraso={600} parado={parado} />
-      <Bola cor="#6d28d9" tamanho={m * 0.75} x0={W * 0.1} y0={H * 0.88} dx={W * 0.14} dy={-H * 0.1} duracao={17000} forca={0.36} atraso={2000} parado={parado} />
+      <Bola cor="#676767" tamanho={m * 0.95} x0={W * 0.12} y0={H * 0.1} dx={W * 0.12} dy={H * 0.08} duracao={12000} forca={0.5} parado={parado} />
+      <Bola cor="#808080" tamanho={m * 0.7} x0={W * 0.92} y0={H * 0.3} dx={-W * 0.14} dy={H * 0.1} duracao={15000} forca={0.38} atraso={1200} parado={parado} />
+      <Bola cor="#494949" tamanho={m * 1.0} x0={W * 0.78} y0={H * 0.95} dx={-W * 0.16} dy={-H * 0.07} duracao={14000} forca={0.5} atraso={600} parado={parado} />
+      <Bola cor="#585858" tamanho={m * 0.75} x0={W * 0.1} y0={H * 0.88} dx={W * 0.14} dy={-H * 0.1} duracao={17000} forca={0.36} atraso={2000} parado={parado} />
     </View>
   );
 }

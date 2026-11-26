@@ -8,7 +8,7 @@ import { useLoja } from '../../estado/loja';
 import { useUriMidia } from '../../lib/midia';
 import { cores, DEGRADE, FIM_DIAGONAL, INICIO_DIAGONAL } from '../../tema';
 
-const TONS = ['#4c1d95', '#5b21b6', '#6d28d9', '#4338ca', '#6b21a8', '#3730a3'];
+const TONS = ['#3c3c3c', '#494949', '#585858', '#515151', '#4b4b4b', '#434343'];
 
 /* a foto, pelo id guardado no aparelho */
 export function FotoRedonda({ id, tamanho }: { id: string; tamanho: number }) {

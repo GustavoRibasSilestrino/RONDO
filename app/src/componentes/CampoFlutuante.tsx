@@ -49,7 +49,7 @@ export const CampoFlutuante = forwardRef<CampoRef, Props>(function CampoFlutuant
 
   return (
     <View>
-      <View style={[st.caixa, !naTelaEscura && st.caixaClara, alto && st.caixaAlta, foco && st.caixaFoco, foco && !naTelaEscura && { borderColor: coresClaras.destaque }, !!erro && { borderColor: cores.erro }]}>
+      <View style={[st.caixa, !naTelaEscura && st.caixaClara, alto && st.caixaAlta, foco && st.caixaFoco, foco && !naTelaEscura && { borderColor: coresClaras.destaque, backgroundColor: `rgba(${coresClaras.tinta},0.04)` }, !!erro && { borderColor: cores.erro }]}>
         {icone ? (
           <View style={[st.icone, alto && { alignSelf: 'flex-start', marginTop: 20 }]}>
             <Icone nome={icone} tamanho={18} cor={corIcone} />
@@ -107,7 +107,7 @@ const st = estilos(() => StyleSheet.create({
   },
   caixaAlta: { height: undefined, minHeight: 112, alignItems: 'stretch' },
   caixaFoco: { borderColor: `rgba(${escuro.tom},0.7)`, backgroundColor: 'rgba(255,255,255,0.04)' },
-  caixaClara: { borderColor: 'rgba(255,255,255,0.16)', backgroundColor: 'rgba(255,255,255,0.06)' },
+  caixaClara: { borderColor: `rgba(${coresClaras.tinta},0.16)`, backgroundColor: `rgba(${coresClaras.tinta},0.06)` },   // o véu acompanha o tema (branco no escuro)
   icone: { marginRight: 11 },
   meio: { flex: 1, alignSelf: 'stretch', justifyContent: 'center' },
   rotulo: { position: 'absolute', left: 0, top: 13, fontSize: 14.5, fontFamily: FONTE['300'], transformOrigin: 'left center' },

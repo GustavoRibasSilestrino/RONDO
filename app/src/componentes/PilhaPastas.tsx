@@ -17,8 +17,6 @@ import { cores } from '../tema';
 import type { Retangulo } from './Lixeira';
 import { T } from './Ui';
 
-const TINTA = cores.texto;           // o texto: roxo quase preto
-const ROXO = cores.acao;    // o selo da sugestão e o contorno da pasta escolhida
 
 export const ALTURA = 168;     // altura de cada pasta
 export const ABA = 28;         // altura da aba
@@ -180,21 +178,21 @@ function Pasta({ rotina, largura, topo, esquerda, escolhida, reduzido, aoTocar, 
             <LinearGradient id={`vidro-${rotina.id}`} x1="0" y1="0" x2="0.35" y2="1">
               <Stop offset="0" stopColor="#ffffff" stopOpacity={escolhida ? 0.2 : 0.14} />
               <Stop offset="0.55" stopColor="#ffffff" stopOpacity={escolhida ? 0.14 : 0.09} />
-              <Stop offset="1" stopColor="#8b5cf6" stopOpacity={escolhida ? 0.18 : 0.1} />
+              <Stop offset="1" stopColor="#7b7b7b" stopOpacity={escolhida ? 0.18 : 0.1} />
             </LinearGradient>
           </Defs>
-          <Path d={contorno(largura, ALTURA, aba)} fill={`url(#vidro-${rotina.id})`} stroke={escolhida ? ROXO : 'rgba(255,255,255,0.2)'} strokeWidth={escolhida ? 2 : 1.5} strokeLinejoin="round" />
+          <Path d={contorno(largura, ALTURA, aba)} fill={`url(#vidro-${rotina.id})`} stroke={escolhida ? cores.acao : `rgba(${cores.tinta},0.2)`} strokeWidth={escolhida ? 2 : 1.5} strokeLinejoin="round" />
         </Svg>
         {/* o nome, na aba (saindo para fora da pilha) */}
         <View pointerEvents="none" style={{ position: 'absolute', left: 14, top: 5, right: largura - aba - 14 }}>
-          <T tam={titulo.length > 9 ? 13 : 15} peso="500" cor={TINTA} linhas={1} style={{ letterSpacing: 0.6 }}>{titulo}</T>
+          <T tam={titulo.length > 9 ? 13 : 15} peso="500" cor={cores.texto} linhas={1} style={{ letterSpacing: 0.6 }}>{titulo}</T>
         </View>
         {/* na faixa de cima do corpo: quantos exercícios, quanto tempo e o selo da sugestão */}
         <View pointerEvents="none" style={{ position: 'absolute', left: 14, right: 12, top: ABA + 9, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           {escolhida
-            ? <T tam={12.5} peso="500" cor={TINTA} style={{ flex: 1 }} linhas={1}>{arrastando ? 'Leve até a lixeira' : 'Toque de novo para abrir →'}</T>
-            : <T tam={12.5} cor={TINTA} style={{ flex: 1, opacity: 0.85 }} linhas={1}>{rotina.exercicios.length} exercícios · {rotina.minutos} min</T>}
-          {rotina.sugerida ? <View style={{ paddingVertical: 3, paddingHorizontal: 8, borderRadius: 999, backgroundColor: ROXO }}><T tam={9.5} peso="500" cor="#ffffff" style={{ letterSpacing: 0.8 }}>SUGESTÃO</T></View> : null}
+            ? <T tam={12.5} peso="500" cor={cores.texto} style={{ flex: 1 }} linhas={1}>{arrastando ? 'Leve até a lixeira' : 'Toque de novo para abrir →'}</T>
+            : <T tam={12.5} cor={cores.texto} style={{ flex: 1, opacity: 0.85 }} linhas={1}>{rotina.exercicios.length} exercícios · {rotina.minutos} min</T>}
+          {rotina.sugerida ? <View style={{ paddingVertical: 3, paddingHorizontal: 8, borderRadius: 999, backgroundColor: cores.acao }}><T tam={9.5} peso="500" cor="#ffffff" style={{ letterSpacing: 0.8 }}>SUGESTÃO</T></View> : null}
         </View>
       </Pressable>
     </Animated.View>

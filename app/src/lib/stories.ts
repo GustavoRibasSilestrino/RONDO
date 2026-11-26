@@ -9,7 +9,7 @@ export const DURACAO_NO_AR = 24 * 3600 * 1000;
 export const DURACAO_STORY_MS = 5000;   // quanto tempo cada story fica na tela
 
 /* fundos dos stories de texto: cores sólidas, sem degradê */
-export const FUNDOS_STORY = ['#6a00d4', '#0a67ff', '#e11d48', '#059669', '#d97706', '#27272a'];
+export const FUNDOS_STORY = ['#4f4f4f', '#0a67ff', '#e11d48', '#059669', '#d97706', '#27272a'];
 
 /* um story pronto para mostrar, seu ou de outra pessoa (o id é o do servidor, em texto) */
 export type StoryVista = {

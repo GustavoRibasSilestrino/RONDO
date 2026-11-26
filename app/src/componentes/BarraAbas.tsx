@@ -10,6 +10,7 @@ import { useMovimentoReduzido } from '../lib/movimento';
 import { cores, larguraMax, estilos, VIDRO } from '../tema';
 import { Icone, NomeIcone } from './Icone';
 import { T } from './Ui';
+import { Vidro } from './Vidro';
 
 export type ItemAba = { id: string; rotulo: string; icone: NomeIcone };
 
@@ -35,7 +36,7 @@ function Aba({ item, larguraAtiva, larguraInativa, ativo, aoPressionar, moviment
         {/* a pílula roxo-escura da aba ativa */}
         <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, st.pilula, { opacity: luz }]} />
         <View pointerEvents="none" style={st.miolo}>
-          <Icone nome={item.icone} tamanho={22} cor={ativo ? '#ffffff' : cores.texto} />
+          <Icone nome={item.icone} tamanho={22} cor={ativo ? cores.branco : cores.texto} />
           {ativo ? (
             <Animated.View style={{ opacity: luz, transform: [{ translateX: luz.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] }}>
               <T tam={13.5} peso="500" cor="#ffffff" linhas={1}>{item.rotulo}</T>
@@ -65,7 +66,8 @@ export function BarraAbas({ itens, atual, aoEscolher }: Props) {
 
   return (
     <View pointerEvents="box-none" style={[st.doca, { bottom: insets.bottom + 16 }]}>
-      <View style={[st.barra, { width: barra, paddingHorizontal: RECHEIO }]}>
+      {/* a pílula é de vidro (Liquid Glass no iOS 26+; nos outros, o vidro translúcido de antes: componentes/Vidro.tsx) */}
+      <Vidro tom={cores.barra} style={[st.barra, { width: barra, paddingHorizontal: RECHEIO }]}>
         {itens.map((it) => {
           const ativo = it.id === atual;
           return (
@@ -84,7 +86,7 @@ export function BarraAbas({ itens, atual, aoEscolher }: Props) {
             />
           );
         })}
-      </View>
+      </Vidro>
     </View>
   );
 }
@@ -94,7 +96,7 @@ const st = estilos(() => StyleSheet.create({
   barra: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: ALTURA + 2 * RECHEIO + 2, borderRadius: (ALTURA + 2 * RECHEIO + 2) / 2, overflow: 'hidden',
     backgroundColor: cores.barra, borderWidth: 1, borderColor: cores.linha2, ...VIDRO,
-    shadowColor: '#2a1650', shadowOpacity: 0.28, shadowRadius: 22, shadowOffset: { width: 0, height: 10 }, elevation: 12,
+    shadowColor: '#232323', shadowOpacity: cores.tinta === '255,255,255' ? 0.28 : 0.14, shadowRadius: 22, shadowOffset: { width: 0, height: 10 }, elevation: 12,
   },
   aba: { height: ALTURA, alignItems: 'center', justifyContent: 'center' },
   pilula: { borderRadius: ALTURA / 2, backgroundColor: cores.destaqueForte },

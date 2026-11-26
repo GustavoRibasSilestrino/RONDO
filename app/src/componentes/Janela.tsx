@@ -58,7 +58,7 @@ const st = estilos(() => StyleSheet.create({
   centro: { position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center', padding: 16 },
   cartao: {
     width: '100%', maxWidth: 440, maxHeight: '78%', borderRadius: 26, overflow: 'hidden', borderWidth: 1, borderColor: cores.linha2,
-    backgroundColor: 'rgba(22,17,33,0.82)', ...VIDRO, boxShadow: '0 30px 70px -24px rgba(0,0,0,0.95)',
+    backgroundColor: cores.tinta === '255,255,255' ? 'rgba(20,20,20,0.82)' : cores.painel, ...VIDRO,   // no claro, o vidro claro das folhas boxShadow: '0 30px 70px -24px rgba(0,0,0,0.95)',
   },
   topo: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingLeft: 18, paddingRight: 8, height: 56 },
   fechar: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },

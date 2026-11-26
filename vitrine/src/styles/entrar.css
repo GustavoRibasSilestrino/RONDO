@@ -4,7 +4,7 @@
 .entrar {
   position: relative; min-height: 100svh; overflow: hidden; color: var(--ink);
   background:
-    radial-gradient(60rem 34rem at 50% -6rem, rgba(109, 40, 217, .34), rgba(46, 16, 101, .12) 46%, transparent 72%),
+    radial-gradient(60rem 34rem at 50% -6rem, rgba(88, 88, 88, .34), rgba(37, 37, 37, .12) 46%, transparent 72%),
     var(--bg);
 }
 .entrar-topo {
@@ -29,7 +29,7 @@
 .entrar-rondin { position: relative; display: grid; place-items: center; width: 128px; height: 128px; margin-bottom: .6rem; }
 .entrar-rondin::before {   /* a luz atrás da esfera */
   content: ""; position: absolute; left: 50%; top: 50%; width: 230px; height: 230px; translate: -50% -50%; border-radius: 50%;
-  background: radial-gradient(circle, rgba(139, 92, 246, .3), transparent 66%); pointer-events: none;
+  background: radial-gradient(circle, rgba(123, 123, 123, .3), transparent 66%); pointer-events: none;
 }
 /* as bordas do vídeo somem num degradê redondo: o fundo do vídeo não é preto puro e, sem isso, aparecia um quadrado em volta
    da esfera (visto pelo dono em 2026-11-18) */
@@ -53,7 +53,7 @@
 }
 /* a legenda: o que o RONDIN diz logo depois da saudação (vindo da loja, o convite para adotar o mascote) */
 .entrar-legenda {
-  max-width: 32ch; margin: .75rem auto 0; text-align: center; text-wrap: balance; color: #ddd3f7;
+  max-width: 32ch; margin: .75rem auto 0; text-align: center; text-wrap: balance; color: #d8d8d8;
   font: 500 clamp(1.02rem, 3.6vw, 1.12rem)/1.5 var(--font-body);
 }
 @keyframes entrar-sobe { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
@@ -70,7 +70,7 @@
   min-height: 42px; border-radius: 8px; color: var(--ink-2); font: 600 .95rem/1 var(--font-body); transition: background .2s, color .2s;
 }
 .entrar-abas button:hover { color: var(--ink); }
-.entrar-abas button[aria-selected="true"] { background: rgba(139, 92, 246, .22); color: #fff; box-shadow: inset 0 0 0 1px rgba(196, 168, 255, .35); }
+.entrar-abas button[aria-selected="true"] { background: rgba(123, 123, 123, .22); color: #fff; box-shadow: inset 0 0 0 1px rgba(182, 182, 182, .35); }
 .entrar-abas button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .entrar-google { display: flex; justify-content: center; min-height: 44px; }
@@ -94,11 +94,11 @@
 }
 .entrar-campo input[type="date"] { color-scheme: dark; }
 .entrar-campo input:hover { border-color: rgba(255, 255, 255, .26); }
-.entrar-campo input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(139, 92, 246, .2); background: rgba(255, 255, 255, .06); }
+.entrar-campo input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(123, 123, 123, .2); background: rgba(255, 255, 255, .06); }
 .entrar-campo input[aria-invalid="true"] { border-color: #ff7d93; }
 .entrar-campo input[aria-invalid="true"]:focus { box-shadow: 0 0 0 4px rgba(255, 125, 147, .2); }
 /* o preenchimento automático do navegador não pinta o campo de amarelo/branco */
-.entrar-campo input:-webkit-autofill { -webkit-text-fill-color: var(--ink); box-shadow: 0 0 0 100px #15111f inset; caret-color: var(--ink); }
+.entrar-campo input:-webkit-autofill { -webkit-text-fill-color: var(--ink); box-shadow: 0 0 0 100px #131313 inset; caret-color: var(--ink); }
 .entrar-campo-dica { color: var(--ink-3); font-size: .82rem; }
 .entrar-campo-erro { color: #ff9aac; font-size: .85rem; font-weight: 500; }
 .entrar-senha { position: relative; }
@@ -114,7 +114,7 @@
 .entrar-check input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--accent); cursor: pointer; }
 .entrar-check a { color: var(--accent-2); text-decoration: underline; text-underline-offset: 3px; }
 .entrar-check input[aria-invalid="true"] { outline: 2px solid #ff7d93; outline-offset: 2px; }
-.entrar-responsavel { display: grid; gap: .85rem; padding: .95rem; border: 1px solid rgba(196, 168, 255, .25); border-radius: 12px; background: rgba(139, 92, 246, .07); }
+.entrar-responsavel { display: grid; gap: .85rem; padding: .95rem; border: 1px solid rgba(182, 182, 182, .25); border-radius: 12px; background: rgba(123, 123, 123, .07); }
 .entrar-responsavel legend { padding: 0 .35rem; color: var(--accent-2); font-size: .85rem; font-weight: 600; }
 
 .entrar-esqueci { justify-self: end; margin-top: -.5rem; padding: .35rem 0; color: var(--accent-2); font-size: .88rem; }

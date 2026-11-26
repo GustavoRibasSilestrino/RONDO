@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { CampoFlutuante } from '../../componentes/CampoFlutuante';
 import { criarClube } from '../../api/social';
-import { Folha, useAviso } from '../../componentes/Estrutura';
+import { useAviso } from '../../componentes/Estrutura';
+import { Janela } from '../../componentes/Janela';
 import { Icone } from '../../componentes/Icone';
 import { AvisoPro, SeloPro } from '../../componentes/Pro';
 import { Botao, Segmentos, T } from '../../componentes/Ui';
@@ -48,7 +49,7 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
   };
 
   return (
-    <Folha aberta={aberto} aoFechar={aoFechar} titulo="Criar clube">
+    <Janela aberta={aberto} aoFechar={aoFechar} titulo="Criar clube">
       <Capa cor={cor} cat={cat} altura={112}>
         <View style={st.previa}>
           <T tam={24} peso="300" cor="#ffffff" linhas={2}>{nomeLimpo || 'Nome do clube'}</T>
@@ -111,7 +112,7 @@ export function CriarGrupo({ aberto, aoFechar, aoCriar }: { aberto: boolean; aoF
       </View>
 
       <Botao titulo={enviando ? 'Criando...' : 'Criar clube'} icone="mais" aoPressionar={criar} style={{ marginTop: 24 }} />
-    </Folha>
+    </Janela>
   );
 }
 

@@ -107,8 +107,8 @@ export function Colecoes() {
 }
 
 const st = estilos(() => StyleSheet.create({
-  missao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.045)', minHeight: 44 },
+  missao: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 12, borderRadius: 18, borderWidth: 1, borderColor: cores.linha2, backgroundColor: `rgba(${cores.tinta},0.045)`, minHeight: 44 },
   feita: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6, paddingHorizontal: 10, minHeight: 44 },
-  selo: { alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: cores.linha2, backgroundColor: 'rgba(255,255,255,0.04)' },
+  selo: { alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: cores.linha2, backgroundColor: `rgba(${cores.tinta},0.04)` },
   seloAceso: { borderColor: 'transparent', backgroundColor: cores.destaqueForte },
 }));

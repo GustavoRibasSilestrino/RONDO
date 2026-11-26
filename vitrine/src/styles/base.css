@@ -1,18 +1,18 @@
 /* ===== Tokens ===== */
 :root {
-  --bg: #050507;
-  --bg-2: #0b0910;
+  --bg: #050505;
+  --bg-2: #0a0a0a;
   --card: rgba(255, 255, 255, .025);
   --card-2: rgba(255, 255, 255, .05);
   --line: rgba(255, 255, 255, .08);
   --line-2: rgba(255, 255, 255, .16);
-  --ink: #f1eefb;
-  --ink-2: #a09bb5;
-  --ink-3: #8d84b8;
-  --violet: #6d28d9;
-  --violet-d: #2e1065;
-  --accent: #8b5cf6;
-  --accent-2: #c4a8ff;
+  --ink: #f0f0f0;
+  --ink-2: #9e9e9e;
+  --ink-3: #8b8b8b;
+  --violet: #585858;
+  --violet-d: #252525;
+  --accent: #7b7b7b;
+  --accent-2: #b6b6b6;
   --good: #3ddc97;
 
   --font-display: "Bricolage Grotesque Variable", system-ui, sans-serif;
@@ -59,8 +59,8 @@ img, svg { display: block; max-width: 100%; }
 .sky {
   position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: var(--skyo, 1); will-change: opacity;   /* camada própria: mudar o brilho não repinta a página */
   background:
-    radial-gradient(120% 55% at 50% 112%, rgba(109, 40, 217, .34), transparent 62%),
-    radial-gradient(55% 38% at 0% 0%, rgba(76, 29, 149, .16), transparent 70%);
+    radial-gradient(120% 55% at 50% 112%, rgba(88, 88, 88, .34), transparent 62%),
+    radial-gradient(55% 38% at 0% 0%, rgba(60, 60, 60, .16), transparent 70%);
 }
 
 /* grão sutil sobre toda a página */
@@ -95,8 +95,8 @@ h2.display { font-size: clamp(2.1rem, 4.6vw, 3.8rem); }
 }
 .mono { font-family: var(--font-mono); }
 .lead { color: var(--ink-2); font-size: clamp(1rem, 1.35vw, 1.15rem); font-weight: 300; max-width: 52ch; }
-.accent { color: #a78bfa; }
-.grad { color: #a78bfa; }
+.accent { color: #9d9d9d; }
+.grad { color: #9d9d9d; }
 
 /* o eco dos títulos: ao rolar, uma cópia fantasma fica para trás e some quando você para */
 .echo { position: relative; isolation: isolate; }
@@ -117,8 +117,8 @@ h2.display { font-size: clamp(2.1rem, 4.6vw, 3.8rem); }
 }
 .btn:hover { transform: translateY(-2px); }
 .btn-primary {
-  background: linear-gradient(135deg, #6d28d9, #8352f0); color: #fff;
-  box-shadow: 0 14px 34px -16px rgba(139, 92, 246, .85), inset 0 1px 0 rgba(255, 255, 255, .22);
+  background: linear-gradient(135deg, #585858, #737373); color: #fff;
+  box-shadow: 0 14px 34px -16px rgba(123, 123, 123, .85), inset 0 1px 0 rgba(255, 255, 255, .22);
 }
 .btn-ghost { border: 1px solid var(--line-2); background: rgba(255, 255, 255, .02); }
 .btn-ghost:hover { background: rgba(255, 255, 255, .06); }
@@ -133,7 +133,7 @@ h2.display { font-size: clamp(2.1rem, 4.6vw, 3.8rem); }
 .chip {
   display: inline-block; font-family: var(--font-mono); font-size: .68rem; font-weight: 400;
   padding: .28rem .6rem; border-radius: 4px;
-  background: rgba(139, 92, 246, .12); color: var(--accent-2); letter-spacing: .04em;
+  background: rgba(123, 123, 123, .12); color: var(--accent-2); letter-spacing: .04em;
 }
 .chip.good { background: rgba(61, 220, 151, .12); color: var(--good); }
 
@@ -168,4 +168,4 @@ h2.display { font-size: clamp(2.1rem, 4.6vw, 3.8rem); }
 .is-off, .is-off::before, .is-off::after { animation-play-state: paused !important; }
 
 /* o RONDIN em 3D (components/RondinVideo.tsx): o fundo preto do vídeo some sobre o fundo escuro */
-.rondin-video { display: block; flex: none; object-fit: cover; mix-blend-mode: screen; pointer-events: none; }
+.rondin-video { display: block; flex: none; object-fit: cover; mix-blend-mode: screen; pointer-events: none; filter: grayscale(1); }   /* o vídeo é roxo: em cinza desde 2026-11-26 (site só preto, cinza e branco) */

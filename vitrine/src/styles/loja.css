@@ -367,7 +367,7 @@ html:has(dialog.abre[open]) { overflow: hidden; }
 }
 
 /* ---------- a divulgação na página inicial ---------- */
-.lojinha { position: relative; overflow: hidden; background: var(--lj-noite); color: var(--lj-tinta); font-family: var(--lj-letra); }
+.lojinha { position: relative; overflow: hidden; background: #000;   /* fundo preto (pedido do dono, 2026-11-26); a página /loja segue com a noite roxa */ color: var(--lj-tinta); font-family: var(--lj-letra); }
 /* a barra do toldo, listrada de vermelho e creme, abre a seção */
 .lojinha::before {
   content: ""; display: block; height: 22px;

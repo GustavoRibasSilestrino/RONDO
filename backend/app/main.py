@@ -9,7 +9,7 @@ from app.concorrencia import LimiteDeConcorrencia
 from app.config import config
 from app.limite import LimiteDeRequisicoes
 from app.protecao import Blindagem
-from app.rotas import assinaturas, auth, clubes, loja, me, midia, moderacao, pessoas, profissionais, social, suporte, treinos, voz
+from app.rotas import assinaturas, auth, clubes, desafios, loja, me, midia, moderacao, pessoas, profissionais, social, suporte, treinos, voz
 
 SEGREDO_PADRAO = "troque-em-producao"
 EM_PRODUCAO = not config().database_url.startswith("sqlite")
@@ -55,6 +55,7 @@ app.include_router(treinos.router)
 app.include_router(social.router)
 app.include_router(pessoas.router)
 app.include_router(clubes.router)
+app.include_router(desafios.router)
 app.include_router(midia.router)
 app.include_router(voz.router)
 app.include_router(moderacao.router)

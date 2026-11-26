@@ -182,7 +182,7 @@ export function ColecaoMascotes({ aoVerMissoes }: { aoVerMissoes: () => void }) 
                     <Pressable
                       key={m.chave} disabled={!tem} onPress={() => setAberto(m)}
                       accessibilityRole="button" accessibilityLabel={tem ? `${tenho[m.chave].nome ?? m.nome}, ${r.nome}, nível ${pm?.nivel ?? 1}${ehMeu ? ', o seu mascote' : ''}` : `Mascote nº ${m.numero}, ainda não tem`}
-                      style={({ pressed }) => [st.celula, ehMeu && { borderColor: r.cor, backgroundColor: 'rgba(255,255,255,0.06)' }, pressed && { opacity: 0.7 }]}
+                      style={({ pressed }) => [st.celula, ehMeu && { borderColor: r.cor, backgroundColor: `rgba(${cores.tinta},0.06)` }, pressed && { opacity: 0.7 }]}
                     >
                       {/* a barra de nível, em cima de cada mascote liberado (os que faltam ficam com o espaço vazio, alinhados) */}
                       {pm ? (

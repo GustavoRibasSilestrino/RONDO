@@ -85,7 +85,7 @@ const st = estilos(() => StyleSheet.create({
   botao: { height: 46, borderRadius: raio.pilula, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', paddingHorizontal: 48 },
   icone: { position: 'absolute', left: 18, top: 0, bottom: 0, justifyContent: 'center' },
   apple: { backgroundColor: '#ffffff' },
-  appleSobre: { backgroundColor: '#d6d4dc' },
+  appleSobre: { backgroundColor: '#d5d5d5' },
   email: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.16)', backgroundColor: 'rgba(255,255,255,0.03)' },
   google: { minHeight: 44, alignItems: 'center' },
 }));

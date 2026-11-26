@@ -64,12 +64,12 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
   /* o visual do RONDIN 3D (brand/rondin-3d): os pontos de trás, o miolo escuro, e os da frente com brilho nos acesos */
   const bolinhas: React.ReactElement[] = [];
   for (const passe of [0, 1]) {
-    if (passe === 1) bolinhas.push(<Circle key="miolo" cx={c} cy={c} r={tamanho * 0.36 * 0.97} fill="#05030a" opacity={0.86} />);
+    if (passe === 1) bolinhas.push(<Circle key="miolo" cx={c} cy={c} r={tamanho * 0.36 * 0.97} fill="#040404" opacity={0.86} />);
     for (let i = 0; i < N; i += 1) {
       const o = i * CAMPOS;
       if (saida[o + 5] !== passe) continue;
       if (passe === 1 && saida[o + 3] > 0.5) {
-        bolinhas.push(<Circle key={`b${i}`} cx={saida[o]} cy={saida[o + 1]} r={saida[o + 2] * 1.25 * 2.6} fill="#b080ff" opacity={Math.min(0.3, (saida[o + 3] - 0.5) * 0.6)} />);
+        bolinhas.push(<Circle key={`b${i}`} cx={saida[o]} cy={saida[o + 1]} r={saida[o + 2] * 1.25 * 2.6} fill="#999999" opacity={Math.min(0.3, (saida[o + 3] - 0.5) * 0.6)} />);
       }
       bolinhas.push(
         <Circle key={i} cx={saida[o]} cy={saida[o + 1]} r={Math.max(0.4, saida[o + 2] * 1.25)} fill={corDoPonto(saida[o + 4], saida[o + 3])} opacity={saida[o + 3]} />,
@@ -82,9 +82,9 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
     <>
       <Defs>
         <RadialGradient id="halo-rondin" cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor="#b080ff" stopOpacity={Math.min(0.62, 0.34 + 0.22 * a)} />
-          <Stop offset="0.45" stopColor="#7c3aed" stopOpacity={(0.34 + 0.22 * a) * 0.42} />
-          <Stop offset="1" stopColor="#5b21b6" stopOpacity="0" />
+          <Stop offset="0" stopColor="#999999" stopOpacity={Math.min(0.62, 0.34 + 0.22 * a)} />
+          <Stop offset="0.45" stopColor="#676767" stopOpacity={(0.34 + 0.22 * a) * 0.42} />
+          <Stop offset="1" stopColor="#494949" stopOpacity="0" />
         </RadialGradient>
       </Defs>
       <Circle cx={c} cy={c} r={c} fill="url(#halo-rondin)" />

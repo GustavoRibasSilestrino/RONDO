@@ -1,47 +1,51 @@
 /* ===== Fotos de paisagem no fundo =====
+   As fotos de fundo continuam COLORIDAS (pedido do dono, 2026-11-26), mesmo com o resto do site em preto, cinza e branco.
    Imagens do dono, em assets/cenas: hero-foto (a serra com o nome RONDO, na primeira tela), serra-dia e serra-noite, e dois
    recortes delas (vale-nuvens e picos-noite), para cada parte do site ter uma imagem diferente. Regra de leitura: a foto nunca fica atrás de texto em força total. */
 
-/* primeira tela: a foto das montanhas ao nascer do sol, com o nome RONDO esculpido nelas (a imagem é do dono; a palavra
-   gigante e a cena em vetor que ficavam aqui saíram). Um véu escuro do lado do texto garante a leitura, e a base escurece
-   até a cor da página. No celular a foto é centrada no nome. */
+/* primeira tela: desde 2026-11-26 a foto é a floresta em pixel art com o nome RONDO feito de folhagem no meio (hero-floresta,
+   imagem do dono; antes era a serra ao nascer do sol, hero-foto, que continua na pasta). O nome fica entre ~41% e ~66% da altura
+   e entre ~14% e ~83% da largura da foto. Um véu escuro do lado do texto garante a leitura, e a base escurece até a cor da página. */
 .hero {
   background:
-    linear-gradient(180deg, rgba(3, 1, 8, .28) 0%, rgba(3, 1, 8, 0) 22%, rgba(3, 1, 8, 0) 62%, rgba(5, 5, 7, .6) 84%, var(--bg) 100%),
-    linear-gradient(90deg, rgba(14, 8, 34, .66) 0%, rgba(14, 8, 34, .4) 34%, rgba(14, 8, 34, 0) 62%),
-    url("../assets/cenas/hero-foto.webp") 55% 42% / cover no-repeat,
-    #2a2350;
+    linear-gradient(180deg, rgba(2, 2, 2, .28) 0%, rgba(2, 2, 2, 0) 22%, rgba(2, 2, 2, 0) 62%, rgba(5, 5, 7, .6) 84%, var(--bg) 100%),
+    linear-gradient(90deg, rgba(12, 12, 12, .66) 0%, rgba(12, 12, 12, .4) 34%, rgba(12, 12, 12, 0) 62%),
+    url("../assets/cenas/hero-floresta.webp") 50% 40% / cover no-repeat,
+    #2a2a2a;
 }
 .hero-marca { display: none; }
-/* no computador o texto desce para o canto de baixo, sobre as flores: assim o nome RONDO da foto fica livre lá em cima */
+/* no computador (desde 2026-11-26, com a floresta): a foto ocupa a largura toda no alto, com o nome RONDO inteiro à vista, e o
+   título entra logo abaixo do nome (que termina em ~66% da altura da foto), sobre a grama e o rio, que escurecem até o preto da
+   página. Um véu escuro do lado esquerdo, atrás do texto, garante a leitura. */
 @media (min-width: 961px) {
-  .hero-grade { align-items: end; padding-bottom: clamp(.5rem, 4vh, 2.5rem); }
-  /* em janela baixa e larga, a tela cresce o bastante para o título nunca subir até o nome (o nome termina em ~25% da largura) */
-  .hero { min-height: max(100svh, calc(25.5vw + 24rem)); }
+  .hero-grade { align-items: start; min-height: 0; padding-bottom: 0; }
+  .hero-texto { padding-top: max(0px, calc(100vw / 1.78 * .67 - var(--nav-h) - clamp(1rem, 5vh, 3rem))); }
   .hero {
+    min-height: max(100svh, calc(100vw / 1.78 * .67 + 22rem));
     background:
-      linear-gradient(180deg, rgba(3, 1, 8, .28) 0%, rgba(3, 1, 8, 0) 22%, rgba(3, 1, 8, 0) 62%, rgba(5, 5, 7, .6) 84%, var(--bg) 100%),
-      radial-gradient(70% 62% at 12% 82%, rgba(14, 8, 34, .74) 0%, rgba(14, 8, 34, .4) 52%, rgba(14, 8, 34, 0) 80%),
-      url("../assets/cenas/hero-foto.webp") 55% 42% / cover no-repeat,
-      #2a2350;
+      linear-gradient(180deg, rgba(2, 2, 2, .3) 0, rgba(2, 2, 2, 0) calc(100vw / 1.78 * .14), rgba(2, 2, 2, 0) calc(100vw / 1.78 * .64),
+        rgba(5, 5, 5, .72) calc(100vw / 1.78 * .86), #050505 calc(100vw / 1.78 + 2px), var(--bg) 100%),
+      radial-gradient(52% 40% at 14% calc(100vw / 1.78 * .84), rgba(5, 5, 5, .6) 0%, rgba(5, 5, 5, 0) 75%),
+      url("../assets/cenas/hero-floresta.webp") 50% 0 / 100% auto no-repeat,
+      #050505;
   }
 }
-.hero-texto .lead { text-shadow: 0 1px 16px rgba(14, 8, 34, .8); }
+.hero-texto .lead { text-shadow: 0 1px 16px rgba(12, 12, 12, .8); }
 /* sombra no título da primeira tela, nas duas linhas (pedido do dono em 2026-11-19): uma sombra justa, que destaca as letras
    (a de pixel art e a fina) sobre a foto clara, e um halo largo */
-.hero-title, .hero-title .trail { text-shadow: 0 2px 3px rgba(10, 5, 26, .7), 0 4px 18px rgba(10, 5, 26, .55), 0 0 40px rgba(10, 5, 26, .35); }
-/* celular e tablet: com a foto cobrindo a tela inteira, só um pedaço do nome cabia. Aqui a foto ocupa a largura toda no alto,
-   num tamanho em que o nome RONDO aparece inteiro e sem nada na frente, e embaixo dela se funde no escuro, onde ficam o título
-   e os botões. 118% da largura, ancorada à direita: o nome ocupa 77% da foto (de 19% a 96%), então cabe com folga dos dois lados (foto em pixel art, 2026-11-18). */
+.hero-title, .hero-title .trail { text-shadow: 0 2px 3px rgba(8, 8, 8, .7), 0 4px 18px rgba(8, 8, 8, .55), 0 0 40px rgba(8, 8, 8, .35); }
+/* celular e tablet: a foto ocupa a largura toda no alto (118%, centralizada: o nome, de 14% a 83% da largura, cabe inteiro), e embaixo
+   dela se funde no escuro, onde ficam o título e os botões, logo abaixo do nome (que termina em ~66% da altura da foto). */
 @media (max-width: 960px), (max-aspect-ratio: 4/5) {
   .hero {
     background:
-      linear-gradient(180deg, rgba(3, 1, 8, 0) 0, rgba(3, 1, 8, 0) calc(118vw / 1.78 * .62), rgba(10, 6, 24, .9) calc(118vw / 1.78 * .96), #0a0618 calc(118vw / 1.78 + 2px), var(--bg) 100%),
-      url("../assets/cenas/hero-foto.webp") 100% 0 / 118% auto no-repeat,
-      #0a0618;
+      linear-gradient(180deg, rgba(2, 2, 2, 0) 0, rgba(2, 2, 2, 0) calc(118vw / 1.78 * .66), rgba(9, 9, 9, .9) calc(118vw / 1.78 * .95), #090909 calc(118vw / 1.78 + 2px), var(--bg) 100%),
+      url("../assets/cenas/hero-floresta.webp") 50% 0 / 118% auto no-repeat,
+      #090909;
   }
   /* o título vem logo abaixo do nome, nunca por cima */
-  .hero-texto { padding-top: calc(118vw / 1.78 * .5); }
+  .hero-grade { align-items: start; min-height: 0; }
+  .hero-texto { padding-top: max(0px, calc(118vw / 1.78 * .76 - var(--nav-h) - clamp(1rem, 5vh, 3rem))); }
 }
 
 /* seções: cada uma com uma foto diferente, que nasce do preto da página. Em cima e embaixo a foto se funde no preto (degradê
@@ -59,8 +63,8 @@
 #constancia { --foto: url("../assets/cenas/serra-dia.webp"); }
 #planos { --foto: url("../assets/cenas/vale-nuvens.webp"); }
 /* os cartões dessas seções ganham fundo fechado: o texto de dentro não disputa com a foto */
-#recado .recorder, #recado .mini, #constancia .streak-board, #constancia .points li, #planos .plan { background-color: rgba(12, 9, 20, .86); backdrop-filter: blur(6px); }
-#planos .plan.hot { background: linear-gradient(170deg, rgba(58, 26, 124, .94), rgba(12, 9, 20, .9) 62%); }
+#recado .recorder, #recado .mini, #constancia .streak-board, #constancia .points li, #planos .plan { background-color: rgba(11, 11, 11, .86); backdrop-filter: blur(6px); }
+#planos .plan.hot { background: linear-gradient(170deg, rgba(49, 49, 49, .94), rgba(11, 11, 11, .9) 62%); }
 
 /* a chamada final: um quadro com a serra ao anoitecer, que sai do preto em cima e volta ao preto embaixo */
 .cta-final { isolation: isolate; }

@@ -17,8 +17,8 @@ export function ChamaJoia({ tamanho = 24, situacao = 'acesa' }: { tamanho?: numb
   return (
     <View style={{ width: tamanho * 0.8, height: tamanho, opacity: situacao === 'emRisco' ? 0.62 : 1 }}>
       <Svg width={tamanho * 0.8} height={tamanho} viewBox="0 0 24 30">
-        <Path d={CHAMA} fill={apagada ? '#5a546f' : '#8a3dff'} />
-        <Path d={MIOLO} fill={apagada ? '#7d7793' : '#c9aaff'} />
+        <Path d={CHAMA} fill={apagada ? '#585858' : '#6f6f6f'} />
+        <Path d={MIOLO} fill={apagada ? '#7b7b7b' : '#b9b9b9'} />
       </Svg>
     </View>
   );

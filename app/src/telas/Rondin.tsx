@@ -662,8 +662,8 @@ const st = estilos(() => StyleSheet.create({
     backgroundColor: `rgba(${cores.tom},0.07)`, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, maxWidth: '100%',
   },
   pilulaSobre: { ...CINZA_SOBRE },   // o cursor em cima: só o cinza, sem brilho (pedido do dono, 2026-11-16)
-  pilulaMarcada: { backgroundColor: cores.destaqueForte, borderColor: cores.destaque2, boxShadow: '0 0 18px -6px rgba(139,92,246,0.95)' },
-  tecla: { width: 20, height: 20, borderRadius: 5, borderWidth: 1, borderColor: 'rgba(196,168,255,0.4)', alignItems: 'center', justifyContent: 'center' },
+  pilulaMarcada: { backgroundColor: cores.destaqueForte, borderColor: cores.destaque2, boxShadow: '0 0 18px -6px rgba(123,123,123,0.95)' },
+  tecla: { width: 20, height: 20, borderRadius: 5, borderWidth: 1, borderColor: 'rgba(182,182,182,0.4)', alignItems: 'center', justifyContent: 'center' },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, width: '100%', maxWidth: 400, alignSelf: 'center' },
   cartaoIdioma: {
     flexGrow: 1, flexBasis: '100%', minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 11, paddingVertical: 7, paddingHorizontal: 14,

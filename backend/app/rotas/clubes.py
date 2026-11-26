@@ -38,13 +38,22 @@ def _saida(sessao: Session, uid: int, clube: Clube) -> ClubeOut:
 def listar(
     q: str = Query("", max_length=60),
     meus: bool = False,
+    populares: bool = False,
     antes: int | None = None,
     limite: int = Query(30, ge=1, le=50),
     usuario: Usuario = Depends(usuario_atual),
     sessao: Session = Depends(obter_sessao),
 ):
-    """Os públicos e os que a pessoa participa. Clube privado de outra pessoa não aparece: só se entra pelo código."""
+    """Os públicos e os que a pessoa participa. Clube privado de outra pessoa não aparece: só se entra pelo código.
+    `populares`: só os públicos, dos com mais membros para os com menos (uma página só, sem `proximo`)."""
     limite = limite_valido(limite)
+    if populares:
+        contagem = select(Membro.clube_id, func.count().label("n")).group_by(Membro.clube_id).subquery()
+        linhas = list(sessao.scalars(
+            select(Clube).join(contagem, contagem.c.clube_id == Clube.id).where(Clube.privado.is_(False))
+            .order_by(contagem.c.n.desc(), Clube.id.desc()).limit(limite)
+        ))
+        return PaginaClubes(itens=clubes_out(sessao, usuario.id, linhas), proximo=None)
     dos_meus = select(Membro.clube_id).where(Membro.usuario_id == usuario.id)
     consulta = select(Clube).where(or_(Clube.privado.is_(False), Clube.id.in_(dos_meus)))
     if meus:

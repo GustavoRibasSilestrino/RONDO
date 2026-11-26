@@ -36,6 +36,7 @@ import { SeloSequencia } from './src/componentes/SeloSequencia';
 import { AvisoProvider } from './src/componentes/Estrutura';
 import { T } from './src/componentes/Ui';
 import { estadoVazio, LojaProvider, useLoja } from './src/estado/loja';
+import { TemaProvider, useTema } from './src/estado/tema';
 import { useEscutaDoChamado } from './src/lib/escuta';
 import { voltarInterceptado } from './src/lib/interceptarVoltar';
 import { naoLidas } from './src/lib/notificacoes';
@@ -76,6 +77,7 @@ const ESPERA_RONDIN = 5000;   // ms entre o app abrir e o RONDIN chegar com a pe
 
 function Raiz() {
   const { estado, pronto: dadosProntos, commit, puxarDoServidor, guardarAgora } = useLoja();
+  const { tema } = useTema();   // trocar o tema redesenha as telas (a chave da View de baixo), sem perder a aba em que a pessoa está
   /* veio da loja do site para entrar ou criar a conta (lib/entrada.ts): depois de entrar, volta para lá */
   const [voltandoALoja, setVoltandoALoja] = useState(false);
   const [fontes] = useFonts({ Poppins_300Light, Poppins_400Regular, Poppins_500Medium, Poppins_600SemiBold, PixelifySans_500Medium, PixelifySans_700Bold });
@@ -160,6 +162,7 @@ function Raiz() {
     /* enquanto carrega: a tela preta com o nome RONDO, igual à abertura (no navegador, igual à tela de carregamento) */
     return (
       <View style={st.centro}>
+        <StatusBar style="light" />
         <NomeMarca altura={30} cor="#ffffff" />
       </View>
     );
@@ -170,13 +173,15 @@ function Raiz() {
     return (
       <View style={st.centro}>
         <NomeMarca altura={30} cor="#ffffff" />
-        <View style={{ marginTop: 18 }}><T tam={14} cor="#cbb8e8">Voltando para a loja...</T></View>
+        <View style={{ marginTop: 18 }}><T tam={14} cor="#c0c0c0">Voltando para a loja...</T></View>
       </View>
     );
   }
 
   if (!estado.usuario) {
     return (
+      <>
+      <StatusBar style="light" />
       <Login
         aoEntrar={(usuario, extra) => {
           aplicarConta(usuario, extra);
@@ -200,6 +205,7 @@ function Raiz() {
           setChegando(true);        // recém-entrou: o RONDIN aparece já fazendo a pergunta do dia
         }}
       />
+      </>
     );
   }
 
@@ -218,7 +224,8 @@ function Raiz() {
   };
   const voltarDaTela = () => setTela(tela === 'notificacoes' ? antes : voltarPara);
   return (
-    <View style={{ flex: 1, flexDirection: largo ? 'row' : 'column' }}>
+    <View key={tema} style={{ flex: 1, flexDirection: largo ? 'row' : 'column' }}>
+      <StatusBar style={tema === 'claro' ? 'dark' : 'light'} />
       {largo ? <MenuLateral itens={TELAS} atual={naBarra} aoEscolher={escolher} recolhido={menuRecolhido} aoAlternar={alternarMenu} nome={estado.usuario?.nome ?? ""} nivel={nivelDe(xpTotal(estado))} aoAbrirConta={() => setTela("perfil")} naoLidas={naoLidas(estado)} notificacoesAbertas={tela === 'notificacoes'} aoAbrirNotificacoes={aoAbrirNotificacoes} /> : null}
       {/* a coluna do conteúdo: medida para os painéis de baixo se centralizarem nela (lib/coluna.ts) */}
       <View style={{ flex: 1 }} onLayout={(e) => guardarColuna({ x: e.nativeEvent.layout.x, w: e.nativeEvent.layout.width })}>
@@ -264,7 +271,7 @@ function Raiz() {
       {/* dentro da área do feed: a lupa fica sozinha no canto de cima à direita, sem passar por cima do painel de gráficos */}
       {largo && tela === 'home' ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Buscar pessoas" onPress={() => setBuscando(true)} style={({ hovered, pressed }: { hovered?: boolean; pressed: boolean }) => [st.lupaCanto, (hovered || pressed) && { backgroundColor: cores.cartao2 }]}>
-          <Icone nome="busca" tamanho={24} cor="#ffffff" />
+          <Icone nome="busca" tamanho={24} cor={cores.texto} />
         </Pressable>
       ) : null}
       </View>
@@ -308,18 +315,27 @@ export default function App() {
   if (SO_CAMERA) return <SoCamera />;
   return (
     <SafeAreaProvider>
-      <View style={st.raiz}>
-        <LojaProvider>
-          <AvisoProvider>
-            <Raiz />
-          </AvisoProvider>
-        </LojaProvider>
-        {/* a abertura: a tela preta com o nome RONDO em branco, toda vez que o app abre, só no app do celular (no navegador, quem
-            vem do site vai direto para o RONDIN, desde 2026-11-16); depois dela vem o RONDIN */}
-        {Platform.OS !== 'web' ? <Abertura /> : null}
-        <StatusBar style="light" />
-      </View>
+      <TemaProvider>
+        <Casca />
+      </TemaProvider>
     </SafeAreaProvider>
+  );
+}
+
+/* a casca do app: redesenha ao trocar o tema (o fundo de baixo muda de cor), sem recarregar os dados da loja */
+function Casca() {
+  useTema();
+  return (
+    <View style={st.raiz}>
+      <LojaProvider>
+        <AvisoProvider>
+          <Raiz />
+        </AvisoProvider>
+      </LojaProvider>
+      {/* a abertura: a tela preta com o nome RONDO em branco, toda vez que o app abre, só no app do celular (no navegador, quem
+          vem do site vai direto para o RONDIN, desde 2026-11-16); depois dela vem o RONDIN */}
+      {Platform.OS !== 'web' ? <Abertura /> : null}
+    </View>
   );
 }
 

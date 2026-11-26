@@ -76,10 +76,10 @@ const st = estilos(() => StyleSheet.create({
   veu: { backgroundColor: 'rgba(0,0,0,0.35)' },
   cartao: {
     position: 'absolute', minWidth: 210, maxWidth: 280, borderRadius: 22, overflow: 'hidden', paddingVertical: 4,
-    backgroundColor: 'rgba(30,24,46,0.86)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)', ...VIDRO,
+    backgroundColor: cores.tinta === '255,255,255' ? 'rgba(27,27,27,0.86)' : cores.painel, borderWidth: 1, borderColor: `rgba(${cores.tinta},0.14)`, ...VIDRO,   // no claro, o vidro claro das folhas
     shadowColor: '#000000', shadowOpacity: 0.5, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 14,
   },
   item: { minHeight: 48, paddingHorizontal: 20, justifyContent: 'center' },
   divisa: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: cores.linha2 },
-  itemSobre: { backgroundColor: 'rgba(255,255,255,0.08)' },
+  itemSobre: { backgroundColor: `rgba(${cores.tinta},0.08)` },
 }));

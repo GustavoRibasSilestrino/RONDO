@@ -68,7 +68,7 @@ export function AnaliseExecucao({ aberta, aoFechar }: { aberta: boolean; aoFecha
             mediaPlaybackRequiresUserAction={false}
             javaScriptEnabled
             startInLoadingState
-            renderLoading={() => <View style={[st.fundo, st.centro]}><ActivityIndicator color="#a78bfa" /></View>}
+            renderLoading={() => <View style={[st.fundo, st.centro]}><ActivityIndicator color="#9d9d9d" /></View>}
             /* o X da página fecha a tela aqui */
             onMessage={(e) => { if (e.nativeEvent.data === 'fechar') aoFechar(); }}
             /* só o próprio site do RONDO abre dentro: qualquer outro link vai para o navegador */
@@ -82,7 +82,7 @@ export function AnaliseExecucao({ aberta, aoFechar }: { aberta: boolean; aoFecha
             }}
           />
         ) : (
-          <View style={[st.fundo, st.centro]}><ActivityIndicator color="#a78bfa" /></View>
+          <View style={[st.fundo, st.centro]}><ActivityIndicator color="#9d9d9d" /></View>
         )}
       </View>
     </Modal>
@@ -90,6 +90,6 @@ export function AnaliseExecucao({ aberta, aoFechar }: { aberta: boolean; aoFecha
 }
 
 const st = StyleSheet.create({
-  fundo: { flex: 1, backgroundColor: '#07060b' },
+  fundo: { flex: 1, backgroundColor: '#070707' },
   centro: { alignItems: 'center', justifyContent: 'center' },
 });

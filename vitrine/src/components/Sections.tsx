@@ -5,9 +5,9 @@ import { Btn, Reveal, Section, Spot, Title, Mark } from "./ui";
 
 /* ---------- clube ---------- */
 const POD = [
-  { cls: "p2", ini: "TS", bg: "#4c1d95", nome: "Tiago", pts: 905, pos: 2 },
-  { cls: "p1", ini: "BA", bg: "#7c3aed", nome: "Bia", pts: 940, pos: 1 },
-  { cls: "p3", ini: "LP", bg: "#6d28d9", nome: "Lucas", pts: 870, pos: 3 },
+  { cls: "p2", ini: "TS", bg: "#3c3c3c", nome: "Tiago", pts: 905, pos: 2 },
+  { cls: "p1", ini: "BA", bg: "#676767", nome: "Bia", pts: 940, pos: 1 },
+  { cls: "p3", ini: "LP", bg: "#585858", nome: "Lucas", pts: 870, pos: 3 },
 ];
 const Progress = ({ nome, chip, w, tone }: { nome: string; chip: string; w: number; tone?: string }) => (
   <div>

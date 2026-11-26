@@ -201,7 +201,7 @@ const st = estilos(() => StyleSheet.create({
   musculos: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 99, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao2 },
-  chipPronto: { borderColor: 'rgba(196,168,255,0.45)' },
+  chipPronto: { borderColor: cores.tinta === '255,255,255' ? 'rgba(182,182,182,0.45)' : `rgba(${cores.tom},0.45)` },   // no claro, o lilás some no fundo: o roxo do destaque
   sem: { padding: 16, borderRadius: 22, borderWidth: 1, borderColor: cores.linha2, backgroundColor: cores.cartao },
   semTopo: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   chipOn: { backgroundColor: cores.acao, borderColor: cores.acao },   // marcado: o violeta de ação, como o botão principal

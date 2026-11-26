@@ -41,5 +41,5 @@ export function AnelStory({ tamanho, estado, children, aoPressionar, rotulo, mai
 const st = estilos(() => StyleSheet.create({
   anel: { alignItems: 'center', justifyContent: 'center' },
   /* o + do story: de vidro, como os outros botões (2026-11-17) */
-  mais: { position: 'absolute', width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 1.5, borderColor: '#ffffff', boxShadow: '0 4px 10px -4px rgba(42,22,80,0.5)', ...VIDRO },
+  mais: { position: 'absolute', width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.75)', borderWidth: 1.5, borderColor: '#ffffff', boxShadow: '0 4px 10px -4px rgba(35,35,35,0.5)', ...VIDRO },
 }));

@@ -27,12 +27,12 @@
 .rondin-orbe .rondin-video { border-radius: 50%; }
 .rondin-orbe::before {   /* a luz roxa atrás dele */
   content: ""; position: absolute; inset: -14px; border-radius: 50%; z-index: -1;
-  background: radial-gradient(closest-side, rgba(139, 92, 246, .42), rgba(109, 40, 217, .14) 60%, transparent);
+  background: radial-gradient(closest-side, rgba(123, 123, 123, .42), rgba(88, 88, 88, .14) 60%, transparent);
   animation: rondin-respira 3.2s ease-in-out infinite;
 }
 .rondin-fala {
   position: relative; padding: .6rem .95rem; border-radius: 14px 14px 4px 14px; white-space: nowrap;
-  border: 1px solid rgba(196, 168, 255, .28); background: #120d1e; color: var(--ink);
+  border: 1px solid rgba(182, 182, 182, .28); background: #101010; color: var(--ink);
   font-size: .95rem; font-weight: 500; letter-spacing: -.01em; box-shadow: 0 14px 34px -14px rgba(0, 0, 0, .9);
   opacity: 0; transform: translateX(calc(var(--dx) * .55)) scale(.92); transform-origin: right center;
   transition: opacity .3s var(--ease), transform .45s var(--ease);
@@ -41,7 +41,7 @@
 .canto-ie .rondin-fala { border-radius: 14px 14px 14px 4px; transform-origin: left center; }
 .canto-sd .rondin-fala { border-radius: 14px 4px 14px 14px; }
 .canto-se .rondin-fala { border-radius: 4px 14px 14px 14px; transform-origin: left center; }
-.rondin-chamada:hover .rondin-fala { border-color: rgba(196, 168, 255, .55); }
+.rondin-chamada:hover .rondin-fala { border-color: rgba(182, 182, 182, .55); }
 
 .rondin-canto.is-on .rondin-orbe { opacity: 1; transform: none; }
 .rondin-canto.is-on .rondin-fala { opacity: 1; transform: none; transition-delay: .25s; }
@@ -52,21 +52,21 @@
 /* o balão de fala aberto */
 .rondin-balao {
   position: relative; width: min(320px, calc(100vw - 40px)); padding: 1.4rem 1.3rem 1.3rem; display: grid; justify-items: center; gap: .9rem;
-  text-align: center; border-radius: 22px 22px 6px 22px; border: 1px solid rgba(196, 168, 255, .3);
-  background: radial-gradient(120% 80% at 50% 0%, rgba(139, 92, 246, .2), transparent 60%), #0e0a18;
+  text-align: center; border-radius: 22px 22px 6px 22px; border: 1px solid rgba(182, 182, 182, .3);
+  background: radial-gradient(120% 80% at 50% 0%, rgba(123, 123, 123, .2), transparent 60%), #0c0c0c;
   box-shadow: 0 30px 70px -24px rgba(0, 0, 0, .95), 0 0 0 1px rgba(0, 0, 0, .4);
   transform-origin: bottom right; animation: rondin-abre .42s cubic-bezier(.34, 1.3, .5, 1) both;
 }
 .rondin-balao::after {   /* a pontinha do balão, apontando para a esfera */
   content: ""; position: absolute; right: 22px; bottom: -8px; width: 16px; height: 16px; transform: rotate(45deg);
-  background: #0e0a18; border-right: 1px solid rgba(196, 168, 255, .3); border-bottom: 1px solid rgba(196, 168, 255, .3);
+  background: #0c0c0c; border-right: 1px solid rgba(182, 182, 182, .3); border-bottom: 1px solid rgba(182, 182, 182, .3);
 }
 .canto-ie .rondin-balao { border-radius: 22px 22px 22px 6px; transform-origin: bottom left; }
 .canto-ie .rondin-balao::after { right: auto; left: 22px; }
 .canto-sd .rondin-balao { border-radius: 22px 6px 22px 22px; transform-origin: top right; }
 .canto-se .rondin-balao { border-radius: 6px 22px 22px 22px; transform-origin: top left; }
 .canto-sd .rondin-balao::after, .canto-se .rondin-balao::after {
-  bottom: auto; top: -8px; border: 0; border-left: 1px solid rgba(196, 168, 255, .3); border-top: 1px solid rgba(196, 168, 255, .3);
+  bottom: auto; top: -8px; border: 0; border-left: 1px solid rgba(182, 182, 182, .3); border-top: 1px solid rgba(182, 182, 182, .3);
 }
 .canto-se .rondin-balao::after { right: auto; left: 22px; }
 .rondin-balao p { font-size: 1.12rem; line-height: 1.4; color: var(--ink); max-width: 22ch; text-wrap: balance; }
