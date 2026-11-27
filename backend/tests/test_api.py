@@ -30,7 +30,7 @@ def test_cadastro_login_e_eu(cliente):
     assert r.status_code == 200
     token = r.json()["token"]
     eu = cliente.get("/auth/eu", headers={"Authorization": f"Bearer {token}"})
-    assert eu.json() == {"email": "ana@x.com", "nome": "Ana", "papel": "usuario", "verificado": False, "pro": False, "selo": None, "arroba": None, "bio": "", "foto": None, "capa": None, "mascote": None, "mascote_nome": None, "marketing": False, "dois_fatores": False, "avisos": 0, "suspensoes": 0, "suspenso_ate": None}
+    assert eu.json() == {"email": "ana@x.com", "nome": "Ana", "papel": "usuario", "verificado": False, "pro": False, "selo": None, "arroba": None, "bio": "", "foto": None, "capa": None, "mascote": None, "mascote_nome": None, "marketing": False, "dois_fatores": False, "xp_extra": 0, "avisos": 0, "suspensoes": 0, "suspenso_ate": None}
     assert cliente.get("/auth/eu").status_code == 401
 
 

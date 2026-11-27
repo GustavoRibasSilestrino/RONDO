@@ -137,7 +137,8 @@ export function LojaProvider({ children }: { children: React.ReactNode }) {
       const copia: Estado = { ...recente.current };
       /* a conta no servidor manda: se a foto, o nome ou o @ mudaram em outro aparelho, este passa a mostrar o mesmo */
       try {
-        const eu = await chamar<{ nome: string; arroba: string | null; foto: string | null; capa?: string | null; verificado: boolean; pro: boolean; selo: string | null; papel: string; mascote?: string | null; mascote_nome?: string | null }>('GET', '/auth/eu');
+        const eu = await chamar<{ xp_extra?: number; nome: string; arroba: string | null; foto: string | null; capa?: string | null; verificado: boolean; pro: boolean; selo: string | null; papel: string; mascote?: string | null; mascote_nome?: string | null }>('GET', '/auth/eu');
+        copia.xpExtra = eu.xp_extra ?? 0;   // o XP extra só vem do servidor (a conta do dono)
         if (copia.usuario) copia.usuario = { ...copia.usuario, nome: eu.nome, arroba: eu.arroba ?? undefined, foto: eu.foto ?? undefined, capa: eu.capa ?? undefined, verificado: eu.verificado, pro: eu.pro, selo: eu.selo, papel: eu.papel, mascoteNome: eu.mascote_nome ?? null, mascote: eu.mascote ?? null };
       } catch (e) {
         if (e instanceof ErroHttp && e.status === 401) throw e;   // sessão vencida: o tratamento de baixo derruba a sessão

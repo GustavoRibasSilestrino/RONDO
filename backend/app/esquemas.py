@@ -102,6 +102,7 @@ class UsuarioOut(BaseModel):
     mascote_nome: str | None = None   # o nome que a conta deu a ele com o lápis (vazio = o nome de fábrica)
     marketing: bool = False
     dois_fatores: bool = False   # a verificação em duas etapas está ligada
+    xp_extra: int = 0            # XP somado ao das atividades (definido só no banco)
     # a política de conteúdo: avisos do ciclo (0 a 3), suspensões tomadas e até quando está suspensa
     avisos: int = 0
     suspensoes: int = 0

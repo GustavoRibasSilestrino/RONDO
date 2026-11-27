@@ -63,6 +63,9 @@ class Usuario(Base):
     # Conta criada com senha começa sem prova; se alguém criou a conta com o e-mail de outra pessoa, o primeiro login social do
     # dono de verdade toma a conta de volta (rotas/auth.py, _entrada_social).
     email_confirmado: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    # XP somado ao das atividades no nível da conta (o app soma em lib/nivel.ts). Só o banco define (a conta do dono, 2026-11-27):
+    # o app não consegue mudar, porque não vem na sincronia (/me/dados).
+    xp_extra: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     @property
     def dois_fatores(self) -> bool:
