@@ -12,7 +12,7 @@ import { Botao, T } from '../componentes/Ui';
 import { useMovimentoReduzido } from '../lib/movimento';
 import type { EstadoOrbe } from '../lib/orbe';
 import { TEXTOS as FALAS } from '../lib/rondinTextos';
-import { falar, parar, sotaquePadrao, useSomBloqueado, useVozDesligada } from '../lib/rondinVoz';
+import { falar, parar, somEstaBloqueado, sotaquePadrao, useSomBloqueado, useVozDesligada } from '../lib/rondinVoz';
 import { Legenda } from './Rondin';
 
 const BOTAO = { pt: 'Vamos lá', en: "Let's go", es: 'Vamos' };
@@ -44,24 +44,33 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
   /* um toque só pode fazer ele se apresentar uma vez: o toque que libera o som (no orbe, o lugar natural) disparava a
      apresentação duas vezes, uma pela liberação e outra pelo toque no orbe, e a frase começava, era cortada e recomeçava */
   const ultimaVez = useRef(0);
-  const apresentar = () => {
+  const reserva = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* `porToque`: a pessoa acabou de tocar (no orbe ou em qualquer lugar, liberando o som). Aí o navegador já não recusa o som,
+     e a legenda aparece NA HORA, sem esperar o áudio começar. Antes ela esperava a voz começar de verdade, e no iPhone, quando
+     o áudio demorava ou travava, a tela ficava vazia por até 8 s depois do "Toque para ter a experiência" (dono, 2026-11-27:
+     "eu toco e não aparece nada depois"). */
+  const apresentar = (porToque = false) => {
     const agora = Date.now();
     if (agora - ultimaVez.current < 1200) return;
     ultimaVez.current = agora;
     setIndiceVoz(-1); setDuracaoMs(0); setChave((c) => c + 1);
     setEstado('falando');
-    /* a legenda só começa quando a voz começa (ou quando a voz está desligada): sem isso, se o navegador recusa o som, a
-       frase aparecia e sumia logo em seguida, trocada pelo "Toque para ter a experiência" */
+    if (reserva.current) clearTimeout(reserva.current);
+    /* na primeira vez, sozinho (sem toque), a legenda espera a voz começar: se o navegador recusa o som, a frase não aparece
+       para sumir logo em seguida, trocada pelo "Toque para ter a experiência". No celular (app instalado) não há recusa, e
+       depois de um toque também não: a legenda vem junto. Se a voz não começar em 1,2 s (sem recusa), a legenda vem assim mesmo. */
+    if (porToque || nativo) setComecou(true);
+    else reserva.current = setTimeout(() => { if (!somEstaBloqueado()) setComecou(true); }, 1200);
     falar([fala], sotaque, () => setEstado('quieto'), (i) => setIndiceVoz(i), (ms) => setDuracaoMs(ms), () => setComecou(true));
   };
 
   useEffect(() => {
     const inicio = setTimeout(() => {
-      Animated.timing(nasce, { toValue: 1, duration: reduzido ? 1 : 900, easing: Easing.out(Easing.cubic), useNativeDriver: nativo }).start();
-      /* ele começa a falar sozinho, logo depois de nascer */
-      setTimeout(apresentar, reduzido ? 150 : 700);
+      Animated.timing(nasce, { toValue: 1, duration: reduzido ? 1 : 600, easing: Easing.out(Easing.cubic), useNativeDriver: nativo }).start();
+      /* ele começa a falar sozinho, logo depois de nascer (era 700 ms; desde 2026-11-27, 250 ms) */
+      setTimeout(() => apresentar(), reduzido ? 100 : 250);
     }, atraso);
-    return () => { clearTimeout(inicio); parar(); };
+    return () => { clearTimeout(inicio); if (reserva.current) clearTimeout(reserva.current); parar(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -74,8 +83,8 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
   const aviso = useRef(new Animated.Value(0)).current;
   const esperandoToque = bloqueado && !mudo;
   useEffect(() => {
-    if (bloqueado) estavaBloqueado.current = true;
-    else if (estavaBloqueado.current) { estavaBloqueado.current = false; if (!mudo) apresentar(); }
+    if (bloqueado) { estavaBloqueado.current = true; setComecou(false); }
+    else if (estavaBloqueado.current) { estavaBloqueado.current = false; if (!mudo) apresentar(true); }
     Animated.timing(aviso, { toValue: bloqueado && !mudo ? 1 : 0, duration: reduzido ? 1 : 400, useNativeDriver: nativo }).start();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bloqueado, mudo]);
@@ -92,7 +101,7 @@ export function Apresentacao({ aoContinuar, atraso = 0 }: Props) {
 
       <View style={st.meio}>
         <Animated.View style={{ opacity: nasce }}>
-          <Orbe hud tamanho={tamanho} estado={estado} aoPressionar={apresentar} rotulo={fala} />
+          <Orbe hud tamanho={tamanho} estado={estado} aoPressionar={() => apresentar(true)} rotulo={fala} />
         </Animated.View>
         <T tam={12} peso="500" style={st.nome}>RONDIN</T>
         <View style={st.fala}>

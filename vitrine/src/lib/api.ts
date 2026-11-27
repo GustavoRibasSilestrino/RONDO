@@ -83,7 +83,9 @@ export const cadastrarProfissional = (d: {
 export async function excluirConta(email: string, senha: string, codigo?: string): Promise<void> {
   let r: Response;
   try {
-    r = await fetch(`${API}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, senha, ...(codigo ? { codigo } : {}) }) });
+    /* com o identificador deste navegador, como nos outros logins do site: sem ele, quem excluía a conta no mesmo navegador
+       em que já entrava recebia antes um e-mail de "Entrada nova na sua conta" (2026-11-27) */
+    r = await fetch(`${API}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, senha, aparelho: idDoAparelho(), ...(codigo ? { codigo } : {}) }) });
   } catch {
     throw new ErroApi("Sem conexão. Tente de novo em instantes.");
   }

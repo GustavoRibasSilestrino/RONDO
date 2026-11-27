@@ -149,6 +149,7 @@ function marcarBloqueado(): void {
   };
   GESTOS.forEach((ev) => window.addEventListener(ev, liberar, true));
 }
+export const somEstaBloqueado = (): boolean => somBloqueado;
 export function useSomBloqueado(): boolean {
   const [b, setB] = useState(somBloqueado);
   useEffect(() => { avisosBloqueio.add(setB); setB(somBloqueado); return () => { avisosBloqueio.delete(setB); }; }, []);
@@ -156,6 +157,8 @@ export function useSomBloqueado(): boolean {
 }
 
 type Resultado = 'tocou' | 'falhou' | 'bloqueado';
+/* quanto esperar o mp3 começar antes de usar a voz do aparelho (era 8 s até 2026-11-27) */
+const PRAZO_AUDIO_MS = 3000;
 
 /* no navegador, o player do próprio navegador: ele diz na hora se o som foi recusado (o do expo-audio não diz) */
 /* ---------- o nível da voz, para o orbe formar ondas com a fala (2026-11-16) ----------
@@ -169,7 +172,19 @@ let analisador: AnalyserNode | null = null;
 /* UM player para a voz inteira (antes era um novo a cada frase). O iPhone só deixa um player tocar se ele já tocou alguma vez
    dentro de um toque da pessoa; a voz toca depois (a tela atualiza, o arquivo carrega), fora do toque. Então, no toque, este
    player toca um instante de silêncio e fica liberado para todas as frases seguintes. */
-const SILENCIO = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+/* um silêncio de verdade: 0,1 s (800 amostras a 8 kHz, 8 bits). O de antes era um WAV sem nenhuma amostra, e um arquivo vazio
+   pode ser recusado pelo navegador (no Safari, aí o player não fica liberado) */
+const SILENCIO = (() => {
+  const n = 800, b = new Uint8Array(44 + n), v = new DataView(b.buffer);
+  const txt = (o: number, s: string) => { for (let i = 0; i < s.length; i += 1) b[o + i] = s.charCodeAt(i); };
+  txt(0, 'RIFF'); v.setUint32(4, 36 + n, true); txt(8, 'WAVEfmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 8000, true);
+  v.setUint16(32, 1, true); v.setUint16(34, 8, true); txt(36, 'data'); v.setUint32(40, n, true);
+  b.fill(128, 44);   // 128 é o silêncio no áudio de 8 bits
+  let s = '';
+  for (let i = 0; i < b.length; i += 1) s += String.fromCharCode(b[i]);
+  return typeof btoa === 'function' ? `data:audio/wav;base64,${btoa(s)}` : '';
+})();
 let tocador: HTMLAudioElement | null = null;
 let tocadorMedido = false;
 function obterTocador(): HTMLAudioElement {
@@ -194,8 +209,14 @@ function destravarNoGesto(): void {
 }
 let amostras: Uint8Array | null = null;
 let medindo: HTMLAudioElement | null = null;
+/* No iPhone e no iPad a voz NÃO passa pelo analisador (2026-11-27): o som que passa pela Web Audio obedece à chave de silêncio
+   do aparelho (com ela ligada, o RONDIN ficava mudo) e, com o som do aparelho interrompido, o player pode nem começar. Lá o
+   orbe usa o ritmo de fala simulado; a voz toca direto pelo player, como um vídeo. */
+const IOS = Platform.OS === 'web' && typeof navigator !== 'undefined'
+  && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
 function medirVoz(audio: HTMLAudioElement, url: string): void {
   try {
+    if (IOS) return;
     if (new URL(url, window.location.href).origin !== window.location.origin) return;
     const Contexto = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Contexto) return;
@@ -253,7 +274,8 @@ function tocarNoNavegador(url: string, aoComecar?: () => void): Promise<Resultad
       resolve(r);
     };
     const sair = () => acabar('tocou');   // parar(): não toca a voz do aparelho por cima
-    const espera = setTimeout(() => acabar('falhou'), 8000);
+    /* o áudio não começou: desiste e usa a voz do aparelho (era 8 s; a tela ficava parada esperando) */
+    const espera = setTimeout(() => acabar('falhou'), PRAZO_AUDIO_MS);
     encerrarAtual = sair;
     audio.onended = () => acabar('tocou');
     audio.onerror = () => acabar('falhou');
@@ -280,7 +302,7 @@ function tocarNoAparelho(url: string, aoComecar?: () => void): Promise<boolean> 
       resolve(ok);
     };
     const sair = () => acabar(true);   // parar(): não toca a voz do aparelho por cima
-    const espera = setTimeout(() => acabar(false), 8000);   // não começou a tocar: desiste e usa a voz do aparelho
+    const espera = setTimeout(() => acabar(false), PRAZO_AUDIO_MS);   // não começou a tocar: desiste e usa a voz do aparelho
     try {
       jogador = createAudioPlayer({ uri: url });
       encerrarAtual = sair;

@@ -311,7 +311,8 @@ def trocar_senha(dados: SenhaIn, request: Request, tarefas: BackgroundTasks, usu
         raise HTTPException(429, "Muitas tentativas. Espere 15 minutos e tente de novo.", headers={"Retry-After": "900"})
     if not conferir_senha(dados.atual, usuario.senha_hash):
         registrar_falha(chave)
-        raise HTTPException(401, "A senha atual está incorreta.")
+        # 400, não 401: no app, um 401 com token derruba a sessão. Com 401, errar a senha atual tirava a pessoa da conta (2026-11-27)
+        raise HTTPException(400, "A senha atual está incorreta.")
     zerar_falhas(chave)
     if dados.nova == dados.atual:
         raise HTTPException(422, "A nova senha precisa ser diferente da atual.")

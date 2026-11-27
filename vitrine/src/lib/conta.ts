@@ -112,6 +112,9 @@ if (typeof window !== "undefined") {
   });
 }
 
+/* confere a sessão guardada com o servidor agora (ex.: depois de excluir uma conta pelo site): recusada, ela sai */
+export const conferirConta = (): Promise<void> => conferir();
+
 export const useConta = () => useSyncExternalStore((f) => { ouvintes.add(f); return () => { ouvintes.delete(f); }; }, () => estado);
 
 /* entrou ou criou a conta pelo site: guarda a sessão no mesmo lugar do app (vale para os dois) */

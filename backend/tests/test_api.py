@@ -118,7 +118,9 @@ def test_perfil_e_arroba_unica(cliente):
 
 def test_trocar_senha(cliente):
     ana = _conta(cliente)
-    assert cliente.post("/auth/senha", json={"atual": "errada!", "nova": "novasenha1"}, headers=ana).status_code == 401
+    # senha atual errada: 400 (um 401 faria o app derrubar a sessão) e a pessoa continua na conta
+    assert cliente.post("/auth/senha", json={"atual": "errada!", "nova": "novasenha1"}, headers=ana).status_code == 400
+    assert cliente.get("/auth/eu", headers=ana).status_code == 200
     assert cliente.post("/auth/senha", json={"atual": "segredo1", "nova": "segredo1"}, headers=ana).status_code == 422
     assert cliente.post("/auth/senha", json={"atual": "segredo1", "nova": "novasenha1"}, headers=ana).status_code == 200
     assert cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "segredo1", "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True}).status_code == 401

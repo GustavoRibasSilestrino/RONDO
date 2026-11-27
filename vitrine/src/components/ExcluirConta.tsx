@@ -2,6 +2,7 @@
    Pede e-mail e senha, confirma e apaga tudo no servidor. */
 import { useState } from "react";
 import { ErroApi, excluirConta } from "../lib/api";
+import { conferirConta } from "../lib/conta";
 import { CONTATO, Pagina } from "./Legal";
 
 export function ExcluirConta() {
@@ -17,6 +18,9 @@ export function ExcluirConta() {
       await excluirConta(String(f.get("email")).trim(), String(f.get("senha")), pedeCodigo ? String(f.get("codigo") ?? "").trim() : undefined);
       setEstado("ok");
       setMsg("Conta excluída. Todos os seus dados foram apagados do servidor.");
+      /* se a sessão guardada neste navegador era da conta apagada, ela sai na hora (antes ficava até a próxima visita, com o
+         nome da conta apagada no topo do site e do app). Uma sessão de outra conta continua. */
+      void conferirConta();
     } catch (err) {
       if (err instanceof ErroApi && err.doisFatores) {
         setEstado(pedeCodigo ? "erro" : ""); setMsg(pedeCodigo ? err.message : "");
