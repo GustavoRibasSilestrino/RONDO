@@ -132,12 +132,16 @@ let liberadoEm = 0;
 /* o toque que acabou de liberar o som não deve valer também como toque no orbe (que pula ou repete a fala) */
 export const acabouDeLiberarSom = (): boolean => Date.now() - liberadoEm < 900;
 const avisosBloqueio = new Set<(bloqueado: boolean) => void>();
-const GESTOS = ['pointerdown', 'keydown', 'touchend'] as const;
+/* gestos que o navegador aceita como "a pessoa tocou" para liberar o som: no iPhone, o começo do toque (pointerdown/touchstart)
+   NÃO conta, só o fim (touchend/pointerup/click) ou uma tecla (2026-11-27: depois do "Toque para ter a experiência" o RONDIN
+   continuava mudo no iPhone) */
+const GESTOS = ['pointerup', 'touchend', 'click', 'keydown'] as const;
 function marcarBloqueado(): void {
   if (somBloqueado || typeof window === 'undefined') return;
   somBloqueado = true;
   avisosBloqueio.forEach((f) => f(true));
   const liberar = () => {
+    destravarNoGesto();   // ainda dentro do toque: o iPhone só libera o som aqui
     GESTOS.forEach((ev) => window.removeEventListener(ev, liberar, true));
     somBloqueado = false;
     liberadoEm = Date.now();
@@ -161,6 +165,33 @@ type Resultado = 'tocou' | 'falhou' | 'bloqueado';
    ritmo de fala simulado. */
 let somWeb: AudioContext | null = null;
 let analisador: AnalyserNode | null = null;
+
+/* UM player para a voz inteira (antes era um novo a cada frase). O iPhone só deixa um player tocar se ele já tocou alguma vez
+   dentro de um toque da pessoa; a voz toca depois (a tela atualiza, o arquivo carrega), fora do toque. Então, no toque, este
+   player toca um instante de silêncio e fica liberado para todas as frases seguintes. */
+const SILENCIO = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+let tocador: HTMLAudioElement | null = null;
+let tocadorMedido = false;
+function obterTocador(): HTMLAudioElement {
+  if (!tocador) {
+    tocador = new Audio();
+    tocador.preload = 'auto';
+    tocador.setAttribute('playsinline', '');
+  }
+  return tocador;
+}
+function destravarNoGesto(): void {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+  try {
+    const a = obterTocador();
+    if (a.paused) { a.src = SILENCIO; void a.play().catch(() => {}); }   // tocando a voz: já está liberado
+    const Contexto = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (Contexto) {
+      if (!somWeb) somWeb = new Contexto();
+      if (somWeb.state !== 'running') void somWeb.resume().catch(() => {});
+    }
+  } catch { /* sem áudio no navegador: segue a voz do aparelho */ }
+}
 let amostras: Uint8Array | null = null;
 let medindo: HTMLAudioElement | null = null;
 function medirVoz(audio: HTMLAudioElement, url: string): void {
@@ -177,7 +208,11 @@ function medirVoz(audio: HTMLAudioElement, url: string): void {
       analisador.connect(somWeb.destination);
       amostras = new Uint8Array(analisador.fftSize);
     }
-    somWeb.createMediaElementSource(audio).connect(analisador);
+    if (audio === tocador) {   // o player é um só: liga no analisador uma vez (ligar de novo dá erro)
+      if (!tocadorMedido) { somWeb.createMediaElementSource(audio).connect(analisador); tocadorMedido = true; }
+    } else {
+      somWeb.createMediaElementSource(audio).connect(analisador);
+    }
     medindo = audio;
   } catch { /* sem o analisador: o orbe usa o ritmo simulado */ }
 }
@@ -185,16 +220,8 @@ function medirVoz(audio: HTMLAudioElement, url: string): void {
 /* o som do navegador só liga depois de um toque: o primeiro toque na página já deixa o analisador pronto, para a primeira
    frase também formar ondas */
 if (Platform.OS === 'web' && typeof window !== 'undefined') {
-  const ligar = () => {
-    try {
-      const Contexto = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!Contexto) return;
-      if (!somWeb) somWeb = new Contexto();
-      if (somWeb.state !== 'running') void somWeb.resume().catch(() => {});
-    } catch { /* sem Web Audio: o orbe usa o ritmo simulado */ }
-  };
-  window.addEventListener('pointerdown', ligar, { capture: true, passive: true });
-  window.addEventListener('keydown', ligar, { capture: true, passive: true });
+  /* todo toque libera o player e o analisador (no iPhone, só o fim do toque vale) */
+  for (const ev of ['pointerup', 'touchend', 'click', 'keydown']) window.addEventListener(ev, destravarNoGesto, { capture: true, passive: true });
 }
 
 /* o volume da voz agora, de 0 a 1; -1 quando não há voz medida tocando (aí o orbe usa o ritmo simulado) */
@@ -208,7 +235,10 @@ export function nivelDaVoz(): number {
 
 function tocarNoNavegador(url: string, aoComecar?: () => void): Promise<Resultado> {
   return new Promise((resolve) => {
-    const audio = new Audio(url);
+    const audio = obterTocador();
+    audio.onended = null;
+    audio.onerror = null;
+    audio.src = url;
     medirVoz(audio, url);
     let pronto = false;
     const acabar = (r: Resultado) => {
