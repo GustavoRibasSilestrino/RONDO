@@ -62,7 +62,7 @@
       ],
       "port": 8000,
       "env": {
-        "DATABASE_URL": "sqlite:///C:/Users/Gustavo/AppData/Local/Temp/claude/73b51724b8452bf2/3999a2d7-0029-4c79-8747-979f62b5e558/scratchpad/teste-local.db",
+        "DATABASE_URL": "sqlite:///backend/teste-local.db",
         "JWT_SEGREDO": "segredo-de-teste-local-somente-0123456789abcdef",
         "EMAIL_MODO_TESTE": "1",
         "LIMITE_REQ_MINUTO": "0",
