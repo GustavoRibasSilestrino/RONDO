@@ -19,8 +19,12 @@ import { T } from './Ui';
 
 type Canto = 'se' | 'sd' | 'ie' | 'id';   // superior/inferior, esquerda/direita
 const CANTOS: Canto[] = ['se', 'sd', 'ie', 'id'];
-const PRIMEIRA_VEZ = 25_000;   // depois de abrir o app
-const INTERVALO = 4 * 60_000;  // entre uma visita e outra
+/* quando ele aparece (dono, 2026-11-27: "a cada 2 a 3 minutos, não toda hora"): um tempo sorteado entre 2 e 3 minutos, tanto
+   depois de abrir o app quanto depois de ir embora. Antes a primeira visita vinha 25 s depois de abrir, e cada vez que o app
+   abria ou a página recarregava ele voltava em menos de meio minuto. */
+const ESPERA_MIN = 2 * 60_000;
+const ESPERA_MAX = 3 * 60_000;
+const espera = () => ESPERA_MIN + Math.random() * (ESPERA_MAX - ESPERA_MIN);
 const FICA = 14_000;           // quanto tempo ele fica, se ninguém mexer
 const TAM = 112;               // (pedido do dono, 2026-11-25: maior; antes 72)
 
@@ -68,7 +72,7 @@ export function MascoteFlutuante({ ir, oculto, margens }: { ir: (tela: string) =
   /* o ciclo: aparece, fica um pouco, vai embora e volta depois */
   useEffect(() => {
     if (!info || oculto) { setVisivel(false); return undefined; }
-    if (!visivel) agendar(ultimas.current.length ? INTERVALO : PRIMEIRA_VEZ, aparecer);
+    if (!visivel) agendar(espera(), aparecer);
     else agendar(FICA, sair);
     return () => { if (timer.current) clearTimeout(timer.current); };
   }, [info?.chave, oculto, visivel, agendar, aparecer, sair]);   // eslint-disable-line react-hooks/exhaustive-deps
