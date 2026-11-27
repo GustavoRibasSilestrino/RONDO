@@ -50,8 +50,13 @@ python -m venv .venv
 cp .env.example .env                                  # deixe DATABASE_URL vazio para usar SQLite
 .venv/Scripts/alembic upgrade head
 .venv/Scripts/uvicorn app.main:app --reload --port 8123
-.venv/Scripts/python -m pytest -q                     # 82 testes devem passar
+.venv/Scripts/python -m pytest -q                     # 151 testes devem passar (sempre num SQLite temporário: tests/conftest.py)
 ```
+
+**Atenção (incidente de 2026-11-27):** o `backend/.env` deste computador aponta para o Supabase de **produção**, e os testes apagam e
+recriam todas as tabelas. Até essa data os testes usavam esse banco: cada execução apagou os dados do app no ar (de 2026-11-06 a
+2026-11-27). Agora `tests/conftest.py` força um SQLite temporário e para tudo se o banco não for SQLite. Nunca rode
+`drop_all`/`create_all` nem scripts de teste com o `.env` de produção; para mexer na produção, use migração (`alembic`).
 
 **App:**
 
