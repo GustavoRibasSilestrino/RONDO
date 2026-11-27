@@ -18,15 +18,27 @@
    da janela. A foto cobre a tela e sobe o quanto for preciso para a base do nome RONDO (a 66% da altura da foto) ficar logo acima
    do bloco de texto, que mora no pé da tela (--hero-texto é a altura reservada para ele). O título encolhe em janelas baixas
    (até 7% da altura) para o bloco caber. Embaixo, a foto escurece atrás do texto; à esquerda, um véu a mais para a leitura. */
+/* A foto cobre a primeira tela INTEIRA, até a borda de baixo (dono, 2026-11-27: "arrume essa faixa preta da primeira tela").
+   Antes ela tinha o tamanho de "cover" e subia para o nome ficar acima do texto; subindo, a base dela não chegava ao fim da tela
+   e sobrava uma faixa do fundo preto (51 px numa tela de 1890 x 1000), escurecida ainda por um degradê até 88%. Agora:
+   - a foto cresce o quanto precisa para os 34% de baixo dela (o nome fica a 66% da altura) cobrirem o bloco de texto
+     (altura >= texto / 0,34), mas só até o nome (de 14% a 83% da largura da foto) ainda caber inteiro na largura da janela
+     (altura <= largura / 1,36: sobra ~3% de folga de cada lado); nunca menos que o tamanho de "cover";
+   - ela sobe para o nome ficar acima do texto, mas nunca a ponto de a base sair da borda de baixo (se faltar, o nome desce um
+     pouco e encosta no título).
+   --hero-h é a altura real da primeira tela (a janela, ou 34rem em janelas muito baixas). A base só escurece de leve; a leitura
+   do texto fica com o véu à esquerda e embaixo dele. */
 @media (min-width: 961px) {
   .hero {
     --hero-texto: calc(min(5.4vw, 7.2svh, 5rem) * 2.1 + 14.5rem);   /* as duas linhas do título + a frase, os botões e as margens */
+    --hero-h: max(100svh, 34rem);
+    --foto-h: max(100vw / 1.7768, var(--hero-h), min(var(--hero-texto) / .34, 100vw / 1.36));
     height: 100svh; min-height: 34rem; padding-bottom: clamp(1.6rem, 5svh, 3rem);
     background:
       linear-gradient(180deg, rgba(2, 2, 2, .32) 0, rgba(2, 2, 2, 0) 14%, rgba(2, 2, 2, 0) calc(100% - var(--hero-texto) - 2rem),
-        rgba(5, 5, 5, .55) calc(100% - var(--hero-texto) * .55), rgba(5, 5, 5, .88) 100%),
-      radial-gradient(48% 46% at 14% 88%, rgba(5, 5, 5, .55) 0%, rgba(5, 5, 5, 0) 75%),
-      url("../assets/cenas/hero-floresta.webp") 50% min(0px, calc(100svh - var(--hero-texto) - .66 * max(100vw / 1.7768, 100svh))) / cover no-repeat,
+        rgba(5, 5, 5, .22) calc(100% - var(--hero-texto) * .55), rgba(5, 5, 5, .4) 100%),
+      radial-gradient(52% 52% at 14% 86%, rgba(5, 5, 5, .66) 0%, rgba(5, 5, 5, .3) 55%, rgba(5, 5, 5, 0) 80%),
+      url("../assets/cenas/hero-floresta.webp") 50% max(calc(var(--hero-h) - var(--foto-h)), min(0px, calc(var(--hero-h) - var(--hero-texto) - .66 * var(--foto-h)))) / auto var(--foto-h) no-repeat,
       #050505;
   }
   .hero-grade { align-items: end; height: 100%; min-height: 0; padding-bottom: 0; }
