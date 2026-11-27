@@ -13,12 +13,11 @@ export type TextosConversa = {
     responder: string; agoraNao: string; parar: string; gravando: string; terminar: string; guardar: string; descartar: string;
     ouvir: string; pararOuvir: string; diario: string; abrirDiario: string; voltar: string; entrar: string; fechar: string;
     outraPergunta: string; semMicrofone: string; erroGravar: string; limite: string; falarAgora: string; ouvindo: string;
-    pularFala: string; repetirFala: string; ativarVoz: string; mantenhaOff: string; falarRecado: string;
+    pularFala: string; repetirFala: string; falarRecado: string;
     sairTitulo: string; sairTexto: string; sairDescartar: string; ficar: string;
   };
   falas: {
-    jaHoje: string; guardado: string; descartado: string; naoResponder: string; chamado: string;
-    convite: string;        // o convite a chamar o RONDIN pela voz (uma vez, na chegada)
+    jaHoje: string; guardado: string; descartado: string; naoResponder: string;
     saudacao: (nome: string, hora: number) => string;
   };
   reacao: { neutras: string[]; curtas: string[]; positivas: string[]; negativas: string[]; eco: (palavra: string) => string };
@@ -37,7 +36,7 @@ export const CONVERSA: Record<Idioma, TextosConversa> = {
       semMicrofone: 'Preciso do microfone para ouvir você. Libere o acesso nas configurações do aparelho ou do navegador.',
       erroGravar: 'Não consegui gravar agora. Tente de novo.', limite: 'Chegou a um minuto. Parei a gravação por aqui.',
       falarAgora: 'Pode falar, estou ouvindo.', ouvindo: 'Ouvindo', pularFala: 'Pular a fala', repetirFala: 'Repetir a fala',
-      ativarVoz: 'Ativar', mantenhaOff: 'Agora não', falarRecado: 'Falar o recado do dia',
+      falarRecado: 'Falar o recado do dia',
       sairTitulo: 'Sair sem guardar?', sairTexto: 'As respostas que você gravou agora serão descartadas.', sairDescartar: 'Sair e descartar', ficar: 'Continuar aqui',
     },
     falas: {
@@ -45,8 +44,6 @@ export const CONVERSA: Record<Idioma, TextosConversa> = {
       guardado: 'Guardei no seu diário. Daqui a um tempo, vale ouvir de novo.',
       descartado: 'Tudo bem, descartei. Algumas respostas são só para o momento.',
       naoResponder: 'Tudo bem. A pergunta fica com você; pense nela durante o dia.',
-      chamado: 'Oi, estou aqui. O que você quer fazer?',
-      convite: 'Se quiser, eu posso ficar ouvindo. É só dizer "Olá Rondin" e eu apareço. O navegador usa o microfone para isso.',
       saudacao: (nome, hora) => `${periodo(hora, 'Bom dia', 'Boa tarde', 'Boa noite')}${nome ? `, ${nome}` : ''}. Bom te ver.`,
     },
     reacao: {
@@ -75,7 +72,7 @@ export const CONVERSA: Record<Idioma, TextosConversa> = {
       semMicrofone: 'I need the microphone to hear you. Allow access in your device or browser settings.',
       erroGravar: 'I could not record right now. Please try again.', limite: 'One minute reached. I stopped the recording here.',
       falarAgora: 'Go ahead, I am listening.', ouvindo: 'Listening', pularFala: 'Skip', repetirFala: 'Repeat',
-      ativarVoz: 'Turn on', mantenhaOff: 'Not now', falarRecado: "Answer today's question",
+      falarRecado: "Answer today's question",
       sairTitulo: 'Leave without saving?', sairTexto: 'The answers you just recorded will be discarded.', sairDescartar: 'Leave and discard', ficar: 'Stay here',
     },
     falas: {
@@ -83,8 +80,6 @@ export const CONVERSA: Record<Idioma, TextosConversa> = {
       guardado: 'Saved in your diary. In a while, it is worth listening again.',
       descartado: 'All right, I let it go. Some answers are only for the moment.',
       naoResponder: 'No problem. The question stays with you; think about it during the day.',
-      chamado: 'Hi, I am here. What would you like to do?',
-      convite: 'If you like, I can keep listening. Just say "Hello Rondin" and I will appear. Your browser uses the microphone for that.',
       saudacao: (nome, hora) => `${periodo(hora, 'Good morning', 'Good afternoon', 'Good evening')}${nome ? `, ${nome}` : ''}. Good to see you.`,
     },
     reacao: {
@@ -113,7 +108,7 @@ export const CONVERSA: Record<Idioma, TextosConversa> = {
       semMicrofone: 'Necesito el micrófono para escucharte. Permite el acceso en la configuración del dispositivo o del navegador.',
       erroGravar: 'No pude grabar ahora. Inténtalo de nuevo.', limite: 'Llegó a un minuto. Detuve la grabación aquí.',
       falarAgora: 'Habla, te escucho.', ouvindo: 'Escuchando', pularFala: 'Saltar', repetirFala: 'Repetir',
-      ativarVoz: 'Activar', mantenhaOff: 'Ahora no', falarRecado: 'Responder la pregunta del día',
+      falarRecado: 'Responder la pregunta del día',
       sairTitulo: '¿Salir sin guardar?', sairTexto: 'Las respuestas que acabas de grabar se descartarán.', sairDescartar: 'Salir y descartar', ficar: 'Quedarme aquí',
     },
     falas: {
@@ -121,8 +116,6 @@ export const CONVERSA: Record<Idioma, TextosConversa> = {
       guardado: 'Guardado en tu diario. Dentro de un tiempo, vale la pena escucharlo otra vez.',
       descartado: 'Está bien, lo descarté. Algunas respuestas son solo para el momento.',
       naoResponder: 'Sin problema. La pregunta se queda contigo; piénsala durante el día.',
-      chamado: 'Hola, aquí estoy. ¿Qué quieres hacer?',
-      convite: 'Si quieres, puedo quedarme escuchando. Solo di "Hola Rondin" y aparezco. El navegador usa el micrófono para eso.',
       saudacao: (nome, hora) => `${periodo(hora, 'Buenos días', 'Buenas tardes', 'Buenas noches')}${nome ? `, ${nome}` : ''}. Qué bueno verte.`,
     },
     reacao: {

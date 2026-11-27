@@ -4,15 +4,16 @@
 import type { ComponentType, ReactNode } from "react";
 import { abrirPreferenciasCookies } from "../lib/consentimento";
 import { ExcluirConta } from "./ExcluirConta";
+import { ProtegerConta } from "./ProtegerConta";
 import { Nome } from "./ui";
 
 export const CONTATO = "rondooficial.dev@gmail.com";
 export const RESPONSAVEL = "Gustavo Ribas Silestrino";
-const ATUALIZADO = "26 de novembro de 2026";   // saíram os stories; entraram os desafios da Comunidade
+const ATUALIZADO = "27 de novembro de 2026";   // Brevo nos suboperadores; segurança da conta (avisos e 2FA); saiu a escuta "Olá Rondin"
 
 const Email = () => <a href={`mailto:${CONTATO}`}>{CONTATO}</a>;
 
-export function Pagina({ titulo, children }: { titulo: string; children: ReactNode }) {
+export function Pagina({ titulo, children, semData }: { titulo: string; children: ReactNode; semData?: boolean }) {
   return (
     <>
       <header className="legal-topo">
@@ -23,7 +24,7 @@ export function Pagina({ titulo, children }: { titulo: string; children: ReactNo
       </header>
       <main id="conteudo" className="wrap legal">
         <h1>{titulo}</h1>
-        <p className="legal-data">Última atualização: {ATUALIZADO}</p>
+        {semData ? null : <p className="legal-data">Última atualização: {ATUALIZADO}</p>}
         {children}
       </main>
       <footer className="footer">
@@ -91,17 +92,6 @@ function Privacidade() {
         <li>Fotos que você escolheu mas não publicou.</li>
         <li>A imagem da câmera na análise da execução. O vídeo é analisado no próprio aparelho, quadro a quadro, e não é gravado nem enviado a ninguém. Para a análise funcionar, o aparelho baixa uma vez o programa que reconhece o corpo, do jsDelivr (cdn.jsdelivr.net) e do Google (storage.googleapis.com); esses serviços recebem o seu endereço de internet nesse download, como em qualquer página.</li>
       </ul>
-      <h3>Chamar o RONDIN pela voz (só no navegador)</h3>
-      <p>
-        No RONDO aberto no navegador, você pode ligar a escuta do “Olá Rondin”, para o RONDIN aparecer quando você o chama. Ela
-        vem desligada e só liga se você aceitar, em Configurações ou no convite que o RONDIN faz uma vez; o navegador pede a
-        permissão do microfone nesse momento. Com ela ligada, o microfone escuta enquanto o app está aberto e à vista, e para
-        quando o RONDIN fala ou você grava um recado. Quem transforma a fala em texto é o próprio navegador: no Chrome, o áudio é
-        enviado ao serviço de voz do Google para isso, e o Google o trata pela política dele. O RONDO não grava, não guarda e não
-        recebe esse áudio nem o texto: o texto só serve, na hora, para achar o nome “Rondin” e para o RONDIN reagir às suas
-        respostas do recado, e depois é descartado. Você desliga quando quiser, em Configurações. No aplicativo do celular essa
-        escuta não existe.
-      </p>
       <h3>Na loja de pacotinhos (site)</h3>
       <p>
         Comprar um pacote pede a sua conta do RONDO: o mascote vai direto para ela, e o servidor guarda quais mascotes a
@@ -116,6 +106,13 @@ function Privacidade() {
         para a resposta e o seu nome, se você informar. Se você estiver na sua conta, usamos o e-mail da conta e a mensagem
         fica ligada a ela. A mensagem é encaminhada por e-mail para a caixa da equipe RONDO e serve só para responder e
         resolver o que você pediu. Não escreva senhas nem dados de saúde na mensagem.
+      </p>
+      <h3>Segurança da conta</h3>
+      <p>
+        Para avisar por e-mail quando a conta entra por um aparelho novo, o app e o site guardam no aparelho um número sorteado,
+        sem relação com você ou com o aparelho; no servidor fica só uma versão embaralhada (hash) dele. Se você ligar a
+        verificação em duas etapas, guardamos a chave do aplicativo autenticador cifrada e só o hash dos códigos de reserva.
+        Também mandamos avisos de segurança por e-mail quando a senha muda ou a verificação é ligada ou desligada.
       </p>
       <h3>Cadastro de profissional</h3>
       <p>Nome, e-mail, conselho (CRN ou CREF), número do registro e UF, para conferir o registro na consulta pública do conselho.</p>
@@ -152,8 +149,8 @@ function Privacidade() {
 
       <h2>5. Transferência internacional</h2>
       <p>
-        O banco de dados, o armazenamento de fotos, o servidor e o site ficam em fornecedores nos Estados Unidos (veja
-        <a href="/suboperadores"> Suboperadores</a>). Usamos fornecedores que oferecem acordos de tratamento de dados com
+        O banco de dados, o armazenamento de fotos, o servidor e o site ficam em fornecedores nos Estados Unidos, e os
+        e-mails automáticos saem por um fornecedor na União Europeia (veja <a href="/suboperadores">Suboperadores</a>). Usamos fornecedores que oferecem acordos de tratamento de dados com
         garantias de proteção.
       </p>
 
@@ -367,6 +364,7 @@ const SUBOPERADORES = [
   { nome: "Supabase", faz: "Banco de dados (conta, dados do app, parte social) e armazenamento das fotos publicadas", onde: "Estados Unidos (Oregon)", dpa: "https://supabase.com/legal/dpa" },
   { nome: "Render", faz: "Servidor da API (processa as requisições do app e do site)", onde: "Estados Unidos (Oregon)", dpa: "https://render.com/dpa" },
   { nome: "Vercel", faz: "Hospedagem do site e da versão web do app", onde: "Estados Unidos e rede global de entrega", dpa: "https://vercel.com/legal/dpa" },
+  { nome: "Brevo", faz: "Envia os e-mails automáticos do RONDO, como o código de recuperação de senha e o aviso das mensagens do suporte", onde: "França e Bélgica (União Europeia)", dpa: "https://www.brevo.com/legal/termsofuse/#appendix-3-data-processing-agreement-dpa" },
   { nome: "Google (Gmail)", faz: "Recebe os e-mails que você manda para o nosso contato e as mensagens do suporte do site", onde: "Estados Unidos e outros países", dpa: "https://policies.google.com/privacy" },
 ];
 
@@ -464,4 +462,5 @@ export const PAGINAS_LEGAIS: Record<string, { titulo: string; Comp: ComponentTyp
   "/licencas": { titulo: "Licenças e créditos", Comp: Licencas },
   "/direitos-autorais": { titulo: "Direitos autorais", Comp: DireitosAutorais },
   "/excluir-conta": { titulo: "Excluir conta", Comp: ExcluirConta },
+  "/proteger-conta": { titulo: "Proteger a conta", Comp: ProtegerConta },
 };

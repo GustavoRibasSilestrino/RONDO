@@ -125,7 +125,7 @@ def test_codigo_de_convite_trava_depois_de_muitos_erros(cliente):
 def test_esqueci_a_senha_responde_igual_e_manda_o_email_depois(cliente, monkeypatch):
     from app.rotas import auth
     enviados = []
-    monkeypatch.setattr(auth, "enviar", lambda para, assunto, texto: enviados.append(para))
+    monkeypatch.setattr(auth, "enviar", lambda para, assunto, texto, html=None: enviados.append(para))
     _entrar(cliente)
     r1 = cliente.post("/auth/esqueci-senha", json={"email": "ana@x.com"})
     r2 = cliente.post("/auth/esqueci-senha", json={"email": "ninguem@x.com"})

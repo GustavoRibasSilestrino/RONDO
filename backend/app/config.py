@@ -36,6 +36,7 @@ class Config(BaseSettings):
     email_remetente: str = ""          # ex.: rondooficial.dev@gmail.com (tem de estar confirmado no provedor)
     email_remetente_nome: str = "RONDO"
     email_modo_teste: bool = False     # só em desenvolvimento: escreve a mensagem no log em vez de enviar
+    site_url: str = "https://userondo.vercel.app"   # o site: a logo dos e-mails e o link da Política de Privacidade vêm dele
     email_suporte: str = "rondooficial.dev@gmail.com"   # para onde vão as mensagens do suporte do site (além das contas de dono)
     # entrar com Google e com a Apple: o app manda o "id_token" que o provedor deu e o servidor confere a assinatura. Cada variável aceita
     # vários valores separados por vírgula (Google: IDs de cliente web, iOS e Android; Apple: o Services ID da web e o Bundle ID do app).

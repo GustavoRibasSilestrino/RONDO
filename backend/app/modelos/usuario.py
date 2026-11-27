@@ -53,6 +53,16 @@ class Usuario(Base):
     suspensoes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     suspenso_ate: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     banido: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    # verificação em duas etapas (servicos/dois_fatores.py, desde 2026-11-27): o segredo do aplicativo autenticador, cifrado.
+    # Com totp_ativo falso e segredo preenchido, a pessoa começou a ligar e ainda não confirmou o primeiro código.
+    # totp_passo é o último passo de 30 s já usado: o mesmo código não entra duas vezes.
+    totp_segredo: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    totp_ativo: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    totp_passo: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+
+    @property
+    def dois_fatores(self) -> bool:
+        return bool(self.totp_ativo)
 
 
 class Penalidade(Base):

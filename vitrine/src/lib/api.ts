@@ -5,7 +5,31 @@ export const API = (import.meta.env.VITE_API_URL as string | undefined) ?? "http
 
 export class ErroApi extends Error {
   readonly status: number;   // a resposta do servidor (0 = sem resposta)
-  constructor(mensagem: string, status = 0) { super(mensagem); this.status = status; }
+  readonly doisFatores: boolean;   // a senha está certa e a conta tem verificação em duas etapas: falta o código
+  constructor(mensagem: string, status = 0, doisFatores = false) { super(mensagem); this.status = status; this.doisFatores = doisFatores; }
+}
+
+/* Um identificador aleatório deste navegador, para o servidor avisar por e-mail quando a conta entra por um aparelho novo.
+   A mesma chave que a versão web do app usa (o app fica no mesmo endereço, em /app): site e app no mesmo navegador contam
+   como um aparelho só. Não identifica a pessoa e não é segredo (o servidor guarda só um hash). */
+export function idDoAparelho(): string | undefined {
+  try {
+    let id = localStorage.getItem("yy.aparelho");
+    if (!id) {
+      const b = crypto.getRandomValues(new Uint8Array(16));
+      id = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+      localStorage.setItem("yy.aparelho", id);
+    }
+    return id;
+  } catch {
+    return undefined;   // sem armazenamento (aba anônima bloqueada): segue sem
+  }
+}
+
+/* o servidor pede o código da verificação em duas etapas com 401 e {"detail": {"dois_fatores": true, "mensagem": "..."}} */
+function pedidoDeCodigo(detail: unknown): string | null {
+  const d = detail as { dois_fatores?: boolean; mensagem?: string } | null;
+  return d && typeof d === "object" && !Array.isArray(d) && d.dois_fatores ? (d.mensagem || "Digite o código do aplicativo autenticador.") : null;
 }
 
 /* O servidor do plano grátis do Render dorme depois de 15 minutos parado e leva de 30 a 60 s para acordar: era isso que deixava
@@ -56,14 +80,19 @@ export const cadastrarProfissional = (d: {
   enviar<{ status: string }>("/profissionais", d);
 
 /* excluir a conta pelo site (sem o app): entra com e-mail e senha e apaga tudo no servidor */
-export async function excluirConta(email: string, senha: string): Promise<void> {
+export async function excluirConta(email: string, senha: string, codigo?: string): Promise<void> {
   let r: Response;
   try {
-    r = await fetch(`${API}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, senha }) });
+    r = await fetch(`${API}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, senha, ...(codigo ? { codigo } : {}) }) });
   } catch {
     throw new ErroApi("Sem conexão. Tente de novo em instantes.");
   }
-  if (r.status === 401) throw new ErroApi("E-mail ou senha incorretos.");
+  if (r.status === 401) {
+    let det: unknown = null;
+    try { det = ((await r.json()) as { detail?: unknown }).detail; } catch { /* sem corpo */ }
+    const pede = pedidoDeCodigo(det);
+    throw pede ? new ErroApi(pede, 401, true) : new ErroApi("E-mail ou senha incorretos.");
+  }
   if (!r.ok) throw new ErroApi("Não foi possível entrar agora. Tente de novo.");
   const { token } = (await r.json()) as { token: string };
   try {
@@ -102,13 +131,15 @@ async function chamar<T>(metodo: "GET" | "POST", caminho: string, corpo?: unknow
   let msg = "Não deu agora. Tente de novo em instantes.";
   try {
     const d = (await r.json()) as { detail?: string | { loc?: (string | number)[]; msg?: string }[] };
+    const pede = r.status === 401 ? pedidoDeCodigo(d.detail) : null;
+    if (pede) throw new ErroApi(pede, 401, true);
     if (typeof d.detail === "string") msg = d.detail;
     else if (Array.isArray(d.detail) && d.detail[0]) {
       const loc = d.detail[0].loc ?? [];
       const campo = String(loc[loc.length - 1] ?? "");
       msg = CAMPO[campo] ?? (d.detail[0].msg ?? msg).replace(/^Value error, /, "");
     }
-  } catch { /* resposta sem corpo */ }
+  } catch (e) { if (e instanceof ErroApi) throw e; /* resposta sem corpo */ }
   if (r.status === 429 && msg.startsWith("Não deu")) msg = "Muitas tentativas seguidas. Espere um minuto e tente de novo.";
   if (r.status === 503) msg = "Esse jeito de entrar ainda não está disponível. Use o e-mail e a senha.";
   throw new ErroApi(msg, r.status);
@@ -119,15 +150,19 @@ export type ContaLogada = { email: string; nome: string; arroba: string | null; 
 export type Responsavel = { nome: string; email: string; autoriza: boolean };
 export type DadosDoCadastro = { nascimento: string; aceita_termos: boolean; aceita_privacidade: boolean; marketing: boolean; responsavel: Responsavel | null };
 
-export const entrarComSenha = (email: string, senha: string) => chamar<ContaLogada>("POST", "/auth/login", { email, senha });
+export const entrarComSenha = (email: string, senha: string, codigo?: string) =>
+  chamar<ContaLogada>("POST", "/auth/login", { email, senha, aparelho: idDoAparelho(), ...(codigo ? { codigo } : {}) });
 export const cadastrarPeloSite = (d: DadosDoCadastro & { nome: string; email: string; senha: string }) =>
-  chamar<ContaLogada>("POST", "/auth/cadastro", { ...d, origem: "site" });
+  chamar<ContaLogada>("POST", "/auth/cadastro", { ...d, origem: "site", aparelho: idDoAparelho() });
 
 /* Google: quem já tem conta entra direto; na primeira vez, falta a data de nascimento e o aceite (segunda etapa) */
 export type RespostaGoogle = { precisa_cadastro: boolean; login: ContaLogada | null; token_social: string | null; nome: string | null; email: string | null };
-export const entrarComGoogle = (idToken: string) => chamar<RespostaGoogle>("POST", "/auth/google", { id_token: idToken });
+export const entrarComGoogle = (idToken: string) => chamar<RespostaGoogle>("POST", "/auth/google", { id_token: idToken, aparelho: idDoAparelho() });
 export const concluirCadastroGoogle = (d: DadosDoCadastro & { token_social: string; nome: string | null }) =>
-  chamar<ContaLogada>("POST", "/auth/social/cadastro", { ...d, origem: "site" });
+  chamar<ContaLogada>("POST", "/auth/social/cadastro", { ...d, origem: "site", aparelho: idDoAparelho() });
+
+/* "Não foi você? Proteger minha conta" (o botão dos avisos de segurança por e-mail): tira a conta de todos os aparelhos */
+export const protegerConta = (token: string) => chamar<{ status: string }>("POST", "/auth/proteger", { token });
 
 /* ---------- suporte (backend/app/rotas/suporte.py): a mensagem vai para a equipe RONDO ---------- */
 export type AssuntoSuporte = "problema" | "conta" | "loja" | "dados" | "denuncia" | "sugestao" | "reclamacao" | "outro";

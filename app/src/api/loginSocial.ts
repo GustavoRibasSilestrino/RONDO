@@ -1,7 +1,7 @@
 /* Entrar com Google ou Apple. O provedor entrega um "id_token"; o servidor confere e responde de dois jeitos:
    a pessoa já tem conta (entra direto) ou é a primeira vez (falta a data de nascimento e o aceite dos documentos: segunda etapa). */
 import type { Usuario } from '../tipos';
-import { guardarToken } from './sessao';
+import { guardarToken, idDoAparelho } from './sessao';
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -36,7 +36,7 @@ async function erroDe(r: Response, padrao: string): Promise<Error> {
 }
 
 export async function entrarComProvedor(provedor: 'google' | 'apple', idToken: string): Promise<ResultadoSocial> {
-  const r = await enviar(`/auth/${provedor}`, { id_token: idToken });
+  const r = await enviar(`/auth/${provedor}`, { id_token: idToken, aparelho: await idDoAparelho() });
   if (!r.ok) throw await erroDe(r, 'Não foi possível entrar agora. Tente de novo.');
   const d = (await r.json()) as { precisa_cadastro: boolean; login: LoginBruto | null; token_social: string | null; nome: string | null; email: string | null };
   if (d.precisa_cadastro && d.token_social) return { precisaCadastro: true, tokenSocial: d.token_social, nome: d.nome ?? undefined, email: d.email ?? '' };
@@ -51,7 +51,7 @@ export type CadastroSocial = {
 
 export async function concluirCadastroSocial(d: CadastroSocial): Promise<Usuario> {
   const r = await enviar('/auth/social/cadastro', {
-    token_social: d.tokenSocial, nome: d.nome, nascimento: d.nascimento, aceita_termos: true, aceita_privacidade: true, marketing: d.marketing, responsavel: d.responsavel, origem: 'app',
+    token_social: d.tokenSocial, nome: d.nome, nascimento: d.nascimento, aceita_termos: true, aceita_privacidade: true, marketing: d.marketing, responsavel: d.responsavel, origem: 'app', aparelho: await idDoAparelho(),
   });
   if (!r.ok) throw await erroDe(r, 'Não foi possível criar a conta agora. Tente de novo.');
   return usuarioDe((await r.json()) as LoginBruto);

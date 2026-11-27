@@ -13,7 +13,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { acordarServidor, cadastrar, entrar, nomeEstaLivre } from '../api/conta';
+import { PrecisaCodigo, acordarServidor, cadastrar, entrar, nomeEstaLivre } from '../api/conta';
 import { concluirCadastroSocial, type ResultadoSocial } from '../api/loginSocial';
 import { BotoesSociais, temLoginSocial } from '../componentes/BotoesSociais';
 import { CampoFlutuante, CampoRef } from '../componentes/CampoFlutuante';
@@ -167,6 +167,10 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
   const [marcadas, setMarcadas] = useState<string[]>([]);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  /* verificação em duas etapas: depois da senha certa, o servidor pede o código do aplicativo autenticador */
+  const [pedeCodigo, setPedeCodigo] = useState(false);
+  const [codigo2f, setCodigo2f] = useState('');
+  const codigoRef = useRef<CampoRef>(null);
   const [enviando, setEnviando] = useState(false);
   useEffect(() => { acordarServidor(); }, []);   // o servidor pode estar dormindo: acorda já, para o nome (pergunta 2) não travar
   /* o servidor demorou (estava dormindo): passados 3 s, avisa que ele está acordando, para não parecer travado */
@@ -392,11 +396,19 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
     if (enviando) return;
     if (!emailValido(email)) { setErro(tx.erro.email); return; }
     if (senha.length < 6) { setErro(tx.erro.senhaLogin); return; }
+    if (pedeCodigo && codigo2f.replace(/[\s-]/g, '').length < 6) { setErro(ui.codigo2fDica); codigoRef.current?.focus(); return; }
     setErro(''); setEnviando(true);
     try {
-      const usuario = await entrar(email.trim(), senha);
+      const usuario = await entrar(email.trim(), senha, pedeCodigo ? codigo2f.trim() : undefined);
       aoEntrar(usuario);   // entra na hora, como no cadastro: esperar a saudação falada atrasava o app em vários segundos
     } catch (e) {
+      if (e instanceof PrecisaCodigo) {
+        /* a primeira vez só abre o campo do código; depois disso, o código estava errado */
+        setErro(pedeCodigo ? ui.codigo2fErrado : ''); setEnviando(false);
+        setPedeCodigo(true); setCodigo2f('');
+        setTimeout(() => codigoRef.current?.focus(), 60);
+        return;
+      }
       const msg = traduzirErro(e instanceof Error ? e.message : 'Não foi possível entrar. Tente de novo.', idioma);
       setErro(msg); setEnviando(false);
       falar([msg], sotaqueRef.current, () => undefined);   // ele avisa em voz alta, sem esconder os campos
@@ -591,7 +603,7 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                       </>
                     ) : null}
                     <CampoFlutuante
-                      ref={campoRef} rotulo={ui.email} icone="email" value={email} onChangeText={(v) => { setEmail(v); setErro(''); setTeclas((n) => n + 1); }} autoFocus={Platform.OS === 'web' && !(aoSocial && temLoginSocial)}
+                      ref={campoRef} rotulo={ui.email} icone="email" value={email} onChangeText={(v) => { setEmail(v); setPedeCodigo(false); setErro(''); setTeclas((n) => n + 1); }} autoFocus={Platform.OS === 'web' && !(aoSocial && temLoginSocial)}
                       valido={emailValido(email)} autoCapitalize="none" autoCorrect={false} autoComplete="email" keyboardType="email-address" textContentType="emailAddress"
                       returnKeyType="next" submitBehavior="submit" onSubmitEditing={() => senhaRef.current?.focus()}
                     />
@@ -604,6 +616,17 @@ export function Rondin({ modo, aoEntrar, aoVoltar, aoSocial, aoTrocarModo }: Pro
                         </Pressable>
                       }
                     />
+                    {pedeCodigo ? (
+                      <>
+                        <T tam={13} cor={cores.texto2} style={{ lineHeight: 18 }}>{ui.codigo2fDica}</T>
+                        <CampoFlutuante
+                          ref={codigoRef} rotulo={ui.codigo2f} icone="verificado" value={codigo2f}
+                          onChangeText={(v) => { setCodigo2f(v.slice(0, 12)); setErro(''); }}
+                          autoCapitalize="none" autoCorrect={false} autoComplete="one-time-code" textContentType="oneTimeCode"
+                          keyboardType={Platform.OS === 'web' ? 'default' : 'number-pad'} returnKeyType="go" onSubmitEditing={fazerLogin}
+                        />
+                      </>
+                    ) : null}
                     {erro ? (
                       <View style={st.banner} accessibilityLiveRegion="polite" accessibilityRole="alert">
                         <Icone nome="alerta" tamanho={18} cor={cores.erro} />

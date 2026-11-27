@@ -163,7 +163,7 @@ def test_login_regrava_hash_antigo_no_formato_leve(cliente):
 def _com_email_capturado(monkeypatch):
     """Troca o envio de e-mail por uma lista: o teste lê o código que iria para a caixa de entrada."""
     enviados = []
-    monkeypatch.setattr("app.rotas.auth.enviar", lambda para, assunto, texto: enviados.append((para, assunto, texto)))
+    monkeypatch.setattr("app.rotas.auth.enviar", lambda para, assunto, texto, html=None: enviados.append((para, assunto, texto)))
     return enviados
 
 
@@ -369,3 +369,21 @@ def test_cadastro_social_com_nome_repetido_pede_outro(cliente, chaves_de_teste, 
     corpo = {"token_social": d["token_social"], "nascimento": "1995-04-10", "aceita_termos": True, "aceita_privacidade": True}
     assert cliente.post("/auth/social/cadastro", json=corpo).status_code == 409
     assert cliente.post("/auth/social/cadastro", json={**corpo, "nome": "Gente Boa Demais"}).status_code == 201
+
+
+def test_email_do_codigo_tem_html_com_logo_e_texto(monkeypatch):
+    """O e-mail do código vai em HTML (com a logo do site) e em texto; o nome da pessoa não vira HTML."""
+    from app.servicos.email_modelos import codigo_redefinicao
+    m = codigo_redefinicao("<b>Ana</b>", "ana@example.com", "042917")
+    assert "Seu código é: 042917" in m.texto and "15 minutos" in m.texto
+    assert "042917" in m.html and "/assets/logo/rondo-simbolo.png" in m.html
+    assert "<b>Ana</b>" not in m.html and "&lt;b&gt;Ana&lt;/b&gt;" in m.html
+    assert "ana@example.com" in m.html and "<script" not in m.html
+
+
+def test_esqueci_a_senha_manda_a_versao_html(cliente, monkeypatch):
+    enviados = []
+    monkeypatch.setattr("app.rotas.auth.enviar", lambda para, assunto, texto, html=None: enviados.append(html))
+    assert cliente.post("/auth/cadastro", json=_corpo("html@example.com")).status_code == 201
+    cliente.post("/auth/esqueci-senha", json={"email": "html@example.com"})
+    assert len(enviados) == 1 and enviados[0] and "<html" in enviados[0]

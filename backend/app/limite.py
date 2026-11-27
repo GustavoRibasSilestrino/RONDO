@@ -10,7 +10,8 @@ from starlette.responses import JSONResponse
 from app.protecao import ip_do_cliente
 
 JANELA = 60.0
-ROTAS_DE_ENTRADA = ("/auth/login", "/auth/cadastro", "/auth/senha", "/auth/esqueci-senha", "/auth/redefinir-senha", "/auth/google", "/auth/apple", "/auth/social/cadastro", "/auth/nome-livre")
+ROTAS_DE_ENTRADA = ("/auth/login", "/auth/cadastro", "/auth/senha", "/auth/esqueci-senha", "/auth/redefinir-senha", "/auth/google", "/auth/apple", "/auth/social/cadastro", "/auth/nome-livre",
+                     "/auth/proteger", "/auth/2fa/iniciar", "/auth/2fa/ativar", "/auth/2fa/desativar", "/auth/2fa/reserva")
 # a loja também fica no limite menor: cada compra grava no banco, e o resgate recebe códigos digitados (sem limite,
 # daria para tentar adivinhar)
 # o suporte também: a mensagem não pede conta e cada uma vai por e-mail para a equipe

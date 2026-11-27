@@ -36,6 +36,7 @@ def conferir_cadastro(nascimento: date, aceita_termos: bool, aceita_privacidade:
 
 
 class CadastroIn(BaseModel):
+    aparelho: str | None = Field(default=None, max_length=64)   # identificador aleatório que o app/site guarda no aparelho (avisos de entrada nova)
     nome: str = Field(min_length=2, max_length=120)
     email: EmailStr
     senha: str = Field(min_length=8, max_length=128)
@@ -54,11 +55,13 @@ class CadastroIn(BaseModel):
 
 class SocialIn(BaseModel):
     id_token: str = Field(min_length=20, max_length=8192)
+    aparelho: str | None = Field(default=None, max_length=64)   # identificador aleatório que o app/site guarda no aparelho (avisos de entrada nova)
 
 
 class CadastroSocialIn(BaseModel):
     """Segunda etapa de quem entrou pela primeira vez com Google ou Apple: a data de nascimento e os aceites (como no cadastro comum)."""
     token_social: str = Field(max_length=8192)
+    aparelho: str | None = Field(default=None, max_length=64)   # identificador aleatório que o app/site guarda no aparelho (avisos de entrada nova)
     nome: str | None = Field(default=None, min_length=2, max_length=120)   # a Apple só dá o nome na primeira vez, e só ao app
     nascimento: date
     aceita_termos: bool
@@ -79,6 +82,8 @@ class ApagarContaIn(BaseModel):
 class LoginIn(BaseModel):
     email: EmailStr
     senha: str = Field(max_length=128)
+    codigo: str | None = Field(default=None, max_length=20)   # o código do aplicativo autenticador (ou de reserva), se a conta tem 2FA
+    aparelho: str | None = Field(default=None, max_length=64)   # identificador aleatório que o app/site guarda no aparelho (avisos de entrada nova)
 
 
 class UsuarioOut(BaseModel):
@@ -95,6 +100,7 @@ class UsuarioOut(BaseModel):
     mascote: str | None = None   # o mascote que a conta mostra, "linha-coluna" na folha de mascotes (vazio = nenhum)
     mascote_nome: str | None = None   # o nome que a conta deu a ele com o lápis (vazio = o nome de fábrica)
     marketing: bool = False
+    dois_fatores: bool = False   # a verificação em duas etapas está ligada
     # a política de conteúdo: avisos do ciclo (0 a 3), suspensões tomadas e até quando está suspensa
     avisos: int = 0
     suspensoes: int = 0

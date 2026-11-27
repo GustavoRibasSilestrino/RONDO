@@ -1,5 +1,6 @@
 /* Segurança da conta: alterar a senha. O app valida os campos e o servidor confere a senha atual (POST /auth/senha). */
 import { guardarToken } from './sessao';
+import { chamar } from './cliente';
 import { trocarSenhaNoServidor } from './sincronia';
 
 export const SENHA_MIN = 8;          // senha nova: pelo menos 8 caracteres (o servidor confere também)
@@ -19,3 +20,12 @@ export async function alterarSenha(atual: string, nova: string): Promise<void> {
   const r = await trocarSenhaNoServidor(atual, nova);
   if (r?.token) await guardarToken(r.token);
 }
+
+/* ---------- verificação em duas etapas (backend/app/rotas/dois_fatores.py) ----------
+   Ligar: a senha → o segredo e o QR code → o primeiro código do aplicativo liga e devolve os 8 códigos de reserva. */
+export type Situacao2f = { ativo: boolean; reservas_restantes: number };
+export const situacao2f = () => chamar<Situacao2f>('GET', '/auth/2fa');
+export const iniciar2f = (senha: string) => chamar<{ segredo: string; endereco: string }>('POST', '/auth/2fa/iniciar', { senha });
+export const ativar2f = (codigo: string) => chamar<{ codigos_reserva: string[] }>('POST', '/auth/2fa/ativar', { codigo });
+export const desativar2f = (senha: string, codigo: string) => chamar<Situacao2f>('POST', '/auth/2fa/desativar', { senha, codigo });
+export const novasReservas2f = (senha: string, codigo: string) => chamar<{ codigos_reserva: string[] }>('POST', '/auth/2fa/reserva', { senha, codigo });

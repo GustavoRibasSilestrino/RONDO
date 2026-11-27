@@ -1,9 +1,8 @@
-/* Confere as partes puras do RONDIN do recado: as perguntas do dia, a conversa e o reconhecimento de "Olá Rondin".
+/* Confere as partes puras do RONDIN do recado: as perguntas do dia, a conversa e o diário.
    Uso (dentro da pasta app): node --experimental-strip-types scripts/testar-rondin.mjs
    Sai com erro (código 1) se algo falhar. */
 import { PERGUNTAS_DO_DIA, indiceDaPergunta, perguntaDoDia } from '../src/lib/perguntas.ts';
 import { CONVERSA, encerrarConversa, humor, palavraChave, reagir, saudacao } from '../src/lib/rondinConversa.ts';
-import { idiomaDoChamado, ouveChamado } from '../src/lib/chamado.ts';
 import { agrupar, diasComRecado, porDia } from '../src/lib/diarioRecados.ts';
 
 let falhas = 0;
@@ -91,25 +90,5 @@ const separado = porDia(conversas);
 confere(separado.length === 2 && separado[0].dia === '2026-11-13' && separado[0].conversas.length === 2, 'conversas separadas por dia, o mais novo primeiro');
 confere(agrupar([]).length === 0 && diasComRecado([]).size === 0 && porDia([]).length === 0, 'diário vazio');
 
-/* ---------- "Olá Rondin" ---------- */
-const CHAMAM = [
-  'olá rondin', 'ola rondin', 'Olá, Rondin!', 'oi rondin', 'ola rondim', 'ei rondin', 'rondin', 'Rondin?', 'olá ron din', 'ola ron dim',
-  'hello rondin', 'Hello, Rondin', 'hey rondin', 'hi rondin', 'hola rondin', 'Hola, Rondin!', 'oye rondin', 'buenas rondin',
-  'bonjour rondin', 'ciao rondin', 'hallo rondin', 'olá rondin tudo bem com você hoje', 'hello there rondin how are you doing today',
-  'привет рондин', 'ロンディン', 'olá rondo', 'ola rodin', 'hello ron dean',
-];
-const NAO_CHAMAM = [
-  'eu estou fazendo uma ronda no bairro', 'o marechal rondon explorou o brasil e fez muitas coisas importantes',
-  'hello world', 'vamos treinar hoje à tarde', 'rondo é um app muito legal e eu gosto de usar todo dia', 'robin hood',
-  'a ronda da noite', 'ola tudo bem', 'hola como estas', 'hello how are you', 'dinheiro no bolso', '', '   ',
-  'ronaldo marcou dois gols', 'meu cachorro se chama rex e ele é muito bonzinho',
-];
-CHAMAM.forEach((f) => confere(ouveChamado(f), `deve chamar: "${f}"`));
-NAO_CHAMAM.forEach((f) => confere(!ouveChamado(f), `não deve chamar: "${f}"`));
-confere(idiomaDoChamado('olá rondin') === 'pt', 'saudação em português');
-confere(idiomaDoChamado('hello rondin') === 'en', 'saudação em inglês');
-confere(idiomaDoChamado('hola rondin') === 'es', 'saudação em espanhol');
-confere(idiomaDoChamado('rondin') === undefined, 'sem saudação, sem língua');
-
 if (falhas) { console.error(`\n${falhas} verificação(ões) falharam.`); process.exit(1); }
-console.log(`Tudo certo: ${PERGUNTAS_DO_DIA.length} perguntas, ${CHAMAM.length + NAO_CHAMAM.length} frases de chamado, 3 línguas.`);
+console.log(`Tudo certo: ${PERGUNTAS_DO_DIA.length} perguntas, 3 línguas.`);

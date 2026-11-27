@@ -232,7 +232,7 @@ export function listarFalas(idioma: Idioma): string[] {
   const voz = (texto: string, ocultar: string[] = []) => trechosParaVoz(texto, ocultar).forEach((x) => { if (!x.dinamico) achadas.add(x.texto); });
   const c = CONVERSA[idioma];
   for (const pg of PERGUNTAS_DO_DIA) { voz(pg[idioma]); voz(pg.seguir[idioma]); }
-  [c.falas.jaHoje, c.falas.guardado, c.falas.descartado, c.falas.naoResponder, c.falas.chamado, c.falas.convite].forEach((f) => voz(f));
+  [c.falas.jaHoje, c.falas.guardado, c.falas.descartado, c.falas.naoResponder].forEach((f) => voz(f));
   for (const hora of [8, 15, 21]) { voz(c.falas.saudacao('', hora)); voz(c.falas.saudacao('Fulano', hora), ['Fulano']); }
   const { neutras, curtas, positivas, negativas, eco } = c.reacao;
   for (const f of [...neutras, ...curtas, ...positivas, ...negativas, ...c.fechamento, ...c.encerrar]) {

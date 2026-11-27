@@ -7,16 +7,22 @@ import { CONTATO, Pagina } from "./Legal";
 export function ExcluirConta() {
   const [estado, setEstado] = useState<"" | "enviando" | "ok" | "erro">("");
   const [msg, setMsg] = useState("");
+  const [pedeCodigo, setPedeCodigo] = useState(false);   // a conta tem verificação em duas etapas
 
   async function enviar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     setEstado("enviando"); setMsg("");
     try {
-      await excluirConta(String(f.get("email")).trim(), String(f.get("senha")));
+      await excluirConta(String(f.get("email")).trim(), String(f.get("senha")), pedeCodigo ? String(f.get("codigo") ?? "").trim() : undefined);
       setEstado("ok");
       setMsg("Conta excluída. Todos os seus dados foram apagados do servidor.");
     } catch (err) {
+      if (err instanceof ErroApi && err.doisFatores) {
+        setEstado(pedeCodigo ? "erro" : ""); setMsg(pedeCodigo ? err.message : "");
+        setPedeCodigo(true);
+        return;
+      }
       setEstado("erro");
       setMsg(err instanceof ErroApi ? err.message : "Não foi possível excluir agora.");
     }
@@ -42,6 +48,12 @@ export function ExcluirConta() {
         <form className="cadastro excluir" onSubmit={enviar}>
           <label className="field">E-mail da conta<input name="email" type="email" required autoComplete="email" /></label>
           <label className="field">Senha<input name="senha" type="password" required autoComplete="current-password" /></label>
+          {pedeCodigo ? (
+            <label className="field">
+              Código de verificação (a conta tem verificação em duas etapas: o código do aplicativo autenticador ou um de reserva)
+              <input name="codigo" required autoComplete="one-time-code" maxLength={12} autoFocus />
+            </label>
+          ) : null}
           <label className="aceite">
             <input type="checkbox" required />
             <span>Entendo que a conta e todos os dados serão apagados e que isso não pode ser desfeito.</span>

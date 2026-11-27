@@ -17,7 +17,6 @@ import { Botao, T } from '../componentes/Ui';
 import { useLoja } from '../estado/loja';
 import { apagarAudio, guardarAudio } from '../lib/audioGuardado';
 import { iso, mmss } from '../lib/datas';
-import { iniciarTranscricao, usePausarEscuta, type Transcricao } from '../lib/escuta';
 import { useGravador, type Gravacao } from '../lib/gravador';
 import { definirInterceptadorVoltar } from '../lib/interceptarVoltar';
 import type { EstadoOrbe } from '../lib/orbe';
@@ -67,11 +66,9 @@ export function Recado({ aoSair, aoDiario, chegada, atraso = 0 }: Props) {
   const [erro, setErro] = useState('');
   const [saindo, setSaindo] = useState(false);
   const textos = useRef<string[]>([]);
-  const transcricao = useRef<Transcricao | null>(null);
   const ocupado = useRef(false);
   const saiu = useRef(false);
 
-  usePausarEscuta(true);   // enquanto o RONDIN fala ou a pessoa grava, "Olá Rondin" não escuta (ele ouviria a si mesmo)
   const fala = useFalaRondin(sotaque);
   const gravador = useGravador(() => { void terminarGravacao(true); });
 
@@ -87,7 +84,6 @@ export function Recado({ aoSair, aoDiario, chegada, atraso = 0 }: Props) {
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  useEffect(() => () => { void transcricao.current?.terminar(); }, []);
 
   /* ---------- responder: grava a resposta ---------- */
   const responder = async () => {
@@ -98,16 +94,14 @@ export function Recado({ aoSair, aoDiario, chegada, atraso = 0 }: Props) {
     ocupado.current = false;
     if (r === 'sem-permissao') { setErro(ui.semMicrofone); return; }
     if (r === 'erro') { setErro(ui.erroGravar); return; }
-    transcricao.current = iniciarTranscricao(idioma);   // só com o sim da pessoa (lib/escuta.ts); sem ele, null
     setFase('gravando');
   };
 
   const terminarGravacao = async (auto = false) => {
     if (ocupado.current) return;
     ocupado.current = true;
-    const t = transcricao.current;
-    transcricao.current = null;
-    const [g, texto] = await Promise.all([gravador.terminar(), t ? t.terminar() : Promise.resolve('')]);
+    const g = await gravador.terminar();
+    const texto = '';   // a resposta não vira texto: a reação do RONDIN é a geral (a escuta "Olá Rondin" saiu em 2026-11-27)
     ocupado.current = false;
     if (!g) { setErro(ui.erroGravar); setFase(turno === 1 ? 'pergunta' : 'reagindo'); return; }
     if (auto) avisar(ui.limite);

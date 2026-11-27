@@ -12,7 +12,8 @@ class EmailIndisponivel(Exception):
     pass
 
 
-def enviar(para: str, assunto: str, texto: str) -> None:
+def enviar(para: str, assunto: str, texto: str, html: str | None = None) -> None:
+    """Manda o e-mail. `texto` vai sempre; `html`, quando vem, é a versão com visual (os programas escolhem qual mostrar)."""
     cfg = config()
     if cfg.email_modo_teste:
         log.warning("E-mail de teste para %s | %s | %s", para, assunto, texto)
@@ -24,14 +25,14 @@ def enviar(para: str, assunto: str, texto: str) -> None:
             r = httpx.post(
                 "https://api.brevo.com/v3/smtp/email",
                 headers={"api-key": cfg.brevo_api_key, "accept": "application/json", "content-type": "application/json"},
-                json={"sender": {"name": cfg.email_remetente_nome, "email": cfg.email_remetente}, "to": [{"email": para}], "subject": assunto, "textContent": texto},
+                json={"sender": {"name": cfg.email_remetente_nome, "email": cfg.email_remetente}, "to": [{"email": para}], "subject": assunto, "textContent": texto, **({"htmlContent": html} if html else {})},
                 timeout=10,
             )
         else:
             r = httpx.post(
                 "https://api.resend.com/emails",
                 headers={"Authorization": f"Bearer {cfg.resend_api_key}"},
-                json={"from": f"{cfg.email_remetente_nome} <{cfg.email_remetente}>", "to": [para], "subject": assunto, "text": texto},
+                json={"from": f"{cfg.email_remetente_nome} <{cfg.email_remetente}>", "to": [para], "subject": assunto, "text": texto, **({"html": html} if html else {})},
                 timeout=10,
             )
     except httpx.HTTPError as e:

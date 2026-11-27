@@ -19,7 +19,6 @@ import { CabecalhoApp } from './src/componentes/CabecalhoApp';
 import { DeslizarEntreAbas, DeslizarParaVoltar } from './src/componentes/Deslizar';
 import { Chegada } from './src/componentes/Chegada';
 import { Icone } from './src/componentes/Icone';
-import { RondinChamado } from './src/componentes/RondinChamado';
 import { MenuLateral } from './src/componentes/MenuLateral';
 import { tirarCarregando } from './src/lib/carregando';
 import { voltaPedida } from './src/lib/entrada';
@@ -37,10 +36,8 @@ import { AvisoProvider } from './src/componentes/Estrutura';
 import { T } from './src/componentes/Ui';
 import { estadoVazio, LojaProvider, useLoja } from './src/estado/loja';
 import { TemaProvider, useTema } from './src/estado/tema';
-import { useEscutaDoChamado } from './src/lib/escuta';
 import { voltarInterceptado } from './src/lib/interceptarVoltar';
 import { naoLidas } from './src/lib/notificacoes';
-import { achaSotaque, sotaquePadrao, type Idioma } from './src/lib/rondinVoz';
 import { Colecoes } from './src/telas/Colecoes';
 import { CriarPlano } from './src/telas/CriarPlano';
 import { Dieta } from './src/telas/Dieta';
@@ -101,10 +98,6 @@ function Raiz() {
     const id = setTimeout(() => setChegando(true), atrasoDaAbertura() + ESPERA_RONDIN);
     return () => clearTimeout(id);
   }, [logado]);
-  /* "Olá Rondin": a língua em que ele foi chamado, ou null (lib/escuta.ts; só no navegador, e só se a pessoa ligou) */
-  const [chamado, setChamado] = useState<Idioma | null>(null);
-  const idiomaRondin: Idioma = estado.perfilFit ? achaSotaque(estado.perfilFit.sotaque).idioma : sotaquePadrao().idioma;
-  useEscutaDoChamado({ ativo: pronto && !!estado.usuario, idioma: idiomaRondin, aoChamar: (i) => setChamado(i ?? idiomaRondin) });
   const { largo, comPainel } = useLayoutLargo();   // computador: menu lateral no lugar da barra e do cabeçalho
   const [menuRecolhido, alternarMenu] = useMenuRecolhido();
 
@@ -150,14 +143,13 @@ function Raiz() {
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
       if (voltarInterceptado()) return true;   // a conversa do recado cuida do próprio voltar
-      if (chamado) { setChamado(null); return true; }
       if (tela === 'notificacoes') { setTela(antes); return true; }
       if (tela === INICIO) return false;
       setTela(DO_PERFIL.includes(tela) ? voltarPara : INICIO);
       return true;
     });
     return () => sub.remove();
-  }, [tela, antes, voltarPara, chamado]);
+  }, [tela, antes, voltarPara]);
 
   if (!pronto || buscandoSessao) {
     /* enquanto carrega: a tela preta com o nome RONDO, igual à abertura (no navegador, igual à tela de carregamento) */
@@ -278,17 +270,11 @@ function Raiz() {
       </View>
       {comPainel ? <PainelLateral ir={setTela} /> : null}
       {/* o mascote da conta passeando pela tela (só para quem tem mascote); some no recado, no treino em andamento e com o RONDIN aberto */}
-      <MascoteFlutuante ir={irPara} oculto={tela === 'recado' || !!estado.treinoAtual || !!chamado || chegando}
+      <MascoteFlutuante ir={irPara} oculto={tela === 'recado' || !!estado.treinoAtual || chegando}
         margens={largo ? { esquerda: menuRecolhido ? LARGURA_MENU_FECHADO : LARGURA_MENU, direita: comPainel ? LARGURA_PAINEL : 0 } : undefined} />
-      <AvisoBrownie pausado={!!chamado || chegando} />
+      <AvisoBrownie pausado={chegando} />
       <AvisoNivel />
-      {/* o RONDIN por cima de tudo: chamado pela voz ("Olá Rondin") ou, ao abrir o app, perguntando o recado do dia */}
-      {chamado ? (
-        <RondinChamado
-          idioma={chamado} aoFechar={() => setChamado(null)}
-          aoRecado={() => { setChamado(null); irPara('recado'); }} aoDiario={() => { setChamado(null); irPara('diario'); }}
-        />
-      ) : null}
+      {/* o RONDIN por cima de tudo, ao abrir o app, perguntando o recado do dia */}
       {chegando ? <Chegada depoisDoApp aoEntrar={() => setChegando(false)} aoDiario={() => { setChegando(false); irPara('diario'); }} /> : null}
     </View>
   );

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.legal import RETENCAO_NOTIFICACOES, RETENCAO_RESGATES, RETENCAO_SUPORTE
 from app.modelos import (
-    Assinatura, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Desafio, Mascote, Membro, MensagemSuporte, Notificacao, Participante, Penalidade, Post, Recompensa, RedefinicaoSenha, Resgate, Seguidor, Troca, Usuario,
+    AparelhoConhecido, Assinatura, CodigoReserva, Bloqueio, Clube, Comentario, Consentimento, Curtida, DadoUsuario, Denuncia, Desafio, Mascote, Membro, MensagemSuporte, Notificacao, Participante, Penalidade, Post, Recompensa, RedefinicaoSenha, Resgate, Seguidor, Troca, Usuario,
 )
 from app.servicos.loja import RARIDADES
 from app.servicos import midia as servico_midia
@@ -118,6 +118,8 @@ def apagar_conta(sessao: Session, u: Usuario) -> None:
     sessao.execute(delete(MensagemSuporte).where(MensagemSuporte.usuario_id == uid))
     sessao.execute(delete(Consentimento).where(Consentimento.usuario_id == uid))
     sessao.execute(delete(RedefinicaoSenha).where(RedefinicaoSenha.usuario_id == uid))
+    sessao.execute(delete(AparelhoConhecido).where(AparelhoConhecido.usuario_id == uid))
+    sessao.execute(delete(CodigoReserva).where(CodigoReserva.usuario_id == uid))
     sessao.execute(delete(Penalidade).where(Penalidade.usuario_id == uid))
     sessao.execute(delete(Bloqueio).where(or_(Bloqueio.quem_id == uid, Bloqueio.bloqueado_id == uid)))
     sessao.execute(delete(Denuncia).where(Denuncia.denunciante_id == uid))

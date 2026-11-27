@@ -22,14 +22,16 @@ type TProps = {
   pixel?: boolean;   // a fonte de pixel art (tema.ts, FONTE_PIXEL): os pesos 400 e 500 viram o negrito dela
   centro?: boolean;
   linhas?: number;
+  selecionavel?: boolean;   // dá para selecionar e copiar o texto (códigos, chaves)
   style?: StyleProp<TextStyle>;
 };
-export function T({ children, tam = 15, peso = '300', cor: corDada, mono, pixel, centro, linhas, style }: TProps) {
+export function T({ children, tam = 15, peso = '300', cor: corDada, mono, pixel, centro, linhas, selecionavel, style }: TProps) {
   const naTelaEscura = useContext(EscuroContexto);
   const cor = corDada ?? (naTelaEscura ? escuro.texto : cores.texto);
   return (
     <Text
       numberOfLines={linhas}
+      selectable={selecionavel}
       style={[
         { fontSize: tam, fontFamily: pixel ? (peso === '400' || peso === '500' ? FONTE_PIXEL.forte : FONTE_PIXEL.normal) : FONTE[peso], fontWeight: 'normal', color: cor, letterSpacing: pixel ? 0.2 : tam >= 28 ? -tam * 0.03 : 0 },
         mono && { letterSpacing: 0.4 },

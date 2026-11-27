@@ -9,7 +9,7 @@ from app.concorrencia import LimiteDeConcorrencia
 from app.config import config
 from app.limite import LimiteDeRequisicoes
 from app.protecao import Blindagem
-from app.rotas import assinaturas, auth, clubes, desafios, loja, me, midia, moderacao, pessoas, profissionais, social, suporte, treinos, voz
+from app.rotas import assinaturas, auth, clubes, desafios, dois_fatores, loja, me, midia, moderacao, pessoas, profissionais, social, suporte, treinos, voz
 
 SEGREDO_PADRAO = "troque-em-producao"
 EM_PRODUCAO = not config().database_url.startswith("sqlite")
@@ -48,6 +48,7 @@ async def erro_de_validacao(_: Request, exc: RequestValidationError):
 
 
 app.include_router(auth.router)
+app.include_router(dois_fatores.router)
 app.include_router(me.router)
 app.include_router(profissionais.router)
 app.include_router(assinaturas.router)

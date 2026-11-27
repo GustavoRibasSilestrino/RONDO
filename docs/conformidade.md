@@ -19,7 +19,7 @@ O que já está no código e o que ainda depende do responsável. Não é parece
 ## Depende do responsável
 
 1. **Revisão jurídica** dos documentos antes de divulgar o produto.
-2. **Acordos de tratamento de dados (DPA)** com Supabase, Render e Vercel: aceitar ou assinar no painel de cada um (links em `/suboperadores`). Para a transferência internacional, conferir as cláusulas exigidas pela ANPD.
+2. **Acordos de tratamento de dados (DPA)** com Supabase, Render, Vercel e Brevo (o da Brevo é o Apêndice 3 dos termos dela, aceito junto com a conta): aceitar ou assinar no painel de cada um (links em `/suboperadores`). Para a transferência internacional, conferir as cláusulas exigidas pela ANPD.
 3. **Origem das imagens das medalhas** do app: confirmar quem criou e se o RONDO pode usá-las (se foram geradas por IA, guardar os termos da ferramenta usada). Hoje a página de licenças não afirma nada sobre elas.
 4. **Confirmação do responsável por e-mail**: hoje o responsável só declara no formulário. Para verificar de verdade, é preciso um serviço de envio de e-mail.
 5. **Antes de cobrar**: implementar o aviso por e-mail antes de cada renovação, o cancelamento pelo app e o reembolso de 7 dias, exatamente como `/reembolso` promete.

@@ -227,6 +227,9 @@ export default function Entrar() {
   const [erros, setErros] = useState<Erros>({});
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  /* verificação em duas etapas: com a senha certa, o servidor pede o código do aplicativo autenticador */
+  const [pedeCodigo, setPedeCodigo] = useState(false);
+  const [codigo, setCodigo] = useState("");
   const [nome, setNome] = useState("");
   const [extras, setExtras] = useState<Extras>(EXTRAS);
   const [google, setGoogle] = useState<{ token: string; nome: string; email: string } | null>(null);   // primeira vez com o Google
@@ -288,10 +291,22 @@ export default function Entrar() {
     const e: Erros = {};
     if (!/^\S+@\S+\.\S+$/.test(email.trim())) e.email = "Informe o seu e-mail.";
     if (!senha) e.senha = "Informe a sua senha.";
+    if (pedeCodigo && codigo.replace(/[\s-]/g, "").length < 6) e.codigo = "Digite o código de 6 números do aplicativo (ou um código de reserva).";
     setErros(e); setAlerta(null);
     if (Object.keys(e).length) { focarErro(form.current); return; }
     setIndo(true);
-    try { concluir(await entrarComSenha(email.trim(), senha)); } catch (err) { falhou(err); } finally { setIndo(false); }
+    try {
+      concluir(await entrarComSenha(email.trim(), senha, pedeCodigo ? codigo.trim() : undefined));
+    } catch (err) {
+      falhou(err, (x) => {
+        if (!x.doisFatores) return false;
+        /* a primeira vez só abre o campo do código; depois disso, o código estava errado */
+        if (pedeCodigo) setErros({ codigo: x.message });
+        setPedeCodigo(true); setCodigo("");
+        window.setTimeout(() => document.getElementById("entrar-codigo")?.focus(), 30);
+        return true;
+      });
+    } finally { setIndo(false); }
   };
 
   const enviarCriar = async (ev: FormEvent) => {
@@ -388,8 +403,15 @@ export default function Entrar() {
           {modo === "entrar" ? (
             <form ref={form} className="entrar-form" onSubmit={enviarEntrar} noValidate key="entrar">
               {alertaEl}
-              <Campo id="entrar-email" name="email" rotulo="E-mail" type="email" inputMode="email" autoComplete="username" required value={email} onChange={digitar(setEmail, "email")} erro={erros.email} />
+              <Campo id="entrar-email" name="email" rotulo="E-mail" type="email" inputMode="email" autoComplete="username" required value={email} onChange={(e) => { setEmail(e.target.value); limparErro("email"); setPedeCodigo(false); }} erro={erros.email} />
               <CampoSenha id="entrar-senha" name="senha" rotulo="Senha" required value={senha} onChange={digitar(setSenha, "senha")} erro={erros.senha} />
+              {pedeCodigo ? (
+                <Campo
+                  id="entrar-codigo" name="codigo" rotulo="Código de verificação" inputMode="text" autoComplete="one-time-code" required maxLength={12}
+                  value={codigo} onChange={digitar(setCodigo, "codigo")} erro={erros.codigo}
+                  dica="Sua conta tem verificação em duas etapas. Digite o código de 6 números do aplicativo autenticador ou um código de reserva."
+                />
+              ) : null}
               <a className="entrar-esqueci" href={APP_ENTRAR}>Esqueci a senha</a>
               <Btn type="submit" className="entrar-enviar" disabled={indo}>{indo ? "Entrando..." : "Entrar"}</Btn>
               <p className="entrar-troca">Ainda não tem conta? <button type="button" onClick={() => trocar("criar")}>Criar conta</button></p>

@@ -1,4 +1,4 @@
-/* Conta e segurança, dentro das Configurações do perfil: e-mail da conta, alterar a senha e a verificação em duas etapas (em breve).
+/* Conta e segurança, dentro das Configurações do perfil: e-mail da conta, alterar a senha e a verificação em duas etapas (DoisFatores.tsx).
    Sair da conta e apagar a conta continuam logo abaixo, na própria tela de Configurações. */
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -9,6 +9,7 @@ import { Icone, NomeIcone } from '../../componentes/Icone';
 import { Botao, T } from '../../componentes/Ui';
 import { useLoja } from '../../estado/loja';
 import { cores, estilos } from '../../tema';
+import { DoisFatores } from './DoisFatores';
 
 function Linha({ icone, titulo, sub, direita, aoPressionar }: { icone: NomeIcone; titulo: string; sub: string; direita?: React.ReactNode; aoPressionar?: () => void }) {
   return (
@@ -55,12 +56,7 @@ export function ContaSeguranca() {
     <View style={{ gap: 10, marginBottom: 20 }}>
       <Linha icone="email" titulo="E-mail da conta" sub={estado.usuario?.email ?? '—'} />
       <Linha icone="cadeado" titulo="Alterar senha" sub="Troque a senha da sua conta" aoPressionar={abrir} />
-      <Linha
-        icone="verificado"
-        titulo="Verificação em duas etapas"
-        sub="Um código extra para entrar"
-        direita={<View style={st.selo}><T tam={10.5} peso="500" style={{ letterSpacing: 0.6 }}>EM BREVE</T></View>}
-      />
+      <DoisFatores Linha={Linha} />
 
       <Folha aberta={trocando} aoFechar={() => setTrocando(false)} titulo="Alterar senha">
         <CampoFlutuante rotulo="Senha atual" icone="cadeado" value={atual} onChangeText={setAtual} secureTextEntry autoCapitalize="none" autoCorrect={false} erro={erros.atual} returnKeyType="next" />

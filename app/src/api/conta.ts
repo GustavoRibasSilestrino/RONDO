@@ -1,7 +1,7 @@
 /* Entrar com a conta: chama POST {API}/auth/login no backend (FastAPI). A URL vem de EXPO_PUBLIC_API_URL.
    Não há mais modo de demonstração nem contas de mentira. A senha nunca é guardada. */
 import type { Usuario } from '../tipos';
-import { guardarToken } from './sessao';
+import { guardarToken, idDoAparelho } from './sessao';
 
 declare const process: { env: Record<string, string | undefined> };
 
@@ -11,7 +11,13 @@ const nomeDoEmail = (email: string): string => {
   return base ? base.charAt(0).toUpperCase() + base.slice(1) : 'Você';
 };
 
-export async function entrar(email: string, senha: string): Promise<Usuario> {
+/* A conta tem verificação em duas etapas: a senha está certa, falta o código do aplicativo autenticador (ou um de reserva).
+   A tela pede o código e chama `entrar` de novo, com ele. */
+export class PrecisaCodigo extends Error {
+  constructor(mensagem: string) { super(mensagem); this.name = 'PrecisaCodigo'; }
+}
+
+export async function entrar(email: string, senha: string, codigo?: string): Promise<Usuario> {
   if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error('Digite um e-mail válido.');
   if (senha.length < 6) throw new Error('A senha tem pelo menos 6 caracteres.');
 
@@ -22,7 +28,7 @@ export async function entrar(email: string, senha: string): Promise<Usuario> {
       resposta = await fetch(`${api}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, senha }),
+        body: JSON.stringify({ email, senha, aparelho: await idDoAparelho(), ...(codigo ? { codigo } : {}) }),
       });
     } catch {
       throw new Error('Sem conexão. Tente de novo em instantes.');
@@ -33,10 +39,16 @@ export async function entrar(email: string, senha: string): Promise<Usuario> {
       try { detalhe = String(((await resposta.json()) as { detail?: unknown }).detail ?? ''); } catch { /* sem corpo */ }
       throw new Error(/banida/i.test(detalhe) ? detalhe : 'E-mail ou senha incorretos.');
     }
-    if (resposta.status === 401) throw new Error('E-mail ou senha incorretos.');
+    if (resposta.status === 401) {
+      let det: unknown = null;
+      try { det = ((await resposta.json()) as { detail?: unknown }).detail; } catch { /* sem corpo */ }
+      const d2 = det as { dois_fatores?: boolean; mensagem?: string } | null;
+      if (d2 && typeof d2 === 'object' && d2.dois_fatores) throw new PrecisaCodigo(d2.mensagem || 'Digite o código do seu aplicativo autenticador.');
+      throw new Error('E-mail ou senha incorretos.');
+    }
     if (resposta.status === 429) throw new Error('Muitas tentativas em pouco tempo. Espere um minuto e tente de novo.');   // o servidor limita o login por minuto
     if (!resposta.ok) throw new Error('Não foi possível entrar agora. Tente de novo.');
-    const dados = (await resposta.json()) as { email?: string; nome?: string; token?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; arroba?: string | null; foto?: string | null; mascote?: string | null; mascote_nome?: string | null };
+    const dados = (await resposta.json()) as { dois_fatores?: boolean; email?: string; nome?: string; token?: string; papel?: string; verificado?: boolean; pro?: boolean; marketing?: boolean; selo?: string | null; arroba?: string | null; foto?: string | null; mascote?: string | null; mascote_nome?: string | null };
     if (dados.token) await guardarToken(dados.token);
     return { email: dados.email ?? email, nome: dados.nome ?? nomeDoEmail(email), papel: dados.papel, verificado: dados.verificado, pro: dados.pro, marketing: dados.marketing, selo: dados.selo, arroba: dados.arroba ?? undefined, foto: dados.foto ?? undefined, mascote: dados.mascote ?? null, mascoteNome: dados.mascote_nome ?? null };
   }
@@ -122,7 +134,7 @@ export async function cadastrar(d: NovaConta): Promise<Usuario> {
       body: JSON.stringify({
         nome: d.nome.trim(), email: d.email.trim(), senha: d.senha, nascimento: d.nascimento,
         aceita_termos: d.aceita, aceita_privacidade: d.aceita, marketing: d.marketing,
-        responsavel: d.responsavel, origem: 'app',
+        responsavel: d.responsavel, origem: 'app', aparelho: await idDoAparelho(),
       }),
     });
   } catch {
