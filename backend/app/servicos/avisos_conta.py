@@ -80,13 +80,17 @@ def _marca_aparelho(aparelho: str) -> str:
     return hmac.new(config().jwt_segredo.encode(), ("aparelho:" + aparelho).encode(), hashlib.sha256).hexdigest()[:40]
 
 
-def registrar_aparelho(sessao: Session, usuario_id: int, aparelho: str | None) -> bool:
+def registrar_aparelho(sessao: Session, usuario_id: int, aparelho: str | None, user_agent: str | None = None) -> bool:
     """Grava o aparelho como conhecido. Devolve True quando é uma entrada nova que merece aviso: a conta já tinha outros
     aparelhos e este nunca tinha aparecido. O primeiro aparelho de uma conta (e o primeiro depois desta regra existir) não
-    gera aviso. Sem identificador (versões antigas do app), não faz nada."""
-    if not aparelho:
+    gera aviso. Sem identificador (versões antigas do app ou quem chama a API direto), vale o navegador/programa (User-Agent):
+    quem entra sem mandar o identificador também gera o aviso na primeira vez."""
+    if aparelho:
+        marca = _marca_aparelho(aparelho)
+    elif user_agent:
+        marca = _marca_aparelho("ua:" + user_agent)
+    else:
         return False
-    marca = _marca_aparelho(aparelho)
     agora = datetime.now(timezone.utc)
     ja = sessao.scalar(select(AparelhoConhecido).where(AparelhoConhecido.usuario_id == usuario_id, AparelhoConhecido.marca == marca))
     if ja:

@@ -36,11 +36,25 @@ def marca_da_senha(senha_hash: str) -> str:
     return hmac.new(config().jwt_segredo.encode(), senha_hash.encode(), hashlib.sha256).hexdigest()[:16]
 
 
-def criar_token(usuario_id: int, senha_hash: str) -> str:
+def criar_token(usuario_id: int, senha_hash: str, dois_fatores: bool = False) -> str:
+    """`dois_fatores`: o login acabou de passar pelo código do aplicativo autenticador ("2f" no token, com a hora em "iat")."""
     cfg = config()
     agora = datetime.now(timezone.utc)
     exp = agora + timedelta(minutes=cfg.jwt_expira_minutos)
-    return jwt.encode({"sub": str(usuario_id), "exp": exp, "iat": agora, "typ": "acesso", "v": marca_da_senha(senha_hash)}, cfg.jwt_segredo, algorithm="HS256")
+    corpo = {"sub": str(usuario_id), "exp": exp, "iat": agora, "typ": "acesso", "v": marca_da_senha(senha_hash)}
+    if dois_fatores:
+        corpo["2f"] = True
+    return jwt.encode(corpo, cfg.jwt_segredo, algorithm="HS256")
+
+
+def passou_2fa_agora(token: str, minutos: int = 10) -> bool:
+    """O token veio de um login que passou pelo código do 2FA há menos de `minutos` (para apagar a conta logo depois de entrar
+    sem gastar outro código: cada código só vale uma vez)."""
+    try:
+        d = jwt.decode(token, config().jwt_segredo, algorithms=["HS256"], options={"require": ["exp", "sub", "iat"]})
+    except jwt.PyJWTError:
+        return False
+    return bool(d.get("2f")) and datetime.now(timezone.utc).timestamp() - float(d["iat"]) < minutos * 60
 
 
 def ler_token(token: str) -> tuple[int, str | None] | None:

@@ -15,3 +15,15 @@ from app.banco import engine  # noqa: E402
 
 if engine.url.get_backend_name() != "sqlite":
     raise SystemExit(f"Os testes só rodam em SQLite, nunca em {engine.url.get_backend_name()} (banco de verdade).")
+
+
+import pytest  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def _travas_zeradas():
+    """As travas de tentativas (senha errada, código errado) ficam na memória do processo: cada teste começa sem nenhuma."""
+    from app import protecao
+    protecao._falhas.clear()
+    yield
+    protecao._falhas.clear()

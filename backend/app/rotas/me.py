@@ -2,7 +2,7 @@
 import json
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -12,7 +12,7 @@ from app.deps import usuario_atual
 from app.esquemas import ApagarContaIn, DadosIn, DadosOut, MarketingIn, PerfilIn, StatusOut, UsuarioOut
 from app.legal import VERSAO_PRIVACIDADE
 from app.modelos import Consentimento, DadoUsuario, Usuario
-from app.seguranca import conferir_senha
+from app.seguranca import conferir_senha, passou_2fa_agora
 from app.servicos import conta as servico_conta
 from app.servicos import midia as servico_midia
 from app.servicos import penalidades
@@ -106,10 +106,29 @@ def exportar(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depend
 
 
 @router.delete("", response_model=StatusOut)
-def apagar_conta(dados: ApagarContaIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
-    """Apaga a conta e todos os dados dela no servidor. Pede a senha para confirmar."""
+def apagar_conta(dados: ApagarContaIn, request: Request, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    """Apaga a conta e todos os dados dela no servidor. Pede a senha (com a mesma trava de tentativas da troca de senha) e, com a
+    verificação em duas etapas ligada, também o código. Erro é 400, não 401: no app, 401 com token derruba a sessão."""
+    from app.protecao import conta_travada, registrar_falha, zerar_falhas
+    from app.rotas.auth import conferir_segundo_fator
+    chave = f"senha:{usuario.id}"
+    if conta_travada(chave):
+        raise HTTPException(429, "Muitas tentativas. Espere 15 minutos e tente de novo.", headers={"Retry-After": "900"})
     if not conferir_senha(dados.senha, usuario.senha_hash):
-        raise HTTPException(401, "Senha incorreta.")
+        registrar_falha(chave)
+        raise HTTPException(400, "Senha incorreta.")
+    zerar_falhas(chave)
+    token = request.headers.get("authorization", "").removeprefix("Bearer ").strip()
+    if usuario.totp_ativo and not passou_2fa_agora(token):   # entrou com o código há pouco (site: entrar e apagar): não pede outro
+        if not (dados.codigo or "").strip():
+            raise HTTPException(400, "Digite também o código do aplicativo autenticador (ou um código de reserva).")
+        chave2 = f"2fa:{usuario.id}"
+        if conta_travada(chave2):
+            raise HTTPException(429, "Muitos códigos errados. Espere 15 minutos e tente de novo.", headers={"Retry-After": "900"})
+        if not conferir_segundo_fator(sessao, usuario, dados.codigo or ""):
+            registrar_falha(chave2)
+            raise HTTPException(400, "Código incorreto ou vencido. Confira o aplicativo e tente de novo.")
+        zerar_falhas(chave2)
     servico_conta.apagar_conta(sessao, usuario)
     return StatusOut(status="ok")
 

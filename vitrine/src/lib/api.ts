@@ -99,12 +99,16 @@ export async function excluirConta(email: string, senha: string, codigo?: string
     r = await fetch(`${API}/me`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ senha }),
+      body: JSON.stringify({ senha, ...(codigo ? { codigo } : {}) }),   // com a verificação em duas etapas, o mesmo código vale aqui
     });
   } catch {
     throw new ErroApi("Sem conexão. Tente de novo em instantes.");
   }
-  if (!r.ok) throw new ErroApi("Não foi possível excluir agora. Tente de novo ou escreva para o nosso e-mail.");
+  if (!r.ok) {
+    let det = "";
+    try { const d = (await r.json()) as { detail?: unknown }; if (typeof d.detail === "string") det = d.detail; } catch { /* sem corpo */ }
+    throw new ErroApi(det || "Não foi possível excluir agora. Tente de novo ou escreva para o nosso e-mail.", r.status);
+  }
 }
 
 /* ---------- chamadas com a resposta do servidor em português ----------

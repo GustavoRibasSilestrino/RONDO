@@ -15,7 +15,7 @@ ROTAS_DE_ENTRADA = ("/auth/login", "/auth/cadastro", "/auth/senha", "/auth/esque
 # a loja também fica no limite menor: cada compra grava no banco, e o resgate recebe códigos digitados (sem limite,
 # daria para tentar adivinhar)
 # o suporte também: a mensagem não pede conta e cada uma vai por e-mail para a equipe
-ROTAS_LIMITADAS = ROTAS_DE_ENTRADA + ("/loja/abrir", "/loja/resgatar", "/loja/lapis", "/loja/trocas", "/suporte")
+ROTAS_LIMITADAS = ROTAS_DE_ENTRADA + ("/loja/abrir", "/loja/resgatar", "/loja/lapis", "/loja/trocas", "/suporte", "/profissionais")
 
 
 class LimiteDeRequisicoes(BaseHTTPMiddleware):

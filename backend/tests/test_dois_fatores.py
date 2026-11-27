@@ -123,7 +123,6 @@ def test_aviso_de_entrada_nova_so_para_aparelho_novo(cliente, caixa):
     conta(cliente, aparelho="aparelho-a")
     corpo = {"email": "ana@x.com", "senha": "segredo1"}
     cliente.post("/auth/login", json={**corpo, "aparelho": "aparelho-a"})
-    cliente.post("/auth/login", json=corpo)   # sem identificador (app antigo): nada
     assert caixa == []
     r = cliente.post("/auth/login", json={**corpo, "aparelho": "aparelho-b"}, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0) Chrome/130.0 Safari/537.36"})
     assert r.status_code == 200 and len(caixa) == 1
@@ -160,3 +159,38 @@ def test_nome_no_aviso_nao_vira_html():
     from app.servicos.email_modelos import entrada_nova
     m = entrada_nova("<img src=x>", "a@x.com", "hoje", "Chrome no Windows", "https://site/proteger-conta#t=abc")
     assert "<img src=x>" not in m.html and "&lt;img src=x&gt;" in m.html
+
+
+def test_apagar_conta_com_2fa_pede_o_codigo(cliente, caixa):
+    h = conta(cliente)
+    segredo, reservas = ligar(cliente, h)
+    assert cliente.request("DELETE", "/me", headers=h, json={"senha": "segredo1"}).status_code == 400
+    assert cliente.request("DELETE", "/me", headers=h, json={"senha": "segredo1", "codigo": "000000" if codigo_agora(segredo, 1) != "000000" else "111111"}).status_code == 400
+    assert cliente.request("DELETE", "/me", headers=h, json={"senha": "segredo1", "codigo": reservas[0]}).status_code == 200
+
+
+def test_apagar_conta_trava_depois_de_muitas_senhas_erradas(cliente):
+    h = conta(cliente)
+    for _ in range(8):
+        assert cliente.request("DELETE", "/me", headers=h, json={"senha": "errada"}).status_code == 400
+    assert cliente.request("DELETE", "/me", headers=h, json={"senha": "segredo1"}).status_code == 429
+
+
+def test_entrada_sem_identificador_avisa_pelo_navegador(cliente, caixa):
+    conta(cliente, aparelho="aparelho-a")
+    corpo = {"email": "ana@x.com", "senha": "segredo1"}
+    ua = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) Firefox/130.0"}
+    cliente.post("/auth/login", json=corpo, headers=ua)
+    assert len(caixa) == 1 and "Firefox no Mac" in caixa[0][2]
+    cliente.post("/auth/login", json=corpo, headers=ua)
+    assert len(caixa) == 1
+
+
+def test_apagar_logo_depois_de_entrar_com_codigo_nao_pede_outro(cliente, caixa):
+    """O site exclui a conta assim: entra (com o código) e apaga em seguida. O código já foi gasto no login."""
+    h = conta(cliente)
+    segredo, _ = ligar(cliente, h)
+    r = cliente.post("/auth/login", json={"email": "ana@x.com", "senha": "segredo1", "codigo": codigo_agora(segredo, 1)})
+    novo = {"Authorization": f"Bearer {r.json()['token']}"}
+    assert cliente.request("DELETE", "/me", headers=h, json={"senha": "segredo1"}).status_code == 400   # token antigo: pede o código
+    assert cliente.request("DELETE", "/me", headers=novo, json={"senha": "segredo1"}).status_code == 200

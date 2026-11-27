@@ -104,7 +104,7 @@ def test_apagar_conta_pede_senha_e_apaga_tudo(cliente):
     cliente.put(f"/social/posts/{post['id']}/curtida", headers=bia)
     cliente.put("/pessoas/1/seguir", headers=bia)
 
-    assert cliente.request("DELETE", "/me", json={"senha": "errada"}, headers=ana).status_code == 401
+    assert cliente.request("DELETE", "/me", json={"senha": "errada"}, headers=ana).status_code == 400
     assert cliente.request("DELETE", "/me", json={"senha": "segredo1"}, headers=ana).status_code == 200
     with Sessao() as s:
         assert s.query(Usuario).filter_by(email="ana@x.com").count() == 0
@@ -387,3 +387,30 @@ def test_esqueci_a_senha_manda_a_versao_html(cliente, monkeypatch):
     assert cliente.post("/auth/cadastro", json=_corpo("html@example.com")).status_code == 201
     cliente.post("/auth/esqueci-senha", json={"email": "html@example.com"})
     assert len(enviados) == 1 and enviados[0] and "<html" in enviados[0]
+
+
+def test_conta_criada_com_email_de_outro_e_tomada_pelo_dono_no_login_social(cliente, chaves_de_teste, monkeypatch):
+    """O golpe: alguém cria a conta com o e-mail da vítima e uma senha dele. Quando a vítima entra com o Google, a conta passa a
+    ser só dela: a senha do golpista para de valer e o token dele morre."""
+    _configurar(monkeypatch)
+    golpista = cliente.post("/auth/cadastro", json=_corpo("gente@example.com")).json()
+    h_golpista = {"Authorization": f"Bearer {golpista['token']}"}
+    r = cliente.post("/auth/google", json={"id_token": _id_token(chaves_de_teste)}).json()
+    assert r["login"]["email"] == "gente@example.com"
+    assert cliente.get("/auth/eu", headers=h_golpista).status_code == 401
+    assert cliente.post("/auth/login", json={"email": "gente@example.com", "senha": "segredo1"}).status_code == 401
+    # da segunda vez em diante (e-mail já provado) nada muda
+    dono = {"Authorization": f"Bearer {r['login']['token']}"}
+    cliente.post("/auth/google", json={"id_token": _id_token(chaves_de_teste)})
+    assert cliente.get("/auth/eu", headers=dono).status_code == 200
+
+
+def test_conta_com_email_provado_pelo_codigo_nao_e_tomada(cliente, chaves_de_teste, monkeypatch):
+    _configurar(monkeypatch)
+    enviados = _com_email_capturado(monkeypatch)
+    cliente.post("/auth/cadastro", json=_corpo("gente@example.com"))
+    cliente.post("/auth/esqueci-senha", json={"email": "gente@example.com"})
+    codigo = _codigo_de(enviados[0][2])
+    cliente.post("/auth/redefinir-senha", json={"email": "gente@example.com", "codigo": codigo, "nova": "novasenha1"})
+    cliente.post("/auth/google", json={"id_token": _id_token(chaves_de_teste)})
+    assert cliente.post("/auth/login", json={"email": "gente@example.com", "senha": "novasenha1"}).status_code == 200

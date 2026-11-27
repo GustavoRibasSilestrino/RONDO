@@ -44,6 +44,8 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil, secaoInicial }
   useEffect(() => { if (aberto) setSecao(secaoInicial ?? null); }, [aberto, secaoInicial]);
   const [apagando, setApagando] = useState(false);
   const [senhaApagar, setSenhaApagar] = useState('');
+  const [codigoApagar, setCodigoApagar] = useState('');
+  const [pedeCodigoApagar, setPedeCodigoApagar] = useState(false);   // a conta tem verificação em duas etapas
   const [erroApagar, setErroApagar] = useState<string | undefined>();
   const [apagandoAgora, setApagandoAgora] = useState(false);
 
@@ -52,13 +54,15 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil, secaoInicial }
     if (!senhaApagar) { setErroApagar('Digite a sua senha para confirmar.'); return; }
     setApagandoAgora(true); setErroApagar(undefined);
     try {
-      await apagarContaNoServidor(senhaApagar);
+      await apagarContaNoServidor(senhaApagar, pedeCodigoApagar ? codigoApagar.trim() : undefined);
     } catch (e) {
-      setErroApagar(e instanceof Error ? e.message : 'Não foi possível apagar agora. Tente de novo.');
+      const msg = e instanceof Error ? e.message : 'Não foi possível apagar agora. Tente de novo.';
+      if (/código/i.test(msg)) setPedeCodigoApagar(true);
+      setErroApagar(msg);
       setApagandoAgora(false);
       return;
     }
-    setApagandoAgora(false); setApagando(false); setSenhaApagar('');
+    setApagandoAgora(false); setApagando(false); setSenhaApagar(''); setCodigoApagar(''); setPedeCodigoApagar(false);
     sair(); await esquecerToken(); await limpar();
     avisar('Conta apagada, com todos os dados do servidor e deste aparelho.');
   };
@@ -149,7 +153,13 @@ export function Configuracoes({ aberto, aoFechar, aoEditarPerfil, secaoInicial }
           dados, em Privacidade e dados.
         </T>
         <View style={{ height: 16 }} />
-        <CampoFlutuante rotulo="Sua senha" icone="cadeado" value={senhaApagar} onChangeText={setSenhaApagar} secureTextEntry autoCapitalize="none" autoCorrect={false} erro={erroApagar} returnKeyType="done" onSubmitEditing={apagarConta} />
+        <CampoFlutuante rotulo="Sua senha" icone="cadeado" value={senhaApagar} onChangeText={setSenhaApagar} secureTextEntry autoCapitalize="none" autoCorrect={false} erro={pedeCodigoApagar ? undefined : erroApagar} returnKeyType="done" onSubmitEditing={apagarConta} />
+        {pedeCodigoApagar ? (
+          <>
+            <View style={{ height: 12 }} />
+            <CampoFlutuante rotulo="Código do aplicativo ou de reserva" icone="verificado" value={codigoApagar} onChangeText={(v) => setCodigoApagar(v.slice(0, 12))} autoCapitalize="none" autoCorrect={false} autoComplete="one-time-code" textContentType="oneTimeCode" erro={erroApagar} returnKeyType="done" onSubmitEditing={apagarConta} />
+          </>
+        ) : null}
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 20 }}>
           <Botao tipo="discreto" titulo="Cancelar" desabilitado={apagandoAgora} aoPressionar={() => setApagando(false)} style={{ flex: 1 }} />
           <Botao tipo="perigo" icone="lixo" titulo="Apagar tudo" carregando={apagandoAgora} aoPressionar={apagarConta} style={{ flex: 1 }} />

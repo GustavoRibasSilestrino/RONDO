@@ -59,6 +59,10 @@ class Usuario(Base):
     totp_segredo: Mapped[str | None] = mapped_column(String(255), nullable=True)
     totp_ativo: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     totp_passo: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    # o e-mail já foi provado como da pessoa (desde 2026-11-27): por um código de "Esqueci a senha" ou por entrar com Google/Apple.
+    # Conta criada com senha começa sem prova; se alguém criou a conta com o e-mail de outra pessoa, o primeiro login social do
+    # dono de verdade toma a conta de volta (rotas/auth.py, _entrada_social).
+    email_confirmado: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
     @property
     def dois_fatores(self) -> bool:

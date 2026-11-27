@@ -77,6 +77,7 @@ class MarketingIn(BaseModel):
 
 class ApagarContaIn(BaseModel):
     senha: str = Field(max_length=128)   # confirma que é a própria pessoa
+    codigo: str | None = Field(default=None, max_length=20)   # o código da verificação em duas etapas, se ela estiver ligada
 
 
 class LoginIn(BaseModel):

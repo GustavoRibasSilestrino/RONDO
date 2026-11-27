@@ -2,7 +2,8 @@
 import { chamar } from './cliente';
 
 export const exportarDados = () => chamar<Record<string, unknown>>('GET', '/me/exportar');
-export const apagarContaNoServidor = (senha: string) => chamar<{ status: string }>('DELETE', '/me', { senha });
+/* com a verificação em duas etapas ligada, o servidor pede também o código do aplicativo (ou um de reserva) */
+export const apagarContaNoServidor = (senha: string, codigo?: string) => chamar<{ status: string }>('DELETE', '/me', { senha, ...(codigo ? { codigo } : {}) });
 export const mudarMarketing = (marketing: boolean) => chamar<{ marketing: boolean }>('PATCH', '/me/marketing', { marketing });
 
 /* os documentos legais ficam no site */

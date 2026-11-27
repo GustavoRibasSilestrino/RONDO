@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.banco import obter_sessao
@@ -42,11 +42,11 @@ def _aware(d: datetime) -> datetime:
     return d if d.tzinfo else d.replace(tzinfo=timezone.utc)
 
 
-def _login_out(u: Usuario) -> LoginOut:
+def _login_out(u: Usuario, dois_fatores_ok: bool = False) -> LoginOut:
     return LoginOut(
         email=u.email, nome=u.nome, papel=u.papel, verificado=u.tem_selo, pro=u.pro, selo=u.selo,
         arroba=u.arroba, bio=u.bio, foto=u.foto, capa=u.capa, mascote=u.mascote, mascote_nome=u.mascote_nome, marketing=u.marketing, dois_fatores=u.dois_fatores,
-        token=criar_token(u.id, u.senha_hash),
+        token=criar_token(u.id, u.senha_hash, dois_fatores=dois_fatores_ok),
     )
 
 
@@ -56,7 +56,7 @@ def _ua(request: Request) -> str:
 
 def _entrou(sessao: Session, usuario: Usuario, aparelho: str | None, request: Request, tarefas: BackgroundTasks) -> None:
     """Depois de uma entrada que deu certo: guarda o aparelho e, se ele é novo para a conta, avisa por e-mail."""
-    if avisos_conta.registrar_aparelho(sessao, usuario.id, aparelho):
+    if avisos_conta.registrar_aparelho(sessao, usuario.id, aparelho, _ua(request)):
         tarefas.add_task(avisos_conta.avisar_entrada_nova, avisos_conta.dados_do_aviso(usuario, _ua(request)))
 
 
@@ -153,7 +153,7 @@ def login(dados: LoginIn, request: Request, tarefas: BackgroundTasks, sessao: Se
         usuario.senha_hash = gerar_hash(dados.senha)
         sessao.commit()
     _entrou(sessao, usuario, dados.aparelho, request, tarefas)
-    return _login_out(usuario)
+    return _login_out(usuario, dois_fatores_ok=usuario.totp_ativo)
 
 
 # ---------- entrar com Google ou Apple ----------
@@ -175,9 +175,28 @@ def _entrada_social(info: InfoSocial, dados: SocialIn, request: Request, tarefas
     entrada. O aviso de aparelho novo vale igual."""
     usuario = sessao.scalar(select(Usuario).where(Usuario.email == info.email))
     if usuario:
+        if not usuario.email_confirmado:
+            _tomar_posse(sessao, usuario)
         _entrou(sessao, usuario, dados.aparelho, request, tarefas)
         return SocialOut(login=_login_out(usuario))
     return SocialOut(precisa_cadastro=True, token_social=_token_social(info), nome=info.nome, email=info.email)
+
+
+def _tomar_posse(sessao: Session, usuario: Usuario) -> None:
+    """O Google ou a Apple acabaram de provar que o e-mail é desta pessoa, mas a conta foi criada com senha e o e-mail nunca
+    tinha sido provado: pode ter sido outra pessoa que criou a conta com este e-mail para espiar depois. A conta passa a ser
+    só de quem provou o e-mail: a senha vira uma aleatória (todos os outros aparelhos saem), a verificação em duas etapas
+    configurada antes é desligada e os códigos pendentes morrem. Quem quiser senha de novo usa "Esqueci a senha"."""
+    usuario.senha_hash = gerar_hash(secrets.token_urlsafe(32))
+    usuario.totp_ativo = False
+    usuario.totp_segredo = None
+    usuario.totp_passo = None
+    sessao.execute(delete(CodigoReserva).where(CodigoReserva.usuario_id == usuario.id))
+    for p in sessao.scalars(select(RedefinicaoSenha).where(RedefinicaoSenha.usuario_id == usuario.id, RedefinicaoSenha.usado.is_(False))):
+        p.usado = True
+    usuario.email_confirmado = True
+    sessao.commit()
+    log.warning("Conta %s: e-mail provado pelo login social pela primeira vez; senha e 2FA de antes desfeitos", usuario.id)
 
 
 @router.post("/google", response_model=SocialOut)
@@ -212,7 +231,8 @@ def cadastro_social(dados: CadastroSocialIn, sessao: Session = Depends(obter_ses
     if servico_conta.nome_em_uso(sessao, nome):
         raise HTTPException(409, servico_conta.MSG_NOME_EM_USO)
     # sem senha própria: o hash é de um valor aleatório que ninguém conhece (quem quiser uma senha usa "Esqueci a senha")
-    usuario = Usuario(email=email, nome=nome, senha_hash=gerar_hash(secrets.token_urlsafe(32)), nascimento=dados.nascimento, marketing=dados.marketing)
+    usuario = Usuario(email=email, nome=nome, senha_hash=gerar_hash(secrets.token_urlsafe(32)), nascimento=dados.nascimento, marketing=dados.marketing,
+                      email_confirmado=True)   # o Google/Apple provou o e-mail
     sessao.add(usuario)
     sessao.flush()
     origem = dados.origem
@@ -276,6 +296,7 @@ def redefinir_senha(dados: RedefinirSenhaIn, request: Request, tarefas: Backgrou
         sessao.commit()
         raise erro
     usuario.senha_hash = gerar_hash(dados.nova)
+    usuario.email_confirmado = True   # o código chegou no e-mail: ele é desta pessoa
     for p in sessao.scalars(select(RedefinicaoSenha).where(RedefinicaoSenha.usuario_id == usuario.id, RedefinicaoSenha.usado.is_(False))):
         p.usado = True
     sessao.commit()
