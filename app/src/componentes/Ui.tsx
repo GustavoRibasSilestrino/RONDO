@@ -122,7 +122,9 @@ type BotaoProps = {
 /* Nas telas claras (o app inteiro), o botão é o BotaoChapado: pequeno, roxo pastel, chapado (pedido do dono, 2026-11-18).
    Nas telas escuras do RONDIN continua o de antes. A escolha é pelo EscuroContexto, que não muda durante a vida do botão. */
 export function Botao(props: BotaoProps) {
-  return useContext(EscuroContexto) ? <BotaoEscuro {...props} /> : <BotaoChapado {...props} />;
+  if (!useContext(EscuroContexto)) return <BotaoChapado {...props} />;
+  /* nas telas do RONDIN, o principal é a pílula verde (BotaoRondin, desde 2026-11-27); os outros tipos seguem no BotaoEscuro */
+  return (props.tipo ?? 'primario') === 'primario' ? <BotaoRondin {...props} /> : <BotaoEscuro {...props} />;
 }
 
 /* ---------- o botão chapado (telas claras) ----------
@@ -308,6 +310,167 @@ function BotaoEscuro({ titulo, aoPressionar, tipo = 'primario', desabilitado, ca
     </Animated.View>
   );
 }
+
+/* ---------- o botão principal das telas do RONDIN ----------
+   Desde 2026-11-27 (referência do dono, para o "Vamos lá" e o "Entrar"; vale para todo botão principal das telas do RONDIN):
+   uma pílula verde, sempre acesa, que vai do verde em cima ao azul-petróleo embaixo, com dois cantos de baixo mais fechados e um
+   brilho verde-água no meio de baixo, que passeia devagar de um lado a outro. A borda é um fio verde-claro; com `orbita`, um
+   feixe de luz corre por ela. Texto branco, com no mínimo 5:1 sobre a faixa do meio do degradê.
+   Estados: cursor em cima, clareia um pouco, na hora e sem mexer (a regra do dono para o cursor: sem zoom nem animação);
+   tocando, escurece e afunda com mola; foco do teclado, um anel verde-claro em volta; carregando, a rodinha no lugar do ícone;
+   desabilitado, a pílula fica cinza-esverdeada apagada, sem brilho. Quem pede menos movimento vê o brilho parado. */
+const RONDIN_BOTAO = {
+  degrade: ['#28904f', '#1a6943', '#0b3a2a'] as const,   // verde em cima, verde no meio e verde bem fechado embaixo (o dono pediu a parte de baixo mais escura)
+  canto: '#06261d',                                      // os dois cantos de baixo, mais fechados
+  brilho: '#22977a',                                     // o brilho verde-água do meio de baixo, discreto
+  borda: 'rgba(74,222,128,0.8)',
+  bordaSobre: 'rgba(134,239,172,0.9)',
+  feixe: 'rgba(187,247,208,0.95)',
+};
+
+function BotaoRondin({ titulo, aoPressionar, desabilitado, carregando, orbita, icone, pequeno, style }: BotaoProps) {
+  const inativo = !!desabilitado || !!carregando;
+  const reduzido = useMovimentoReduzido();
+  const nativo = Platform.OS !== 'web';
+  const [cursor, setCursor] = useState(false);
+  const [focoTeclado, setFocoTeclado] = useState(false);
+  const [medida, setMedida] = useState({ w: 0, h: 0 });
+
+  /* ao tocar, afunda um pouco e volta com mola */
+  const escala = useRef(new Animated.Value(1)).current;
+  const mola = (para: number) => Animated.spring(escala, { toValue: para, useNativeDriver: nativo, speed: 42, bounciness: 5 }).start();
+
+  /* o brilho de baixo passeia devagar de um lado a outro */
+  const passeio = useRef(new Animated.Value(0.5)).current;
+  useEffect(() => {
+    if (reduzido || desabilitado) { passeio.setValue(0.5); return undefined; }
+    const laco = Animated.loop(Animated.sequence([
+      Animated.timing(passeio, { toValue: 1, duration: 2900, easing: Easing.inOut(Easing.sin), useNativeDriver: nativo }),
+      Animated.timing(passeio, { toValue: 0, duration: 5800, easing: Easing.inOut(Easing.sin), useNativeDriver: nativo }),
+      Animated.timing(passeio, { toValue: 0.5, duration: 2900, easing: Easing.inOut(Easing.sin), useNativeDriver: nativo }),
+    ]));
+    laco.start();
+    return () => laco.stop();
+  }, [reduzido, desabilitado, passeio, nativo]);
+
+  /* o feixe que corre pela borda (com `orbita`) */
+  const giro = useRef(new Animated.Value(0)).current;
+  const comOrbita = !!orbita && !desabilitado && !reduzido;
+  useEffect(() => {
+    if (!comOrbita) return undefined;
+    giro.setValue(0);
+    const laco = Animated.loop(Animated.timing(giro, { toValue: 1, duration: 4200, easing: Easing.linear, useNativeDriver: nativo }));
+    laco.start();
+    return () => laco.stop();
+  }, [comOrbita, giro, nativo]);
+  const lado = Math.hypot(medida.w, medida.h);
+
+  const apagado = !!desabilitado;
+  return (
+    <Animated.View style={[{ transform: [{ scale: escala }], borderRadius: raio.pilula }, !apagado && stR.sombra, style]}>
+      {/* o anel do foco do teclado */}
+      {focoTeclado ? <View pointerEvents="none" style={stR.anelFoco} /> : null}
+      {/* a borda: o fundo deste invólucro aparece só no fio de 1,5 px em volta; o feixe gira por trás dele */}
+      <View
+        onLayout={(e) => setMedida({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
+        style={[stR.borda, { backgroundColor: apagado ? 'rgba(255,255,255,0.1)' : cursor ? RONDIN_BOTAO.bordaSobre : RONDIN_BOTAO.borda }]}
+      >
+        {comOrbita && medida.w > 0 ? (
+          <Animated.View
+            pointerEvents="none"
+            style={{
+              position: 'absolute', left: (medida.w - lado) / 2, top: (medida.h - lado) / 2, width: lado, height: lado,
+              transform: [{ rotate: giro.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] }) }],
+            }}
+          >
+            <LinearGradient
+              colors={['rgba(255,255,255,0)', RONDIN_BOTAO.feixe, 'rgba(255,255,255,0)']}
+              start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }}
+              style={{ position: 'absolute', left: lado / 2 - 40, top: 0, width: 80, height: lado / 2 }}
+            />
+          </Animated.View>
+        ) : null}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={titulo}
+          accessibilityState={{ disabled: inativo, busy: !!carregando }}
+          disabled={inativo}
+          onPress={aoPressionar}
+          onPressIn={() => mola(0.97)}
+          onPressOut={() => mola(1)}
+          onHoverIn={() => setCursor(true)}
+          onHoverOut={() => setCursor(false)}
+          onFocus={(e) => {
+            /* o anel só no foco do teclado (no navegador, :focus-visible); no toque e no clique, não */
+            const alvo = (e as unknown as { target?: { matches?: (s: string) => boolean } }).target;
+            setFocoTeclado(Platform.OS === 'web' ? !!alvo?.matches?.(':focus-visible') : false);
+          }}
+          onBlur={() => setFocoTeclado(false)}
+          style={[stR.corpo, { opacity: carregando ? 0.92 : 1 }]}
+        >
+          {({ pressed }: { pressed: boolean }) => (
+            <>
+              {apagado ? (
+                <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: '#18211c' }]} />
+              ) : (
+                <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+                  <LinearGradient colors={RONDIN_BOTAO.degrade} locations={[0, 0.52, 1]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={StyleSheet.absoluteFill} />
+                  {/* os dois cantos de baixo, mais fechados */}
+                  <Svg width="100%" height="100%" viewBox="0 0 100 40" preserveAspectRatio="none" style={StyleSheet.absoluteFill}>
+                    <Defs>
+                      <RadialGradient id="rondinBotaoCanto" cx="50%" cy="50%" r="50%">
+                        <Stop offset="0" stopColor={RONDIN_BOTAO.canto} stopOpacity={0.95} />
+                        <Stop offset="1" stopColor={RONDIN_BOTAO.canto} stopOpacity={0} />
+                      </RadialGradient>
+                    </Defs>
+                    <Ellipse cx="22" cy="40" rx="26" ry="24" fill="url(#rondinBotaoCanto)" />
+                    <Ellipse cx="78" cy="40" rx="26" ry="24" fill="url(#rondinBotaoCanto)" />
+                  </Svg>
+                  {/* o brilho verde-água do meio de baixo, que passeia */}
+                  <Animated.View
+                    style={[StyleSheet.absoluteFill, {
+                      transform: [{ translateX: passeio.interpolate({ inputRange: [0, 1], outputRange: [-medida.w * 0.14, medida.w * 0.14] }) }],
+                    }]}
+                  >
+                    <Svg width="100%" height="100%" viewBox="0 0 100 40" preserveAspectRatio="none">
+                      <Defs>
+                        <RadialGradient id="rondinBotaoBrilho" cx="50%" cy="50%" r="50%">
+                          <Stop offset="0" stopColor={RONDIN_BOTAO.brilho} stopOpacity={0.55} />
+                          <Stop offset="0.6" stopColor={RONDIN_BOTAO.brilho} stopOpacity={0.14} />
+                          <Stop offset="1" stopColor={RONDIN_BOTAO.brilho} stopOpacity={0} />
+                        </RadialGradient>
+                      </Defs>
+                      <Ellipse cx="50" cy="42" rx="24" ry="17" fill="url(#rondinBotaoBrilho)" />
+                    </Svg>
+                  </Animated.View>
+                  {/* a luz de cima, bem leve */}
+                  <LinearGradient colors={['rgba(255,255,255,0.1)', 'rgba(255,255,255,0)']} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 0.5 }} style={StyleSheet.absoluteFill} />
+                  {/* cursor em cima: clareia; tocando: escurece */}
+                  {cursor && !pressed ? <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.05)' }]} /> : null}
+                  {pressed ? <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.16)' }]} /> : null}
+                </View>
+              )}
+              <View style={[st.botaoMiolo, pequeno && st.botaoMioloPequeno]}>
+                {carregando ? <ActivityIndicator size="small" color="#ffffff" /> : icone ? <Icone nome={icone} tamanho={pequeno ? 16 : 18} cor={apagado ? 'rgba(255,255,255,0.45)' : '#ffffff'} /> : null}
+                <T tam={pequeno ? 14.5 : 16} peso="500" cor={apagado ? 'rgba(255,255,255,0.45)' : '#ffffff'} style={[{ letterSpacing: 0.2 }, !apagado && stR.textoSombra]}>{titulo}</T>
+              </View>
+            </>
+          )}
+        </Pressable>
+      </View>
+    </Animated.View>
+  );
+}
+
+const stR = StyleSheet.create({
+  borda: { flexGrow: 1, borderRadius: raio.pilula, padding: 1.5, overflow: 'hidden' },   // flexGrow: o botão segue a altura mínima dada por fora
+  corpo: { flexGrow: 1, borderRadius: raio.pilula, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  sombra: Platform.OS === 'web'
+    ? ({ boxShadow: '0 14px 30px -16px rgba(34,197,94,0.6)' } as object)
+    : { shadowColor: '#22c55e', shadowOpacity: 0.32, shadowRadius: 14, shadowOffset: { width: 0, height: 8 } },
+  anelFoco: { position: 'absolute', left: -5, right: -5, top: -5, bottom: -5, borderRadius: raio.pilula, borderWidth: 2, borderColor: 'rgba(134,239,172,0.95)' },
+  textoSombra: { textShadowColor: 'rgba(0,0,0,0.3)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 },
+});
 
 /* ---------- chip ---------- */
 export function Chip({ texto, tom = 'violeta', style }: { texto: string; tom?: 'violeta' | 'bom' | 'alerta' | 'neutro'; style?: StyleProp<ViewStyle> }) {
