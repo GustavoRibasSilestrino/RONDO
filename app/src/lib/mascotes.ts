@@ -54,5 +54,21 @@ export function mascoteDe(chave: string | null | undefined): MascoteInfo | null 
   return { chave: `${linha}-${coluna}`, linha, coluna, nome, numero, raridade: r };
 }
 
+/* a cor de destaque de cada mascote: a da roupa dele (o chapéu, a fantasia, a armadura), não a do pelo, que é o mesmo marrom em
+   todos. Tirada da folha de arte e conferida a olho (2026-11-27, pedido do dono: o fundo da tela em 3D na cor de cada mascote).
+   Quem é de branco ganhou o tom que acompanha a roupa (o dourado da auréola, o azul do urso polar, o lilás do fantasma). */
+const COR: Record<string, string> = {
+  '0-0': '#e8742a', '0-2': '#d33a3a', '0-3': '#d21d22', '0-4': '#2443cc', '0-5': '#862bd1', '0-6': '#f5d34a', '0-7': '#d42229',
+  '0-8': '#c98a2b', '0-9': '#8429c5', '0-10': '#4a8fe0', '0-11': '#5fbf1c', '0-12': '#8720af',
+  '1-0': '#f5d020', '1-1': '#3e3ca4', '1-2': '#cf353d', '1-3': '#f69b27', '1-4': '#8e9bc7', '1-5': '#7fc719', '1-7': '#8128c4',
+  '1-8': '#c0181d', '1-9': '#7b8ba3', '1-10': '#ec5fa6', '1-11': '#2449b9', '1-12': '#2546c8', '1-13': '#1e9a3a',
+  '2-0': '#f0bc20', '2-1': '#e3b53a', '2-2': '#8532c3', '2-4': '#f05a1a', '2-5': '#a325d6', '2-6': '#6c97d9', '2-7': '#6a2fc4',
+  '2-8': '#e2a72a', '2-9': '#a3121a', '2-10': '#7a24b8', '2-11': '#e8453c', '2-12': '#ca1f23', '2-13': '#6b7280',
+  '3-0': '#d0451b', '3-1': '#842cc5', '3-3': '#e0b020', '3-4': '#ee6fa0', '3-6': '#5fb4e0', '3-7': '#3a44c0', '3-8': '#7d35c0',
+  '3-9': '#c41e24', '3-10': '#d977e8', '3-11': '#283a9e', '3-13': '#d1234f',
+  '4-0': '#7a2fc2', '4-1': '#d9a21f', '4-2': '#f2b81f', '4-3': '#f7d73a', '4-4': '#d22a1c', '4-5': '#4a6ee0', '4-6': '#e936c8', '4-7': '#5a1e94',
+};
+export const corDoMascote = (m: MascoteInfo): string => COR[m.chave] ?? m.raridade.cor;
+
 /* todos os mascotes, na ordem da coleção (1 a 57) */
 export const TODOS_MASCOTES: MascoteInfo[] = RARIDADES.flatMap((_, linha) => COLUNAS[linha].map((coluna) => mascoteDe(`${linha}-${coluna}`)!));

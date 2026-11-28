@@ -16,6 +16,15 @@ const cor = /^[0-9a-f]{6}$/i.test(params.get('c') ?? '') ? `#${params.get('c')}`
 const aviso = document.getElementById('aviso');
 const dica = document.getElementById('dica');
 document.documentElement.style.setProperty('--cor', cor);
+// a tela do mascote (desde 2026-11-27) pinta o próprio fundo na cor do mascote e põe o nome em cima e os repetidos embaixo:
+// t=<cor do texto, sem #>, pt e pb (as folgas de cima e de baixo, em px, onde o mascote não deve ficar) e b=0 (sem o brilho)
+const corTexto = /^[0-9a-f]{6}$/i.test(params.get('t') ?? '') ? `#${params.get('t')}` : null;
+if (corTexto) document.documentElement.style.setProperty('--texto', corTexto);
+const folga = (k) => Math.min(400, Math.max(0, Number(params.get(k)) || 0));
+const folgaCima = folga('pt'), folgaBaixo = folga('pb');
+document.documentElement.style.setProperty('--pb', `${folgaBaixo}px`);
+document.documentElement.style.setProperty('--desvio', `${(folgaCima - folgaBaixo) / 2}px`);
+if (params.get('b') === '0') document.getElementById('brilho')?.remove();
 
 function avisarApp(msg) {
   try { window.ReactNativeWebView?.postMessage(msg); } catch { /* fora do app */ }
@@ -94,7 +103,12 @@ async function iniciar() {
     camera.aspect = w / h;
     const vFov = THREE.MathUtils.degToRad(camera.fov);
     const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
-    const dist = raio / Math.sin(Math.min(vFov, hFov) / 2);
+    // o mascote cabe no espaço entre as folgas (pt e pb) e fica no meio dele
+    const hUtil = Math.max(h * 0.5, h - folgaCima - folgaBaixo);
+    const vFovUtil = 2 * Math.atan(Math.tan(vFov / 2) * (hUtil / h));
+    const dist = raio / Math.sin(Math.min(vFovUtil, hFov) / 2);
+    if (folgaCima !== folgaBaixo) camera.setViewOffset(w, h, 0, (folgaBaixo - folgaCima) / 2, w, h);
+    else camera.clearViewOffset();
     controles.minDistance = dist * 0.45;
     controles.maxDistance = dist * 1.8;
     camera.near = dist / 50; camera.far = dist * 6;
