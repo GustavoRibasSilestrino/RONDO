@@ -6,6 +6,7 @@
 import { useSyncExternalStore } from "react";
 import heroFoto from "../assets/cenas/hero-floresta.webp";
 import floresta from "../assets/loja/floresta.webp";
+import florestaSuave from "../assets/loja/floresta-suave.webp";
 import mascotes from "../assets/loja/mascotes.webp";
 
 /* as telas do site que trocam entre si sem recarregar: a principal, a loja e a tela do RONDIN para entrar ou criar conta */
@@ -33,7 +34,9 @@ function marcarTroca() {
 }
 
 /* as imagens grandes de cada tela: a outra tela só aparece com elas prontas */
-const IMAGENS: Record<string, string[]> = { "/": [heroFoto], "/loja": [floresta, mascotes] };
+/* a loja usa a floresta nítida no celular e a levemente desfocada no computador (styles/loja.css, .loja-cenario) */
+const largo = () => typeof window !== "undefined" && window.matchMedia("(min-width: 761px)").matches;
+const IMAGENS: Record<string, () => string[]> = { "/": () => [heroFoto], "/loja": () => [largo() ? florestaSuave : floresta, mascotes] };
 const carregadas = new Map<string, Promise<unknown>>();
 function carregar(src: string) {
   let pronta = carregadas.get(src);
@@ -48,7 +51,7 @@ function carregar(src: string) {
 
 /* adianta o que a outra tela vai precisar (imagens e, para a loja, as letras de pixel), sem atrapalhar a que está aberta */
 export function adiantar(rota: string) {
-  IMAGENS[rota]?.forEach(carregar);
+  IMAGENS[rota]?.().forEach(carregar);
   if (rota === "/loja" && document.fonts) {
     void document.fonts.load('16px "Press Start 2P"').catch(() => {});
     void document.fonts.load('16px "Pixelify Sans Variable"').catch(() => {});
@@ -67,7 +70,7 @@ export async function irPara(destino: string) {
   /* voltar para a tela de onde veio é o mesmo que o "voltar" do navegador: ela volta no ponto em que estava */
   if (marca().de === rota && !url.hash) { history.back(); return; }
   /* espera as imagens da outra tela, no máximo um instante (com a rede lenta, troca assim mesmo) */
-  await Promise.race([Promise.all((IMAGENS[rota] ?? []).map(carregar)), new Promise((r) => setTimeout(r, 700))]);
+  await Promise.race([Promise.all((IMAGENS[rota]?.() ?? []).map(carregar)), new Promise((r) => setTimeout(r, 700))]);
   history.replaceState({ ...marca(), y: scrollY }, "");
   marcarTroca();
   history.pushState({ de: atual, y: 0 } satisfies Marca, "", url.pathname + url.search + url.hash);

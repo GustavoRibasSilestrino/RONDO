@@ -122,15 +122,19 @@
 html:has(.loja) { scrollbar-color: var(--lj-madeira) #0d0720; }
 .loja ::selection, .abre ::selection, .lojinha ::selection { background: var(--lj-ouro); color: #1b0d06; }
 
-/* o cenário: a floresta ao pôr do sol (arte do dono, 667 x 2000), parada atrás de tudo e ampliada sem borrar os pixels.
+/* o cenário: a floresta ao pôr do sol (arte do dono, 724 x 2172, do PNG original), parada atrás de tudo. Ela é estreita para o
+   computador: lá ela é ampliada 2 a 3 vezes, e ampliada com os pixels duros (image-rendering: pixelated) ela ficava serrilhada
+   e cheia de ruído (o dono: "a qualidade da imagem do fundo tá horrível", 2026-11-28). Agora ela é ampliada suave e, no
+   computador, vem numa versão levemente desfocada (floresta-suave.webp, desfoque de 1,6 px no tamanho original), que vira um
+   fundo macio e deixa os mascotes, nítidos, ainda mais à frente. No celular ela é reduzida, então vai a nítida.
    Ao rolar a página, a vista desce do céu e das montanhas até o gramado (onde o navegador sabe animar pela rolagem; nos
    outros, e para quem pede menos movimento, ela fica parada no lago e na cachoeira). Um véu escurece de leve em cima, sob
    a barra, e embaixo, sob o rodapé. */
 .loja-cenario {
   position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background: url("../assets/loja/floresta.webp") 50% 58% / cover no-repeat, var(--lj-gramado);
-  image-rendering: pixelated;
 }
+@media (min-width: 761px) { .loja-cenario { background-image: url("../assets/loja/floresta-suave.webp"); } }
 .loja-cenario::after {
   content: ""; position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(13, 7, 32, .55) 0, rgba(13, 7, 32, .14) 24%, rgba(13, 7, 32, .06) 64%, rgba(13, 7, 32, .42) 100%);
@@ -397,7 +401,7 @@ html:has(dialog.abre[open]) { overflow: hidden; }
 .lojinha-cena {
   --b: 6px;
   position: relative; display: block; margin: calc(var(--b) * 2); aspect-ratio: 16 / 10; overflow: hidden; container-type: inline-size;
-  background: url("../assets/loja/floresta.webp") 50% 74% / cover no-repeat, var(--lj-gramado); image-rendering: pixelated;
+  background: url("../assets/loja/floresta.webp") 50% 74% / cover no-repeat, var(--lj-gramado);
   box-shadow:
     0 calc(var(--b) * -1) 0 0 var(--lj-madeira), calc(var(--b) * -1) 0 0 0 var(--lj-madeira), var(--b) 0 0 0 var(--lj-madeira), 0 var(--b) 0 0 var(--lj-madeira),
     0 calc(var(--b) * -2) 0 0 var(--lj-contorno), calc(var(--b) * -2) 0 0 0 var(--lj-contorno), calc(var(--b) * 2) 0 0 0 var(--lj-contorno), 0 calc(var(--b) * 2) 0 0 var(--lj-contorno),
