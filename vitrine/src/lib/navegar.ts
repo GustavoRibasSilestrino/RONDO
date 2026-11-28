@@ -5,8 +5,8 @@
    O "voltar" do navegador funciona igual, e a página principal volta no ponto em que a pessoa estava. */
 import { useSyncExternalStore } from "react";
 import heroFoto from "../assets/cenas/hero-floresta.webp";
-import floresta from "../assets/loja/floresta.webp";
-import florestaSuave from "../assets/loja/floresta-suave.webp";
+import cenarioAlto from "../assets/loja/cenario-alto.webp";
+import cenarioLargo from "../assets/loja/cenario-largo.webp";
 import mascotes from "../assets/loja/mascotes.webp";
 
 /* as telas do site que trocam entre si sem recarregar: a principal, a loja e a tela do RONDIN para entrar ou criar conta */
@@ -34,9 +34,9 @@ function marcarTroca() {
 }
 
 /* as imagens grandes de cada tela: a outra tela só aparece com elas prontas */
-/* a loja usa a floresta nítida no celular e a levemente desfocada no computador (styles/loja.css, .loja-cenario) */
-const largo = () => typeof window !== "undefined" && window.matchMedia("(min-width: 761px)").matches;
-const IMAGENS: Record<string, () => string[]> = { "/": () => [heroFoto], "/loja": () => [largo() ? florestaSuave : floresta, mascotes] };
+/* a loja usa o cenário deitado nas telas mais largas que altas e o em pé nas outras (styles/loja.css, .loja-cenario) */
+const largo = () => typeof window !== "undefined" && window.matchMedia("(min-aspect-ratio: 1/1)").matches;
+const IMAGENS: Record<string, () => string[]> = { "/": () => [heroFoto], "/loja": () => [largo() ? cenarioLargo : cenarioAlto, mascotes] };
 const carregadas = new Map<string, Promise<unknown>>();
 function carregar(src: string) {
   let pronta = carregadas.get(src);

@@ -1,6 +1,6 @@
 /* A divulgação da lojinha na página inicial (desde 2026-11-18, no lugar das pastas do treino, a pedido do dono).
    De um lado o convite; do outro, desde 2026-11-27 (quando a loja passou a vender cada mascote separado), uma janela para a
-   floresta da loja com cinco browniezinhos no gramado, um de cada raridade, cada um com o preço (a cena inteira leva para
+   feirinha da loja (o cenário deitado) com cinco browniezinhos no caminho, um de cada raridade, cada um com o preço (a cena inteira leva para
    /loja). Antes era a barraca com os três pacotes no balcão. Fora da tela, os mascotes param de pular. */
 import { useEffect, useRef } from "react";
 import { MAIS_BARATO, RARIDADES, TOTAL_MASCOTES, nomeDe, preco } from "../data/loja";

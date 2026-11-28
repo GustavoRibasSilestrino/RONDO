@@ -1,7 +1,8 @@
 /* A loja de browniezinhos (/loja), pedido do dono em 2026-11-18, em pixel art, com música de jogo e clique de 8 bits.
    Desde 2026-11-27 (pedido do dono) a loja vende CADA MASCOTE separado, por um preço fixo da raridade, no lugar dos pacotes
    sorteados (caixas de recompensa, proibidas pelo ECA Digital em produtos que menores usam; ver data/loja.ts). E o cenário é
-   a floresta ao pôr do sol, arte do dono (assets/loja/floresta.webp), parada atrás de tudo: ao rolar, a vista desce do céu
+   a feirinha ao pôr do sol, arte do dono (assets/loja/cenario-largo.webp no computador e cenario-alto.webp no celular, desde
+   2026-11-28; antes uma floresta só em pé), parada atrás de tudo: no celular, ao rolar, a vista desce do céu
    até o gramado. Cada mascote fica num quadro escuro com moldura e uma luz da cor da raridade atrás dele, para se destacar
    do fundo. Tocar num mascote abre a tela de compra (LojaComprar.tsx).
    Em cima, o nome da loja numa placa e os preços de cada raridade (cada um leva à prateleira dela); depois, uma prateleira
@@ -112,7 +113,7 @@ export default function Loja() {
 
   return (
     <div className="loja" onClickCapture={clicar}>
-      {/* o cenário: a floresta ao pôr do sol, parada atrás de tudo */}
+      {/* o cenário: a feirinha ao pôr do sol, parada atrás de tudo */}
       <div className="loja-cenario" aria-hidden="true" />
 
       <header className="loja-barra">

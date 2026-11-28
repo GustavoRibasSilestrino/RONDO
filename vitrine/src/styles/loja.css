@@ -1,5 +1,5 @@
 /* ===== A loja de browniezinhos (2026-11-18, pedido do dono) =====
-   Um mundo à parte dentro do site, em pixel art, tirado da arte do dono (mascotes, tenda e, desde 2026-11-27, a floresta ao
+   Um mundo à parte dentro do site, em pixel art, tirado da arte do dono (mascotes, tenda e, desde 2026-11-27, o cenário ao
    pôr do sol que fica atrás da loja inteira).
    - cores: madeira das placas, amarelo de lanterna, a noite roxa dos quadros e o verde do gramado;
    - letras de pixel: Pixelify Sans para ler e Press Start 2P para preço e botão (servidas pelo próprio site);
@@ -122,19 +122,19 @@
 html:has(.loja) { scrollbar-color: var(--lj-madeira) #0d0720; }
 .loja ::selection, .abre ::selection, .lojinha ::selection { background: var(--lj-ouro); color: #1b0d06; }
 
-/* o cenário: a floresta ao pôr do sol (arte do dono, 724 x 2172, do PNG original), parada atrás de tudo. Ela é estreita para o
-   computador: lá ela é ampliada 2 a 3 vezes, e ampliada com os pixels duros (image-rendering: pixelated) ela ficava serrilhada
-   e cheia de ruído (o dono: "a qualidade da imagem do fundo tá horrível", 2026-11-28). Agora ela é ampliada suave e, no
-   computador, vem numa versão levemente desfocada (floresta-suave.webp, desfoque de 1,6 px no tamanho original), que vira um
-   fundo macio e deixa os mascotes, nítidos, ainda mais à frente. No celular ela é reduzida, então vai a nítida.
-   Ao rolar a página, a vista desce do céu e das montanhas até o gramado (onde o navegador sabe animar pela rolagem; nos
-   outros, e para quem pede menos movimento, ela fica parada no lago e na cachoeira). Um véu escurece de leve em cima, sob
-   a barra, e embaixo, sob o rodapé. */
+/* o cenário: a feirinha da loja ao pôr do sol, com a barraca das patinhas, as montanhas e a cachoeira, arte do dono
+   (2026-11-28), parada atrás de tudo, em duas versões da mesma cena: DEITADA (cenario-largo.webp, 1672 x 941) nas telas mais
+   largas que altas (o computador: em 1440 px ela fica no tamanho dela, em 1920 px só 15% maior) e EM PÉ (cenario-alto.webp,
+   724 x 2172) no celular e no tablet em pé (lá ela é reduzida). Antes era uma floresta só em pé, que o computador ampliava 2 a 3
+   vezes e ficava serrilhada (o dono: "a qualidade da imagem do fundo tá horrível"). Ampliação sempre suave, nunca com os
+   pixels duros. No celular, ao rolar a página, a vista desce do céu até o caminho de pedras (onde o navegador sabe animar
+   pela rolagem; nos outros, e para quem pede menos movimento, ela fica parada). Um véu escurece de leve em cima, sob a
+   barra, e embaixo, sob o rodapé. */
 .loja-cenario {
   position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: url("../assets/loja/floresta.webp") 50% 58% / cover no-repeat, var(--lj-gramado);
+  background: url("../assets/loja/cenario-alto.webp") 50% 58% / cover no-repeat, var(--lj-gramado);
 }
-@media (min-width: 761px) { .loja-cenario { background-image: url("../assets/loja/floresta-suave.webp"); } }
+@media (min-aspect-ratio: 1/1) { .loja-cenario { background-image: url("../assets/loja/cenario-largo.webp"); } }
 .loja-cenario::after {
   content: ""; position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(13, 7, 32, .55) 0, rgba(13, 7, 32, .14) 24%, rgba(13, 7, 32, .06) 64%, rgba(13, 7, 32, .42) 100%);
@@ -222,7 +222,7 @@ html:has(.loja) { scrollbar-color: var(--lj-madeira) #0d0720; }
 .prateleira-placa p b { margin-right: .2rem; font: 400 .82rem/1 var(--lj-8bit); color: var(--lj-ouro-claro); }
 
 /* a vitrine: cada mascote num quadro escuro com moldura da cor da raridade, uma luz dela atrás e uma sombra no chão, para
-   ele se destacar da floresta */
+   ele se destacar do cenário */
 .vitrine {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(5.8rem, 25.5vw, 9.25rem), 1fr)); gap: clamp(.9rem, 2.2vw, 1.3rem);
   padding: 6px; list-style: none;
@@ -397,11 +397,11 @@ html:has(dialog.abre[open]) { overflow: hidden; }
 .lojinha h2 { margin-bottom: 1.1rem; font: 700 clamp(2rem, 4.3vw, 3.4rem)/1.06 var(--lj-letra); color: var(--lj-ouro-claro); text-wrap: balance; }
 .lojinha-texto > p { max-width: 44ch; margin-bottom: 1.7rem; font-size: 1.125rem; line-height: 1.55; color: var(--lj-tinta-2); text-wrap: pretty; }
 .lojinha-texto > .lojinha-nota { margin: 1.3rem 0 0; font-size: .95rem; }
-/* a janela para a floresta da loja, com cinco browniezinhos no gramado (um de cada raridade) */
+/* a janela para a feirinha da loja, com cinco browniezinhos no caminho de pedras (um de cada raridade) */
 .lojinha-cena {
   --b: 6px;
   position: relative; display: block; margin: calc(var(--b) * 2); aspect-ratio: 16 / 10; overflow: hidden; container-type: inline-size;
-  background: url("../assets/loja/floresta.webp") 50% 74% / cover no-repeat, var(--lj-gramado);
+  background: url("../assets/loja/cenario-largo.webp") 50% 70% / cover no-repeat, var(--lj-gramado);
   box-shadow:
     0 calc(var(--b) * -1) 0 0 var(--lj-madeira), calc(var(--b) * -1) 0 0 0 var(--lj-madeira), var(--b) 0 0 0 var(--lj-madeira), 0 var(--b) 0 0 var(--lj-madeira),
     0 calc(var(--b) * -2) 0 0 var(--lj-contorno), calc(var(--b) * -2) 0 0 0 var(--lj-contorno), calc(var(--b) * 2) 0 0 0 var(--lj-contorno), 0 calc(var(--b) * 2) 0 0 var(--lj-contorno),
