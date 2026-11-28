@@ -1,35 +1,38 @@
-/* A loja de pacotinhos (/loja), pedido do dono em 2026-11-18. A loja é a própria barraca: os três pacotes ficam no balcão e
-   cada um abre a tela de compra (LojaAbrir.tsx). Embaixo, o quadro com as chances de cada pacote, lado a lado, e a coleção
-   inteira de browniezinhos por raridade.
-   A compra é uma prévia: nada é cobrado. Comprar pede a conta do RONDO (a mesma do app); quem não está na conta entra pela
-   tela do RONDIN do site (/entrar) e volta para cá com o pacote aberto de novo. Com a conta, a coleção acende os mascotes
-   que ela já tem, com a quantidade.
-   Desde 2026-11-19: o lápis de dar nome a um mascote (LojaLapis, em LojaExtras.tsx). A troca de repetidos fica só no app. */
+/* A loja de browniezinhos (/loja), pedido do dono em 2026-11-18, em pixel art, com música de jogo e clique de 8 bits.
+   Desde 2026-11-27 (pedido do dono) a loja vende CADA MASCOTE separado, por um preço fixo da raridade, no lugar dos pacotes
+   sorteados (caixas de recompensa, proibidas pelo ECA Digital em produtos que menores usam; ver data/loja.ts). E o cenário é
+   a floresta ao pôr do sol, arte do dono (assets/loja/floresta.webp), parada atrás de tudo: ao rolar, a vista desce do céu
+   até o gramado. Cada mascote fica num quadro escuro com moldura e uma luz da cor da raridade atrás dele, para se destacar
+   do fundo. Tocar num mascote abre a tela de compra (LojaComprar.tsx).
+   Em cima, o nome da loja numa placa e os preços de cada raridade (cada um leva à prateleira dela); depois, uma prateleira
+   por raridade, do comum ao lendário; no fim, o lápis de nome (LojaExtras.tsx). A troca de repetidos fica só no app.
+   Comprar pede a conta do RONDO (a mesma do app); quem não está na conta entra pela tela do RONDIN do site (/entrar) e volta
+   para cá com o mascote aberto de novo. Com a conta, a vitrine marca os mascotes que ela já tem, com a quantidade. Hoje a
+   compra está fechada para todas as contas e nada é cobrado. */
 import { useCallback, useEffect, useState, useSyncExternalStore, type MouseEvent } from "react";
 import { alternarSom, assinarSom, clique, pararMusica, somLigado, tocarMusica } from "../lib/somLoja";
-import { COLUNAS, PACOTES, RARIDADES, TOTAL_MASCOTES, chaveDe, nomeDe, porcento, preco, type Pacote } from "../data/loja";
+import { COLUNAS, RARIDADES, TOTAL_MASCOTES, chaveDe, mascoteDe, nomeDe, preco, type Mascote as MascoteDaLoja } from "../data/loja";
 import { minhaColecao, type MascoteDaConta } from "../lib/api";
 import { contaRecusada, useConta } from "../lib/conta";
 import { ENTRAR_LOJA } from "../lib/rotas";
 import { ContaMenu } from "./Conta";
-import { LojaAbrir, pacoteLembrado } from "./LojaAbrir";
+import { LojaComprar, mascoteLembrado } from "./LojaComprar";
 import { LojaLapis } from "./LojaExtras";
-import { Barraca, Estrelas, Mascote } from "./LojaPartes";
+import { Estrelas, Mascote } from "./LojaPartes";
 import { Nome } from "./ui";
 
-/* a coleção da conta: chave do mascote -> quantos ela tem (vem do servidor; cada compra soma aqui na hora). Vem junto se a
-   loja está aberta para esta conta: fechada (até a venda abrir), a compra mostra "Em breve" (null = ainda não se sabe).
-   São duas respostas: podeComprar (o lápis: fechada, só o dono compra) e podeAbrir (os pacotes: desde 2026-11-27 a
-   abertura está bloqueada para todas as contas, até a do dono, pedido dele; sem a resposta do servidor, fica bloqueada) */
+/* a coleção da conta: chave do mascote -> quantos ela tem (vem do servidor; cada compra soma aqui na hora). Vem junto o que a
+   conta pode comprar: podeComprar (o lápis: fechado, só o dono compra) e podeComprarMascote (os mascotes: fechados para
+   todas as contas, até a do dono, até a venda abrir; sem a resposta do servidor, ficam fechados). null = ainda não se sabe. */
 function useColecao() {
   const { token } = useConta();
   const [colecao, setColecao] = useState<Map<string, number>>(() => new Map());
   const [nomes, setNomes] = useState<Map<string, string>>(() => new Map());   // os nomes próprios, dados com o lápis no app
   const [podeComprar, setPodeComprar] = useState<boolean | null>(null);
-  const [podeAbrir, setPodeAbrir] = useState<boolean | null>(null);
+  const [podeComprarMascote, setPodeComprarMascote] = useState<boolean | null>(null);
   const [lapis, setLapis] = useState(0);
   useEffect(() => {
-    if (!token) { setColecao(new Map()); setNomes(new Map()); setPodeComprar(null); setPodeAbrir(null); setLapis(0); return; }
+    if (!token) { setColecao(new Map()); setNomes(new Map()); setPodeComprar(null); setPodeComprarMascote(null); setLapis(0); return; }
     let vale = true;
     minhaColecao(token)
       .then((c) => {
@@ -37,14 +40,14 @@ function useColecao() {
         setColecao(new Map(c.mascotes.map((m) => [chaveDe(m.linha, m.coluna), m.quantidade])));
         setNomes(new Map(c.mascotes.flatMap((m) => (m.nome ? [[chaveDe(m.linha, m.coluna), m.nome] as [string, string]] : []))));
         setPodeComprar(c.pode_comprar ?? true);
-        setPodeAbrir(c.pode_abrir ?? false);
+        setPodeComprarMascote(c.pode_comprar_mascote ?? false);
         setLapis(c.lapis ?? 0);
       })
       .catch((e: { status?: number }) => { if (vale && e.status === 401) contaRecusada(); });
     return () => { vale = false; };
   }, [token]);
   const somar = useCallback((m: MascoteDaConta) => setColecao((c) => new Map(c).set(chaveDe(m.linha, m.coluna), m.quantidade)), []);
-  return { colecao, nomes, somar, podeComprar, podeAbrir, lapis, setLapis };
+  return { colecao, nomes, somar, podeComprar, podeComprarMascote, lapis, setLapis };
 }
 
 /* no topo da loja: a conta (com o menu de abrir o app e sair) ou um "Entrar" discreto, para quem quer entrar antes de
@@ -62,7 +65,7 @@ function ContaNoTopo() {
   );
 }
 
-/* o som da loja (a música e os efeitos da abertura, lib/somLoja.ts): música que toca sozinha precisa de um jeito de desligar
+/* o som da loja (a música e os efeitos, lib/somLoja.ts): música que toca sozinha precisa de um jeito de desligar
    (WCAG 1.4.2), então fica uma nota musical de pixel no topo; a escolha fica guardada neste navegador */
 const NOTA = "M5 0h3v1h1v2H8V2H6v5H5v1H4v1H1V8H0V6h1V5h4z";
 const RISCO = "M0 0h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1h1v1H8V8H7V7H6V6H5V5H4V4H3V3H2V2H1V1H0z";
@@ -89,23 +92,29 @@ function clicar(e: MouseEvent) {
 export default function Loja() {
   /* a música de jogo toca enquanto a pessoa está na loja (pedido do dono em 2026-11-19) */
   useEffect(() => { tocarMusica(); return () => pararMusica(); }, []);
-  const [escolhido, setEscolhido] = useState<Pacote | null>(null);
+  const [escolhido, setEscolhido] = useState<MascoteDaLoja | null>(null);
   const fechar = useCallback(() => setEscolhido(null), []);
   const { conta } = useConta();
-  const { colecao, nomes, somar, podeComprar, podeAbrir, lapis, setLapis } = useColecao();
-  useEffect(() => { document.title = "Loja de pacotinhos · RONDO"; }, []);
+  const { colecao, nomes, somar, podeComprar, podeComprarMascote, lapis, setLapis } = useColecao();
+  useEffect(() => { document.title = "Loja de browniezinhos · RONDO"; }, []);
 
-  /* de volta da tela de entrar: o pacote que a pessoa ia comprar abre de novo, já com a conta (se ela voltou sem entrar,
+  /* de volta da tela de entrar: o mascote que a pessoa ia comprar abre de novo, já com a conta (se ela voltou sem entrar,
      o pedido é esquecido) */
   useEffect(() => {
-    const id = pacoteLembrado();
-    if (id && conta) setEscolhido(PACOTES.find((p) => p.id === id) ?? null);
+    const chave = mascoteLembrado();
+    if (chave && conta) {
+      const [linha, coluna] = chave.split("-").map(Number);
+      if (COLUNAS[linha]?.includes(coluna)) setEscolhido(mascoteDe(linha, coluna));
+    }
     // só ao chegar na loja
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="loja" onClickCapture={clicar}>
+      {/* o cenário: a floresta ao pôr do sol, parada atrás de tudo */}
+      <div className="loja-cenario" aria-hidden="true" />
+
       <header className="loja-barra">
         <a className="loja-voltar" href="/" aria-label="Voltar ao site do RONDO">
           <svg viewBox="0 0 9 9" shapeRendering="crispEdges" aria-hidden="true"><path d="M4 1h1v1H4zM3 2h1v1H3zM2 3h1v1H2zM1 4h7v1H1zM2 5h1v1H2zM3 6h1v1H3zM4 7h1v1H4z" fill="currentColor" /></svg>
@@ -118,88 +127,80 @@ export default function Loja() {
       </header>
 
       <main id="conteudo">
-        <Barraca aoEscolher={setEscolhido} placa={<h1 className="barraca-placa">Pacotinhos</h1>} />
-
-        <section className="loja-faixa" aria-labelledby="loja-chances">
+        {/* a placa com o nome da loja e o quadro com os preços: cada preço leva à prateleira da raridade */}
+        <section className="loja-topo" aria-labelledby="loja-titulo">
           <div className="loja-in">
-            <h2 id="loja-chances">Cada pacotinho, um browniezinho</h2>
-            <p className="loja-lead">São {TOTAL_MASCOTES} para colecionar, em cinco raridades. Quanto melhor o pacote, maior a chance de sair um raro. As chances de cada um estão aqui, sem letra miúda.</p>
-
-            {/* o cardápio da barraca: as chances lado a lado, uma coluna por pacote */}
+            <h1 id="loja-titulo" className="loja-placa">Browniezinhos</h1>
             <div className="loja-quadro">
-              <table>
-                <caption className="sr-only">Chance de cada raridade em cada pacotinho</caption>
-                <thead>
-                  <tr>
-                    <td />
-                    {PACOTES.map((p) => (
-                      <th key={p.id} scope="col" data-pacote={p.id}>
-                        {/* o pacote é o botão: tocar nele abre a tela de compra */}
-                        <button type="button" className="loja-quadro-pacote" onClick={() => setEscolhido(p)} aria-label={`${p.nome}, ${preco(p.centavos)}. Comprar`}>
-                          <img src={p.img} alt="" width={p.largura} height={p.altura} loading="lazy" decoding="async" />
-                          <span>{p.nome.replace("Pacotinho ", "")}</span>
-                          <b>{preco(p.centavos)}</b>
-                        </button>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
+              <p className="loja-lead">
+                Escolha o seu, veja o preço e leve. <b>Sem sorteio:</b> vai para a sua conta exatamente o browniezinho que você
+                escolheu. São {TOTAL_MASCOTES}, do comum ao lendário.
+              </p>
+              <nav aria-label="Preço de cada raridade">
+                <ul className="loja-precos">
                   {RARIDADES.map((r) => (
-                    <tr key={r.id} data-r={r.id}>
-                      <th scope="row"><Estrelas n={r.estrelas} /><span>{r.nome}</span></th>
-                      {PACOTES.map((p) => <td key={p.id}>{porcento(p.chances[r.id])}</td>)}
-                    </tr>
+                    <li key={r.id} data-r={r.id}>
+                      <a href={`#r-${r.id}`}>
+                        <span className="loja-precos-nome"><Estrelas n={r.estrelas} />{r.nome}</span>
+                        <b>{preco(r.centavos)}</b>
+                      </a>
+                    </li>
                   ))}
-                </tbody>
-              </table>
+                </ul>
+              </nav>
+              <p className="loja-nota" aria-live="polite">
+                {conta ? <>Na sua conta: <b>{colecao.size} de {TOTAL_MASCOTES}</b>. Os seus ficam marcados na vitrine. </> : null}
+                Loja em prévia: nada é cobrado. Quando a venda abrir, a compra será só para maiores de 18 anos.
+              </p>
             </div>
-            <p className="loja-nota">
-              Toque num pacote para comprar. Para comprar, é preciso estar na sua conta do RONDO, a mesma do app: o
-              browniezinho vai direto para ela. Loja em prévia: nada é cobrado. Quando a venda abrir, a compra será só para
-              maiores de 18 anos.
-            </p>
-            {/* a chance de repetir fica dita junto das chances, sem letra miúda (pedido do dono em 2026-11-19) */}
-            <p className="loja-nota loja-repetido">
-              <b>Pode vir repetido.</b> O sorteio é entre todos os browniezinhos da raridade que sair, então um pacotinho pode
-              trazer um que você já tem. Com um repetido, dá para propor uma troca com outra pessoa no app, em Perfil,
-              Coleção: toque no mascote repetido e escolha "Propor troca".
-            </p>
           </div>
         </section>
+
+        {/* a vitrine: uma prateleira por raridade */}
+        {RARIDADES.map((r, linha) => (
+          <section className="loja-prateleira" id={`r-${r.id}`} key={r.id} data-r={r.id} aria-labelledby={`r-${r.id}-titulo`}>
+            <div className="loja-in">
+              <header className="prateleira-placa">
+                <h2 id={`r-${r.id}-titulo`}><Estrelas n={r.estrelas} /><span>{r.nome}</span></h2>
+                <p><b>{preco(r.centavos)}</b> cada · {r.quantos} mascotes</p>
+              </header>
+              <ul className="vitrine">
+                {COLUNAS[linha].map((coluna) => {
+                  const chave = chaveDe(linha, coluna);
+                  const tem = colecao.get(chave) ?? 0;
+                  const proprio = nomes.get(chave);   // o nome que a conta deu a ele com o lápis
+                  const nome = nomeDe(linha, coluna);
+                  const estado = tem > 1 ? `. Você tem ${tem}` : tem ? ". Já está na sua conta" : "";
+                  return (
+                    <li key={coluna}>
+                      <button
+                        type="button" className="vitrine-item" data-tem={tem ? true : undefined}
+                        onClick={() => setEscolhido(mascoteDe(linha, coluna))}
+                        aria-label={`${proprio ? `${proprio}, um ${nome}` : nome}, ${r.nome.toLowerCase()}, ${preco(r.centavos)}${estado}`}
+                      >
+                        <span className="vitrine-palco"><Mascote linha={linha} coluna={coluna} /></span>
+                        <span className="vitrine-nome" data-longo={(proprio ?? nome).length >= 12 ? true : undefined}>{proprio ?? nome}</span>
+                        <span className="vitrine-preco">{preco(r.centavos)}</span>
+                        {tem ? <span className="vitrine-tem" aria-hidden="true">{tem > 1 ? `x${tem}` : "Seu"}</span> : null}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </section>
+        ))}
 
         <LojaLapis lapis={lapis} aoComprar={setLapis} podeComprar={podeComprar} />
 
-        <section className="loja-faixa loja-colecao" aria-labelledby="loja-colecao">
+        <section className="loja-prateleira loja-fim" aria-label="Repetidos e trocas">
           <div className="loja-in">
-            <h2 id="loja-colecao">Os {TOTAL_MASCOTES} browniezinhos</h2>
-            <p className="loja-lead" aria-live="polite">
-              {conta
-                ? `Na sua conta: ${colecao.size} de ${TOTAL_MASCOTES}. Os seus aparecem acesos aqui embaixo.`
-                : "Do comum ao lendário. Entre na sua conta para comprar e guardar os seus."}
+            <p className="loja-quadro loja-repetido">
+              <b>Comprou um que já tinha?</b> Ele vira repetido. Com um repetido, dá para propor uma troca com outra pessoa no
+              app, em Perfil, Coleção: toque no mascote repetido e escolha "Propor troca".
             </p>
-            {RARIDADES.map((r, linha) => (
-              <div className="loja-raridade" key={r.id} data-r={r.id}>
-                <h3><Estrelas n={r.estrelas} /><span>{r.nome}</span><small>{r.quantos} mascotes</small></h3>
-                <ul>
-                  {COLUNAS[linha].map((coluna) => {
-                    const tem = colecao.get(chaveDe(linha, coluna)) ?? 0;
-                    const proprio = nomes.get(chaveDe(linha, coluna));   // o nome que a conta deu a ele com o lápis
-                    const nome = proprio ? `${proprio} (${nomeDe(linha, coluna)})` : nomeDe(linha, coluna);
-                    const estado = tem > 1 ? `, você tem ${tem}` : tem ? ", na sua conta" : "";
-                    return (
-                      <li key={coluna} data-tem={tem ? true : undefined} title={nome}>
-                        <Mascote linha={linha} coluna={coluna} rotulo={`${nome}, ${r.nome.toLowerCase()}${estado}`} />
-                        {tem > 1 ? <b className="loja-qtd" aria-hidden="true">x{tem}</b> : null}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
           </div>
         </section>
-
       </main>
 
       <footer className="loja-rodape">
@@ -207,7 +208,10 @@ export default function Loja() {
         <p><a href="/">Voltar ao site</a><a href="/termos">Termos de Uso</a><a href="/privacidade">Privacidade</a></p>
       </footer>
 
-      <LojaAbrir pacote={escolhido} aoFechar={fechar} aoGuardar={somar} podeComprar={podeAbrir} />
+      <LojaComprar
+        mascote={escolhido} tem={escolhido ? colecao.get(chaveDe(escolhido.linha, escolhido.coluna)) ?? 0 : 0}
+        aoFechar={fechar} aoGuardar={somar} podeComprar={podeComprarMascote}
+      />
     </div>
   );
 }

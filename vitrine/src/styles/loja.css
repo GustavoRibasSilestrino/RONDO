@@ -1,11 +1,13 @@
-/* ===== A loja de pacotinhos (2026-11-18, pedido do dono) =====
-   Um mundo à parte dentro do site: feira em pixel art, tirada da arte do dono (tenda, pacotes e mascotes).
-   - cores: madeira, toldo vermelho e creme, amarelo de lanterna e a noite roxa como chão;
+/* ===== A loja de browniezinhos (2026-11-18, pedido do dono) =====
+   Um mundo à parte dentro do site, em pixel art, tirado da arte do dono (mascotes, tenda e, desde 2026-11-27, a floresta ao
+   pôr do sol que fica atrás da loja inteira).
+   - cores: madeira das placas, amarelo de lanterna, a noite roxa dos quadros e o verde do gramado;
    - letras de pixel: Pixelify Sans para ler e Press Start 2P para preço e botão (servidas pelo próprio site);
    - bordas em degraus (quatro barras de sombra, cantos em dente), sem cantos arredondados.
-   Usado por: a página /loja (Loja.tsx), a tela de compra (LojaAbrir.tsx), a divulgação na página inicial
-   (LojaPromo.tsx) e o botão da tenda no cabeçalho (LojaPartes.tsx).
-   Quem pede menos movimento não vê nenhuma destas animações (regra geral em base.css). */
+   Desde 2026-11-27 a loja vende cada mascote separado (antes, pacotes sorteados): a vitrine tem uma prateleira por raridade,
+   e cada mascote fica num quadro escuro com moldura e uma luz da cor da raridade atrás, para se destacar do cenário.
+   Usado por: a página /loja (Loja.tsx), a tela de compra (LojaComprar.tsx), a divulgação na página inicial (LojaPromo.tsx)
+   e o botão da tenda no cabeçalho (LojaPartes.tsx). Quem pede menos movimento não vê estas animações (regra em base.css). */
 :root {
   --lj-noite: #120a26;
   --lj-noite-2: #1a1035;
@@ -14,10 +16,11 @@
   --lj-contorno: #1b0d06;
   --lj-madeira: #8a4a1c;
   --lj-madeira-clara: #c47a35;
+  --lj-madeira-escura: #5e2f10;
   --lj-ouro: #ffc83d;
   --lj-ouro-claro: #ffd75a;
-  --lj-toldo: #d62b2f;
   --lj-creme: #f6dfb8;
+  --lj-gramado: #2c5a1c;
   --lj-letra: "Pixelify Sans Variable", "Bricolage Grotesque Variable", system-ui, sans-serif;
   --lj-8bit: "Press Start 2P", "Pixelify Sans Variable", monospace;
   --lj-salto: cubic-bezier(.2, 1.5, .4, 1);
@@ -64,6 +67,9 @@
 .px-btn-escuro { --face: #33205e; --luz: #4d3489; --sombra: #241446; color: var(--lj-tinta); }
 .px-btn-escuro:hover { --face: #3f2a72; }
 .px-btn-p { min-height: 44px; padding: .8rem .95rem .7rem; font-size: .66rem; }
+.px-btn[aria-disabled="true"] { cursor: progress; --face: #e9b43a; }
+.px-btn:disabled { --face: #5d5078; --luz: #75689a; --sombra: #43385a; color: #ddd3ef; cursor: not-allowed; }
+.px-btn:disabled:hover { --face: #5d5078; }
 
 /* ---------- o botão da tenda no cabeçalho ---------- */
 .tenda-btn {
@@ -107,51 +113,35 @@
   .tenda-btn-icone i:nth-child(2), .tenda-btn-icone i:nth-child(6) { opacity: .9; bottom: 78%; }
 }
 
-/* ---------- a barraca: a cena com os pacotes no balcão ---------- */
-.barraca { position: relative; overflow: hidden; background: #24153f; }
-.barraca-cena {
-  position: relative; left: 50%; translate: -50% 0; width: max(100%, 760px); max-width: 1920px;
-  aspect-ratio: 1672 / 941; container-type: inline-size;
-}
-.barraca-fundo { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; }
-/* o nome na placa de madeira do alto da barraca */
-.barraca-placa {
-  position: absolute; left: 30.8%; top: 2.3%; width: 38.6%; height: 14.6%; display: grid; place-items: center;
-  font: 700 4.5cqw/1 var(--lj-letra); letter-spacing: .04em; text-transform: uppercase; color: var(--lj-ouro-claro);
-  -webkit-text-stroke: .42cqw #3a1606; paint-order: stroke fill; text-shadow: 0 .4cqw 0 #3a1606;
-}
-.barraca-balcao { position: absolute; inset: 0; list-style: none; }
-.barraca-balcao li { position: absolute; left: var(--x); bottom: 29%; width: var(--w); translate: calc(var(--cx) * -1) var(--folga); }
-.barraca-pacote { position: relative; display: block; width: 100%; transform-origin: var(--cx) var(--base); transition: transform .22s var(--lj-salto); }
-.barraca-pacote img { width: 100%; height: auto; max-width: none; animation: barraca-flutua 3.4s steps(10) infinite; animation-delay: calc(var(--i) * -1.1s); }
-@keyframes barraca-flutua { 50% { transform: translateY(-2.2%); } }
-button.barraca-pacote { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-button.barraca-pacote:hover, button.barraca-pacote:focus-visible { transform: translateY(-4%) rotate(-2.5deg) scale(1.05); }
-button.barraca-pacote:active { transform: scale(.96); transition-duration: .08s; }
-button.barraca-pacote:focus-visible { outline: none; }
-button.barraca-pacote:focus-visible .barraca-etiqueta { outline: 3px solid #fff; outline-offset: 3px; }
-/* a etiqueta de preço, pendurada embaixo de cada pacote */
-.barraca-etiqueta {
-  --b: max(.22cqw, 2px);
-  position: absolute; left: var(--cx); top: calc(var(--base) + .7cqw); translate: -50% 0; display: grid; justify-items: center; gap: .4cqw;
-  padding: .55cqw .8cqw .5cqw; background: var(--lj-creme); color: #2a1505; white-space: nowrap; font-family: var(--lj-8bit);
-  box-shadow: 0 calc(var(--b) * -1) 0 0 #2a1505, calc(var(--b) * -1) 0 0 0 #2a1505, var(--b) 0 0 0 #2a1505, 0 var(--b) 0 0 #2a1505, 0 calc(var(--b) * 3) 0 0 rgba(0, 0, 0, .35);
-}
-.barraca-etiqueta b { font: 400 .76cqw/1 var(--lj-8bit); text-transform: uppercase; color: #7a3d10; }
-.barraca-etiqueta i { font: 400 1.02cqw/1 var(--lj-8bit); font-style: normal; }
-@container (max-width: 1180px) {
-  .barraca-etiqueta { padding: 5px 6px 4px; }
-  .barraca-etiqueta b { display: none; }
-  .barraca-etiqueta i { font-size: max(1.25cqw, 10px); }
-}
-@container (max-width: 700px) {
-  .barraca-etiqueta { padding: 4px 4px 3px; }
-  .barraca-etiqueta i { font-size: 9px; }
-}
-
 /* ---------- a página da loja ---------- */
-.loja { --lj-barra: 3.75rem; min-height: 100svh; background: var(--lj-noite); color: var(--lj-tinta); font: 400 1.0625rem/1.55 var(--lj-letra); }
+.loja {
+  --lj-barra: 3.75rem;
+  position: relative; isolation: isolate; min-height: 100svh; background: var(--lj-gramado); color: var(--lj-tinta);
+  font: 400 1.0625rem/1.55 var(--lj-letra);
+}
+html:has(.loja) { scrollbar-color: var(--lj-madeira) #0d0720; }
 .loja ::selection, .abre ::selection, .lojinha ::selection { background: var(--lj-ouro); color: #1b0d06; }
+
+/* o cenário: a floresta ao pôr do sol (arte do dono, 667 x 2000), parada atrás de tudo e ampliada sem borrar os pixels.
+   Ao rolar a página, a vista desce do céu e das montanhas até o gramado (onde o navegador sabe animar pela rolagem; nos
+   outros, e para quem pede menos movimento, ela fica parada no lago e na cachoeira). Um véu escurece de leve em cima, sob
+   a barra, e embaixo, sob o rodapé. */
+.loja-cenario {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: url("../assets/loja/floresta.webp") 50% 58% / cover no-repeat, var(--lj-gramado);
+  image-rendering: pixelated;
+}
+.loja-cenario::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(13, 7, 32, .55) 0, rgba(13, 7, 32, .14) 24%, rgba(13, 7, 32, .06) 64%, rgba(13, 7, 32, .42) 100%);
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .loja-cenario { animation: loja-desce linear both; animation-timeline: scroll(root); }
+  }
+}
+@keyframes loja-desce { from { background-position: 50% 26%; } to { background-position: 50% 100%; } }
+
 .loja-barra {
   position: sticky; top: 0; z-index: 20; height: var(--lj-barra); display: flex; align-items: center; justify-content: space-between; gap: 1rem;
   padding: 0 max(var(--gutter), env(safe-area-inset-right)) 0 max(var(--gutter), env(safe-area-inset-left));
@@ -161,60 +151,122 @@ button.barraca-pacote:focus-visible .barraca-etiqueta { outline: 3px solid #fff;
 .loja-voltar svg:first-child { width: 18px; height: 18px; color: var(--lj-ouro-claro); }
 .loja-voltar svg:last-child { height: 20px; width: auto; }
 .loja-voltar:focus-visible, .loja-rodape a:focus-visible { outline: 3px solid var(--lj-ouro); outline-offset: 4px; }
-@media (min-width: 981px) { .loja .barraca { max-height: calc(100svh - var(--lj-barra)); } }
 
-.loja-faixa { padding: clamp(2.75rem, 7vw, 5rem) var(--gutter) 0; }
-.loja-in { width: min(100%, 1040px); margin-inline: auto; }
+.loja-in { width: min(100%, 1120px); margin-inline: auto; }
 .loja h2 { font: 700 clamp(1.75rem, 4.6vw, 2.75rem)/1.1 var(--lj-letra); color: var(--lj-ouro-claro); text-wrap: balance; margin-bottom: .8rem; }
-.loja-lead { max-width: 60ch; color: var(--lj-tinta-2); margin-bottom: 2rem; text-wrap: pretty; }
-.loja-nota { max-width: 68ch; margin-top: 1.5rem; font-size: .95rem; color: var(--lj-tinta-2); }
+.loja-lead { max-width: 62ch; color: var(--lj-tinta-2); text-wrap: pretty; }
+.loja-lead b { color: var(--lj-tinta); font-weight: 700; }
+.loja-nota { max-width: 68ch; margin-top: 1.2rem; font-size: .95rem; color: var(--lj-tinta-2); text-wrap: pretty; }
+.loja-nota b { color: var(--lj-tinta); font-weight: 700; }
 
-/* o cardápio de chances: um quadro negro com moldura de madeira */
-.loja-quadro {
-  --b: 6px;
-  margin: calc(var(--b) * 2); padding: clamp(.5rem, 2vw, 1.5rem) clamp(.4rem, 2vw, 1.6rem) clamp(.8rem, 2vw, 1.4rem); background: #17142b;
+/* moldura de madeira em degraus (usada no quadro do topo, nas placas das prateleiras e no lápis) */
+.loja-quadro, .prateleira-placa, .lapis-cartao {
+  --b: 6px; --mad: var(--lj-madeira);
+  background: rgba(18, 10, 38, .93);
   box-shadow:
-    0 calc(var(--b) * -1) 0 0 var(--lj-madeira), calc(var(--b) * -1) 0 0 0 var(--lj-madeira), var(--b) 0 0 0 var(--lj-madeira), 0 var(--b) 0 0 var(--lj-madeira),
+    0 calc(var(--b) * -1) 0 0 var(--lj-madeira-clara), calc(var(--b) * -1) 0 0 0 var(--mad), var(--b) 0 0 0 var(--mad), 0 var(--b) 0 0 var(--lj-madeira-escura),
     0 calc(var(--b) * -2) 0 0 var(--lj-contorno), calc(var(--b) * -2) 0 0 0 var(--lj-contorno), calc(var(--b) * 2) 0 0 0 var(--lj-contorno), 0 calc(var(--b) * 2) 0 0 var(--lj-contorno),
-    inset 0 var(--b) 0 0 rgba(0, 0, 0, .35);
-}
-.loja-quadro table { width: 100%; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
-.loja-quadro thead td { width: 26%; }
-.loja-quadro thead th { padding: 0 .1rem .9rem; vertical-align: bottom; font-weight: 400; }
-.loja-quadro-pacote { display: grid; justify-items: center; width: 100%; min-height: 44px; padding: .2rem 0 .1rem; transition: transform .22s var(--lj-salto); }
-.loja-quadro-pacote img { width: min(100%, 9rem); height: auto; margin-bottom: -.3rem; }
-.loja-quadro-pacote span { font: 700 clamp(1rem, 2.6vw, 1.3rem)/1.1 var(--lj-letra); color: var(--lj-tinta); }
-.loja-quadro-pacote b { margin-top: .5rem; font: 400 clamp(.6rem, 1.9vw, .82rem)/1 var(--lj-8bit); color: var(--lj-ouro-claro); white-space: nowrap; }
-.loja-quadro-pacote:hover { transform: translateY(-5px) rotate(-2deg); }
-.loja-quadro-pacote:active { transform: scale(.96); }
-.loja-quadro-pacote:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
-.loja-quadro tbody tr { border-top: 2px dashed rgba(255, 244, 220, .16); }
-.loja-quadro tbody th { padding: .95rem .2rem .95rem clamp(.2rem, 1.5vw, .8rem); text-align: left; color: var(--cor-r); font: 600 clamp(.95rem, 2.4vw, 1.1rem)/1.15 var(--lj-letra); }
-.loja-quadro tbody th span:last-child { display: block; margin-top: .25rem; }
-.loja-quadro tbody td { padding: .95rem .1rem; text-align: center; font: 400 clamp(.66rem, 1.9vw, .82rem)/1 var(--lj-8bit); color: var(--lj-tinta); }
-.loja-quadro tr[data-r="lendaria"] td { color: var(--lj-ouro-claro); }
-@media (min-width: 700px) {
-  .loja-quadro thead td { width: 30%; }
-  .loja-quadro tbody th { display: flex; align-items: center; gap: .7rem; }
-  .loja-quadro tbody th span:last-child { margin-top: 0; }
+    0 calc(var(--b) * 2 + 14px) 26px -10px rgba(0, 0, 0, .6);
 }
 
-/* a coleção inteira, uma prateleira por raridade */
-.loja-colecao { padding-bottom: clamp(2.5rem, 6vw, 4rem); }
-.loja-raridade { margin-top: 2.2rem; }
-.loja-raridade h3 { display: flex; align-items: center; gap: .65rem; margin-bottom: .9rem; font: 700 1.3rem/1.1 var(--lj-letra); color: var(--cor-r); }
-.loja-raridade h3 small { margin-left: auto; font: 400 .95rem/1 var(--lj-letra); color: var(--lj-tinta-2); }
-.loja-raridade ul {
-  --b: 4px;
-  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .4rem; margin: var(--b); padding: .6rem; list-style: none; background: var(--lj-noite-2);
-  box-shadow: 0 calc(var(--b) * -1) 0 0 #3a2670, calc(var(--b) * -1) 0 0 0 #3a2670, var(--b) 0 0 0 #3a2670, 0 var(--b) 0 0 #3a2670;
+/* o topo: a placa de madeira com o nome da loja, pendurada, e o quadro com os preços de cada raridade */
+.loja-topo { padding: clamp(2rem, 6vw, 3.75rem) var(--gutter) 0; }
+.loja-placa {
+  --b: 5px;
+  position: relative; width: fit-content; max-width: 100%; margin: var(--b) auto calc(var(--b) * 2 + 1.75rem); padding: .5em .85em .46em;
+  background: repeating-linear-gradient(180deg, var(--lj-madeira) 0 30%, #7a4018 30% 33.4%);
+  color: var(--lj-ouro-claro); text-align: center;
+  font: 700 clamp(1.7rem, 7.4vw, 3.75rem)/1 var(--lj-letra); letter-spacing: .04em; text-transform: uppercase;
+  -webkit-text-stroke: .13em #3a1606; paint-order: stroke fill; text-shadow: 0 .09em 0 #3a1606;
+  box-shadow:
+    inset 0 var(--b) 0 0 var(--lj-madeira-clara), inset 0 calc(var(--b) * -1) 0 0 var(--lj-madeira-escura),
+    0 calc(var(--b) * -1) 0 0 var(--lj-contorno), calc(var(--b) * -1) 0 0 0 var(--lj-contorno), var(--b) 0 0 0 var(--lj-contorno), 0 var(--b) 0 0 var(--lj-contorno),
+    0 calc(var(--b) + 12px) 22px -8px rgba(0, 0, 0, .6);
 }
-.loja-raridade li { display: grid; place-items: center; aspect-ratio: 1; background: rgba(255, 255, 255, .035); }
-.loja-raridade li .masc { --masc: 88%; }
-@media (min-width: 860px) { .loja-raridade ul { grid-template-columns: repeat(14, minmax(0, 1fr)); gap: .5rem; padding: .7rem; } }
-.loja-raridade li[data-tem] { background: color-mix(in srgb, var(--cor-r) 24%, transparent); box-shadow: inset 0 0 0 3px var(--cor-r); }
+/* os dois pregos da placa */
+.loja-placa::before, .loja-placa::after {
+  content: ""; position: absolute; top: 50%; width: 8px; height: 8px; translate: 0 -50%; background: #3a1606; box-shadow: inset 2px 2px 0 #c9a27a;
+}
+.loja-placa::before { left: .35em; }
+.loja-placa::after { right: .35em; }
+.loja-topo .loja-quadro { margin: 12px; padding: clamp(1.1rem, 3vw, 1.9rem); }
 
-.loja-rodape { padding: 2.2rem var(--gutter) calc(2.5rem + env(safe-area-inset-bottom)); border-top: 4px solid #2b1a4f; color: var(--lj-tinta-2); font-size: .95rem; text-align: center; }
+/* os preços: um por raridade, cada um leva à prateleira dela */
+.loja-precos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.4rem), 1fr)); gap: .9rem; margin-top: 1.3rem; list-style: none; }
+.loja-precos a {
+  --b: 3px;
+  display: flex; flex-direction: column; justify-content: center; gap: .55rem; min-height: 44px; height: 100%; padding: .8rem .85rem .75rem;
+  background: color-mix(in srgb, var(--cor-r) 13%, var(--lj-noite)); color: var(--cor-r);
+  box-shadow: 0 calc(var(--b) * -1) 0 0 var(--cor-r), calc(var(--b) * -1) 0 0 0 var(--cor-r), var(--b) 0 0 0 var(--cor-r), 0 var(--b) 0 0 var(--cor-r);
+  transition: background-color .15s, translate .15s var(--lj-salto);
+}
+.loja-precos-nome { display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .55rem; font: 700 1.05rem/1.1 var(--lj-letra); }
+.loja-precos b { font: 400 .78rem/1 var(--lj-8bit); color: var(--lj-tinta); font-variant-numeric: tabular-nums; }
+.loja-precos a:hover { background: color-mix(in srgb, var(--cor-r) 24%, var(--lj-noite)); translate: 0 -2px; }
+.loja-precos a:focus-visible { outline: 3px solid #fff; outline-offset: 6px; }
+
+/* uma prateleira por raridade: a placa (o nome, as estrelas e o preço) e a vitrine embaixo */
+.loja-prateleira { padding: clamp(2.4rem, 6vw, 3.75rem) var(--gutter) 0; scroll-margin-top: calc(var(--lj-barra) - 1rem); }
+.prateleira-placa {
+  --b: 5px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .35rem 1.2rem;
+  margin: 10px 10px 1.6rem; padding: .85rem 1.1rem .8rem;
+}
+.loja .prateleira-placa h2 { display: flex; align-items: center; gap: .7rem; margin: 0; font-size: clamp(1.45rem, 4.2vw, 2rem); color: var(--cor-r); }
+.prateleira-placa h2 .px-estrelas svg { width: .62em; height: .62em; }
+.prateleira-placa p { color: var(--lj-tinta-2); font-size: 1rem; }
+.prateleira-placa p b { margin-right: .2rem; font: 400 .82rem/1 var(--lj-8bit); color: var(--lj-ouro-claro); }
+
+/* a vitrine: cada mascote num quadro escuro com moldura da cor da raridade, uma luz dela atrás e uma sombra no chão, para
+   ele se destacar da floresta */
+.vitrine {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(5.8rem, 25.5vw, 9.25rem), 1fr)); gap: clamp(.9rem, 2.2vw, 1.3rem);
+  padding: 6px; list-style: none;
+}
+.vitrine li { display: flex; }
+.vitrine-item {
+  --b: 3px; --moldura: color-mix(in srgb, var(--cor-r) 62%, #1b0d06);
+  position: relative; display: flex; flex-direction: column; align-items: center; width: 100%; padding: .3rem .2rem .75rem;
+  color: var(--lj-tinta); text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent;
+  background:
+    radial-gradient(66% 50% at 50% 40%, color-mix(in srgb, var(--cor-r) 36%, transparent), transparent 74%),
+    linear-gradient(180deg, #211548 0%, var(--lj-noite) 100%);
+  box-shadow:
+    0 calc(var(--b) * -1) 0 0 var(--moldura), calc(var(--b) * -1) 0 0 0 var(--moldura), var(--b) 0 0 0 var(--moldura), 0 var(--b) 0 0 var(--moldura),
+    0 calc(var(--b) * -2) 0 0 var(--lj-contorno), calc(var(--b) * -2) 0 0 0 var(--lj-contorno), calc(var(--b) * 2) 0 0 0 var(--lj-contorno), 0 calc(var(--b) * 2) 0 0 var(--lj-contorno),
+    0 16px 24px -12px rgba(0, 0, 0, .75);
+  transition: translate .18s var(--lj-salto), background-color .15s;
+}
+.vitrine-item[data-tem] { --moldura: var(--cor-r); }
+.vitrine-item:hover { --moldura: var(--cor-r); translate: 0 -3px; }
+.vitrine-item:active { translate: 0 2px; transition-duration: .08s; }
+.vitrine-item:focus-visible { outline: 3px solid #fff; outline-offset: 9px; }
+.vitrine-palco { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; }
+.vitrine-palco::after {   /* a sombra no chão, embaixo dos pés */
+  content: ""; position: absolute; left: 22%; right: 22%; bottom: 5%; height: 9%;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .62), rgba(0, 0, 0, 0));
+}
+.vitrine-palco .masc { --masc: 90%; position: relative; z-index: 1; filter: drop-shadow(0 3px 0 rgba(0, 0, 0, .35)); transition: translate .22s var(--lj-salto); }
+.vitrine-item:hover .masc, .vitrine-item:focus-visible .masc { translate: 0 -7%; }
+.vitrine-nome { max-width: 100%; font: 600 clamp(.78rem, 2.5vw, 1rem)/1.15 var(--lj-letra); overflow-wrap: anywhere; }
+/* no celular (três por linha), os nomes compridos (Browenfermeiro, Browastronauta...) ficam um ponto menores para caber inteiros */
+@media (max-width: 520px) { .vitrine-nome[data-longo] { font-size: .68rem; letter-spacing: -.01em; } }
+.vitrine-preco { margin-top: .5rem; font: 400 clamp(.56rem, 1.8vw, .68rem)/1 var(--lj-8bit); color: var(--lj-ouro-claro); font-variant-numeric: tabular-nums; }
+/* o que a conta já tem: uma etiqueta "Seu" (ou a quantidade) na cor da raridade */
+.vitrine-tem {
+  position: absolute; top: .4rem; right: .4rem; z-index: 2; padding: 4px 5px 3px; background: var(--cor-r); color: var(--lj-contorno);
+  font: 400 .5rem/1 var(--lj-8bit); text-transform: uppercase;
+}
+
+/* o fim: o aviso dos repetidos */
+.loja-fim { padding-bottom: clamp(2.5rem, 6vw, 4rem); }
+.loja-repetido { margin: 12px; padding: 1rem 1.2rem; color: var(--lj-tinta-2); text-wrap: pretty; }
+.loja-repetido b { color: var(--lj-ouro-claro); font-weight: 700; }
+
+.loja-rodape {
+  padding: 2.2rem var(--gutter) calc(2.5rem + env(safe-area-inset-bottom)); border-top: 4px solid #2b1a4f;
+  background: rgba(13, 7, 32, .94); color: var(--lj-tinta-2); font-size: .95rem; text-align: center;
+}
 .loja-rodape p + p { margin-top: .9rem; display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem 1.6rem; }
 .loja-rodape a { display: inline-flex; align-items: center; min-height: 44px; color: var(--lj-tinta); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
 
@@ -227,148 +279,113 @@ html:has(dialog.abre[open]) { overflow: hidden; }
   background: transparent; color: var(--lj-tinta); font: 400 1.0625rem/1.5 var(--lj-letra); scrollbar-color: var(--lj-madeira) var(--lj-noite);
 }
 .abre[open] { display: grid; place-items: center; }
-.abre::backdrop { background: rgba(10, 5, 24, .34); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); }
+.abre::backdrop { background: rgba(10, 5, 24, .4); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); }
 .abre-quadro {
   --b: 6px;
   position: relative; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: center; gap: clamp(1rem, 3vw, 2.5rem);
-  width: min(100% - 3rem, 58rem); margin: 1.5rem auto; padding: clamp(1.4rem, 3vw, 2.4rem); background: var(--lj-noite-2);
+  width: min(100% - 3rem, 56rem); margin: 1.5rem auto; padding: clamp(1.4rem, 3vw, 2.4rem); background: var(--lj-noite-2);
   box-shadow:
     0 calc(var(--b) * -1) 0 0 var(--lj-madeira-clara), calc(var(--b) * -1) 0 0 0 var(--lj-madeira-clara), var(--b) 0 0 0 var(--lj-madeira-clara), 0 var(--b) 0 0 var(--lj-madeira),
     0 calc(var(--b) * -2) 0 0 var(--lj-contorno), calc(var(--b) * -2) 0 0 0 var(--lj-contorno), calc(var(--b) * 2) 0 0 0 var(--lj-contorno), 0 calc(var(--b) * 2) 0 0 var(--lj-contorno),
     0 calc(var(--b) * 4) 0 0 rgba(0, 0, 0, .45);
 }
-/* na abertura e na revelação não há quadro: o pacote e o mascote ficam soltos sobre a loja desfocada */
-.abre[data-fase="abrindo"] .abre-quadro, .abre[data-fase="revelado"] .abre-quadro { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; background: transparent; box-shadow: none; }
 .abre-fechar { position: absolute; top: .4rem; right: .4rem; z-index: 6; display: grid; place-items: center; width: 44px; height: 44px; color: var(--lj-tinta-2); }
 .abre-fechar svg { width: 18px; height: 18px; }
 .abre-fechar:hover { color: #fff; }
 .abre-fechar:focus-visible { outline: 3px solid var(--lj-ouro); outline-offset: -4px; }
-.abre[data-fase="abrindo"] .abre-fechar, .abre[data-fase="revelado"] .abre-fechar { display: none; }
 
-/* o palco: o pacote e, por cima, a luz, o clarão e o mascote */
-.abre-palco { position: relative; display: grid; place-items: center; width: 100%; height: clamp(15rem, 46dvh, 25rem); }
-.abre-pacote { position: relative; z-index: 1; height: 94%; aspect-ratio: var(--prop); max-width: 100%; }
-.abre-pacote img { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; }
-.abre[data-fase="compra"] .abre-pacote { animation: abre-flutua 3.2s ease-in-out infinite; }
-@keyframes abre-flutua { 50% { transform: translateY(-3%) rotate(-1.5deg); } }
-/* o suspense: o pacote treme, e treme mais quando começa a rasgar */
-.abre-palco[data-etapa="suspense"] .abre-pacote { animation: abre-treme .16s steps(2) infinite; --t: 1.5px; }
-.abre-palco[data-etapa="rasgo"] .abre-pacote { animation: abre-treme .1s steps(2) infinite; --t: 2.5px; }
-@keyframes abre-treme { 0% { transform: translate(calc(var(--t) * -1), 0) rotate(-.4deg); } 100% { transform: translate(var(--t), calc(var(--t) * .5)) rotate(.4deg); } }
-.abre-solta { position: absolute; inset: 0; z-index: 2; will-change: transform; }
-.abre-presa { z-index: 2; }
-/* a luz que escapa pelo rasgo: cresce junto com ele */
-.abre-luz {
-  position: absolute; z-index: 1; left: 0; top: calc(var(--y0) * 100%); width: calc(var(--p, 0) * 100%); height: 13%;
-  translate: 0 -50%; rotate: var(--ang); transform-origin: 0 50%; filter: blur(5px); opacity: calc(.4 + var(--p, 0) * .6);
-  background: linear-gradient(180deg, rgba(255, 210, 62, 0), #ffe98a 32%, #fffbe0 50%, #ffc21a 68%, rgba(255, 194, 26, 0));
-}
-/* a ponta do rasgo: um ponto de luz com estilhaços */
-.abre-faisca { position: absolute; z-index: 3; left: calc(var(--p, 0) * 100%); top: calc(var(--py, .2) * 100%); width: 0; height: 0; opacity: 0; }
-.abre-palco[data-etapa="rasgo"] .abre-faisca { opacity: 1; }
-.abre-faisca::before { content: ""; position: absolute; left: -5px; top: -5px; width: 10px; height: 10px; background: #fffbe0; box-shadow: 0 0 0 3px #ffd23e, 0 2px 18px 7px rgba(255, 200, 40, .85); }
-.abre-faisca b { position: absolute; left: -2px; top: -2px; width: 4px; height: 4px; background: #ffd23e; animation: abre-estilhaco .42s steps(6) infinite; }
-.abre-faisca b:nth-child(1) { --dx: -26px; --dy: -24px; }
-.abre-faisca b:nth-child(2) { --dx: 18px; --dy: -30px; animation-delay: -.1s; }
-.abre-faisca b:nth-child(3) { --dx: -34px; --dy: 6px; animation-delay: -.2s; background: #fff3b0; }
-.abre-faisca b:nth-child(4) { --dx: 24px; --dy: 16px; animation-delay: -.3s; }
-.abre-faisca b:nth-child(5) { --dx: -8px; --dy: -38px; animation-delay: -.16s; background: #fff3b0; }
-@keyframes abre-estilhaco { from { transform: translate(0, 0); opacity: 1; } to { transform: translate(var(--dx), var(--dy)); opacity: 0; } }
-/* o lacre se solta e voa; o corpo do pacote some dentro da luz */
-.abre-palco[data-etapa="clarao"] .abre-solta { transform: translate(-34%, -78%) rotate(-30deg) !important; opacity: 0; transition: transform .38s cubic-bezier(.5, 0, .9, .4), opacity .38s; }
-.abre-palco[data-etapa="clarao"] .abre-luz { height: 60%; opacity: 1; transition: height .3s; }
-/* o clarão: nasce na boca do pacote e, logo depois, um banho amarelo toma a tela inteira */
-.abre-clarao {
-  position: absolute; z-index: 4; left: 50%; top: 26%; width: 46%; aspect-ratio: 1; translate: -50% -50%; opacity: 0; scale: .2; pointer-events: none;
-  background: radial-gradient(circle, #fffef2 0 18%, #fff2a8 32%, #ffd23e 48%, rgba(255, 190, 20, .55) 60%, rgba(255, 170, 0, 0) 72%);
-}
-.abre-palco[data-etapa="clarao"] .abre-clarao { animation: abre-clarao .95s cubic-bezier(.16, .8, .3, 1) both; }
-@keyframes abre-clarao { 0% { opacity: 0; scale: .2; } 20% { opacity: 1; scale: 2.4; } 100% { opacity: 1; scale: 4.2; } }
-.abre-banho {
-  position: fixed; inset: 0; z-index: 30; opacity: 0; pointer-events: none;
-  background: radial-gradient(circle at 50% 40%, #fffef2 0, #fff0a0 22%, #ffd23e 58%, #ffb81f 100%);
-}
-.abre-palco[data-etapa="clarao"] .abre-banho { animation: abre-banho .95s linear both; }
-@keyframes abre-banho { 0%, 18% { opacity: 0; } 46%, 100% { opacity: 1; } }
-/* revelado: o banho amarelo se desfaz e o mascote aparece, com raios na cor da raridade girando atrás */
-.abre[data-fase="revelado"] .abre-banho { animation: abre-banho-some .75s cubic-bezier(.3, 0, .7, 1) both; }
-@keyframes abre-banho-some { from { opacity: 1; } to { opacity: 0; } }
-.abre[data-fase="revelado"] .abre-pacote { display: none; }
+/* o palco: a luz amarela girando atrás, a sombra no chão e o mascote */
+.abre-palco { position: relative; display: grid; place-items: center; width: 100%; height: clamp(15rem, 46dvh, 24rem); container-type: size; }
 .abre-raios {
-  position: absolute; z-index: 0; left: 50%; top: 50%; width: min(140%, 34rem); aspect-ratio: 1; translate: -50% -50%; opacity: 0; pointer-events: none;
+  position: absolute; z-index: 0; left: 50%; top: 50%; width: min(140%, 32rem); aspect-ratio: 1; translate: -50% -50%; pointer-events: none;
   /* a luz de trás do mascote é sempre amarela, em qualquer raridade (pedido do dono): um miolo de luz e raios girando */
   background:
     radial-gradient(circle, rgba(255, 244, 170, .95) 0, rgba(255, 214, 62, .6) 16%, rgba(255, 200, 40, 0) 40%),
     repeating-conic-gradient(from 0deg, rgba(255, 210, 62, .78) 0 9deg, rgba(255, 210, 62, 0) 9deg 18deg);
   -webkit-mask: radial-gradient(circle, #000 0 26%, transparent 66%); mask: radial-gradient(circle, #000 0 26%, transparent 66%);
+  animation: abre-gira 30s linear infinite;
 }
-.abre[data-fase="revelado"] .abre-raios { opacity: 1; transition: opacity .6s .3s; animation: abre-gira 30s linear infinite; }
 @keyframes abre-gira { to { rotate: 360deg; } }
-.abre-mascote {
-  --masc: min(62%, 16rem); position: absolute; z-index: 5; left: 50%; top: 50%; translate: -50% -50%;
-  filter: drop-shadow(0 8px 0 rgba(0, 0, 0, .35)); animation: abre-pula .7s var(--lj-salto) .28s both;
+.compra-chao {
+  position: absolute; z-index: 1; left: 50%; bottom: 12%; width: 46%; height: 10%; translate: -50% 0;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, .55), rgba(0, 0, 0, 0));
 }
-@keyframes abre-pula { from { scale: .15; opacity: 0; } 55% { opacity: 1; } to { scale: 1; opacity: 1; } }
+.abre-mascote {
+  --masc: min(62%, 16rem, 62cqh); position: absolute; z-index: 2; left: 50%; top: 47%; translate: -50% -50%;
+  filter: drop-shadow(0 8px 0 rgba(0, 0, 0, .35)); animation: abre-pula .6s var(--lj-salto) both;
+}
+@keyframes abre-pula { from { scale: .3; opacity: 0; } 55% { opacity: 1; } to { scale: 1; opacity: 1; } }
+/* comprado: um clarão amarelo toma a tela e se desfaz (o único momento animado da compra) */
+.compra-clarao {
+  position: fixed; inset: 0; z-index: 30; pointer-events: none;
+  background: radial-gradient(circle at 50% 40%, #fffef2 0, #fff0a0 22%, #ffd23e 58%, #ffb81f 100%);
+  animation: compra-clarao .7s cubic-bezier(.2, .7, .3, 1) both;
+}
+@keyframes compra-clarao { 0% { opacity: 0; } 16% { opacity: .96; } 100% { opacity: 0; } }
+.abre[data-fase="comprado"] .abre-mascote { animation: abre-pula .6s var(--lj-salto) .12s both; }
 
 /* o texto da tela de compra */
 .abre-texto { position: relative; z-index: 2; min-width: 0; }
-.abre-texto h2 { font: 700 clamp(1.6rem, 4.2vw, 2.3rem)/1.1 var(--lj-letra); color: var(--lj-ouro-claro); text-wrap: balance; }
-.abre-frase { margin-top: .5rem; color: var(--lj-tinta-2); text-wrap: pretty; }
-.abre-preco { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1rem; margin: 1.2rem 0 1.3rem; }
-.abre-preco b { font: 400 clamp(1.25rem, 4.4vw, 1.7rem)/1 var(--lj-8bit); color: var(--lj-tinta); }
-.abre-preco span { font: 600 1rem/1 var(--lj-letra); color: #5fe08a; }
-.abre-chances { display: grid; gap: .5rem; list-style: none; }
-.abre-chances li { display: grid; grid-template-columns: 9.2rem minmax(0, 1fr) 3.7rem; align-items: center; gap: .7rem; color: var(--cor-r); }
-.abre-chances-nome { display: flex; align-items: center; justify-content: space-between; gap: .4rem; font-weight: 600; }
-.abre-chances-nome .px-estrelas { order: 2; }
-.abre-chances-barra { height: 10px; background: rgba(255, 255, 255, .09); }
-.abre-chances-barra i { display: block; height: 100%; width: max(4px, calc(var(--v) * 100%)); background: currentColor; }
-.abre-chances-num { text-align: right; font: 400 .7rem/1 var(--lj-8bit); color: var(--lj-tinta); font-variant-numeric: tabular-nums; }
-.abre-nota { margin-top: 1.1rem; font-size: .9rem; line-height: 1.45; color: var(--lj-tinta-2); text-wrap: pretty; }
-.abre-acoes { display: flex; flex-wrap: wrap; gap: .6rem 1.1rem; margin-top: 1.3rem; }
-.abre[data-fase="abrindo"] .abre-acoes, .abre[data-fase="revelado"] .abre-acoes { justify-content: center; }
-.abre-suspense i { font-style: normal; animation: abre-pisca 1s steps(2) infinite; }
-@keyframes abre-pisca { 50% { opacity: .2; } }
-/* sem quadro atrás, o texto leva contorno de pixel (como a placa da barraca) e a raridade vira uma plaquinha */
-.abre[data-fase="abrindo"] .abre-texto h2, .abre[data-fase="revelado"] .abre-texto h2 { font-size: clamp(2rem, 6.4vw, 3.25rem); letter-spacing: .02em; -webkit-text-stroke: .2em var(--lj-contorno); paint-order: stroke fill; text-shadow: 0 .13em 0 var(--lj-contorno); }
+.abre-texto h2 { font: 700 clamp(1.7rem, 4.4vw, 2.4rem)/1.1 var(--lj-letra); color: var(--lj-ouro-claro); text-wrap: balance; }
 .abre-raridade {
   --b: 4px;
-  display: inline-flex; align-items: center; gap: .7rem; margin: var(--b) var(--b) 1.1rem; padding: .7rem .9rem .62rem; background: var(--lj-contorno); color: var(--cor-r);
-  font: 400 .82rem/1 var(--lj-8bit); text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: .7rem; margin: var(--b) var(--b) .9rem; padding: .65rem .85rem .58rem; background: var(--lj-contorno); color: var(--cor-r);
+  font: 400 .78rem/1 var(--lj-8bit); text-transform: uppercase;
   box-shadow: 0 calc(var(--b) * -1) 0 0 var(--cor-r), calc(var(--b) * -1) 0 0 0 var(--cor-r), var(--b) 0 0 0 var(--cor-r), 0 var(--b) 0 0 var(--cor-r), 0 calc(var(--b) * 3) 0 0 rgba(0, 0, 0, .4);
-  animation: abre-sobe .5s cubic-bezier(.2, .8, .2, 1) .5s both;
 }
-.abre[data-fase="revelado"] .abre-texto h2 { animation: abre-sobe .5s cubic-bezier(.2, .8, .2, 1) .58s both; }
+.compra-numero { margin-top: .35rem; color: var(--lj-tinta-2); font-size: .98rem; }
+.compra-numero span { color: var(--lj-tinta); }
+.abre-preco { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1rem; margin: 1.1rem 0 .6rem; }
+.abre-preco b { font: 400 clamp(1.25rem, 4.4vw, 1.7rem)/1 var(--lj-8bit); color: var(--lj-tinta); }
+.abre-preco span { font: 600 1rem/1 var(--lj-letra); color: #5fe08a; }
+.compra-sem-sorteio { color: var(--lj-tinta-2); font-size: .95rem; text-wrap: pretty; }
+.abre-acoes { display: flex; flex-wrap: wrap; gap: .6rem 1.1rem; margin-top: 1.3rem; }
+.abre-quem { margin-top: 1rem; color: var(--lj-tinta-2); font-size: .95rem; }
+.abre-quem b { color: var(--lj-tinta); font-weight: 600; }
+.abre-quem + .abre-acoes { margin-top: .6rem; }
+
+/* sem conta, o aviso; loja fechada, o "em breve"; erro; e o "guardado" depois da compra */
+.abre-sem-conta, .abre-em-breve {
+  --b: 3px; --c: rgba(255, 200, 61, .6);
+  margin: calc(1.1rem + var(--b)) var(--b) var(--b); padding: .95rem 1rem .4rem; background: rgba(255, 200, 61, .1);
+  color: var(--lj-tinta); line-height: 1.45; text-wrap: pretty;
+  box-shadow: 0 calc(var(--b) * -1) 0 0 var(--c), calc(var(--b) * -1) 0 0 0 var(--c), var(--b) 0 0 0 var(--c), 0 var(--b) 0 0 var(--c);
+}
+.abre-em-breve { --c: rgba(203, 184, 232, .45); background: rgba(203, 184, 232, .08); }
+.abre-sem-conta b, .abre-em-breve b { color: var(--lj-ouro-claro); font-weight: 700; }
+.abre-sem-conta .abre-acoes, .abre-em-breve .abre-acoes { margin-top: .9rem; }
+.abre-erro {
+  --b: 3px;
+  margin: calc(1rem + var(--b)) var(--b) var(--b); padding: .7rem .85rem; background: rgba(224, 82, 79, .16); color: #ffc2bc; font-weight: 600; text-align: left;
+  box-shadow: 0 calc(var(--b) * -1) 0 0 #e0524f, calc(var(--b) * -1) 0 0 0 #e0524f, var(--b) 0 0 0 #e0524f, 0 var(--b) 0 0 #e0524f;
+}
+.abre-guardado {
+  --b: 3px;
+  display: inline-flex; align-items: center; gap: .6rem; margin: 1.1rem var(--b) 0; padding: .65rem .85rem .6rem; background: var(--lj-contorno);
+  color: #5fe08a; font: 400 .68rem/1.3 var(--lj-8bit); text-transform: uppercase; text-align: left;
+  box-shadow: 0 calc(var(--b) * -1) 0 0 #5fe08a, calc(var(--b) * -1) 0 0 0 #5fe08a, var(--b) 0 0 0 #5fe08a, 0 var(--b) 0 0 #5fe08a;
+  animation: abre-sobe .5s cubic-bezier(.2, .8, .2, 1) .3s both;
+}
+.abre-guardado svg { width: 14px; height: auto; flex: none; }
 @keyframes abre-sobe { from { opacity: 0; translate: 0 12px; } to { opacity: 1; translate: 0 0; } }
+
 @media (max-width: 760px) {
   .abre[open] { place-items: start center; }
-  /* o pacote e o mascote soltos ficam no meio da tela */
-  .abre[data-fase="abrindo"][open], .abre[data-fase="revelado"][open] { place-items: center; }
   .abre-quadro { grid-template-columns: minmax(0, 1fr); width: calc(100% - 1.5rem); margin: .75rem auto 1.25rem; padding: 1rem .95rem 1.1rem; --b: 4px; }
-  /* no celular a tela de compra cabe inteira na tela (com o aviso de conta ou de "em breve" junto): o pacote fica menor e
-     os espaços, mais justos */
-  .abre-palco { height: clamp(8.5rem, 24dvh, 12.5rem); }
-  .abre[data-fase="abrindo"] .abre-palco, .abre[data-fase="revelado"] .abre-palco { height: clamp(14rem, 42dvh, 20rem); }
-  .abre-texto h2 { font-size: clamp(1.45rem, 6.6vw, 1.9rem); }
-  .abre-frase { margin-top: .3rem; font-size: .98rem; }
-  .abre-preco { margin: .75rem 0 .85rem; }
-  .abre-chances { gap: .35rem; }
-  .abre-chances li { grid-template-columns: 7.6rem minmax(0, 1fr) 3.2rem; gap: .45rem; font-size: .95rem; }
-  .abre-nota { margin-top: .8rem; font-size: .84rem; line-height: 1.4; }
+  /* no celular a tela de compra cabe inteira na tela (com o aviso de conta ou de "em breve" junto) */
+  .abre-palco { height: clamp(10rem, 30dvh, 14rem); }
+  .abre-texto h2 { font-size: clamp(1.5rem, 6.8vw, 1.95rem); }
+  .abre-raridade { margin-bottom: .6rem; }
+  .abre-preco { margin: .8rem 0 .5rem; }
   .abre-quem, .abre-sem-conta, .abre-em-breve, .abre-erro { margin-top: .8rem; font-size: .92rem; }
   .abre-sem-conta, .abre-em-breve { padding: .8rem .85rem .2rem; }
   .abre-acoes { gap: .5rem .8rem; margin-top: .9rem; }
   .abre-acoes .px-btn { flex: 1 1 auto; padding-inline: .9rem; }
 }
-@media (max-width: 360px) {
-  .abre-chances li { grid-template-columns: 6.6rem minmax(0, 1fr) 3rem; font-size: .9rem; }
-  .abre-chances-nome .px-estrelas { display: none; }   /* no celular bem estreito, a raridade fica só com o nome e a cor */
-  .abre-acoes .px-btn { font-size: .7rem; }
-}
+@media (max-width: 360px) { .abre-acoes .px-btn { font-size: .7rem; } }
 
 /* ---------- a divulgação na página inicial ---------- */
-.lojinha { position: relative; overflow: hidden; background: #000;   /* fundo preto (pedido do dono, 2026-11-26); a página /loja segue com a noite roxa */ color: var(--lj-tinta); font-family: var(--lj-letra); }
-/* a barra do toldo, listrada de vermelho e creme, que abria a seção saiu em 2026-11-26 (pedido do dono) */
+.lojinha { position: relative; overflow: hidden; background: #000;   /* fundo preto (pedido do dono, 2026-11-26) */ color: var(--lj-tinta); font-family: var(--lj-letra); }
 .lojinha-in {
   display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: center; gap: clamp(1.5rem, 4vw, 4rem);
   width: min(100% - var(--gutter) * 2, var(--maxw)); margin-inline: auto; padding: clamp(3rem, 6vw, 5.5rem) 0;
@@ -376,9 +393,11 @@ html:has(dialog.abre[open]) { overflow: hidden; }
 .lojinha h2 { margin-bottom: 1.1rem; font: 700 clamp(2rem, 4.3vw, 3.4rem)/1.06 var(--lj-letra); color: var(--lj-ouro-claro); text-wrap: balance; }
 .lojinha-texto > p { max-width: 44ch; margin-bottom: 1.7rem; font-size: 1.125rem; line-height: 1.55; color: var(--lj-tinta-2); text-wrap: pretty; }
 .lojinha-texto > .lojinha-nota { margin: 1.3rem 0 0; font-size: .95rem; }
+/* a janela para a floresta da loja, com cinco browniezinhos no gramado (um de cada raridade) */
 .lojinha-cena {
   --b: 6px;
-  display: block; margin: calc(var(--b) * 2);
+  position: relative; display: block; margin: calc(var(--b) * 2); aspect-ratio: 16 / 10; overflow: hidden; container-type: inline-size;
+  background: url("../assets/loja/floresta.webp") 50% 74% / cover no-repeat, var(--lj-gramado); image-rendering: pixelated;
   box-shadow:
     0 calc(var(--b) * -1) 0 0 var(--lj-madeira), calc(var(--b) * -1) 0 0 0 var(--lj-madeira), var(--b) 0 0 0 var(--lj-madeira), 0 var(--b) 0 0 var(--lj-madeira),
     0 calc(var(--b) * -2) 0 0 var(--lj-contorno), calc(var(--b) * -2) 0 0 0 var(--lj-contorno), calc(var(--b) * 2) 0 0 0 var(--lj-contorno), 0 calc(var(--b) * 2) 0 0 var(--lj-contorno),
@@ -386,18 +405,35 @@ html:has(dialog.abre[open]) { overflow: hidden; }
   transition: translate .2s var(--lj-salto);
 }
 .lojinha-cena:hover { translate: 0 -4px; }
-.lojinha-cena .barraca-cena { width: max(100%, 620px); }
-/* fora da tela, os pacotes do balcão param de flutuar (o desfile de mascotes que ficava aqui saiu em 2026-11-18, a pedido do dono) */
-.lojinha.is-off .barraca-pacote img { animation-play-state: paused; }
+.lojinha-gramado { position: absolute; left: 0; right: 0; bottom: 5%; display: flex; justify-content: space-evenly; align-items: flex-end; padding: 0 2%; list-style: none; }
+.lojinha-gramado li { position: relative; display: grid; justify-items: center; width: 17%; translate: 0 calc(mod(var(--i), 2) * -9%); }
+.lojinha-gramado li::before {   /* a luz da raridade atrás de cada um */
+  content: ""; position: absolute; left: -20%; right: -20%; top: -6%; height: 70%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--cor-r) 60%, transparent), transparent);
+}
+.lojinha-gramado .masc {
+  --masc: 100%; position: relative; filter: drop-shadow(0 .5cqw 0 rgba(0, 0, 0, .45));
+  animation: lojinha-pula 2.6s steps(6) infinite; animation-delay: calc(var(--i) * -.5s);
+}
+@keyframes lojinha-pula { 50% { transform: translateY(-5%); } }
+.lojinha.is-off .lojinha-gramado .masc { animation-play-state: paused; }
+/* a etiqueta de preço embaixo de cada um */
+.lojinha-etiqueta {
+  --b: max(.25cqw, 2px);
+  position: relative; display: grid; justify-items: center; gap: .5cqw; margin-top: .6cqw; padding: .7cqw .9cqw .6cqw;
+  background: var(--lj-creme); color: #2a1505; white-space: nowrap;
+  box-shadow: 0 calc(var(--b) * -1) 0 0 #2a1505, calc(var(--b) * -1) 0 0 0 #2a1505, var(--b) 0 0 0 #2a1505, 0 var(--b) 0 0 #2a1505, 0 calc(var(--b) * 3) 0 0 rgba(0, 0, 0, .35);
+}
+.lojinha-etiqueta b { font: 700 max(1.45cqw, 10px)/1 var(--lj-letra); color: #7a3d10; }
+.lojinha-etiqueta i { font: 400 max(1.1cqw, 8px)/1 var(--lj-8bit); font-style: normal; }
+@container (max-width: 520px) { .lojinha-etiqueta b { display: none; } }
 @media (max-width: 860px) {
   .lojinha-in { grid-template-columns: minmax(0, 1fr); padding-top: 2.6rem; }
   .lojinha-cena { margin-inline: calc(var(--gutter) * -1 + var(--b) * 2); }
 }
 
-/* ---------- a conta na loja (LojaAbrir.tsx, Loja.tsx e o menu de Conta.tsx, desde 2026-11-18) ----------
+/* ---------- a conta na loja (LojaComprar.tsx, Loja.tsx e o menu de Conta.tsx, desde 2026-11-18) ----------
    Comprar pede a conta do RONDO; quem não está na conta vê o aviso e vai para a tela do RONDIN do site (/entrar). */
-.px-btn[aria-disabled="true"] { cursor: progress; --face: #e9b43a; }
-
 /* a conta no topo da loja: a foto num quadro de pixel e o @; abre o menu */
 .loja-conta { display: inline-flex; align-items: center; gap: .7rem; min-height: 44px; max-width: 55vw; padding: 0 .2rem; color: var(--lj-tinta); font: 400 .64rem/1 var(--lj-8bit); cursor: pointer; }
 .loja-conta .conta-chip-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-top: 2px; }
@@ -438,62 +474,11 @@ html:has(dialog.abre[open]) { overflow: hidden; }
 .conta-menu-loja .conta-menu-lista a, .conta-menu-loja .conta-menu-lista button { border-radius: 0; color: var(--lj-tinta); font: 600 1rem/1 var(--lj-letra); }
 .conta-menu-loja .conta-menu-lista a:hover, .conta-menu-loja .conta-menu-lista button:hover { background: rgba(255, 200, 61, .14); color: var(--lj-ouro-claro); }
 
-/* na coleção: quantos a conta tem de cada mascote */
-.loja-raridade li { position: relative; }
-.loja-qtd { position: absolute; right: 3px; bottom: 3px; padding: 3px 3px 2px; background: var(--cor-r); color: var(--lj-contorno); font: 400 .5rem/1 var(--lj-8bit); }
-
-/* na tela de compra: sem conta, o aviso; com conta, para qual conta vai; erro, demora e o "guardado" do mascote */
-.abre-sem-conta {
-  --b: 3px;
-  margin: calc(1.1rem + var(--b)) var(--b) var(--b); padding: .95rem 1rem .4rem; background: rgba(255, 200, 61, .1);
-  color: var(--lj-tinta); line-height: 1.45; text-wrap: pretty;
-  /* a moldura de pixel da loja (quatro barras), em amarelo */
-  box-shadow: 0 calc(var(--b) * -1) 0 0 rgba(255, 200, 61, .6), calc(var(--b) * -1) 0 0 0 rgba(255, 200, 61, .6), var(--b) 0 0 0 rgba(255, 200, 61, .6), 0 var(--b) 0 0 rgba(255, 200, 61, .6);
-}
-.abre-sem-conta b { color: var(--lj-ouro-claro); font-weight: 700; }
-.abre-sem-conta .abre-acoes { margin-top: .9rem; }
-/* loja fechada (até a venda abrir): o aviso e o botão "Em breve", apagado */
-.abre-em-breve {
-  --b: 3px;
-  margin: calc(1.1rem + var(--b)) var(--b) var(--b); padding: .95rem 1rem .4rem; background: rgba(203, 184, 232, .08);
-  color: var(--lj-tinta); line-height: 1.45; text-wrap: pretty;
-  box-shadow: 0 calc(var(--b) * -1) 0 0 rgba(203, 184, 232, .45), calc(var(--b) * -1) 0 0 0 rgba(203, 184, 232, .45), var(--b) 0 0 0 rgba(203, 184, 232, .45), 0 var(--b) 0 0 rgba(203, 184, 232, .45);
-}
-.abre-em-breve b { color: var(--lj-ouro-claro); font-weight: 700; }
-.abre-em-breve .abre-acoes { margin-top: .9rem; }
-.px-btn:disabled { --face: #5d5078; --luz: #75689a; --sombra: #43385a; color: #ddd3ef; cursor: not-allowed; }
-.px-btn:disabled:hover { --face: #5d5078; }
-.abre-quem { margin-top: 1rem; color: var(--lj-tinta-2); font-size: .95rem; }
-.abre-quem b { color: var(--lj-tinta); font-weight: 600; }
-.abre-quem + .abre-acoes { margin-top: .6rem; }
-.abre-erro {
-  --b: 3px;
-  margin: calc(1rem + var(--b)) var(--b) var(--b); padding: .7rem .85rem; background: rgba(224, 82, 79, .16); color: #ffc2bc; font-weight: 600; text-align: left;
-  box-shadow: 0 calc(var(--b) * -1) 0 0 #e0524f, calc(var(--b) * -1) 0 0 0 #e0524f, var(--b) 0 0 0 #e0524f, 0 var(--b) 0 0 #e0524f;
-}
-.abre-demora { margin-top: .5rem; color: var(--lj-tinta); font-weight: 600; text-shadow: 0 2px 0 var(--lj-contorno); }
-.abre-guardado {
-  --b: 3px;
-  display: inline-flex; align-items: center; gap: .6rem; margin: 1rem var(--b) 0; padding: .65rem .85rem .6rem; background: var(--lj-contorno);
-  color: #5fe08a; font: 400 .68rem/1.3 var(--lj-8bit); text-transform: uppercase; text-align: left;
-  box-shadow: 0 calc(var(--b) * -1) 0 0 #5fe08a, calc(var(--b) * -1) 0 0 0 #5fe08a, var(--b) 0 0 0 #5fe08a, 0 var(--b) 0 0 #5fe08a;
-  animation: abre-sobe .5s cubic-bezier(.2, .8, .2, 1) .66s both;
-}
-.abre-guardado svg { width: 14px; height: auto; flex: none; }
-.abre[data-fase="revelado"] .abre-acoes { animation: abre-sobe .5s cubic-bezier(.2, .8, .2, 1) .74s both; }
-
-/* ---------- o aviso de repetido e o lápis de nome (2026-11-19, pedido do dono; components/LojaExtras.tsx) ---------- */
-.loja-repetido { margin-top: .8rem; }
-.loja-repetido b { color: var(--lj-ouro-claro); font-weight: 700; }
-
-/* o lápis: um cartão de madeira com o desenho de um lado e a compra do outro */
+/* ---------- o lápis de nome (2026-11-19, pedido do dono; components/LojaExtras.tsx) ----------
+   um quadro de madeira com o desenho de um lado e a compra do outro */
 .lapis-cartao {
-  --b: 6px;
   display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 1.2rem clamp(1.2rem, 4vw, 3rem);
-  margin: calc(var(--b) * 2); padding: clamp(1.2rem, 3vw, 2.2rem); background: var(--lj-noite-2);
-  box-shadow:
-    0 calc(var(--b) * -1) 0 0 var(--lj-madeira-clara), calc(var(--b) * -1) 0 0 0 var(--lj-madeira-clara), var(--b) 0 0 0 var(--lj-madeira-clara), 0 var(--b) 0 0 var(--lj-madeira),
-    0 calc(var(--b) * -2) 0 0 var(--lj-contorno), calc(var(--b) * -2) 0 0 0 var(--lj-contorno), calc(var(--b) * 2) 0 0 0 var(--lj-contorno), 0 calc(var(--b) * 2) 0 0 var(--lj-contorno);
+  margin: 12px; padding: clamp(1.2rem, 3vw, 2.2rem);
 }
 .lapis-desenho { width: min(46vw, 11rem); height: auto; justify-self: center; filter: drop-shadow(0 6px 0 rgba(0, 0, 0, .35)); }
 .lapis-texto .loja-lead { margin-bottom: 0; }

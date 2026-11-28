@@ -5,8 +5,8 @@
    O "voltar" do navegador funciona igual, e a página principal volta no ponto em que a pessoa estava. */
 import { useSyncExternalStore } from "react";
 import heroFoto from "../assets/cenas/hero-floresta.webp";
-import tenda from "../assets/loja/tenda.webp";
-import { PACOTES } from "../data/loja";
+import floresta from "../assets/loja/floresta.webp";
+import mascotes from "../assets/loja/mascotes.webp";
 
 /* as telas do site que trocam entre si sem recarregar: a principal, a loja e a tela do RONDIN para entrar ou criar conta */
 const INTERNAS = new Set(["/", "/loja", "/entrar"]);
@@ -33,7 +33,7 @@ function marcarTroca() {
 }
 
 /* as imagens grandes de cada tela: a outra tela só aparece com elas prontas */
-const IMAGENS: Record<string, string[]> = { "/": [heroFoto], "/loja": [tenda, ...PACOTES.map((p) => p.img)] };
+const IMAGENS: Record<string, string[]> = { "/": [heroFoto], "/loja": [floresta, mascotes] };
 const carregadas = new Map<string, Promise<unknown>>();
 function carregar(src: string) {
   let pronta = carregadas.get(src);

@@ -198,8 +198,10 @@ class DadosOut(BaseModel):
 
 
 # ---------- loja de pacotinhos (rotas/loja.py) ----------
-class AbrirPacoteIn(BaseModel):
-    pacote: Literal["roxo", "prata", "ouro"]
+class ComprarMascoteIn(BaseModel):
+    """o mascote escolhido na loja: a casa dele na folha"""
+    linha: int = Field(ge=0, le=4)
+    coluna: int = Field(ge=0, le=13)
 
 
 class MascoteOut(BaseModel):
@@ -218,7 +220,7 @@ class ColecaoOut(BaseModel):
     total: int                   # quantos mascotes existem (66)
     mascotes: list[MascoteOut]   # os que a conta já tem, cada um uma vez
     pode_comprar: bool = False   # o lápis: a loja está aberta para esta conta (fechada, só o dono compra)
-    pode_abrir: bool = False     # os pacotes: a abertura está liberada (bloqueada para todas as contas até a loja abrir)
+    pode_comprar_mascote: bool = False   # a compra de mascotes está liberada (fechada para todas as contas até a loja abrir)
     escolhido: str | None = None # o mascote que a conta mostra, "linha-coluna"
     lapis: int = 0               # lápis guardados na conta (cada um dá um nome novo a um mascote)
 

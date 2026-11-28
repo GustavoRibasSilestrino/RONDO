@@ -1,7 +1,7 @@
-/* O LÁPIS da loja de pacotinhos (LojaLapis), desde 2026-11-19 (pedido do dono), no mesmo pixel art da feira: um item à venda,
-   como os pacotes. Dá um nome próprio a um browniezinho da coleção. Compra-se aqui, fica guardado na conta e é usado no app
-   (Perfil > Coleção > o lápis): a pessoa escolhe o mascote, digita o nome e confirma. Cada lápis vale um nome. Segue a regra
-   dos pacotes: pede a conta e, com a loja fechada, mostra "Em breve".
+/* O LÁPIS da loja de browniezinhos (LojaLapis), desde 2026-11-19 (pedido do dono), no mesmo pixel art da loja: um item à
+   venda, como os mascotes. Dá um nome próprio a um browniezinho da coleção. Compra-se aqui, fica guardado na conta e é usado no app
+   (Perfil > Coleção > o lápis): a pessoa escolhe o mascote, digita o nome e confirma. Cada lápis vale um nome. Pede a conta e,
+   com a loja fechada, mostra "Em breve" (só a conta do dono compra).
    (A troca de repetidos chegou a ter uma seção aqui; a pedido do dono ela ficou só no app, onde dá para achar a pessoa pela @
    ou entre quem a conta segue: app/src/telas/perfil/MascotePopups.tsx.) */
 import { useState } from "react";
@@ -72,7 +72,7 @@ export function LojaLapis({ lapis, aoComprar, podeComprar }: { lapis: number; ao
   };
 
   return (
-    <section className="loja-faixa" aria-labelledby="loja-lapis">
+    <section className="loja-prateleira" aria-labelledby="loja-lapis">
       <div className="loja-in">
         <div className="lapis-cartao">
           <LapisPixel className="lapis-desenho" />

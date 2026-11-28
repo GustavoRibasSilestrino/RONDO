@@ -1,5 +1,5 @@
 /* Cliente da API do RONDO. A URL vem de VITE_API_URL (definida em .env.production). */
-import type { PacoteId, Raridade } from "../data/loja";
+import type { Raridade } from "../data/loja";
 
 export const API = (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:8000";
 
@@ -175,14 +175,14 @@ export type AssuntoSuporte = "problema" | "conta" | "loja" | "dados" | "denuncia
 export const enviarSuporte = (d: { assunto: AssuntoSuporte; mensagem: string; email?: string; nome?: string }, token: string | null) =>
   chamar<{ status: string }>("POST", "/suporte", d, token);
 
-/* ---------- loja de pacotinhos (backend/app/rotas/loja.py) ----------
+/* ---------- loja de browniezinhos (backend/app/rotas/loja.py) ----------
    Comprar e ver a coleção pedem a conta (o token da sessão, o mesmo do app; ver lib/conta.ts). */
 export type MascoteDaConta = { linha: number; coluna: number; raridade: Raridade; quantidade: number; nome?: string | null };
 
-/* compra (abre) um pacote: o servidor sorteia o mascote e ele já vai para a conta */
-export const abrirPacote = (token: string, pacote: PacoteId) => chamar<MascoteDaConta>("POST", "/loja/abrir", { pacote }, token);
-/* a coleção e se a loja está aberta para esta conta (fechada até a venda abrir; só o dono compra, para testar) */
-export const minhaColecao = (token: string) => chamar<{ total: number; mascotes: MascoteDaConta[]; pode_comprar?: boolean; pode_abrir?: boolean; lapis?: number }>("GET", "/loja/colecao", undefined, token);
+/* compra o mascote escolhido (desde 2026-11-27 a loja vende cada um separado, sem sorteio): ele já vai para a conta */
+export const comprarMascote = (token: string, linha: number, coluna: number) => chamar<MascoteDaConta>("POST", "/loja/comprar", { linha, coluna }, token);
+/* a coleção e o que a conta pode comprar: o lápis (fechado, só o dono compra) e os mascotes (fechados para todos até a venda abrir) */
+export const minhaColecao = (token: string) => chamar<{ total: number; mascotes: MascoteDaConta[]; pode_comprar?: boolean; pode_comprar_mascote?: boolean; lapis?: number }>("GET", "/loja/colecao", undefined, token);
 
 /* o lápis (desde 2026-11-19): comprado aqui, fica guardado na conta; no app, na aba Coleção, dá um nome próprio a um mascote */
 export const comprarLapis = (token: string) => chamar<{ lapis: number }>("POST", "/loja/lapis", undefined, token);

@@ -1,6 +1,7 @@
-"""A loja de pacotinhos do site (/loja): comprar (abrir) um pacote, resgatar um código e ver a coleção de mascotes da conta.
+"""A loja de browniezinhos do site (/loja): comprar um mascote escolhido, resgatar um código e ver a coleção da conta.
 
-Comprar pede a conta do RONDO (no site, a mesma do app; quem não está na conta entra pela tela do RONDIN do site, /entrar)
+Desde 2026-11-27 a loja vende cada mascote separado, por um preço fixo da raridade (antes eram pacotes sorteados; ver
+servicos/loja.py). Comprar pede a conta do RONDO (no site, a mesma do app; quem não está na conta entra pela tela do RONDIN do site, /entrar)
 e o mascote vai direto para a coleção, como nas lojas de jogos. Por enquanto a loja é uma prévia: aqui não há pagamento e
 nada é cobrado (ver vitrine/PRODUCT.md). Quando a venda abrir, esta rota passa a exigir a compra confirmada pelo gateway.
 O resgate de código fica pronto para vales-presente e promoções (hoje ninguém gera códigos).
@@ -13,7 +14,7 @@ from sqlalchemy.orm import Session
 from app.banco import obter_sessao
 from app.deps import usuario_atual
 from app.esquemas import (
-    AbrirPacoteIn, CasaMascote, ColecaoOut, EscolherMascoteIn, LapisOut, MascoteOut, NomeMascoteIn, NomeMascoteOut, PessoaDaTroca,
+    CasaMascote, ColecaoOut, ComprarMascoteIn, EscolherMascoteIn, LapisOut, MascoteOut, NomeMascoteIn, NomeMascoteOut, PessoaDaTroca,
     RecompensaIn, RecompensaOut, RepetidosOut, ResgatarIn, TrocaIn, TrocaOut, TrocasOut, XpTreinosIn, XpTreinosOut,
 )
 from app.modelos import Troca, Usuario
@@ -27,11 +28,14 @@ def _mascote(linha: int, coluna: int, quantidade: int, nome: str | None = None, 
     return MascoteOut(linha=linha, coluna=coluna, raridade=servico_loja.RARIDADES[linha][0], quantidade=quantidade, nome=nome, xp=xp)
 
 
-@router.post("/abrir", response_model=MascoteOut, status_code=201)
-def abrir(dados: AbrirPacoteIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
-    if not servico_loja.pode_abrir():   # bloqueada para todas as contas (até a do dono) enquanto a loja não abre
+@router.post("/comprar", response_model=MascoteOut, status_code=201)
+def comprar(dados: ComprarMascoteIn, usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends(obter_sessao)):
+    if not servico_loja.pode_comprar_mascote():   # fechada para todas as contas (até a do dono) enquanto a loja não abre
         raise HTTPException(403, servico_loja.MSG_FECHADA)
-    return _mascote(*servico_loja.comprar(sessao, usuario.id, dados.pacote))
+    try:
+        return _mascote(*servico_loja.comprar_mascote(sessao, usuario.id, dados.linha, dados.coluna))
+    except servico_loja.MascoteInexistente:
+        raise HTTPException(404, "Esse browniezinho não está à venda.")
 
 
 @router.post("/resgatar", response_model=MascoteOut)
@@ -51,7 +55,7 @@ def colecao(usuario: Usuario = Depends(usuario_atual), sessao: Session = Depends
         total=servico_loja.TOTAL,
         mascotes=[_mascote(m.linha, m.coluna, m.quantidade, m.nome, m.xp) for m in servico_loja.colecao(sessao, usuario.id)],
         pode_comprar=servico_loja.pode_comprar(usuario.papel),
-        pode_abrir=servico_loja.pode_abrir(),
+        pode_comprar_mascote=servico_loja.pode_comprar_mascote(),
         escolhido=usuario.mascote,
         lapis=usuario.lapis,
     )

@@ -1,8 +1,8 @@
 /* A tela do RONDIN para entrar ou criar conta pelo site (/entrar), pedido do dono em 2026-11-18: quem quer comprar um
-   pacotinho sem estar na conta entra aqui e volta para a loja, sem ir para o app.
+   browniezinho sem estar na conta entra aqui e volta para a loja, sem ir para o app.
    O caminho segue o que os sites profissionais fazem (Baymard, NN/g, web.dev):
    - a conta só é pedida na hora da compra, e depois de entrar a pessoa volta exatamente para onde estava (`?volta=loja`),
-     com o pacote escolhido aberto de novo na loja;
+     com o mascote escolhido aberto de novo na loja;
    - "Continuar com o Google" em cima, e-mail e senha embaixo; entrar e criar conta na mesma tela, em duas abas;
    - formulários de verdade, com `autocomplete` certo para o gerenciador de senhas, botões com a ação e erros junto do campo;
    - o cadastro do site é curto (nome, e-mail, senha, nascimento e o aceite): as perguntas do RONDIN ficam para o app.

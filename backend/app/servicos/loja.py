@@ -1,13 +1,15 @@
-"""A loja de pacotinhos do site (desde 2026-11-18): o catálogo de mascotes, as chances de cada pacote, a compra e o resgate.
+"""A loja de browniezinhos do site (desde 2026-11-18): o catálogo de mascotes, o preço de cada raridade, a compra e o resgate.
 
-Como funciona: comprar um pacote pede a conta do RONDO. O servidor sorteia o mascote e ele vai direto para a coleção da
-conta (como nas lojas de jogos). Quem não está na conta entra ou cria a conta na tela do RONDIN do site e volta para a
-compra. O resgate de código (`resgatar`) fica pronto para vales-presente e promoções: um código põe um mascote na conta
-de quem o resgata, uma vez só, em até 7 dias (app/legal.py). Hoje nenhum código é gerado.
+Desde 2026-11-27 a loja vende CADA MASCOTE separado, por um preço fixo da raridade dele (pedido do dono). Antes vendia
+pacotes sorteados, que são caixas de recompensa ("loot boxes"), proibidas pelo ECA Digital (Lei 15.211/2025) em produtos
+que crianças e adolescentes provavelmente usam, e o RONDO aceita menores com autorização do responsável. Agora a pessoa
+escolhe o mascote, vê o preço e leva exatamente aquele: não há sorteio pago. O sorteio continua só nas recompensas grátis
+do app (`recompensar`, por missão e por nível).
 
-O sorteio é feito aqui, no servidor, e não no navegador: quem abre o pacote não tem como escolher o que sai.
-Os números são os mesmos que o site mostra (vitrine/src/data/loja.ts); o teste `test_chances_iguais_as_do_site` confere.
-Se mudar as chances ou a quantidade de mascotes, mude nos dois lugares."""
+Comprar pede a conta do RONDO e o mascote vai direto para a coleção dela. O resgate de código (`resgatar`) fica pronto para
+vales-presente e promoções: um código põe um mascote na conta de quem o resgata, uma vez só, em até 7 dias (app/legal.py).
+Hoje nenhum código é gerado. Os preços são os mesmos que o site mostra (vitrine/src/data/loja.ts); o teste
+`test_precos_iguais_aos_do_site` confere. Se mudar um preço ou a quantidade de mascotes, mude nos dois lugares."""
 import os
 import re
 import secrets
@@ -33,9 +35,10 @@ def pode_comprar(papel: str) -> bool:
     return ABERTA or papel == "dono"
 
 
-# A ABERTURA DOS PACOTES está bloqueada para TODAS as contas, até a do dono (pedido do dono em 2026-11-27: "bloqueie a
-# abertura dos pacotes lá no site"). Antes, com a loja fechada, o dono ainda abria para testar. Só abre com LOJA_ABERTA.
-def pode_abrir() -> bool:
+# A COMPRA DE MASCOTES está bloqueada para TODAS as contas, até a do dono (pedido do dono em 2026-11-27: "bloqueie a
+# abertura dos pacotes lá no site"; valia para os pacotes e segue valendo para a venda de cada mascote). Só abre com
+# LOJA_ABERTA, junto com o pagamento.
+def pode_comprar_mascote() -> bool:
     return ABERTA
 
 
@@ -52,12 +55,8 @@ COLUNAS: list[list[int]] = [[c for c in range(n) if (linha, c) not in TIRADOS] f
 RARIDADES: list[tuple[str, int]] = [(nome, len(COLUNAS[i])) for i, nome in enumerate(("comum", "incomum", "rara", "epica", "lendaria"))]
 TOTAL = sum(quantos for _, quantos in RARIDADES)
 
-# a chance de cada raridade em cada pacote, em milésimos (cada pacote soma 1000), na ordem de RARIDADES
-CHANCES: dict[str, tuple[int, ...]] = {
-    "roxo": (700, 220, 65, 14, 1),
-    "prata": (450, 320, 160, 60, 10),
-    "ouro": (150, 300, 330, 170, 50),
-}
+# o preço de cada mascote, pela raridade, em centavos, na ordem de RARIDADES (estimativas do dono; hoje nada é cobrado)
+PRECOS: tuple[int, ...] = (199, 299, 499, 799, 999)
 
 # o código de resgate: 10 letras e números sem os que se confundem (0 e O, 1, I e L), mostrado em dois blocos de 5
 ALFABETO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
@@ -72,15 +71,12 @@ class CodigoDeOutraConta(Exception):
     """O código já foi resgatado por outra conta."""
 
 
-def sortear(pacote: str) -> tuple[int, int]:
-    """Sorteia a raridade pela chance do pacote e, dentro dela, um mascote qualquer (todos com a mesma chance).
-    Devolve a posição na folha: (linha, coluna)."""
-    sorte = secrets.randbelow(1000)
-    for linha, peso in enumerate(CHANCES[pacote]):
-        if sorte < peso:
-            return linha, secrets.choice(COLUNAS[linha])
-        sorte -= peso
-    raise AssertionError(f"as chances do pacote {pacote} não somam 1000")
+class MascoteInexistente(Exception):
+    """Não há mascote nessa casa da folha (fora dela, ou um mascote tirado a pedido do dono)."""
+
+
+def existe(linha: int, coluna: int) -> bool:
+    return 0 <= linha < len(COLUNAS) and coluna in COLUNAS[linha]
 
 
 def novo_codigo() -> str:
@@ -106,9 +102,10 @@ def _quantos(sessao: Session, usuario_id: int, linha: int, coluna: int) -> int:
     return sessao.scalar(select(Mascote.quantidade).where(Mascote.usuario_id == usuario_id, Mascote.linha == linha, Mascote.coluna == coluna)) or 0
 
 
-def comprar(sessao: Session, usuario_id: int, pacote: str) -> tuple[int, int, int]:
-    """Abre um pacote para a conta: sorteia e guarda o mascote. Devolve (linha, coluna, quantos a conta tem dele agora)."""
-    linha, coluna = sortear(pacote)
+def comprar_mascote(sessao: Session, usuario_id: int, linha: int, coluna: int) -> tuple[int, int, int]:
+    """Compra o mascote escolhido para a conta (se já tinha, soma mais um). Devolve (linha, coluna, quantos tem agora)."""
+    if not existe(linha, coluna):
+        raise MascoteInexistente
     for _ in range(3):   # duas compras juntas da mesma conta podem criar a mesma linha: a que perder a corrida soma
         _somar(sessao, usuario_id, linha, coluna, datetime.now(timezone.utc))
         try:

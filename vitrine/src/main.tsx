@@ -8,7 +8,7 @@ import Loja from "./components/Loja";
 import { adiantar, interceptarLinks, primeiraTela, rolagemGuardada, useRota } from "./lib/navegar";
 /* fontes servidas pelo próprio site (só o alfabeto latino): nenhuma chamada ao Google, nenhum IP de visitante enviado a terceiros */
 import "@fontsource-variable/bricolage-grotesque/opsz.css";
-/* letras de pixel da loja de pacotinhos (só baixam onde são usadas) */
+/* letras de pixel da loja de browniezinhos (só baixam onde são usadas) */
 import "@fontsource-variable/pixelify-sans/index.css";
 import "@fontsource/press-start-2p/latin-400.css";
 import "@fontsource/press-start-2p/latin-ext-400.css";

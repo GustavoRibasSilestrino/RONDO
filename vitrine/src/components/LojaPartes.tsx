@@ -1,10 +1,8 @@
-/* Peças da loja de pacotinhos usadas em mais de um lugar: o mascote (um recorte da folha), as estrelas da raridade,
-   a barraca (a cena em que os pacotes ficam no balcão) e o botão da tenda que vai no cabeçalho do site.
-   O visual é o da arte do dono: feira em pixel art (ver styles/loja.css). */
-import type { ReactNode } from "react";
+/* Peças da loja de browniezinhos usadas em mais de um lugar: o mascote (um recorte da folha), as estrelas da raridade e o
+   botão da tenda que vai no cabeçalho do site. O visual é o da arte do dono, em pixel art (ver styles/loja.css).
+   (A barraca com os três pacotes no balcão saiu em 2026-11-27, quando a loja passou a vender cada mascote separado.) */
 import tendaIcone from "../assets/loja/tenda-icone.webp";
-import tenda from "../assets/loja/tenda.webp";
-import { FOLHA, PACOTES, preco, type Pacote } from "../data/loja";
+import { FOLHA } from "../data/loja";
 import { vars } from "../lib/util";
 
 export const LOJA = "/loja";
@@ -29,52 +27,10 @@ export function Estrelas({ n }: { n: number }) {
   );
 }
 
-/* A barraca. Os três pacotes ficam em pé no balcão; com `aoEscolher`, cada pacote é um botão que abre a tela de compra
-   (na página da loja). Sem ele, é só a vitrine (na divulgação da página inicial, onde a cena inteira é um link).
-   As posições são frações da imagem da tenda (1672 x 941): o balcão está a 71% da altura e a placa de cima vai de 31% a 69%. */
-const NOME_CURTO: Record<Pacote["id"], string> = { roxo: "Roxo", prata: "Prata", ouro: "Ouro" };
-
-export function Barraca({ aoEscolher, placa }: { aoEscolher?: (p: Pacote) => void; placa: ReactNode }) {
-  return (
-    <div className="barraca">
-      <div className="barraca-cena">
-        <img className="barraca-fundo" src={tenda} alt="" width={1672} height={941} fetchPriority={aoEscolher ? "high" : "auto"} loading={aoEscolher ? "eager" : "lazy"} />
-        {placa}
-        <ul className="barraca-balcao">
-          {PACOTES.map((p, i) => {
-            const [e, , d, b] = p.caixa;
-            const estilo = vars({
-              "--x": `${36 + i * 14}%`,
-              "--w": `${(11.5 / (d - e)).toFixed(2)}cqw`,
-              "--cx": `${(((e + d) / 2) * 100).toFixed(2)}%`,          // o meio do pacote dentro da imagem
-              "--folga": `${((1 - b) * 100).toFixed(2)}%`,              // a sobra de brilho abaixo do pacote
-              "--base": `${(b * 100).toFixed(2)}%`,
-              "--i": i,
-            });
-            const miolo = (
-              <>
-                <img src={p.img} alt="" width={p.largura} height={p.altura} />
-                <span className="barraca-etiqueta" aria-hidden="true"><b>{NOME_CURTO[p.id]}</b><i>{preco(p.centavos)}</i></span>
-              </>
-            );
-            return (
-              <li key={p.id} style={estilo}>
-                {aoEscolher
-                  ? <button type="button" className="barraca-pacote" onClick={() => aoEscolher(p)} aria-label={`${p.nome}, ${preco(p.centavos)}. Ver as chances e comprar`}>{miolo}</button>
-                  : <span className="barraca-pacote">{miolo}</span>}
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
 /* O botão da loja no cabeçalho: a mini tenda, com faíscas amarelas subindo o tempo todo (paradas para quem pede menos movimento) */
 export function TendaBotao({ comNome = false, className = "" }: { comNome?: boolean; className?: string }) {
   return (
-    <a className={`tenda-btn ${className}`.trim()} href={LOJA} aria-label="Loja de pacotinhos">
+    <a className={`tenda-btn ${className}`.trim()} href={LOJA} aria-label="Loja de browniezinhos">
       <span className="tenda-btn-icone" aria-hidden="true">
         <img src={tendaIcone} alt="" width={384} height={350} decoding="async" />
         {Array.from({ length: 7 }, (_, i) => <i key={i} style={vars({ "--i": i })} />)}

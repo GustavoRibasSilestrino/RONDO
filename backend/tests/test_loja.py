@@ -41,8 +41,9 @@ def _conta(cliente, email="ana@x.com"):
     return {"Authorization": f"Bearer {r.json()['token']}"}
 
 
-def _comprar(cliente, h, pacote="ouro"):
-    r = cliente.post("/loja/abrir", json={"pacote": pacote}, headers=h)
+def _comprar(cliente, h, linha=4, coluna=3):
+    """compra um mascote escolhido (por padrão o Browdivino, lendário)"""
+    r = cliente.post("/loja/comprar", json={"linha": linha, "coluna": coluna}, headers=h)
     assert r.status_code == 201, r.text
     return r.json()
 
@@ -57,52 +58,58 @@ def _codigo(linha=2, coluna=5, dias=0) -> str:
 
 
 def test_comprar_pede_conta(cliente):
-    assert cliente.post("/loja/abrir", json={"pacote": "roxo"}).status_code == 401
+    assert cliente.post("/loja/comprar", json={"linha": 0, "coluna": 0}).status_code == 401
     assert cliente.post("/loja/resgatar", json={"codigo": "ABCDE-FGHJK"}).status_code == 401
     assert cliente.get("/loja/colecao").status_code == 401
 
 
-def test_loja_fechada_ninguem_abre_pacote(cliente, monkeypatch):
-    """Sem pagamento, ninguém pode ganhar mascote de graça: a loja fechada recusa a abertura de pacote para todas as contas,
-    até a do dono (desde 2026-11-27; antes o dono abria para testar), e avisa o site. O lápis o dono ainda compra."""
+def test_loja_fechada_ninguem_compra_mascote(cliente, monkeypatch):
+    """Sem pagamento, ninguém pode ganhar mascote de graça: a loja fechada recusa a compra para todas as contas, até a do
+    dono (desde 2026-11-27; antes o dono comprava para testar), e avisa o site. O lápis o dono ainda compra."""
     monkeypatch.setattr(loja, "ABERTA", False)
     ana, dono = _conta(cliente), _conta(cliente, "dono@x.com")
     with Sessao() as s:
         s.query(Usuario).filter(Usuario.email == "dono@x.com").update({"papel": "dono"})
         s.commit()
     for h in (ana, dono):
-        r = cliente.post("/loja/abrir", json={"pacote": "ouro"}, headers=h)
+        r = cliente.post("/loja/comprar", json={"linha": 2, "coluna": 5}, headers=h)
         assert r.status_code == 403 and "em breve" in r.json()["detail"]
-    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 57, "mascotes": [], "pode_comprar": False, "pode_abrir": False, "escolhido": None, "lapis": 0}
+    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 57, "mascotes": [], "pode_comprar": False, "pode_comprar_mascote": False, "escolhido": None, "lapis": 0}
     do_dono = cliente.get("/loja/colecao", headers=dono).json()
-    assert do_dono["pode_abrir"] is False and do_dono["pode_comprar"] is True
+    assert do_dono["pode_comprar_mascote"] is False and do_dono["pode_comprar"] is True
     with Sessao() as s:
         assert s.query(Mascote).count() == 0   # ninguém ganhou mascote
     monkeypatch.setattr(loja, "ABERTA", True)   # com a loja aberta, abre
-    assert cliente.get("/loja/colecao", headers=ana).json()["pode_abrir"] is True
+    assert cliente.get("/loja/colecao", headers=ana).json()["pode_comprar_mascote"] is True
     assert _comprar(cliente, ana)["quantidade"] == 1
 
 
-def test_pacote_que_nao_existe(cliente):
+def test_mascote_que_nao_existe(cliente):
+    """fora da folha, uma casa vazia ou um mascote tirado: não está à venda"""
     h = _conta(cliente)
-    assert cliente.post("/loja/abrir", json={"pacote": "diamante"}, headers=h).status_code == 422
-    assert cliente.post("/loja/abrir", json={}, headers=h).status_code == 422
+    assert cliente.post("/loja/comprar", json={"linha": 1, "coluna": 6}, headers=h).status_code == 404   # o Browdiabinho, tirado
+    assert cliente.post("/loja/comprar", json={"linha": 4, "coluna": 9}, headers=h).status_code == 404   # casa vazia dos lendários
+    assert cliente.post("/loja/comprar", json={"linha": 5, "coluna": 0}, headers=h).status_code == 422
+    assert cliente.post("/loja/comprar", json={}, headers=h).status_code == 422
+    with Sessao() as s:
+        assert s.query(Mascote).count() == 0
 
 
-def test_a_compra_vai_direto_para_a_conta(cliente):
+def test_a_compra_leva_exatamente_o_escolhido(cliente):
+    """sem sorteio: o mascote que vai para a conta é o que a pessoa escolheu"""
     h = _conta(cliente)
-    comprados = [_comprar(cliente, h, p) for p in ("roxo", "prata", "ouro") * 5]
-    for m in comprados:
-        assert 0 <= m["linha"] < 5 and m["coluna"] in loja.COLUNAS[m["linha"]]
-        assert m["raridade"] == loja.RARIDADES[m["linha"]][0]
+    escolhidos = [(0, 0), (1, 13), (2, 4), (3, 11), (4, 6)]
+    for linha, coluna in escolhidos:
+        m = _comprar(cliente, h, linha, coluna)
+        assert (m["linha"], m["coluna"]) == (linha, coluna)
+        assert m["raridade"] == loja.RARIDADES[linha][0] and m["quantidade"] == 1
     col = cliente.get("/loja/colecao", headers=h).json()
     assert col["total"] == 57
-    assert sum(m["quantidade"] for m in col["mascotes"]) == 15
-    assert {(m["linha"], m["coluna"]) for m in col["mascotes"]} == {(m["linha"], m["coluna"]) for m in comprados}
+    assert {(m["linha"], m["coluna"]) for m in col["mascotes"]} == set(escolhidos)
+    assert col["escolhido"] == "0-0"   # o primeiro mascote da conta vira o que ela mostra
 
 
-def test_mascote_repetido_soma_na_mesma_linha(cliente, monkeypatch):
-    monkeypatch.setattr(loja, "sortear", lambda pacote: (4, 3))
+def test_mascote_repetido_soma_na_mesma_linha(cliente):
     h = _conta(cliente)
     assert _comprar(cliente, h)["quantidade"] == 1
     assert _comprar(cliente, h) == {"linha": 4, "coluna": 3, "raridade": "lendaria", "quantidade": 2, "nome": None, "xp": 0}
@@ -155,28 +162,22 @@ def test_exportar_e_apagar_a_conta_levam_os_mascotes(cliente):
         assert s.query(Resgate).count() == 0
 
 
-def test_chances_do_sorteio():
+def test_catalogo_e_precos():
     assert loja.TOTAL == 57
     assert loja.RARIDADES[0] == ("comum", 12)
     assert loja.RARIDADES[1] == ("incomum", 13)
     assert loja.RARIDADES[2] == ("rara", 13)
     assert loja.RARIDADES[3] == ("epica", 11)
     assert loja.RARIDADES[4] == ("lendaria", 8)
-    for pacote, chances in loja.CHANCES.items():
-        assert sum(chances) == 1000, pacote
-        assert len(chances) == len(loja.RARIDADES)
-    n = 20_000
-    roxo = Counter(loja.sortear("roxo")[0] for _ in range(n))
-    ouro = Counter(loja.sortear("ouro")[0] for _ in range(n))
-    assert roxo[4] < 70                 # 0,1%: uns 20 em 20 mil
-    assert 800 < ouro[4] < 1200         # 5%: uns 1000 em 20 mil
-    assert 13_400 < roxo[0] < 14_600    # 70% de comuns no roxo
+    # um preço por raridade, subindo do comum ao lendário
+    assert len(loja.PRECOS) == len(loja.RARIDADES)
+    assert list(loja.PRECOS) == sorted(set(loja.PRECOS))
 
 
 def test_mascote_tirado_nao_sai_nem_aparece(cliente, monkeypatch):
-    """O Browdiabinho (1-6), o Browinferno (3-5) e o Browdemônio (4-10) foram tirados: o sorteio nunca dá eles, a coleção não mostra e ninguém
-    escolhe eles."""
-    assert all(loja.sortear("ouro") not in ((1, 6), (3, 5), (4, 10)) for _ in range(3000))
+    """O Browdiabinho (1-6), o Browinferno (3-5) e o Browdemônio (4-10) foram tirados: a loja não vende eles, a coleção não
+    mostra e ninguém escolhe eles."""
+    assert not any(loja.existe(l, c) for l, c in ((1, 6), (3, 5), (4, 10)))
     assert 6 not in loja.COLUNAS[1] and 13 in loja.COLUNAS[1]
     assert 5 not in loja.COLUNAS[3] and 13 in loja.COLUNAS[3]
     assert 10 not in loja.COLUNAS[4] and 7 in loja.COLUNAS[4]
@@ -197,20 +198,17 @@ def test_mascote_tirado_nao_sai_nem_aparece(cliente, monkeypatch):
         assert loja.escolher_mascote(s, s.query(Usuario).one(), 4, 10) is False
 
 
-def test_chances_iguais_as_do_site():
-    """O site mostra as chances ao lado de cada pacote: elas têm de ser as mesmas que o servidor usa no sorteio."""
+def test_precos_iguais_aos_do_site():
+    """O site mostra o preço de cada raridade: ele tem de ser o mesmo que o servidor usa (e a quantidade de mascotes também)."""
     site = Path(__file__).resolve().parents[2] / "vitrine" / "src" / "data" / "loja.ts"
     if not site.exists():
         pytest.skip("sem a pasta do site ao lado")
     texto = site.read_text(encoding="utf-8")
-    ordem = [r for r, _ in loja.RARIDADES]
-    for pacote, chances in loja.CHANCES.items():
-        bloco = re.search(rf'id:\s*"{pacote}".*?chances:\s*\{{([^}}]*)\}}', texto, re.S)
-        assert bloco, pacote
-        lido = {k: int(v) for k, v in re.findall(r"(\w+):\s*(\d+)", bloco.group(1))}
-        assert tuple(lido[r] for r in ordem) == chances, pacote
-    quantos = [int(q) for q in re.findall(r"quantos:\s*(\d+)", texto)]
-    assert quantos == [q for _, q in loja.RARIDADES]
+    for (raridade, quantos), centavos in zip(loja.RARIDADES, loja.PRECOS):
+        linha = re.search(rf'id:\s*"{raridade}"[^\n]*', texto)
+        assert linha, raridade
+        assert re.search(rf"quantos:\s*{quantos}\b", linha.group(0)), raridade
+        assert re.search(rf"centavos:\s*{centavos}\b", linha.group(0)), raridade
 
 
 # ---------- brownies de recompensa (no lugar das medalhas, desde 2026-11-19) ----------

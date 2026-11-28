@@ -10,14 +10,14 @@ import { CONTATO } from "./Legal";
 import { Btn, Reveal } from "./ui";
 
 const ROTULOS: Record<AssuntoSuporte, string> = {
-  problema: "Algo não funciona", conta: "Conta e acesso", loja: "Loja de pacotinhos", dados: "Seus dados",
+  problema: "Algo não funciona", conta: "Conta e acesso", loja: "Loja de browniezinhos", dados: "Seus dados",
   denuncia: "Denúncia", sugestao: "Sugestão", reclamacao: "Reclamação", outro: "Outro assunto",
 };
 /* o que ajuda a equipe a resolver mais rápido, em cada assunto */
 const DICAS: Record<AssuntoSuporte, string> = {
   problema: "Conte o que aconteceu, onde (app, site ou loja) e em qual celular ou computador.",
   conta: "Conte o que está acontecendo com a sua conta (sem senha, nunca).",
-  loja: "Conte a sua dúvida sobre a loja, os pacotinhos ou os browniezinhos.",
+  loja: "Conte a sua dúvida sobre a loja ou os browniezinhos.",
   dados: "Conte o que você quer saber, corrigir ou apagar dos seus dados.",
   denuncia: "Conte o que você quer denunciar: o @, o link ou o que aconteceu.",
   sugestao: "Conte a sua ideia: o que você gostaria de ver no RONDO?",
@@ -48,8 +48,8 @@ const CARTOES: Cartao[] = [
     acoes: [{ rotulo: "Sugerir", assunto: "sugestao" }, { rotulo: "Reclamar", assunto: "reclamacao" }],
   },
   {
-    titulo: "Loja de pacotinhos",
-    texto: "Dúvidas sobre os pacotinhos, os browniezinhos da sua coleção ou a abertura da loja.",
+    titulo: "Loja de browniezinhos",
+    texto: "Dúvidas sobre os browniezinhos à venda, os da sua coleção ou a abertura da loja.",
     icone: '<path d="M4 9h16l-1 11H5z"/><path d="M8 9a4 4 0 0 1 8 0"/>',
     acoes: [{ rotulo: "Falar da loja", assunto: "loja" }],
   },

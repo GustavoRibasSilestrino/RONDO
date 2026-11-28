@@ -92,9 +92,9 @@ function Privacidade() {
         <li>Fotos que você escolheu mas não publicou.</li>
         <li>A imagem da câmera na análise da execução. O vídeo é analisado no próprio aparelho, quadro a quadro, e não é gravado nem enviado a ninguém. Para a análise funcionar, o aparelho baixa uma vez o programa que reconhece o corpo, do jsDelivr (cdn.jsdelivr.net) e do Google (storage.googleapis.com); esses serviços recebem o seu endereço de internet nesse download, como em qualquer página.</li>
       </ul>
-      <h3>Na loja de pacotinhos (site)</h3>
+      <h3>Na loja de browniezinhos (site)</h3>
       <p>
-        Comprar um pacote pede a sua conta do RONDO: o mascote vai direto para ela, e o servidor guarda quais mascotes a
+        Comprar um browniezinho pede a sua conta do RONDO: o mascote vai direto para ela, e o servidor guarda quais mascotes a
         conta tem, quantos e quando chegaram. Por enquanto a loja está fechada para compras. A música e os sons da loja são
         gerados no próprio navegador; a escolha de ligar ou desligar o som fica guardada nele. Se um dia houver códigos de resgate (vale-presente ou promoção), o código
         resgatado fica ligado à sua conta. Hoje a loja é uma prévia e não cobra nada; quando houver pagamento, esta política
