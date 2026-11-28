@@ -15,7 +15,7 @@ import { SITE } from './Login';
 function Caixa({ marcada, aoMudar, children, rotulo }: { marcada: boolean; aoMudar: () => void; children: React.ReactNode; rotulo: string }) {
   return (
     <Pressable accessibilityRole="checkbox" accessibilityLabel={rotulo} {...({ 'aria-checked': marcada } as object)} accessibilityState={{ checked: marcada }} onPress={aoMudar} style={st.caixaLinha}>
-      <View style={[st.caixa, marcada && st.caixaMarcada]}>{marcada ? <Icone nome="ok" tamanho={14} cor="#ffffff" espessura={2.4} /> : null}</View>
+      <View style={[st.caixa, marcada && st.caixaMarcada]}>{marcada ? <Icone nome="ok" tamanho={14} cor="#0a0a0a" espessura={2.4} /> : null}</View>
       <View style={{ flex: 1 }}>{children}</View>
     </Pressable>
   );

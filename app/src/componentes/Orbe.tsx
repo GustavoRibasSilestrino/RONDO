@@ -69,7 +69,7 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
       const o = i * CAMPOS;
       if (saida[o + 5] !== passe) continue;
       if (passe === 1 && saida[o + 3] > 0.5) {
-        bolinhas.push(<Circle key={`b${i}`} cx={saida[o]} cy={saida[o + 1]} r={saida[o + 2] * 1.25 * 2.6} fill="#1fb054" opacity={Math.min(0.3, (saida[o + 3] - 0.5) * 0.6)} />);
+        bolinhas.push(<Circle key={`b${i}`} cx={saida[o]} cy={saida[o + 1]} r={saida[o + 2] * 1.25 * 2.6} fill="#15803d" opacity={Math.min(0.3, (saida[o + 3] - 0.5) * 0.6)} />);
       }
       bolinhas.push(
         <Circle key={i} cx={saida[o]} cy={saida[o + 1]} r={Math.max(0.4, saida[o + 2] * 1.25)} fill={corDoPonto(saida[o + 4], saida[o + 3])} opacity={saida[o + 3]} />,
@@ -82,9 +82,9 @@ export function Orbe({ tamanho, estado, hud, aoPressionar, rotulo }: Props) {
     <>
       <Defs>
         <RadialGradient id="halo-rondin" cx="50%" cy="50%" r="50%">
-          <Stop offset="0" stopColor="#1fb054" stopOpacity={Math.min(0.62, 0.34 + 0.22 * a)} />
-          <Stop offset="0.45" stopColor="#157739" stopOpacity={(0.34 + 0.22 * a) * 0.42} />
-          <Stop offset="1" stopColor="#0f5428" stopOpacity="0" />
+          <Stop offset="0" stopColor="#15803d" stopOpacity={Math.min(0.5, (0.34 + 0.22 * a) * 0.85)} />
+          <Stop offset="0.45" stopColor="#14532d" stopOpacity={(0.34 + 0.22 * a) * 0.32} />
+          <Stop offset="1" stopColor="#052e16" stopOpacity="0" />
         </RadialGradient>
       </Defs>
       <Circle cx={c} cy={c} r={c} fill="url(#halo-rondin)" />

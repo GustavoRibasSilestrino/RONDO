@@ -43,7 +43,7 @@ const html = `<!doctype html>
       #carregando { position: fixed; inset: 0; z-index: 2147483000; background: #000; display: flex; align-items: center; justify-content: center; transition: opacity 260ms ease-out; }
       #carregando.saindo { opacity: 0; pointer-events: none; }
       #carregando .orbe { position: relative; width: min(80vw, 46vh, 380px); aspect-ratio: 1; margin-top: -9vh; }
-      #carregando .orbe::before { content: ""; position: absolute; inset: -6%; border-radius: 50%; background: radial-gradient(circle, rgba(168,110,255,0.34) 0%, rgba(124,58,237,0.14) 38%, rgba(76,29,149,0) 66%); animation: respira 2.4s ease-in-out infinite; }
+      #carregando .orbe::before { content: ""; position: absolute; inset: -6%; border-radius: 50%; background: radial-gradient(circle, rgba(21,128,61,0.3) 0%, rgba(20,83,45,0.12) 38%, rgba(5,46,22,0) 66%); animation: respira 2.4s ease-in-out infinite; }
       #carregando svg { position: relative; width: 100%; height: 100%; animation: gira 2.4s ease-in-out infinite; }
       @keyframes respira { 0%, 100% { opacity: 0.75; transform: scale(0.97); } 50% { opacity: 1; transform: scale(1.03); } }
       @keyframes gira { 0%, 100% { transform: scale(0.985); } 50% { transform: scale(1.015); } }

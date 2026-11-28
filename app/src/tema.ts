@@ -39,19 +39,21 @@ export const escuro: Paleta = {
   texto: '#f2f2f2',
   texto2: '#c5c5c5',   // 10:1 sobre o cartão
   texto3: '#9a9a9a',   // 6:1 sobre o cartão: legendas e ícones apagados
-  /* o RONDIN é verde (desde 2026-11-26): os destaques das telas dele são verdes */
+  /* o RONDIN é verde (desde 2026-11-26), mas desde 2026-11-27 (pedido do dono: "as caixas em preto e branco ao invés de verde...
+     somente o rondin verde") só a esfera dele é verde: as caixas das perguntas, os destaques, os links e os botões das telas
+     dele são preto e branco */
   violeta: '#16a34a',
   violetaEscuro: '#052e16',
   destaque: '#22c55e',
-  destaqueForte: VERDE.botao, /* leva texto branco (5:1) */
-  destaque2: '#86efac', /* verde-claro para as palavras em destaque na fala dele, links e números (13:1 sobre o cartão) */
+  destaqueForte: '#f2f2f2', /* a opção marcada e as caixas cheias: branco, leva texto escuro */
+  destaque2: '#ffffff', /* as palavras em destaque na fala dele, links e números (antes verde-claro) */
   acao: VERDE.botao,
   bom: '#3ddc97',
   alerta: '#ff9a5c',
   erro: '#ff6b81',
   branco: '#ffffff',
   placeholder: 'rgba(197,197,197,0.55)',
-  tom: '34,197,94',
+  tom: '255,255,255',   // o véu das caixas e o anel do campo em foco: branco (antes o verde 34,197,94)
   painel: '#0f0f0f',
   aviso: '#181818',
   barra: 'rgba(15,15,15,0.97)',   // quase opaca: dispensa o desfoque, que pesa ao rolar

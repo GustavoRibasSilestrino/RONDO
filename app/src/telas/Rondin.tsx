@@ -105,6 +105,8 @@ export function Legenda({ largo, texto, chave, taxa, duracaoMs, indiceVoz, compl
   );
 }
 
+const TINTA = '#0a0a0a';   // o texto sobre a caixa branca (a opção marcada)
+
 /* ---------- uma opção para tocar ---------- */
 function Pilula({ opcao, marcada, aoPressionar, tecla }: { opcao: Opcao; marcada?: boolean; aoPressionar: () => void; tecla?: number }) {
   return (
@@ -113,10 +115,11 @@ function Pilula({ opcao, marcada, aoPressionar, tecla }: { opcao: Opcao; marcada
       onPress={aoPressionar}
       style={({ pressed, hovered }: { pressed: boolean; hovered?: boolean }) => [st.pilula, hovered && !marcada && st.pilulaSobre, marcada && st.pilulaMarcada, pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] }]}
     >
-      {tecla ? <View style={[st.tecla, marcada && { borderColor: 'rgba(255,255,255,0.5)' }]}><T tam={10.5} peso="500" cor={marcada ? cores.branco : cores.destaque2}>{tecla}</T></View> : null}
+      {/* marcada, a caixa fica branca e o texto escuro (preto e branco, desde 2026-11-27) */}
+      {tecla ? <View style={[st.tecla, marcada && { borderColor: 'rgba(10,10,10,0.35)' }]}><T tam={10.5} peso="500" cor={marcada ? TINTA : cores.destaque2}>{tecla}</T></View> : null}
       <View style={{ flexShrink: 1 }}>
-        <T tam={14} peso="500" cor={marcada ? cores.branco : cores.texto}>{opcao.rotulo}</T>
-        {opcao.nota ? <T tam={11.5} cor={marcada ? 'rgba(255,255,255,0.85)' : cores.texto3} style={{ marginTop: 1 }}>{opcao.nota}</T> : null}
+        <T tam={14} peso="500" cor={marcada ? TINTA : cores.texto}>{opcao.rotulo}</T>
+        {opcao.nota ? <T tam={11.5} cor={marcada ? 'rgba(10,10,10,0.72)' : cores.texto3} style={{ marginTop: 1 }}>{opcao.nota}</T> : null}
       </View>
     </Pressable>
   );
@@ -685,7 +688,7 @@ const st = estilos(() => StyleSheet.create({
     backgroundColor: `rgba(${cores.tom},0.07)`, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, maxWidth: '100%',
   },
   pilulaSobre: { ...CINZA_SOBRE },   // o cursor em cima: só o cinza, sem brilho (pedido do dono, 2026-11-16)
-  pilulaMarcada: { backgroundColor: cores.destaqueForte, borderColor: cores.destaque2, boxShadow: '0 0 18px -6px rgba(34,197,94,0.95)' },
+  pilulaMarcada: { backgroundColor: cores.destaqueForte, borderColor: cores.destaque2, boxShadow: '0 0 18px -8px rgba(255,255,255,0.55)' },
   tecla: { width: 20, height: 20, borderRadius: 5, borderWidth: 1, borderColor: 'rgba(182,182,182,0.4)', alignItems: 'center', justifyContent: 'center' },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, width: '100%', maxWidth: 400, alignSelf: 'center' },
   cartaoIdioma: {

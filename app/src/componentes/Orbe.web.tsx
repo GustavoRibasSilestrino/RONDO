@@ -84,9 +84,9 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
     const cc = carimbo.getContext('2d');
     if (cc) {
       const g = cc.createRadialGradient(32, 32, 0, 32, 32, 32);
-      g.addColorStop(0, 'rgba(137,234,173,0.9)');
-      g.addColorStop(0.25, 'rgba(31,176,84,0.35)');
-      g.addColorStop(1, 'rgba(21,119,57,0)');
+      g.addColorStop(0, 'rgba(34,197,94,0.8)');   // o verde mais escuro (2026-11-27; antes começava no verde-claro 137,234,173)
+      g.addColorStop(0.25, 'rgba(21,128,61,0.32)');
+      g.addColorStop(1, 'rgba(20,83,45,0)');
       cc.fillStyle = g;
       cc.fillRect(0, 0, 64, 64);
     }
@@ -116,7 +116,7 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
       document.documentElement.addEventListener('pointerleave', aoSairDaJanela);
     }
 
-    const lilas = (a: number) => `rgba(37,209,100,${a.toFixed(3)})`;
+    const lilas = (a: number) => `rgba(22,163,74,${a.toFixed(3)})`;
     const arco = (r: number, de: number, ate: number, cor: string, larg: number) => {
       ctx.strokeStyle = cor; ctx.lineWidth = larg;
       ctx.beginPath(); ctx.arc(c, c, r, de, ate); ctx.stroke();
@@ -178,9 +178,9 @@ export function Orbe({ tamanho, estado, hud, pulso, aoPressionar, rotulo }: Prop
       if (hud) {
         const forca = 0.34 + 0.22 * amp + 0.12 * brilho;   // sem respirar sozinha: só cresce com a voz e o cursor
         const halo = ctx.createRadialGradient(c, c, R * 0.2, c, c, tamanho * 0.5);
-        halo.addColorStop(0, `rgba(31,176,84,${Math.min(0.62, forca).toFixed(3)})`);
-        halo.addColorStop(0.45, `rgba(21,118,56,${(forca * 0.42).toFixed(3)})`);
-        halo.addColorStop(1, 'rgba(15,84,40,0)');
+        halo.addColorStop(0, `rgba(21,128,61,${Math.min(0.5, forca * 0.85).toFixed(3)})`);
+        halo.addColorStop(0.45, `rgba(20,83,45,${(forca * 0.32).toFixed(3)})`);
+        halo.addColorStop(1, 'rgba(5,46,22,0)');
         ctx.fillStyle = halo;
         ctx.fillRect(0, 0, tamanho, tamanho);
       }

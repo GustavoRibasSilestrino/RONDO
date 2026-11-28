@@ -79,9 +79,10 @@ export function quadro(pts: Pontos, t: number, amp: number, R: number, cx: numbe
   }
 }
 
-/* o RONDIN é verde (desde 2026-11-26, pedido do dono; antes era lilás e roxo): mistura o verde vivo e o verde-claro conforme o
-   brilho, e vai ao branco nos pontos mais fortes */
+/* o RONDIN é verde (desde 2026-11-26, pedido do dono; antes era lilás e roxo): mistura um verde fechado e um verde vivo conforme
+   o brilho, e clareia um pouco nos pontos mais fortes. Desde 2026-11-27 o verde é mais ESCURO (pedido do dono: "não quero tão
+   claro como estão"): antes ia do verde vivo #22c55e ao verde-claro #a7f3bf e chegava quase ao branco nos pontos acesos */
 export function corDoPonto(branco: number, luz: number): string {
-  const mistura = (de: number, claro: number) => Math.min(255, Math.round(de + (claro - de) * luz + (255 - claro) * branco));
-  return `rgb(${mistura(34, 167)},${mistura(197, 243)},${mistura(94, 191)})`;
+  const mistura = (de: number, claro: number) => Math.min(255, Math.round(de + (claro - de) * luz + (255 - claro) * branco * 0.2));
+  return `rgb(${mistura(21, 34)},${mistura(128, 197)},${mistura(61, 94)})`;
 }

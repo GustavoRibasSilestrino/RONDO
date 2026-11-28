@@ -95,7 +95,7 @@ export function RecuperarSenha({ idioma = 'pt', emailInicial, aoVoltar, aoConclu
             </Pressable>
           ) : <View style={st.voltar} />}
 
-          <View style={st.iconeGrande}><Icone nome={passo === 'pronto' ? 'ok' : passo === 'codigo' ? 'email' : 'cadeado'} tamanho={32} cor="#ffffff" /></View>
+          <View style={st.iconeGrande}><Icone nome={passo === 'pronto' ? 'ok' : passo === 'codigo' ? 'email' : 'cadeado'} tamanho={32} cor="#0a0a0a" /></View>
 
           {passo === 'email' ? (
             <>
