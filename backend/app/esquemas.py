@@ -217,7 +217,8 @@ class MascoteOut(BaseModel):
 class ColecaoOut(BaseModel):
     total: int                   # quantos mascotes existem (66)
     mascotes: list[MascoteOut]   # os que a conta já tem, cada um uma vez
-    pode_comprar: bool = False   # a loja está aberta para esta conta (fechada, só o dono compra)
+    pode_comprar: bool = False   # o lápis: a loja está aberta para esta conta (fechada, só o dono compra)
+    pode_abrir: bool = False     # os pacotes: a abertura está liberada (bloqueada para todas as contas até a loja abrir)
     escolhido: str | None = None # o mascote que a conta mostra, "linha-coluna"
     lapis: int = 0               # lápis guardados na conta (cada um dá um nome novo a um mascote)
 

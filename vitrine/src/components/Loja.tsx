@@ -18,15 +18,18 @@ import { Barraca, Estrelas, Mascote } from "./LojaPartes";
 import { Nome } from "./ui";
 
 /* a coleção da conta: chave do mascote -> quantos ela tem (vem do servidor; cada compra soma aqui na hora). Vem junto se a
-   loja está aberta para esta conta: fechada (até a venda abrir), a compra mostra "Em breve" (null = ainda não se sabe) */
+   loja está aberta para esta conta: fechada (até a venda abrir), a compra mostra "Em breve" (null = ainda não se sabe).
+   São duas respostas: podeComprar (o lápis: fechada, só o dono compra) e podeAbrir (os pacotes: desde 2026-11-27 a
+   abertura está bloqueada para todas as contas, até a do dono, pedido dele; sem a resposta do servidor, fica bloqueada) */
 function useColecao() {
   const { token } = useConta();
   const [colecao, setColecao] = useState<Map<string, number>>(() => new Map());
   const [nomes, setNomes] = useState<Map<string, string>>(() => new Map());   // os nomes próprios, dados com o lápis no app
   const [podeComprar, setPodeComprar] = useState<boolean | null>(null);
+  const [podeAbrir, setPodeAbrir] = useState<boolean | null>(null);
   const [lapis, setLapis] = useState(0);
   useEffect(() => {
-    if (!token) { setColecao(new Map()); setNomes(new Map()); setPodeComprar(null); setLapis(0); return; }
+    if (!token) { setColecao(new Map()); setNomes(new Map()); setPodeComprar(null); setPodeAbrir(null); setLapis(0); return; }
     let vale = true;
     minhaColecao(token)
       .then((c) => {
@@ -34,13 +37,14 @@ function useColecao() {
         setColecao(new Map(c.mascotes.map((m) => [chaveDe(m.linha, m.coluna), m.quantidade])));
         setNomes(new Map(c.mascotes.flatMap((m) => (m.nome ? [[chaveDe(m.linha, m.coluna), m.nome] as [string, string]] : []))));
         setPodeComprar(c.pode_comprar ?? true);
+        setPodeAbrir(c.pode_abrir ?? false);
         setLapis(c.lapis ?? 0);
       })
       .catch((e: { status?: number }) => { if (vale && e.status === 401) contaRecusada(); });
     return () => { vale = false; };
   }, [token]);
   const somar = useCallback((m: MascoteDaConta) => setColecao((c) => new Map(c).set(chaveDe(m.linha, m.coluna), m.quantidade)), []);
-  return { colecao, nomes, somar, podeComprar, lapis, setLapis };
+  return { colecao, nomes, somar, podeComprar, podeAbrir, lapis, setLapis };
 }
 
 /* no topo da loja: a conta (com o menu de abrir o app e sair) ou um "Entrar" discreto, para quem quer entrar antes de
@@ -88,7 +92,7 @@ export default function Loja() {
   const [escolhido, setEscolhido] = useState<Pacote | null>(null);
   const fechar = useCallback(() => setEscolhido(null), []);
   const { conta } = useConta();
-  const { colecao, nomes, somar, podeComprar, lapis, setLapis } = useColecao();
+  const { colecao, nomes, somar, podeComprar, podeAbrir, lapis, setLapis } = useColecao();
   useEffect(() => { document.title = "Loja de pacotinhos · RONDO"; }, []);
 
   /* de volta da tela de entrar: o pacote que a pessoa ia comprar abre de novo, já com a conta (se ela voltou sem entrar,
@@ -203,7 +207,7 @@ export default function Loja() {
         <p><a href="/">Voltar ao site</a><a href="/termos">Termos de Uso</a><a href="/privacidade">Privacidade</a></p>
       </footer>
 
-      <LojaAbrir pacote={escolhido} aoFechar={fechar} aoGuardar={somar} podeComprar={podeComprar} />
+      <LojaAbrir pacote={escolhido} aoFechar={fechar} aoGuardar={somar} podeComprar={podeAbrir} />
     </div>
   );
 }

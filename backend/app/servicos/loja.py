@@ -29,7 +29,14 @@ MSG_FECHADA = "A loja abre em breve. Por enquanto as compras estão fechadas."
 
 
 def pode_comprar(papel: str) -> bool:
+    """o lápis: com a loja fechada, só o dono compra"""
     return ABERTA or papel == "dono"
+
+
+# A ABERTURA DOS PACOTES está bloqueada para TODAS as contas, até a do dono (pedido do dono em 2026-11-27: "bloqueie a
+# abertura dos pacotes lá no site"). Antes, com a loja fechada, o dono ainda abria para testar. Só abre com LOJA_ABERTA.
+def pode_abrir() -> bool:
+    return ABERTA
 
 
 # A folha de mascotes tem 13 casas na linha dos comuns e 14 em cada outra. Um mascote tirado (a pedido do dono) sai do

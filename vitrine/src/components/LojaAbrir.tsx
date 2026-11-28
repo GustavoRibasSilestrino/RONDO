@@ -68,8 +68,8 @@ function Chances({ pacote }: { pacote: Pacote }) {
 
 const CERTO = "M7 1h1v1H7zM6 2h1v1H6zM5 3h1v1H5zM4 4h1v1H4zM3 5h1v1H3zM2 4h1v1H2zM1 3h1v1H1z";
 
-/* `podeComprar`: a loja está aberta para esta conta (false = fechada até a venda abrir, só o dono compra; null = ainda não
-   se sabe, e o servidor confere na compra) */
+/* `podeComprar`: a abertura do pacote está liberada (false = bloqueada até a venda abrir, para todas as contas, até a do
+   dono, desde 2026-11-27; null = ainda não se sabe, e o servidor confere na compra). Vem de podeAbrir, em Loja.tsx. */
 export function LojaAbrir({ pacote, aoFechar, aoGuardar, podeComprar = null }: { pacote: Pacote | null; aoFechar: () => void; aoGuardar: (m: MascoteDaConta) => void; podeComprar?: boolean | null }) {
   const [recusada, setRecusada] = useState(false);   // o servidor disse que a loja está fechada
   const fechada = podeComprar === false || recusada;

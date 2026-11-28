@@ -62,20 +62,25 @@ def test_comprar_pede_conta(cliente):
     assert cliente.get("/loja/colecao").status_code == 401
 
 
-def test_loja_fechada_so_o_dono_compra(cliente, monkeypatch):
-    """Sem pagamento, ninguém pode ganhar mascote de graça: a loja fechada recusa a compra e avisa o site; o dono testa."""
+def test_loja_fechada_ninguem_abre_pacote(cliente, monkeypatch):
+    """Sem pagamento, ninguém pode ganhar mascote de graça: a loja fechada recusa a abertura de pacote para todas as contas,
+    até a do dono (desde 2026-11-27; antes o dono abria para testar), e avisa o site. O lápis o dono ainda compra."""
     monkeypatch.setattr(loja, "ABERTA", False)
     ana, dono = _conta(cliente), _conta(cliente, "dono@x.com")
     with Sessao() as s:
         s.query(Usuario).filter(Usuario.email == "dono@x.com").update({"papel": "dono"})
         s.commit()
-    r = cliente.post("/loja/abrir", json={"pacote": "ouro"}, headers=ana)
-    assert r.status_code == 403 and "em breve" in r.json()["detail"]
-    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 57, "mascotes": [], "pode_comprar": False, "escolhido": None, "lapis": 0}
-    assert cliente.get("/loja/colecao", headers=dono).json()["pode_comprar"] is True
-    assert _comprar(cliente, dono)["quantidade"] == 1
+    for h in (ana, dono):
+        r = cliente.post("/loja/abrir", json={"pacote": "ouro"}, headers=h)
+        assert r.status_code == 403 and "em breve" in r.json()["detail"]
+    assert cliente.get("/loja/colecao", headers=ana).json() == {"total": 57, "mascotes": [], "pode_comprar": False, "pode_abrir": False, "escolhido": None, "lapis": 0}
+    do_dono = cliente.get("/loja/colecao", headers=dono).json()
+    assert do_dono["pode_abrir"] is False and do_dono["pode_comprar"] is True
     with Sessao() as s:
-        assert s.query(Mascote).count() == 1   # só a do dono
+        assert s.query(Mascote).count() == 0   # ninguém ganhou mascote
+    monkeypatch.setattr(loja, "ABERTA", True)   # com a loja aberta, abre
+    assert cliente.get("/loja/colecao", headers=ana).json()["pode_abrir"] is True
+    assert _comprar(cliente, ana)["quantidade"] == 1
 
 
 def test_pacote_que_nao_existe(cliente):

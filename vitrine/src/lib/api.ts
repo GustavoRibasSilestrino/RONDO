@@ -182,7 +182,7 @@ export type MascoteDaConta = { linha: number; coluna: number; raridade: Raridade
 /* compra (abre) um pacote: o servidor sorteia o mascote e ele já vai para a conta */
 export const abrirPacote = (token: string, pacote: PacoteId) => chamar<MascoteDaConta>("POST", "/loja/abrir", { pacote }, token);
 /* a coleção e se a loja está aberta para esta conta (fechada até a venda abrir; só o dono compra, para testar) */
-export const minhaColecao = (token: string) => chamar<{ total: number; mascotes: MascoteDaConta[]; pode_comprar?: boolean; lapis?: number }>("GET", "/loja/colecao", undefined, token);
+export const minhaColecao = (token: string) => chamar<{ total: number; mascotes: MascoteDaConta[]; pode_comprar?: boolean; pode_abrir?: boolean; lapis?: number }>("GET", "/loja/colecao", undefined, token);
 
 /* o lápis (desde 2026-11-19): comprado aqui, fica guardado na conta; no app, na aba Coleção, dá um nome próprio a um mascote */
 export const comprarLapis = (token: string) => chamar<{ lapis: number }>("POST", "/loja/lapis", undefined, token);
