@@ -4,7 +4,7 @@
    Desde 2026-11-27 a loja vende CADA MASCOTE separado, por um preço fixo da raridade (pedido do dono). Antes vendia pacotes
    sorteados, que são caixas de recompensa ("loot boxes"), proibidas pelo ECA Digital em produtos que menores provavelmente
    usam (backend/app/servicos/loja.py explica). Agora a pessoa escolhe, vê o preço e leva exatamente aquele.
-   Os preços são estimativas "bem acessíveis" do dono, ainda sem pagamento de verdade: hoje a compra está fechada e nada é
+   Os preços são estimativas do dono (em 2026-11-28 ele pediu cada um "um pouco mais caro"), ainda sem pagamento de verdade: hoje a compra está fechada e nada é
    cobrado (ver PRODUCT.md). Comprar exige a conta do RONDO (a mesma do app), e o mascote fica guardado nela. O servidor usa
    estes mesmos preços (PRECOS em backend/app/servicos/loja.py); um teste de lá confere que os números batem. */
 export type Raridade = "comum" | "incomum" | "rara" | "epica" | "lendaria";
@@ -12,11 +12,11 @@ export type Raridade = "comum" | "incomum" | "rara" | "epica" | "lendaria";
 /* a ordem é a das linhas da folha de mascotes (assets/loja/mascotes.webp): comum em cima, lendária embaixo.
    `centavos`: o preço de cada mascote da raridade. Cada raridade fica numa linha só (o teste do servidor lê assim). */
 export const RARIDADES: { id: Raridade; nome: string; estrelas: number; quantos: number; centavos: number }[] = [
-  { id: "comum", nome: "Comum", estrelas: 1, quantos: 12, centavos: 199 },   // 13 casas, uma vazia (o Browpolicial saiu)
-  { id: "incomum", nome: "Incomum", estrelas: 2, quantos: 13, centavos: 299 },   // 14 casas, uma vazia (o Browdiabinho saiu)
-  { id: "rara", nome: "Rara", estrelas: 3, quantos: 13, centavos: 499 },   // 14 casas, uma vazia (o Browgelo saiu)
-  { id: "epica", nome: "Épica", estrelas: 4, quantos: 11, centavos: 799 },   // 14 casas, três vazias (o Browinferno, o Browcosmonauta e o Browmagma saíram)
-  { id: "lendaria", nome: "Lendária", estrelas: 5, quantos: 8, centavos: 999 },   // 14 casas, seis vazias (o Browdemônio, o Browglacial, o Browdiamante, o Browciber, o Browglitch e o Browsombra saíram)
+  { id: "comum", nome: "Comum", estrelas: 1, quantos: 12, centavos: 299 },   // 13 casas, uma vazia (o Browpolicial saiu)
+  { id: "incomum", nome: "Incomum", estrelas: 2, quantos: 13, centavos: 399 },   // 14 casas, uma vazia (o Browdiabinho saiu)
+  { id: "rara", nome: "Rara", estrelas: 3, quantos: 13, centavos: 599 },   // 14 casas, uma vazia (o Browgelo saiu)
+  { id: "epica", nome: "Épica", estrelas: 4, quantos: 11, centavos: 999 },   // 14 casas, três vazias (o Browinferno, o Browcosmonauta e o Browmagma saíram)
+  { id: "lendaria", nome: "Lendária", estrelas: 5, quantos: 8, centavos: 1299 },   // 14 casas, seis vazias (o Browdemônio, o Browglacial, o Browdiamante, o Browciber, o Browglitch e o Browsombra saíram)
 ];
 /* a folha tem 14 colunas por 5 linhas de células iguais (proporção 160 x 176); a linha dos comuns tem 13. Desde 2026-11-25
    cada mascote é o retrato do modelo 3D (brand/mascotes-voxel/exportar_todos.py), e a folha é montada por

@@ -56,7 +56,7 @@ RARIDADES: list[tuple[str, int]] = [(nome, len(COLUNAS[i])) for i, nome in enume
 TOTAL = sum(quantos for _, quantos in RARIDADES)
 
 # o preço de cada mascote, pela raridade, em centavos, na ordem de RARIDADES (estimativas do dono; hoje nada é cobrado)
-PRECOS: tuple[int, ...] = (199, 299, 499, 799, 999)
+PRECOS: tuple[int, ...] = (299, 399, 599, 999, 1299)   # subiram em 2026-11-28 (antes 199, 299, 499, 799 e 999)
 
 # o código de resgate: 10 letras e números sem os que se confundem (0 e O, 1, I e L), mostrado em dois blocos de 5
 ALFABETO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ"
